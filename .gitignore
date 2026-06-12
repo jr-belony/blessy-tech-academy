@@ -1,0 +1,16 @@
+# Fichiers Python compilés
+__pycache__/
+*.pyc
+
+# Environnements virtuels
+venv/
+env/
+
+# Fichiers de configuration sensibles
+.env
+
+# Données générées par les mini-projets (Leçon 8)
+inscriptions.json
+inscriptions.csv
+*/classe.json
+*/formation.json
