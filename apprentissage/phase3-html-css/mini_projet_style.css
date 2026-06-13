@@ -1,0 +1,278 @@
+/* ====================================
+   RESET
+==================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ====================================
+   VARIABLES BTA
+==================================== */
+
+:root {
+
+    --bleu: #0057b8;
+
+    --cyan: #00d4ff;
+
+    --orange: #ff7b00;
+
+    --gris: #f4f6f9;
+
+    --texte: #333333;
+}
+
+/* ====================================
+   GÉNÉRAL
+==================================== */
+
+body {
+
+    font-family: Arial, sans-serif;
+
+    line-height: 1.6;
+
+    color: var(--texte);
+
+    background-color: var(--gris);
+}
+
+/* ====================================
+   HEADER
+==================================== */
+
+header {
+
+    background: var(--bleu);
+
+    color: white;
+
+    padding: 20px;
+}
+
+header h1 {
+
+    text-align: center;
+
+    margin-bottom: 15px;
+}
+
+nav {
+
+    display: flex;
+
+    justify-content: center;
+
+    gap: 25px;
+}
+
+nav a {
+
+    color: white;
+
+    text-decoration: none;
+
+    font-weight: bold;
+}
+
+nav a:hover {
+
+    color: var(--cyan);
+}
+
+/* ====================================
+   SECTIONS
+==================================== */
+
+section {
+
+    max-width: 1200px;
+
+    margin: 40px auto;
+
+    padding: 30px;
+}
+
+section h2 {
+
+    color: var(--bleu);
+
+    margin-bottom: 15px;
+}
+
+/* ====================================
+   ACCUEIL
+==================================== */
+
+#accueil {
+
+    background: white;
+
+    border-radius: 12px;
+
+    box-shadow: 0 5px 15px rgba(0,0,0,.08);
+}
+
+/* ====================================
+   À PROPOS
+==================================== */
+
+#apropos {
+
+    background: linear-gradient(
+        135deg,
+        #0057b8,
+        #00d4ff
+    );
+
+    color: white;
+
+    border-radius: 12px;
+}
+
+#apropos h2 {
+
+    color: white;
+}
+
+/* ====================================
+   FORMATIONS
+==================================== */
+
+#formations {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(auto-fit, minmax(250px, 1fr));
+
+    gap: 20px;
+}
+
+article {
+
+    background: white;
+
+    padding: 20px;
+
+    border-radius: 12px;
+
+    box-shadow: 0 5px 15px rgba(0,0,0,.08);
+}
+
+article h3 {
+
+    color: var(--bleu);
+
+    margin-bottom: 10px;
+}
+
+article ul {
+
+    margin-top: 10px;
+
+    padding-left: 20px;
+}
+
+/* ====================================
+   BOUTON
+==================================== */
+
+.btn {
+
+    display: inline-block;
+
+    background: var(--orange);
+
+    color: white;
+
+    text-decoration: none;
+
+    padding: 12px 24px;
+
+    border-radius: 8px;
+
+    margin-top: 15px;
+
+    font-weight: bold;
+}
+
+.btn:hover {
+
+    background: #e56d00;
+}
+
+/* ====================================
+   FORMULAIRE
+==================================== */
+
+form {
+
+    background: white;
+
+    padding: 25px;
+
+    border-radius: 12px;
+
+    box-shadow: 0 5px 15px rgba(0,0,0,.08);
+}
+
+input,
+select,
+textarea {
+
+    width: 100%;
+
+    padding: 12px;
+
+    margin-top: 5px;
+
+    margin-bottom: 15px;
+
+    border: 1px solid #ccc;
+
+    border-radius: 6px;
+}
+
+button {
+
+    background: var(--bleu);
+
+    color: white;
+
+    border: none;
+
+    padding: 12px 24px;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+}
+
+button:hover {
+
+    background: #00489a;
+}
+
+/* ====================================
+   FOOTER
+==================================== */
+
+footer {
+
+    background: #111;
+
+    color: white;
+
+    text-align: center;
+
+    padding: 20px;
+}
+
+footer a {
+
+    color: var(--cyan);
+}

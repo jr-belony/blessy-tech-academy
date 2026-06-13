@@ -1,0 +1,24 @@
+/* ====================================
+   Reset Box Model
+==================================== */
+
+* {
+    box-sizing: border-box;
+}
+
+/* ====================================
+   Boîtes
+==================================== */
+
+.boite {
+    width: 200px;
+    padding: 20px;
+    border: 2px solid #0066cc;
+    border-radius: 10px;
+    margin: 10px;
+    background-color: #eeeeee;
+}
+
+.boite:nth-child(2) {
+    background-color: #ffd6a5;
+}

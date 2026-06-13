@@ -1,0 +1,26 @@
+body {
+    background: #f5f7fa;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+.conteneur {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(auto-fit, minmax(200px, 1fr));
+
+    gap: 20px;
+}
+
+.carte {
+
+    background: white;
+
+    padding: 20px;
+
+    border-radius: 10px;
+
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
