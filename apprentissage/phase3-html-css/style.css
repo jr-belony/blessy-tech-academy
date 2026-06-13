@@ -203,17 +203,14 @@ footer a {
 
         width: 100%;
 
-        background: var(--bleu);
+        background: var(--bleu-principal);
 
         flex-direction: column;
 
         padding: 20px;
     }
 
-    #menu-toggle:checked + .menu-burger + nav {
-
-        display: flex;
-    }
+    #menu-toggle:checked + .menu-burger + nav {display: flex;}
 
     section {
 
