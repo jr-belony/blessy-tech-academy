@@ -1,3 +1,4 @@
+# Fonctionnalite developpee sur une branche dediee
 def calculer_moyenne(notes):
     return sum(notes.values()) / len(notes)
 
