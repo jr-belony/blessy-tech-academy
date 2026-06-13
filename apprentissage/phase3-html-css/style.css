@@ -155,3 +155,116 @@ footer {
 footer a {
     color: var(--bleu-electrique);
 }
+
+/* ====================================
+   RESPONSIVE DESIGN
+==================================== */
+
+#menu-toggle {
+
+    display: none;
+}
+
+.menu-burger {
+
+    display: none;
+
+    font-size: 32px;
+
+    cursor: pointer;
+
+    color: white;
+}
+
+
+/* Tablette et mobile */
+
+@media (max-width: 768px) {
+
+    header {
+
+        position: relative;
+    }
+
+    .menu-burger {
+
+        display: block;
+    }
+
+    nav {
+
+        display: none;
+
+        position: absolute;
+
+        top: 100%;
+
+        left: 0;
+
+        width: 100%;
+
+        background: var(--bleu);
+
+        flex-direction: column;
+
+        padding: 20px;
+    }
+
+    #menu-toggle:checked + .menu-burger + nav {
+
+        display: flex;
+    }
+
+    section {
+
+        padding: 20px;
+    }
+
+    h1 {
+
+        font-size: 1.8rem;
+    }
+
+    h2 {
+
+        font-size: 1.4rem;
+    }
+
+    article {
+
+        padding: 15px;
+    }
+
+    .btn {
+
+        width: 100%;
+
+        text-align: center;
+    }
+}
+
+
+/* Très petits mobiles */
+
+@media (max-width: 480px) {
+
+    body {
+
+        font-size: 14px;
+    }
+
+    h1 {
+
+        font-size: 1.5rem;
+    }
+
+    h2 {
+
+        font-size: 1.2rem;
+    }
+
+    section {
+
+        margin: 20px auto;
+    }
+}

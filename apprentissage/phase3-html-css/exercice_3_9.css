@@ -1,0 +1,36 @@
+body {
+
+    font-family: Arial, sans-serif;
+
+    padding: 20px;
+}
+
+div {
+
+    color: white;
+
+    padding: 20px;
+
+    margin-bottom: 15px;
+}
+
+.fixe {
+
+    width: 400px;
+
+    background: #0057b8;
+}
+
+.relatif {
+
+    width: 80%;
+
+    background: #ff7b00;
+}
+
+.viewport {
+
+    width: 80vw;
+
+    background: #00bcd4;
+}

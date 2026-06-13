@@ -1,0 +1,35 @@
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+}
+
+.bloc {
+
+    background: #0057b8;
+
+    color: white;
+
+    padding: 40px;
+
+    font-size: 24px;
+
+    border-radius: 10px;
+
+    text-align: center;
+}
+
+
+/* Mobile */
+
+@media (max-width: 600px) {
+
+    .bloc {
+
+        padding: 15px;
+
+        font-size: 16px;
+
+        background: orange;
+    }
+
+}
