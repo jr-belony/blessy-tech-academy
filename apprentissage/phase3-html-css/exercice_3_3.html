@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact</title>
+</head>
+<body>
+
+<h1>Contactez-nous</h1>
+
+<form>
+
+    <label for="contact-nom">Nom complet :</label><br>
+    <input type="text" id="contact-nom" name="nom" required>
+    <br><br>
+
+    <label for="contact-email">Email :</label><br>
+    <input type="email" id="contact-email" name="email" required>
+    <br><br>
+
+    <label for="contact-telephone">Téléphone :</label><br>
+    <input type="tel" id="contact-telephone" name="telephone">
+    <br><br>
+
+    <label for="contact-sujet">Sujet :</label><br>
+
+    <select id="contact-sujet" name="sujet">
+        <option value="question">Question formation</option>
+        <option value="inscription">Inscription</option>
+        <option value="autre">Autre</option>
+    </select>
+
+    <br><br>
+
+    <label for="contact-message">Message :</label><br>
+
+    <textarea id="contact-message" name="message" rows="5" cols="40"></textarea>
+
+    <br><br>
+
+    <input type="checkbox" id="contact-accord" name="accord">
+
+    <label for="contact-accord">
+        J'accepte d'être recontacté
+    </label>
+
+    <br><br>
+
+    <button type="submit">
+        Envoyer
+    </button>
+
+</form>
+
+</body>
+</html>
