@@ -15,100 +15,27 @@
 
     <div class="formations-grille">
 
-        <article class="carte-formation">
-            <div class="carte-icone">🐍</div>
-            <h3>Python & Django</h3>
-            <p>Applications web complètes de A à Z.</p>
-            <ul>
-                <li>Python Fondamental</li>
-                <li>Django & Base de données</li>
-                <li>Déploiement en production</li>
-            </ul>
-            <div class="carte-meta">
-                <span class="duree">⏱ 6 mois</span>
-                <span class="prix">300 USD</span>
-            </div>
-            <a href="{% url 'contact' %}" class="btn btn-principal"
-               style="text-align:center; margin-top:8px;">
-                S'inscrire
-            </a>
-        </article>
-
-        <article class="carte-formation">
-            <div class="carte-icone">🎨</div>
-            <h3>Design Web (HTML, CSS & JS)</h3>
-            <p>Interfaces modernes et responsives.</p>
-            <ul>
-                <li>HTML5 & CSS3</li>
-                <li>Flexbox & Grid</li>
-                <li>JavaScript interactif</li>
-            </ul>
-            <div class="carte-meta">
-                <span class="duree">⏱ 4 mois</span>
-                <span class="prix">200 USD</span>
-            </div>
-            <a href="{% url 'contact' %}" class="btn btn-principal"
-               style="text-align:center; margin-top:8px;">
-                S'inscrire
-            </a>
-        </article>
-
-        <article class="carte-formation">
-            <div class="carte-icone">🤖</div>
-            <h3>Intelligence Artificielle</h3>
-            <p>Outils IA pour automatiser et innover.</p>
-            <ul>
-                <li>ChatGPT, Claude, Gemini</li>
-                <li>Automatisation IA</li>
-                <li>Projets IA appliqués</li>
-            </ul>
-            <div class="carte-meta">
-                <span class="duree">⏱ 4 mois</span>
-                <span class="prix">250 USD</span>
-            </div>
-            <a href="{% url 'contact' %}" class="btn btn-principal"
-               style="text-align:center; margin-top:8px;">
-                S'inscrire
-            </a>
-        </article>
-
-        <article class="carte-formation">
-            <div class="carte-icone">🖥️</div>
-            <h3>Maintenance Informatique</h3>
-            <p>Diagnostique et répare les systèmes.</p>
-            <ul>
-                <li>Hardware & Logiciels</li>
-                <li>Réseaux & Sécurité</li>
-                <li>Support technique</li>
-            </ul>
-            <div class="carte-meta">
-                <span class="duree">⏱ 6 mois</span>
-                <span class="prix">300 USD</span>
-            </div>
-            <a href="{% url 'contact' %}" class="btn btn-principal"
-               style="text-align:center; margin-top:8px;">
-                S'inscrire
-            </a>
-        </article>
-
-        <article class="carte-formation">
-            <div class="carte-icone">📊</div>
-            <h3>Bureautique Professionnelle</h3>
-            <p>Word, Excel, PowerPoint et outils IA.</p>
-            <ul>
-                <li>Microsoft Office complet</li>
-                <li>Google Workspace</li>
-                <li>Outils IA bureautiques</li>
-            </ul>
-            <div class="carte-meta">
-                <span class="duree">⏱ 3 mois</span>
-                <span class="prix">150 USD</span>
-            </div>
-            <a href="{% url 'contact' %}" class="btn btn-principal"
-               style="text-align:center; margin-top:8px;">
-                S'inscrire
-            </a>
-        </article>
+        {% for formation in formations %}
+            <article class="carte-formation">
+                <div class="carte-icone">{{ formation.icone }}</div>
+                <h3>{{ formation.nom }}</h3>
+                <p>{{ formation.description }}</p>
+                <div class="carte-meta">
+                    <span class="duree">⏱ {{ formation.duree_mois }} mois</span>
+                    <span class="prix">{{ formation.prix }} USD</span>
+                </div>
+                <a href="{% url 'contact' %}" class="btn btn-principal"
+                   style="text-align:center; margin-top:8px;">
+                    S'inscrire
+                </a>
+            </article>
+        {% empty %}
+            <p style="text-align:center; color: var(--gris-texte);
+                      padding: 40px;">
+                Aucune formation disponible pour le moment.
+                Revenez bientôt !
+            </p>
+        {% endfor %}
 
     </div>
 </section>
