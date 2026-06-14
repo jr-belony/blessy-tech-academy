@@ -1,0 +1,29 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f7fa;
+    padding: 50px;
+}
+
+.carte {
+
+    width: 300px;
+
+    background: white;
+
+    padding: 20px;
+
+    border-radius: 12px;
+
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.carte:hover {
+
+    transform: translateY(-10px);
+
+    box-shadow: 0 12px 25px rgba(0,0,0,0.2);
+}

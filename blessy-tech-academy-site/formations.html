@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blessy Tech Academy — Formations</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ========== HEADER ========== -->
+    <header>
+        <div class="header-logo">
+            <span class="logo-icon">⚡</span>
+            <span class="logo-texte">Blessy Tech Academy</span>
+        </div>
+
+        <input type="checkbox" id="menu-toggle">
+        <label for="menu-toggle" class="menu-burger">☰</label>
+
+        <nav>
+            <a href="index.html">Accueil</a>
+            <a href="formations.html" class="actif">Formations</a>
+            <a href="apropos.html">À propos</a>
+            <a href="contact.html">Contact</a>
+        </nav>
+    </header>
+
+    <!-- ========== PAGE HERO ========== -->
+    <section class="page-hero">
+        <h2>Nos Formations</h2>
+        <p>
+            Des parcours concrets, construits par des professionnels,
+            pour te rendre employable rapidement.
+        </p>
+    </section>
+
+    <!-- ========== TABLEAU RÉCAPITULATIF ========== -->
+    <section style="background: var(--blanc); padding: 60px 40px;">
+        <h2 style="text-align:center; color:var(--bleu-principal);
+                   font-size:28px; margin-bottom:32px;">
+            Vue d'ensemble
+        </h2>
+
+        <div style="max-width: 900px; margin: 0 auto; overflow-x: auto;">
+            <table class="tableau-formations">
+                <thead>
+                    <tr>
+                        <th>Formation</th>
+                        <th>Durée</th>
+                        <th>Prix</th>
+                        <th>Niveau</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>🐍 Développement Python & Django</td>
+                        <td>6 mois</td>
+                        <td style="color:var(--orange-accent); font-weight:700;">
+                            300 USD
+                        </td>
+                        <td>Débutant → Intermédiaire</td>
+                    </tr>
+                    <tr>
+                        <td>🎨 Design Web (HTML, CSS & JS)</td>
+                        <td>4 mois</td>
+                        <td style="color:var(--orange-accent); font-weight:700;">
+                            200 USD
+                        </td>
+                        <td>Débutant</td>
+                    </tr>
+                    <tr>
+                        <td>🤖 Intelligence Artificielle</td>
+                        <td>4 mois</td>
+                        <td style="color:var(--orange-accent); font-weight:700;">
+                            250 USD
+                        </td>
+                        <td>Débutant → Avancé</td>
+                    </tr>
+                    <tr>
+                        <td>🖥️ Maintenance Informatique</td>
+                        <td>6 mois</td>
+                        <td style="color:var(--orange-accent); font-weight:700;">
+                            300 USD
+                        </td>
+                        <td>Débutant</td>
+                    </tr>
+                    <tr>
+                        <td>📊 Bureautique Professionnelle</td>
+                        <td>3 mois</td>
+                        <td style="color:var(--orange-accent); font-weight:700;">
+                            150 USD
+                        </td>
+                        <td>Débutant</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ========== DÉTAIL DES FORMATIONS ========== -->
+    <section class="apercu-formations">
+        <h2>Détail des formations</h2>
+        <p class="sous-titre">
+            Clique sur une formation pour voir son programme complet.
+        </p>
+
+        <div class="formations-grille">
+
+            <!-- Python & Django -->
+            <article class="carte-formation">
+                <div class="carte-icone">🐍</div>
+                <h3>Développement Python & Django</h3>
+                <p>
+                    Apprends à créer des applications web complètes,
+                    de la base de données jusqu'au déploiement en production.
+                </p>
+                <ul>
+                    <li>Python Fondamental (variables, fonctions, POO)</li>
+                    <li>Git & GitHub (versioning professionnel)</li>
+                    <li>HTML, CSS & JavaScript</li>
+                    <li>Django (modèles, vues, templates)</li>
+                    <li>Base de données PostgreSQL</li>
+                    <li>Déploiement sur serveur Linux</li>
+                </ul>
+                <div class="carte-meta">
+                    <span class="duree">⏱ 6 mois</span>
+                    <span class="prix">300 USD</span>
+                </div>
+                <a href="contact.html" class="btn btn-principal"
+                   style="text-align:center; margin-top: 8px;">
+                    S'inscrire
+                </a>
+            </article>
+
+            <!-- Design Web -->
+            <article class="carte-formation">
+                <div class="carte-icone">🎨</div>
+                <h3>Design Web (HTML, CSS & JS)</h3>
+                <p>
+                    Maîtrise les technologies front-end et crée des interfaces
+                    modernes, responsives et animées.
+                </p>
+                <ul>
+                    <li>HTML5 sémantique</li>
+                    <li>CSS3, Flexbox & Grid</li>
+                    <li>Responsive Design</li>
+                    <li>Animations CSS</li>
+                    <li>JavaScript interactif</li>
+                    <li>Projet final : site web complet</li>
+                </ul>
+                <div class="carte-meta">
+                    <span class="duree">⏱ 4 mois</span>
+                    <span class="prix">200 USD</span>
+                </div>
+                <a href="contact.html" class="btn btn-principal"
+                   style="text-align:center; margin-top: 8px;">
+                    S'inscrire
+                </a>
+            </article>
+
+            <!-- Intelligence Artificielle -->
+            <article class="carte-formation">
+                <div class="carte-icone">🤖</div>
+                <h3>Intelligence Artificielle</h3>
+                <p>
+                    Exploite les outils IA modernes pour automatiser des tâches,
+                    créer des chatbots et analyser des données.
+                </p>
+                <ul>
+                    <li>Introduction à l'IA et au Machine Learning</li>
+                    <li>ChatGPT, Claude AI & Gemini</li>
+                    <li>Automatisation de workflows</li>
+                    <li>Création de chatbots</li>
+                    <li>Analyse de données avec Python</li>
+                    <li>Projets IA appliqués aux entreprises</li>
+                </ul>
+                <div class="carte-meta">
+                    <span class="duree">⏱ 4 mois</span>
+                    <span class="prix">250 USD</span>
+                </div>
+                <a href="contact.html" class="btn btn-principal"
+                   style="text-align:center; margin-top: 8px;">
+                    S'inscrire
+                </a>
+            </article>
+
+            <!-- Maintenance -->
+            <article class="carte-formation">
+                <div class="carte-icone">🖥️</div>
+                <h3>Maintenance Informatique</h3>
+                <p>
+                    Diagnostique, répare et entretiens les systèmes
+                    informatiques de A à Z.
+                </p>
+                <ul>
+                    <li>Architecture des ordinateurs (hardware)</li>
+                    <li>Installation & configuration Windows/Linux</li>
+                    <li>Réseaux locaux & Internet</li>
+                    <li>Sécurité informatique</li>
+                    <li>Support technique professionnel</li>
+                    <li>Gestion d'un parc informatique</li>
+                </ul>
+                <div class="carte-meta">
+                    <span class="duree">⏱ 6 mois</span>
+                    <span class="prix">300 USD</span>
+                </div>
+                <a href="contact.html" class="btn btn-principal"
+                   style="text-align:center; margin-top: 8px;">
+                    S'inscrire
+                </a>
+            </article>
+
+            <!-- Bureautique -->
+            <article class="carte-formation">
+                <div class="carte-icone">📊</div>
+                <h3>Bureautique Professionnelle</h3>
+                <p>
+                    Maîtrise les outils bureautiques modernes et augmente
+                    ta productivité au travail.
+                </p>
+                <ul>
+                    <li>Microsoft Word avancé</li>
+                    <li>Excel & tableaux de bord</li>
+                    <li>PowerPoint & présentations pro</li>
+                    <li>Google Workspace</li>
+                    <li>Outils IA bureautiques (Copilot...)</li>
+                    <li>Projet : rapport professionnel complet</li>
+                </ul>
+                <div class="carte-meta">
+                    <span class="duree">⏱ 3 mois</span>
+                    <span class="prix">150 USD</span>
+                </div>
+                <a href="contact.html" class="btn btn-principal"
+                   style="text-align:center; margin-top: 8px;">
+                    S'inscrire
+                </a>
+            </article>
+
+        </div>
+    </section>
+
+    <!-- ========== CTA ========== -->
+    <section class="cta">
+        <h2>Une question sur nos formations ?</h2>
+        <p>Notre équipe est disponible pour t'accompagner dans ton choix.</p>
+        <a href="contact.html" class="btn btn-principal">
+            Nous contacter
+        </a>
+    </section>
+
+    <!-- ========== FOOTER ========== -->
+    <footer>
+        <div class="footer-contenu">
+            <div class="footer-bloc">
+                <h4>⚡ Blessy Tech Academy</h4>
+                <p>L'école de la haute technologie moderne d'Haïti.</p>
+            </div>
+            <div class="footer-bloc">
+                <h4>Navigation</h4>
+                <ul>
+                    <li><a href="index.html">Accueil</a></li>
+                    <li><a href="formations.html">Formations</a></li>
+                    <li><a href="apropos.html">À propos</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-bloc">
+                <h4>Contact</h4>
+                <p>📧 contact@blessyconnect.com</p>
+                <p>📍 Haïti & Diaspora</p>
+            </div>
+        </div>
+        <div class="footer-bas">
+            <p>&copy; 2026 Blessy Tech Academy — Tous droits réservés</p>
+        </div>
+    </footer>
+
+</body>
+</html>
