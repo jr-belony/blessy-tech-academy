@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blessy Tech Academy — Contact</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ========== HEADER ========== -->
+    <header>
+        <div class="header-logo">
+            <span class="logo-icon">⚡</span>
+            <span class="logo-texte">Blessy Tech Academy</span>
+        </div>
+
+        <input type="checkbox" id="menu-toggle">
+        <label for="menu-toggle" class="menu-burger">☰</label>
+
+        <nav>
+            <a href="index.html">Accueil</a>
+            <a href="formations.html">Formations</a>
+            <a href="apropos.html">À propos</a>
+            <a href="contact.html" class="actif">Contact</a>
+        </nav>
+    </header>
+
+    <!-- ========== PAGE HERO ========== -->
+    <section class="page-hero">
+        <h2>Contactez-nous</h2>
+        <p>
+            Une question, une inscription ou un partenariat ?
+            Notre équipe vous répond dans les 24 heures.
+        </p>
+    </section>
+
+    <!-- ========== INFOS + FORMULAIRE ========== -->
+    <section style="background: var(--gris-clair); padding: 60px 40px;">
+        <div style="max-width: 1100px; margin: 0 auto;
+                    display: grid;
+                    grid-template-columns: 1fr 2fr;
+                    gap: 48px;
+                    align-items: start;">
+
+            <!-- Infos de contact -->
+            <div>
+                <h3 style="color: var(--bleu-principal);
+                           font-size: 22px;
+                           margin-bottom: 28px;">
+                    Nos coordonnées
+                </h3>
+
+                <div style="display: flex; flex-direction: column; gap: 24px;">
+
+                    <div style="display: flex; gap: 16px; align-items: flex-start;">
+                        <span style="font-size: 28px;">📧</span>
+                        <div>
+                            <p style="font-weight: 700;
+                                      color: var(--bleu-principal);
+                                      margin-bottom: 4px;">
+                                Email
+                            </p>
+                            <a href="mailto:contact@blessyconnect.com"
+                               style="color: var(--bleu-electrique);
+                                      text-decoration: none;">
+                                contact@blessyconnect.com
+                            </a>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 16px; align-items: flex-start;">
+                        <span style="font-size: 28px;">📍</span>
+                        <div>
+                            <p style="font-weight: 700;
+                                      color: var(--bleu-principal);
+                                      margin-bottom: 4px;">
+                                Localisation
+                            </p>
+                            <p>Haïti & Diaspora</p>
+                            <p style="font-size: 13px; margin-top: 4px;
+                                      color: var(--bleu-electrique);">
+                                Formation 100% en ligne disponible
+                            </p>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 16px; align-items: flex-start;">
+                        <span style="font-size: 28px;">⏰</span>
+                        <div>
+                            <p style="font-weight: 700;
+                                      color: var(--bleu-principal);
+                                      margin-bottom: 4px;">
+                                Disponibilité
+                            </p>
+                            <p>Lundi — Vendredi</p>
+                            <p>8h00 — 18h00 (EST)</p>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 16px; align-items: flex-start;">
+                        <span style="font-size: 28px;">⚡</span>
+                        <div>
+                            <p style="font-weight: 700;
+                                      color: var(--bleu-principal);
+                                      margin-bottom: 4px;">
+                                Réponse garantie
+                            </p>
+                            <p>Dans les 24 heures ouvrables</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Formulaire -->
+            <div style="background: var(--blanc);
+                        padding: 40px;
+                        border-radius: 16px;
+                        box-shadow: var(--ombre-legere);">
+
+                <h3 style="color: var(--bleu-principal);
+                           font-size: 22px;
+                           margin-bottom: 28px;">
+                    Envoyer un message
+                </h3>
+
+                <form>
+
+                    <!-- Ligne : Prénom + Nom -->
+                    <div style="display: grid;
+                                grid-template-columns: 1fr 1fr;
+                                gap: 16px;">
+
+                        <div class="form-groupe">
+                            <label for="contact-prenom">Prénom *</label>
+                            <input type="text"
+                                   id="contact-prenom"
+                                   name="prenom"
+                                   placeholder="Jean Raymond"
+                                   required>
+                        </div>
+
+                        <div class="form-groupe">
+                            <label for="contact-nom">Nom *</label>
+                            <input type="text"
+                                   id="contact-nom"
+                                   name="nom"
+                                   placeholder="BELONY"
+                                   required>
+                        </div>
+
+                    </div>
+
+                    <div class="form-groupe">
+                        <label for="contact-email">Adresse email *</label>
+                        <input type="email"
+                               id="contact-email"
+                               name="email"
+                               placeholder="exemple@email.com"
+                               required>
+                    </div>
+
+                    <div class="form-groupe">
+                        <label for="contact-telephone">Téléphone</label>
+                        <input type="tel"
+                               id="contact-telephone"
+                               name="telephone"
+                               placeholder="+509 XXXX XXXX">
+                    </div>
+
+                    <div class="form-groupe">
+                        <label for="contact-sujet">Sujet *</label>
+                        <select id="contact-sujet" name="sujet" required>
+                            <option value="">-- Choisir un sujet --</option>
+                            <option value="inscription">
+                                S'inscrire à une formation
+                            </option>
+                            <option value="information">
+                                Demande d'information
+                            </option>
+                            <option value="partenariat">
+                                Partenariat / Collaboration
+                            </option>
+                            <option value="support">
+                                Support technique
+                            </option>
+                            <option value="autre">Autre</option>
+                        </select>
+                    </div>
+
+                    <div class="form-groupe">
+                        <label for="contact-formation">
+                            Formation souhaitée
+                        </label>
+                        <select id="contact-formation" name="formation">
+                            <option value="">-- Sélectionner --</option>
+                            <option value="python-django">
+                                Développement Python & Django
+                            </option>
+                            <option value="design-web">
+                                Design Web (HTML, CSS & JS)
+                            </option>
+                            <option value="ia">
+                                Intelligence Artificielle
+                            </option>
+                            <option value="maintenance">
+                                Maintenance Informatique
+                            </option>
+                            <option value="bureautique">
+                                Bureautique Professionnelle
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-groupe">
+                        <label for="contact-message">Message *</label>
+                        <textarea id="contact-message"
+                                  name="message"
+                                  placeholder="Décris ta situation, tes objectifs ou ta question..."
+                                  required></textarea>
+                    </div>
+
+                    <div class="form-groupe">
+                        <label style="display: flex;
+                                      align-items: flex-start;
+                                      gap: 10px;
+                                      font-weight: normal;
+                                      cursor: pointer;">
+                            <input type="checkbox"
+                                   name="newsletter"
+                                   style="width: auto;
+                                          margin-top: 3px;">
+                            Je souhaite recevoir les actualités et
+                            offres de Blessy Tech Academy
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-principal"
+                            style="width: 100%; text-align: center;
+                                   padding: 14px; font-size: 16px;">
+                        ✉️ Envoyer le message
+                    </button>
+
+                </form>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ========== FAQ ========== -->
+    <section style="background: var(--blanc); padding: 60px 40px;">
+        <h2 style="text-align: center; color: var(--bleu-principal);
+                   font-size: 28px; margin-bottom: 40px;">
+            Questions fréquentes
+        </h2>
+
+        <div style="max-width: 800px; margin: 0 auto;
+                    display: flex; flex-direction: column; gap: 16px;">
+
+            <div style="border: 1px solid #e2e8f0;
+                        border-radius: 10px; padding: 20px 24px;
+                        background: var(--gris-clair);">
+                <p style="font-weight: 700; color: var(--bleu-principal);
+                           margin-bottom: 8px;">
+                    💬 Les formations sont-elles en ligne ou en présentiel ?
+                </p>
+                <p>
+                    Nos formations sont disponibles en ligne (à distance)
+                    et en présentiel pour les étudiants basés en Haïti.
+                    Le format hybride est aussi possible.
+                </p>
+            </div>
+
+            <div style="border: 1px solid #e2e8f0;
+                        border-radius: 10px; padding: 20px 24px;
+                        background: var(--gris-clair);">
+                <p style="font-weight: 700; color: var(--bleu-principal);
+                           margin-bottom: 8px;">
+                    💬 Faut-il des prérequis pour s'inscrire ?
+                </p>
+                <p>
+                    La plupart de nos formations sont accessibles aux débutants.
+                    Seule la formation IA avancée nécessite une base en Python.
+                </p>
+            </div>
+
+            <div style="border: 1px solid #e2e8f0;
+                        border-radius: 10px; padding: 20px 24px;
+                        background: var(--gris-clair);">
+                <p style="font-weight: 700; color: var(--bleu-principal);
+                           margin-bottom: 8px;">
+                    💬 Comment se passe le paiement ?
+                </p>
+                <p>
+                    Le paiement s'effectue en une ou plusieurs fois.
+                    Nous acceptons MonCash, Natcash, virement bancaire
+                    et paiement en espèces (pour Haïti).
+                </p>
+            </div>
+
+            <div style="border: 1px solid #e2e8f0;
+                        border-radius: 10px; padding: 20px 24px;
+                        background: var(--gris-clair);">
+                <p style="font-weight: 700; color: var(--bleu-principal);
+                           margin-bottom: 8px;">
+                    💬 Reçoit-on un certificat à la fin ?
+                </p>
+                <p>
+                    Oui ! Chaque formation donne lieu à un certificat
+                    numérique vérifiable, partageable sur LinkedIn
+                    et reconnu par nos partenaires employeurs.
+                </p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ========== FOOTER ========== -->
+    <footer>
+        <div class="footer-contenu">
+            <div class="footer-bloc">
+                <h4>⚡ Blessy Tech Academy</h4>
+                <p>L'école de la haute technologie moderne d'Haïti.</p>
+            </div>
+            <div class="footer-bloc">
+                <h4>Navigation</h4>
+                <ul>
+                    <li><a href="index.html">Accueil</a></li>
+                    <li><a href="formations.html">Formations</a></li>
+                    <li><a href="apropos.html">À propos</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-bloc">
+                <h4>Contact</h4>
+                <p>📧 contact@blessyconnect.com</p>
+                <p>📍 Haïti & Diaspora</p>
+            </div>
+        </div>
+        <div class="footer-bas">
+            <p>&copy; 2026 Blessy Tech Academy — Tous droits réservés</p>
+        </div>
+    </footer>
+
+</body>
+</html>
