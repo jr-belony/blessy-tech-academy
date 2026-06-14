@@ -1,0 +1,69 @@
+{% extends 'academie/base.html' %}
+
+{% block titre %}À propos — Blessy Tech Academy{% endblock %}
+
+{% block contenu %}
+
+<section class="page-hero">
+    <h2>À propos de Blessy Tech Academy</h2>
+    <p>Notre mission : démocratiser l'accès à la technologie moderne en Haïti.</p>
+</section>
+
+<section style="background: var(--blanc); padding: 80px 40px;">
+    <div style="max-width: 800px; margin: 0 auto;">
+        <h2 style="color: var(--bleu-principal); margin-bottom: 20px;">
+            Notre histoire
+        </h2>
+        <p style="margin-bottom: 16px; line-height: 1.8;">
+            Blessy Tech Academy a été fondée par
+            <strong>Jean Raymond BELONY</strong>,
+            entrepreneur et passionné de technologie,
+            avec la conviction que chaque Haïtien mérite
+            accès à une formation numérique de qualité internationale.
+        </p>
+        <p style="line-height: 1.8;">
+            Notre objectif : former des milliers de professionnels
+            du numérique capables de contribuer à l'économie
+            locale et mondiale depuis Haïti.
+        </p>
+    </div>
+</section>
+
+<section style="background: var(--gris-clair); padding: 80px 40px;">
+    <h2 style="text-align:center; color:var(--bleu-principal);
+               margin-bottom: 48px;">
+        Nos valeurs
+    </h2>
+    <div class="avantages-grille">
+        <div class="avantage">
+            <span class="avantage-icone">💡</span>
+            <h3>Innovation</h3>
+            <p>Les dernières technologies dans chaque programme.</p>
+        </div>
+        <div class="avantage">
+            <span class="avantage-icone">🤝</span>
+            <h3>Accessibilité</h3>
+            <p>Des formations abordables pour tous.</p>
+        </div>
+        <div class="avantage">
+            <span class="avantage-icone">⭐</span>
+            <h3>Excellence</h3>
+            <p>Des standards professionnels internationaux.</p>
+        </div>
+        <div class="avantage">
+            <span class="avantage-icone">🌱</span>
+            <h3>Impact</h3>
+            <p>Former un développeur, c'est transformer une famille.</p>
+        </div>
+    </div>
+</section>
+
+<section class="cta">
+    <h2>Rejoins la communauté BTA</h2>
+    <p>Des centaines d'étudiants transforment déjà leur carrière.</p>
+    <a href="{% url 'formations' %}" class="btn btn-principal">
+        Voir les formations
+    </a>
+</section>
+
+{% endblock %}

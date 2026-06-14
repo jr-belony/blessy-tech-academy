@@ -1,0 +1,60 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block titre %}Blessy Tech Academy{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'academie/style.css' %}">
+</head>
+<body>
+
+    <header>
+        <div class="header-logo">
+            <span class="logo-icon">⚡</span>
+            <span class="logo-texte">Blessy Tech Academy</span>
+        </div>
+
+        <input type="checkbox" id="menu-toggle">
+        <label for="menu-toggle" class="menu-burger">☰</label>
+
+        <nav>
+            <a href="{% url 'accueil' %}">Accueil</a>
+            <a href="{% url 'formations' %}">Formations</a>
+            <a href="{% url 'apropos' %}">À propos</a>
+            <a href="{% url 'contact' %}">Contact</a>
+        </nav>
+    </header>
+
+    <main>
+        {% block contenu %}{% endblock %}
+    </main>
+
+    <footer>
+        <div class="footer-contenu">
+            <div class="footer-bloc">
+                <h4>⚡ Blessy Tech Academy</h4>
+                <p>L'école de la haute technologie moderne d'Haïti.</p>
+            </div>
+            <div class="footer-bloc">
+                <h4>Navigation</h4>
+                <ul>
+                    <li><a href="{% url 'accueil' %}">Accueil</a></li>
+                    <li><a href="{% url 'formations' %}">Formations</a></li>
+                    <li><a href="{% url 'apropos' %}">À propos</a></li>
+                    <li><a href="{% url 'contact' %}">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-bloc">
+                <h4>Contact</h4>
+                <p>📧 contact@blessyconnect.com</p>
+                <p>📍 Haïti & Diaspora</p>
+            </div>
+        </div>
+        <div class="footer-bas">
+            <p>&copy; 2026 Blessy Tech Academy — Tous droits réservés</p>
+        </div>
+    </footer>
+
+</body>
+</html>

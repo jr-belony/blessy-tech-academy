@@ -1,0 +1,111 @@
+{% extends 'academie/base.html' %}
+
+{% block titre %}Accueil — Blessy Tech Academy{% endblock %}
+
+{% block contenu %}
+
+<section class="hero">
+    <div class="hero-contenu">
+        <p class="hero-tag"> L'école de la haute technologie moderne d'Haïti</p>
+        <h2>Formez-vous aux métiers
+            <span class="accent">du numérique</span>
+        </h2>
+        <p class="hero-description">
+            Blessy Tech Academy forme la nouvelle génération de professionnels
+            du numérique en Haïti et dans la diaspora, à travers des projets
+            réels et un accompagnement personnalisé.
+        </p>
+        <div class="hero-boutons">
+            <a href="{% url 'formations' %}" class="btn btn-principal">
+                Voir les formations
+            </a>
+            <a href="{% url 'apropos' %}" class="btn btn-secondaire">
+                En savoir plus
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="stats">
+    <div class="stats-grille">
+        <div class="stat-item">
+            <span class="stat-nombre">5+</span>
+            <span class="stat-label">Formations</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-nombre">100%</span>
+            <span class="stat-label">Pratique</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-nombre">5</span>
+            <span class="stat-label">Mois en moyenne</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-nombre">∞</span>
+            <span class="stat-label">Opportunités</span>
+        </div>
+    </div>
+</section>
+
+<section class="apercu-formations">
+    <h2>Nos formations phares</h2>
+    <p class="sous-titre">
+        Des parcours construits pour te rendre employable et autonome.
+    </p>
+
+    <div class="formations-grille">
+        {% for formation in formations %}
+            <article class="carte-formation">
+                <div class="carte-icone">{{ formation.icone }}</div>
+                <h3>{{ formation.nom }}</h3>
+                <p>{{ formation.description }}</p>
+                <div class="carte-meta">
+                    <span class="duree">⏱ {{ formation.duree }}</span>
+                    <span class="prix">{{ formation.prix }} USD</span>
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+
+    <div class="centrer">
+        <a href="{% url 'formations' %}" class="btn btn-principal">
+            Voir toutes les formations →
+        </a>
+    </div>
+</section>
+
+<section class="pourquoi">
+    <h2>Pourquoi choisir Blessy Tech Academy ?</h2>
+    <div class="avantages-grille">
+        <div class="avantage">
+            <span class="avantage-icone">🎯</span>
+            <h3>Formations pratiques</h3>
+            <p>Tu codes dès le premier jour.</p>
+        </div>
+        <div class="avantage">
+            <span class="avantage-icone">🏆</span>
+            <h3>Certifications reconnues</h3>
+            <p>Un certificat numérique vérifiable.</p>
+        </div>
+        <div class="avantage">
+            <span class="avantage-icone">🤝</span>
+            <h3>Accompagnement personnalisé</h3>
+            <p>Un mentor dédié pour ta progression.</p>
+        </div>
+        <div class="avantage">
+            <span class="avantage-icone">💼</span>
+            <h3>Préparation à l'emploi</h3>
+            <p>CV, portfolio, entretiens — on t'accompagne.</p>
+        </div>
+    </div>
+</section>
+
+<section class="cta">
+    <h2>Prêt à commencer ton parcours ?</h2>
+    <p>Rejoins des centaines d'étudiants qui transforment leur carrière.</p>
+    <a href="{% url 'contact' %}" class="btn btn-principal">
+        S'inscrire maintenant
+    </a>
+</section>
+
+{% endblock %}
