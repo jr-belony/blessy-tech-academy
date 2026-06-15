@@ -1,0 +1,48 @@
+{% extends 'academie/base.html' %}
+
+{% block titre %}Connexion — Blessy Tech Academy{% endblock %}
+
+{% block contenu %}
+
+<section class="page-hero">
+    <h2>Se connecter</h2>
+    <p>Accède à ton espace étudiant BTA.</p>
+</section>
+
+<section class="section-contact">
+
+    <div style="text-align: center; margin-bottom: 24px;">
+        <p>Pas encore de compte ?
+            <a href="{% url 'inscription_compte' %}"
+               style="color: var(--bleu-electrique); font-weight: 600;">
+                Créer un compte →
+            </a>
+        </p>
+    </div>
+
+    <form method="POST" novalidate>
+        {% csrf_token %}
+
+        {% for field in form %}
+            <div class="form-groupe">
+                <label for="{{ field.id_for_label }}">
+                    {{ field.label }}
+                </label>
+                {{ field }}
+                {% if field.errors %}
+                    {% for error in field.errors %}
+                        <span class="form-erreur">❌ {{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <button type="submit" class="btn btn-principal"
+                style="width:100%; text-align:center; padding:14px;">
+            🔐 Se connecter
+        </button>
+
+    </form>
+</section>
+
+{% endblock %}

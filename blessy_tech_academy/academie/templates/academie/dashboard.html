@@ -1,0 +1,161 @@
+{% extends 'academie/base.html' %}
+
+{% block titre %}Mon espace — Blessy Tech Academy{% endblock %}
+
+{% block contenu %}
+
+<section class="page-hero">
+    <h2>👋 Bonjour, {{ user.first_name|default:user.username }} !</h2>
+    <p>Bienvenue dans ton espace étudiant Blessy Tech Academy.</p>
+</section>
+
+<section style="background: var(--gris-clair); padding: 60px 40px;">
+    <div style="max-width: 1100px; margin: 0 auto;">
+
+        <h2 style="color: var(--bleu-principal);
+                   margin-bottom: 32px;">
+            Mon tableau de bord
+        </h2>
+
+        <!-- Cartes de stats -->
+        <div style="display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 24px;
+                    margin-bottom: 40px;">
+
+            <div style="background: var(--blanc);
+                        padding: 28px;
+                        border-radius: 12px;
+                        box-shadow: var(--ombre-legere);
+                        text-align: center;">
+                <span style="font-size: 40px;">📚</span>
+                <p style="font-size: 28px; font-weight: 800;
+                          color: var(--bleu-principal); margin: 8px 0;">
+                    0
+                </p>
+                <p style="color: var(--gris-texte); font-size: 14px;">
+                    Formations en cours
+                </p>
+            </div>
+
+            <div style="background: var(--blanc);
+                        padding: 28px;
+                        border-radius: 12px;
+                        box-shadow: var(--ombre-legere);
+                        text-align: center;">
+                <span style="font-size: 40px;">🏆</span>
+                <p style="font-size: 28px; font-weight: 800;
+                          color: var(--bleu-principal); margin: 8px 0;">
+                    0
+                </p>
+                <p style="color: var(--gris-texte); font-size: 14px;">
+                    Certificats obtenus
+                </p>
+            </div>
+
+            <div style="background: var(--blanc);
+                        padding: 28px;
+                        border-radius: 12px;
+                        box-shadow: var(--ombre-legere);
+                        text-align: center;">
+                <span style="font-size: 40px;">⚡</span>
+                <p style="font-size: 28px; font-weight: 800;
+                          color: var(--bleu-principal); margin: 8px 0;">
+                    0%
+                </p>
+                <p style="color: var(--gris-texte); font-size: 14px;">
+                    Progression globale
+                </p>
+            </div>
+
+            <div style="background: var(--blanc);
+                        padding: 28px;
+                        border-radius: 12px;
+                        box-shadow: var(--ombre-legere);
+                        text-align: center;">
+                <span style="font-size: 40px;">📅</span>
+                <p style="font-size: 28px; font-weight: 800;
+                          color: var(--bleu-principal); margin: 8px 0;">
+                    0
+                </p>
+                <p style="color: var(--gris-texte); font-size: 14px;">
+                    Jours de formation
+                </p>
+            </div>
+
+        </div>
+
+        <!-- Informations du compte -->
+        <div style="background: var(--blanc);
+                    padding: 32px;
+                    border-radius: 12px;
+                    box-shadow: var(--ombre-legere);">
+
+            <h3 style="color: var(--bleu-principal);
+                       margin-bottom: 20px;">
+                👤 Mes informations
+            </h3>
+
+            <div style="display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 16px;">
+
+                <div>
+                    <p style="font-weight: 600; color: var(--gris-texte);
+                               font-size: 13px; text-transform: uppercase;">
+                        Prénom
+                    </p>
+                    <p style="font-size: 16px; color: var(--bleu-principal);">
+                        {{ user.first_name|default:"Non renseigné" }}
+                    </p>
+                </div>
+
+                <div>
+                    <p style="font-weight: 600; color: var(--gris-texte);
+                               font-size: 13px; text-transform: uppercase;">
+                        Nom
+                    </p>
+                    <p style="font-size: 16px; color: var(--bleu-principal);">
+                        {{ user.last_name|default:"Non renseigné" }}
+                    </p>
+                </div>
+
+                <div>
+                    <p style="font-weight: 600; color: var(--gris-texte);
+                               font-size: 13px; text-transform: uppercase;">
+                        Email
+                    </p>
+                    <p style="font-size: 16px; color: var(--bleu-principal);">
+                        {{ user.email|default:"Non renseigné" }}
+                    </p>
+                </div>
+
+                <div>
+                    <p style="font-weight: 600; color: var(--gris-texte);
+                               font-size: 13px; text-transform: uppercase;">
+                        Membre depuis
+                    </p>
+                    <p style="font-size: 16px; color: var(--bleu-principal);">
+                        {{ user.date_joined|date:"d/m/Y" }}
+                    </p>
+                </div>
+
+            </div>
+
+            <div style="margin-top: 24px; padding-top: 24px;
+                        border-top: 1px solid #eee;">
+                <a href="{% url 'formations' %}" class="btn btn-principal">
+                    📚 Voir les formations
+                </a>
+                <a href="{% url 'deconnexion' %}"
+                   style="margin-left: 16px; color: #e53e3e;
+                          text-decoration: none; font-weight: 600;">
+                    👋 Se déconnecter
+                </a>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+{% endblock %}

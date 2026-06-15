@@ -1,8 +1,18 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.contrib.auth import (
+    login,
+    logout,
+    authenticate
+)
+from django.contrib.auth.decorators import login_required
 from .models import Formation
-from .forms import InscriptionForm
+from .forms import InscriptionForm, InscriptionCompteForm, ConnexionForm
 
+
+# ================================================
+# Pages principales
+# ================================================
 
 def accueil(request):
     """Page d'accueil."""
@@ -24,11 +34,9 @@ def apropos(request):
 
 
 def contact(request):
-    """Page de contact avec formulaire d'inscription."""
-
+    """Page de contact."""
     if request.method == 'POST':
         form = InscriptionForm(request.POST)
-
         if form.is_valid():
             form.save()
             messages.success(
@@ -41,9 +49,84 @@ def contact(request):
             messages.error(
                 request,
                 '❌ Une erreur est survenue. '
-                'Veuillez vérifier les champs et réessayer.'
+                'Veuillez vérifier les champs.'
             )
     else:
         form = InscriptionForm()
-
     return render(request, 'academie/contact.html', {'form': form})
+
+
+# ================================================
+# Authentification
+# ================================================
+
+def inscription_compte(request):
+    """Créer un nouveau compte étudiant."""
+
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        form = InscriptionCompteForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(
+                request,
+                f'🎉 Bienvenue {user.first_name} ! '
+                f'Ton compte a été créé avec succès.'
+            )
+            return redirect('dashboard')
+        else:
+            messages.error(
+                request,
+                '❌ Erreur lors de la création du compte. '
+                'Vérifie les informations saisies.'
+            )
+    else:
+        form = InscriptionCompteForm()
+
+    return render(request, 'academie/inscription_compte.html',
+                  {'form': form})
+
+
+def connexion(request):
+    """Connexion à un compte existant."""
+
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        form = ConnexionForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            messages.success(
+                request,
+                f'✅ Bienvenue {user.first_name or user.username} !'
+            )
+            return redirect('dashboard')
+        else:
+            messages.error(
+                request,
+                '❌ Identifiants incorrects. Vérifie ton nom '
+                "d'utilisateur et ton mot de passe."
+            )
+    else:
+        form = ConnexionForm(request)
+
+    return render(request, 'academie/connexion.html', {'form': form})
+
+
+def deconnexion(request):
+    """Déconnexion."""
+    logout(request)
+    messages.success(request, '👋 Tu as été déconnecté avec succès.')
+    return redirect('accueil')
+
+
+@login_required(login_url='/connexion/')
+def dashboard(request):
+    """Tableau de bord étudiant (accès protégé)."""
+    user = request.user
+    return render(request, 'academie/dashboard.html', {'user': user})
