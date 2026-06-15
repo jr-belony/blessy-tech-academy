@@ -27,6 +27,18 @@
     </header>
 
     <main>
+        <>
+
+    <!-- Messages de confirmation/erreur -->
+    {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+                <div class="message message-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
         {% block contenu %}{% endblock %}
     </main>
 

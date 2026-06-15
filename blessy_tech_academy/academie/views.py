@@ -1,44 +1,21 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import Formation
+from .forms import InscriptionForm
 
 
 def accueil(request):
     """Page d'accueil."""
-    formations = [
-        {
-            'icone': '🐍',
-            'nom': 'Python & Django',
-            'description': 'Crée des applications web professionnelles.',
-            'duree': '6 mois',
-            'prix': 300,
-        },
-        {
-            'icone': '🎨',
-            'nom': 'Design Web',
-            'description': 'Maîtrise HTML, CSS et JavaScript.',
-            'duree': '4 mois',
-            'prix': 200,
-        },
-        {
-            'icone': '🤖',
-            'nom': 'Intelligence Artificielle',
-            'description': 'Exploite les outils IA modernes.',
-            'duree': '4 mois',
-            'prix': 250,
-        },
-        {
-            'icone': '🖥️',
-            'nom': 'Maintenance Informatique',
-            'description': 'Diagnostique et répare les systèmes.',
-            'duree': '6 mois',
-            'prix': 300,
-        },
-    ]
-    return render(request, 'academie/accueil.html', {'formations': formations})
+    formations = Formation.objects.filter(actif=True)[:4]
+    return render(request, 'academie/accueil.html',
+                  {'formations': formations})
 
 
 def formations(request):
     """Page des formations."""
-    return render(request, 'academie/formations.html')
+    toutes_formations = Formation.objects.filter(actif=True)
+    return render(request, 'academie/formations.html',
+                  {'formations': toutes_formations})
 
 
 def apropos(request):
@@ -47,5 +24,26 @@ def apropos(request):
 
 
 def contact(request):
-    """Page de contact."""
-    return render(request, 'academie/contact.html')
+    """Page de contact avec formulaire d'inscription."""
+
+    if request.method == 'POST':
+        form = InscriptionForm(request.POST)
+
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request,
+                '✅ Merci ! Votre message a été envoyé. '
+                'Nous vous répondrons dans les 24 heures.'
+            )
+            return redirect('contact')
+        else:
+            messages.error(
+                request,
+                '❌ Une erreur est survenue. '
+                'Veuillez vérifier les champs et réessayer.'
+            )
+    else:
+        form = InscriptionForm()
+
+    return render(request, 'academie/contact.html', {'form': form})
