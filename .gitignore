@@ -1,16 +1,49 @@
-# Fichiers Python compilés
+# ==========================================
+# PYTHON
+# ==========================================
+
 __pycache__/
 *.pyc
+*.pyo
 
-# Environnements virtuels
+# ==========================================
+# ENVIRONNEMENTS VIRTUELS
+# ==========================================
+
 venv/
 env/
 
-# Fichiers de configuration sensibles
-.env
+# ==========================================
+# VARIABLES D'ENVIRONNEMENT
+# ==========================================
 
-# Données générées par les mini-projets (Leçon 8)
+.env
+*.env
+
+# ==========================================
+# BASES DE DONNÉES LOCALES
+# ==========================================
+
+*.sqlite3
+
+# ==========================================
+# FICHIERS STATIQUES DJANGO
+# ==========================================
+
+staticfiles/
+
+# ==========================================
+# VISUAL STUDIO CODE
+# ==========================================
+
+.vscode/
+
+# ==========================================
+# DONNÉES GÉNÉRÉES PAR LES EXERCICES
+# ==========================================
+
 inscriptions.json
 inscriptions.csv
+
 */classe.json
 */formation.json
