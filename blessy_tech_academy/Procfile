@@ -1,0 +1,1 @@
+gitweb: gunicorn blessy_tech_academy.wsgi --log-file -
