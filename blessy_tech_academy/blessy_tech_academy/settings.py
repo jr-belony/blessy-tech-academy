@@ -34,6 +34,8 @@ CSRF_TRUSTED_ORIGINS = config(
     default='',
     cast=lambda v: [s.strip() for s in v.split(',') if s.strip()]
 )
+CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
 # Application definition
 
 INSTALLED_APPS = [
