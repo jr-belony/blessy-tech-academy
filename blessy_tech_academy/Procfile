@@ -1,1 +1,1 @@
-gitweb: gunicorn blessy_tech_academy.wsgi --log-file -
+web: python manage.py collectstatic --noinput && python manage.py migrate && gunicorn blessy_tech_academy.wsgi --log-file -
