@@ -10,34 +10,44 @@
 </section>
 
 <section class="apercu-formations">
-    <h2>Détail des formations</h2>
-    <p class="sous-titre">Choisis ton parcours et commence dès aujourd'hui.</p>
 
-    <div class="formations-grille">
+    {% for ecole in ecoles %}
+        {% if ecole.formations.all %}
+        <div style="margin-bottom: 56px;">
 
-        {% for formation in formations %}
-            <article class="carte-formation">
-                <div class="carte-icone">{{ formation.icone }}</div>
-                <h3>{{ formation.nom }}</h3>
-                <p>{{ formation.description }}</p>
-                <div class="carte-meta">
-                    <span class="duree">⏱ {{ formation.duree_mois }} mois</span>
-                    <span class="prix">{{ formation.prix }} USD</span>
-                </div>
-                <a href="{% url 'contact' %}" class="btn btn-principal"
-                   style="text-align:center; margin-top:8px;">
-                    S'inscrire
-                </a>
-            </article>
-        {% empty %}
-            <p style="text-align:center; color: var(--gris-texte);
-                      padding: 40px;">
-                Aucune formation disponible pour le moment.
-                Revenez bientôt !
+            <h3 style="color: var(--bleu-principal); font-size: 24px;
+                       margin-bottom: 8px; border-bottom: 3px solid var(--bleu-electrique);
+                       padding-bottom: 8px; display: inline-block;">
+                {{ ecole.icone }} {{ ecole.nom }}
+            </h3>
+            <p style="color: var(--gris-texte); margin-bottom: 24px;">
+                {{ ecole.description }}
             </p>
-        {% endfor %}
 
-    </div>
+            <div class="formations-grille">
+                {% for formation in ecole.formations.all %}
+                    {% if formation.actif %}
+                    <article class="carte-formation">
+                        <div class="carte-icone">{{ formation.icone }}</div>
+                        <h3>{{ formation.nom }}</h3>
+                        <p>{{ formation.description }}</p>
+                        <div class="carte-meta">
+                            <span class="duree">⏱ {{ formation.duree_mois }} mois</span>
+                            <span class="prix">{{ formation.prix }} USD</span>
+                        </div>
+                        <a href="{% url 'contact' %}" class="btn btn-principal"
+                           style="text-align:center; margin-top:8px;">
+                            S'inscrire
+                        </a>
+                    </article>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+        </div>
+        {% endif %}
+    {% endfor %}
+
 </section>
 
 <section class="cta">

@@ -4,7 +4,7 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Count, Avg
-from .models import Formation, Inscription
+from .models import Formation, Inscription, Ecole
 from .forms import InscriptionForm, InscriptionCompteForm, ConnexionForm
 
 
@@ -20,10 +20,9 @@ def accueil(request):
 
 
 def formations(request):
-    """Page des formations."""
-    toutes_formations = Formation.objects.filter(actif=True)
-    return render(request, 'academie/formations.html',
-                  {'formations': toutes_formations})
+    """Page des formations organisées par école."""
+    ecoles = Ecole.objects.prefetch_related('formations').all()
+    return render(request, 'academie/formations.html', {'ecoles': ecoles})
 
 
 def apropos(request):
