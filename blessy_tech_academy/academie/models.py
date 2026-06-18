@@ -1,6 +1,23 @@
 from django.db import models
 
 
+class Ecole(models.Model):
+    """Représente une École (catégorie de formations)."""
+
+    nom = models.CharField(max_length=200)
+    icone = models.CharField(max_length=10, default='🏫')
+    description = models.TextField()
+    ordre = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['ordre', 'nom']
+        verbose_name = 'École'
+        verbose_name_plural = 'Écoles'
+
+    def __str__(self):
+        return f"{self.icone} {self.nom}"
+
+
 class Formation(models.Model):
     """Représente une formation proposée par BTA."""
 
@@ -10,6 +27,14 @@ class Formation(models.Model):
         ('avance', 'Avancé'),
         ('professionnel', 'Professionnel'),
     ]
+
+    ecole = models.ForeignKey(
+        Ecole,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='formations'
+    )
 
     nom = models.CharField(max_length=200)
     icone = models.CharField(max_length=10, default='📚')
