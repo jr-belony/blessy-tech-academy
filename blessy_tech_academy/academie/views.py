@@ -1,12 +1,10 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.contrib.auth import (
-    login,
-    logout,
-    authenticate
-)
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
-from .models import Formation
+from django.contrib.admin.views.decorators import staff_member_required
+from django.db.models import Count, Avg
+from .models import Formation, Inscription
 from .forms import InscriptionForm, InscriptionCompteForm, ConnexionForm
 
 
@@ -34,7 +32,7 @@ def apropos(request):
 
 
 def contact(request):
-    """Page de contact."""
+    """Page de contact avec formulaire d'inscription."""
     if request.method == 'POST':
         form = InscriptionForm(request.POST)
         if form.is_valid():
@@ -62,7 +60,6 @@ def contact(request):
 
 def inscription_compte(request):
     """Créer un nouveau compte étudiant."""
-
     if request.user.is_authenticated:
         return redirect('dashboard')
 
@@ -92,7 +89,6 @@ def inscription_compte(request):
 
 def connexion(request):
     """Connexion à un compte existant."""
-
     if request.user.is_authenticated:
         return redirect('dashboard')
 
@@ -130,3 +126,32 @@ def dashboard(request):
     """Tableau de bord étudiant (accès protégé)."""
     user = request.user
     return render(request, 'academie/dashboard.html', {'user': user})
+
+
+# ================================================
+# Statistiques (admin uniquement)
+# ================================================
+
+@staff_member_required
+def statistiques(request):
+    """Page de statistiques pour les administrateurs."""
+
+    total_formations = Formation.objects.filter(actif=True).count()
+    total_inscriptions = Inscription.objects.count()
+    inscriptions_non_traitees = Inscription.objects.filter(traite=False).count()
+
+    prix_moyen = Formation.objects.aggregate(Avg('prix'))['prix__avg']
+
+    formations_populaires = Formation.objects.annotate(
+        nombre_inscrits=Count('inscriptions')
+    ).order_by('-nombre_inscrits')[:5]
+
+    contexte = {
+        'total_formations': total_formations,
+        'total_inscriptions': total_inscriptions,
+        'inscriptions_non_traitees': inscriptions_non_traitees,
+        'prix_moyen': round(prix_moyen, 2) if prix_moyen else 0,
+        'formations_populaires': formations_populaires,
+    }
+
+    return render(request, 'academie/statistiques.html', contexte)

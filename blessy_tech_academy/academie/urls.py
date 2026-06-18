@@ -13,4 +13,7 @@ urlpatterns = [
     path('connexion/', views.connexion, name='connexion'),
     path('deconnexion/', views.deconnexion, name='deconnexion'),
     path('dashboard/', views.dashboard, name='dashboard'),
+
+    # Statistiques admin
+    path('statistiques/', views.statistiques, name='statistiques'),
 ]
