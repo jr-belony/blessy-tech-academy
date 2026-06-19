@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
-from django.db.models import Count, Avg
+from django.db.models import Q, Count, Avg
 from .models import Formation, Inscription, Ecole
 from .forms import InscriptionForm, InscriptionCompteForm, ConnexionForm
 
@@ -134,13 +134,10 @@ def dashboard(request):
 @staff_member_required
 def statistiques(request):
     """Page de statistiques pour les administrateurs."""
-
     total_formations = Formation.objects.filter(actif=True).count()
     total_inscriptions = Inscription.objects.count()
     inscriptions_non_traitees = Inscription.objects.filter(traite=False).count()
-
     prix_moyen = Formation.objects.aggregate(Avg('prix'))['prix__avg']
-
     formations_populaires = Formation.objects.annotate(
         nombre_inscrits=Count('inscriptions')
     ).order_by('-nombre_inscrits')[:5]
@@ -152,5 +149,28 @@ def statistiques(request):
         'prix_moyen': round(prix_moyen, 2) if prix_moyen else 0,
         'formations_populaires': formations_populaires,
     }
-
     return render(request, 'academie/statistiques.html', contexte)
+
+
+# ================================================
+# Recherche
+# ================================================
+
+def recherche_formations(request):
+    """Recherche de formations par mot-clé."""
+    terme = request.GET.get('q', '')
+
+    if terme:
+        resultats = Formation.objects.filter(
+            Q(nom__icontains=terme) |
+            Q(description__icontains=terme) |
+            Q(debouches__icontains=terme),
+            actif=True
+        ).select_related('ecole')
+    else:
+        resultats = Formation.objects.none()
+
+    return render(request, 'academie/recherche.html', {
+        'resultats': resultats,
+        'terme': terme,
+    })

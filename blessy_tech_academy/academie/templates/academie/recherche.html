@@ -1,0 +1,78 @@
+{% extends 'academie/base.html' %}
+
+{% block titre %}Recherche — Blessy Tech Academy{% endblock %}
+
+{% block contenu %}
+
+<section class="page-hero">
+    <h2>🔍 Rechercher une formation</h2>
+    <p>Trouve la formation qui correspond à tes objectifs.</p>
+
+    <form method="GET" style="margin-top: 28px;
+                              display: flex;
+                              gap: 12px;
+                              justify-content: center;
+                              flex-wrap: wrap;">
+        <input type="text"
+               name="q"
+               value="{{ terme }}"
+               placeholder="Ex: Python, design, IA..."
+               style="padding: 12px 20px;
+                      border-radius: 8px;
+                      border: none;
+                      font-size: 16px;
+                      width: 320px;">
+        <button type="submit" class="btn btn-principal">
+            🔍 Rechercher
+        </button>
+    </form>
+</section>
+
+<section class="apercu-formations">
+
+    {% if terme %}
+        <p class="sous-titre">
+            {% if resultats %}
+                {{ resultats|length }} résultat(s) pour
+                <strong>"{{ terme }}"</strong>
+            {% else %}
+                Aucune formation trouvée pour
+                <strong>"{{ terme }}"</strong> —
+                essaie un autre mot-clé.
+            {% endif %}
+        </p>
+    {% else %}
+        <p class="sous-titre">
+            Tape un mot-clé pour commencer ta recherche.
+        </p>
+    {% endif %}
+
+    <div class="formations-grille">
+        {% for formation in resultats %}
+            <article class="carte-formation">
+                <div class="carte-icone">{{ formation.icone }}</div>
+                <h3>{{ formation.nom }}</h3>
+                {% if formation.ecole %}
+                    <p style="color: var(--bleu-electrique);
+                               font-size: 13px;
+                               font-weight: 600;
+                               margin-bottom: 8px;">
+                        {{ formation.ecole.icone }} {{ formation.ecole.nom }}
+                    </p>
+                {% endif %}
+                <p>{{ formation.description }}</p>
+                <div class="carte-meta">
+                    <span class="duree">⏱ {{ formation.duree_mois }} mois</span>
+                    <span class="prix">{{ formation.prix }} USD</span>
+                </div>
+                <a href="{% url 'contact' %}" class="btn btn-principal"
+                   style="text-align:center; margin-top:8px;">
+                    S'inscrire
+                </a>
+            </article>
+        {% endfor %}
+    </div>
+
+</section>
+
+{% endblock %}

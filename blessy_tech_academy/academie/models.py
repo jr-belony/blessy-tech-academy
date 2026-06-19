@@ -35,7 +35,6 @@ class Formation(models.Model):
         blank=True,
         related_name='formations'
     )
-
     nom = models.CharField(max_length=200)
     icone = models.CharField(max_length=10, default='📚')
     description = models.TextField()
@@ -56,6 +55,11 @@ class Formation(models.Model):
         ordering = ['nom']
         verbose_name = 'Formation'
         verbose_name_plural = 'Formations'
+        indexes = [
+            models.Index(fields=['actif']),
+            models.Index(fields=['niveau']),
+            models.Index(fields=['ecole', 'actif']),
+        ]
 
     def __str__(self):
         return f"{self.icone} {self.nom} ({self.duree_mois} mois)"

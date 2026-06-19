@@ -8,11 +8,13 @@ urlpatterns = [
     path('apropos/', views.apropos, name='apropos'),
     path('contact/', views.contact, name='contact'),
 
+
     # Authentification
     path('inscription/', views.inscription_compte, name='inscription_compte'),
     path('connexion/', views.connexion, name='connexion'),
     path('deconnexion/', views.deconnexion, name='deconnexion'),
     path('dashboard/', views.dashboard, name='dashboard'),
+    path('recherche/', views.recherche_formations, name='recherche'),
 
     # Statistiques admin
     path('statistiques/', views.statistiques, name='statistiques'),
