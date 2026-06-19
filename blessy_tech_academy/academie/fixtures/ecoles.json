@@ -1,0 +1,62 @@
+[
+{
+  "model": "academie.ecole",
+  "pk": 1,
+  "fields": {
+    "nom": "École des Compétences Fondamentales",
+    "icone": "🔧",
+    "description": "Bureautique, culture numérique et internet — les bases essentielles pour tout débuter.",
+    "ordre": 1
+  }
+},
+{
+  "model": "academie.ecole",
+  "pk": 2,
+  "fields": {
+    "nom": "École Technique",
+    "icone": "🛠️",
+    "description": "Maintenance informatique, réseaux et cybersécurité pour les futurs techniciens.",
+    "ordre": 2
+  }
+},
+{
+  "model": "academie.ecole",
+  "pk": 3,
+  "fields": {
+    "nom": "École  de Programmation & Dévéloppement",
+    "icone": "💻",
+    "description": "Python, développement web, Django et bases de données pour devenir développeur professionnel.",
+    "ordre": 3
+  }
+},
+{
+  "model": "academie.ecole",
+  "pk": 4,
+  "fields": {
+    "nom": "École Créative",
+    "icone": "🎨",
+    "description": "Graphic design, création de contenu et branding digital pour les esprits créatifs.",
+    "ordre": 4
+  }
+},
+{
+  "model": "academie.ecole",
+  "pk": 5,
+  "fields": {
+    "nom": "École Intelligence Artificielle",
+    "icone": "🤖",
+    "description": "IA générative, prompt engineering et automatisation pour rester à la pointe.",
+    "ordre": 5
+  }
+},
+{
+  "model": "academie.ecole",
+  "pk": 6,
+  "fields": {
+    "nom": "École Business Numérique",
+    "icone": "📈",
+    "description": "Marketing digital, productivité et entrepreneuriat pour réussir en ligne.",
+    "ordre": 6
+  }
+}
+]

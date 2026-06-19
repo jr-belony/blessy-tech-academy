@@ -1,0 +1,92 @@
+[
+{
+  "model": "academie.formation",
+  "pk": 5,
+  "fields": {
+    "ecole": 1,
+    "nom": "Bureautique Professionnelle",
+    "icone": "📊",
+    "description": "Maîtrise Word, Excel, PowerPoint et les outils IA bureautiques pour être plus productif.",
+    "duree_mois": 3,
+    "prix": 150,
+    "niveau": "debutant",
+    "debouches": "Assistant administratif, Secrétaire, Assistant comptable",
+    "prerequis": "Aucun prérequis technique nécessaire",
+    "certifications": "Microsoft Office Specialist (MOS), Google Workspace Certification",
+    "actif": true,
+    "date_creation": "2026-06-15T04:39:48.867Z"
+  }
+},
+{
+  "model": "academie.formation",
+  "pk": 2,
+  "fields": {
+    "ecole": null,
+    "nom": "Design Web (HTML, CSS & JS)",
+    "icone": "🎨",
+    "description": "Maîtrise le front-end et crée des interfaces modernes, responsives et animées.",
+    "duree_mois": 4,
+    "prix": 200,
+    "niveau": "debutant",
+    "debouches": "Développeur front-end, Intégrateur web, Freelance",
+    "prerequis": "Aucun prérequis technique nécessaire",
+    "certifications": "freeCodeCamp Responsive Web Design, Meta Front-End Developer Certificate",
+    "actif": true,
+    "date_creation": "2026-06-15T04:15:40.209Z"
+  }
+},
+{
+  "model": "academie.formation",
+  "pk": 3,
+  "fields": {
+    "ecole": null,
+    "nom": "Intelligence Artificielle",
+    "icone": "🤖",
+    "description": "Exploite les outils IA modernes (ChatGPT, Claude, Gemini) pour automatiser et innover en entreprise.",
+    "duree_mois": 4,
+    "prix": 250,
+    "niveau": "debutant",
+    "debouches": "Prompt Engineer, AI Consultant, Chef de projet IA",
+    "prerequis": "Culture numérique de base",
+    "certifications": "Vanderbilt Prompt Engineering Certificate, Google AI Essentials",
+    "actif": true,
+    "date_creation": "2026-06-15T04:18:37.139Z"
+  }
+},
+{
+  "model": "academie.formation",
+  "pk": 4,
+  "fields": {
+    "ecole": 2,
+    "nom": "Maintenance Informatique",
+    "icone": "🖥️",
+    "description": "Diagnostique, répare et entretiens les systèmes informatiques de A à Z.",
+    "duree_mois": 6,
+    "prix": 300,
+    "niveau": "debutant",
+    "debouches": "Technicien informatique, Responsable parc, Freelance réparation",
+    "prerequis": "Aucun prérequis technique nécessaire",
+    "certifications": "CompTIA A+, Microsoft Certified Fundamentals",
+    "actif": true,
+    "date_creation": "2026-06-15T04:21:25.063Z"
+  }
+},
+{
+  "model": "academie.formation",
+  "pk": 1,
+  "fields": {
+    "ecole": null,
+    "nom": "Python & Django",
+    "icone": "🐍",
+    "description": "Crée des applications web professionnelles de A à Z, de Python fondamental jusqu'au déploiement en production.",
+    "duree_mois": 6,
+    "prix": 300,
+    "niveau": "debutant",
+    "debouches": "Développeur Python, Développeur full-stack, Freelance développement web",
+    "prerequis": "Aucun prérequis technique nécessaire",
+    "certifications": "PCEP (Python Institute), Django Developer Certificate",
+    "actif": true,
+    "date_creation": "2026-06-15T04:10:14.612Z"
+  }
+}
+]
