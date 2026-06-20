@@ -1,0 +1,73 @@
+{% extends 'academie/base.html' %}
+
+{% block titre %}Recommandations — Blessy Tech Academy{% endblock %}
+
+{% block contenu %}
+
+<section class="page-hero">
+    <h2>🎯 Trouve ta formation idéale</h2>
+    <p>Décris tes objectifs et Blessy AI te recommande le meilleur parcours.</p>
+</section>
+
+<section style="max-width: 700px; margin: 0 auto; padding: 40px;">
+
+    <div style="background: white; padding: 32px; border-radius: 16px;
+                box-shadow: var(--ombre-legere); margin-bottom: 32px;">
+
+        <h3 style="color: var(--bleu-principal); margin-bottom: 16px;">
+            Parle-nous de toi
+        </h3>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="form-groupe">
+                <label for="interets">
+                    Tes objectifs, intérêts ou situation actuelle *
+                </label>
+                <textarea id="interets" name="interets"
+                          rows="4"
+                          placeholder="Ex: Je veux travailler dans le numérique, j'aime la créativité, je cherche un emploi stable..."
+                          style="width: 100%; padding: 12px;
+                                 border: 2px solid #e2e8f0;
+                                 border-radius: 8px; font-family: inherit;
+                                 font-size: 15px; resize: vertical;">{{ interets }}</textarea>
+            </div>
+
+            <button type="submit" class="btn btn-principal"
+                    style="width: 100%; text-align: center; padding: 14px;">
+                🤖 Obtenir mes recommandations
+            </button>
+        </form>
+    </div>
+
+    {% if recommandations %}
+    <div style="background: white; padding: 32px; border-radius: 16px;
+                box-shadow: var(--ombre-legere);
+                border-top: 4px solid var(--bleu-electrique);">
+
+        <h3 style="color: var(--bleu-principal); margin-bottom: 16px;">
+            🎯 Recommandations de Blessy AI
+        </h3>
+
+        <div style="line-height: 1.8; color: var(--gris-texte);">
+            {{ recommandations|linebreaks }}
+        </div>
+
+        <div style="margin-top: 24px; padding-top: 24px;
+                    border-top: 1px solid #eee;">
+            <a href="{% url 'formations' %}" class="btn btn-principal">
+                📚 Voir toutes les formations
+            </a>
+            <a href="{% url 'contact' %}"
+               style="margin-left: 16px; color: var(--bleu-electrique);
+                      font-weight: 600; text-decoration: none;">
+                S'inscrire maintenant →
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+</section>
+
+{% endblock %}

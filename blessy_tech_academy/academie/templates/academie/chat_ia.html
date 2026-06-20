@@ -1,0 +1,172 @@
+{% extends 'academie/base.html' %}
+
+{% block titre %}Blessy AI — Assistant Intelligent{% endblock %}
+
+{% block contenu %}
+
+<section class="page-hero">
+    <h2>🤖 Blessy AI</h2>
+    <p>Ton assistant intelligent pour choisir ta formation et progresser.</p>
+</section>
+
+<section style="max-width: 800px; margin: 0 auto; padding: 40px;">
+
+    <!-- Fenêtre de chat -->
+    <div id="chat-fenetre" style="
+        background: white;
+        border-radius: 16px;
+        box-shadow: var(--ombre-legere);
+        height: 450px;
+        overflow-y: auto;
+        padding: 24px;
+        margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;">
+
+        <!-- Message de bienvenue -->
+        <div class="message-ia">
+            <span style="font-size: 24px;">🤖</span>
+            <div style="background: var(--gris-clair);
+                        padding: 12px 16px;
+                        border-radius: 12px;
+                        max-width: 80%;">
+                Bonjour ! Je suis <strong>Blessy AI</strong>, 
+                ton assistant de Blessy Tech Academy. 
+                Comment puis-je t'aider aujourd'hui ?
+                Tu peux me demander quelle formation te convient,
+                ou poser toute question sur nos programmes. 😊
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Zone de saisie -->
+    <div style="display: flex; gap: 12px;">
+        <input type="text"
+               id="question-input"
+               placeholder="Pose ta question à Blessy AI..."
+               style="flex: 1; padding: 14px 18px;
+                      border: 2px solid #e2e8f0;
+                      border-radius: 10px; font-size: 15px;
+                      font-family: inherit;"
+               maxlength="500">
+        <button onclick="envoyerQuestion()"
+                class="btn btn-principal"
+                id="btn-envoyer"
+                style="padding: 14px 24px; white-space: nowrap;">
+            Envoyer ✈️
+        </button>
+    </div>
+
+    <p style="text-align: center; color: var(--gris-texte);
+               font-size: 13px; margin-top: 12px;">
+        Appuie sur <strong>Entrée</strong> pour envoyer •
+        <a href="{% url 'recommandations_ia' %}"
+           style="color: var(--bleu-electrique);">
+            Obtenir des recommandations personnalisées →
+        </a>
+    </p>
+
+</section>
+
+<script>
+    const chatFenetre = document.getElementById('chat-fenetre');
+    const questionInput = document.getElementById('question-input');
+    const btnEnvoyer = document.getElementById('btn-envoyer');
+
+    // Envoyer avec la touche Entrée
+    questionInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') envoyerQuestion();
+    });
+
+    function ajouterMessage(texte, estUtilisateur) {
+        const div = document.createElement('div');
+        div.style.cssText = `
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            ${estUtilisateur ? 'flex-direction: row-reverse;' : ''}
+        `;
+
+        const icone = document.createElement('span');
+        icone.style.fontSize = '24px';
+        icone.textContent = estUtilisateur ? '👤' : '🤖';
+
+        const bulle = document.createElement('div');
+        bulle.style.cssText = `
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 75%;
+            line-height: 1.6;
+            ${estUtilisateur
+                ? 'background: var(--bleu-principal); color: white;'
+                : 'background: var(--gris-clair); color: var(--gris-texte);'}
+        `;
+        bulle.innerHTML = texte.replace(/\n/g, '<br>');
+
+        div.appendChild(icone);
+        div.appendChild(bulle);
+        chatFenetre.appendChild(div);
+        chatFenetre.scrollTop = chatFenetre.scrollHeight;
+    }
+
+    function afficherChargement() {
+        const div = document.createElement('div');
+        div.id = 'chargement';
+        div.style.cssText = 'display: flex; gap: 10px; align-items: center;';
+        div.innerHTML = `
+            <span style="font-size: 24px;">🤖</span>
+            <div style="background: var(--gris-clair); padding: 12px 16px;
+                        border-radius: 12px; color: var(--gris-texte);">
+                Blessy AI réfléchit... ⏳
+            </div>
+        `;
+        chatFenetre.appendChild(div);
+        chatFenetre.scrollTop = chatFenetre.scrollHeight;
+    }
+
+    function supprimerChargement() {
+        const chargement = document.getElementById('chargement');
+        if (chargement) chargement.remove();
+    }
+
+    async function envoyerQuestion() {
+        const question = questionInput.value.trim();
+        if (!question) return;
+
+        // Affiche la question de l'utilisateur
+        ajouterMessage(question, true);
+        questionInput.value = '';
+        btnEnvoyer.disabled = true;
+
+        // Affiche le chargement
+        afficherChargement();
+
+        try {
+            const reponse = await fetch("{% url 'api_chat_ia' %}", {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({question: question})
+            });
+
+            const data = await reponse.json();
+            supprimerChargement();
+
+            if (data.reponse) {
+                ajouterMessage(data.reponse, false);
+            } else {
+                ajouterMessage('❌ ' + (data.erreur || 'Une erreur est survenue.'), false);
+            }
+
+        } catch (erreur) {
+            supprimerChargement();
+            ajouterMessage('❌ Connexion impossible. Vérifie ta connexion internet.', false);
+        }
+
+        btnEnvoyer.disabled = false;
+        questionInput.focus();
+    }
+</script>
+
+{% endblock %}

@@ -8,7 +8,6 @@ urlpatterns = [
     path('apropos/', views.apropos, name='apropos'),
     path('contact/', views.contact, name='contact'),
 
-
     # Authentification
     path('inscription/', views.inscription_compte, name='inscription_compte'),
     path('connexion/', views.connexion, name='connexion'),
@@ -18,4 +17,9 @@ urlpatterns = [
 
     # Statistiques admin
     path('statistiques/', views.statistiques, name='statistiques'),
+
+    # Intelligence Artificielle
+    path('chat/', views.chat_ia, name='chat_ia'),
+    path('api/chat/', views.api_chat_ia, name='api_chat_ia'),
+    path('recommandations/', views.recommandations_ia, name='recommandations_ia'),
 ]

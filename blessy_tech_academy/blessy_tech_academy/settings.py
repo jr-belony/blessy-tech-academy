@@ -36,6 +36,7 @@ CSRF_TRUSTED_ORIGINS = config(
 )
 CSRF_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_SECURE = not DEBUG
+GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
 # Application definition
 
 INSTALLED_APPS = [
@@ -66,7 +67,7 @@ MIDDLEWARE = [
 if DEBUG:
     MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
     INTERNAL_IPS = ['127.0.0.1']
-    
+
 ROOT_URLCONF = 'blessy_tech_academy.urls'
 
 TEMPLATES = [

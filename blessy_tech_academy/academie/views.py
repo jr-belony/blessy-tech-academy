@@ -1,11 +1,15 @@
+import json
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Q, Count, Avg
+from django.http import JsonResponse 
+from django.views.decorators.csrf import csrf_exempt
 from .models import Formation, Inscription, Ecole
 from .forms import InscriptionForm, InscriptionCompteForm, ConnexionForm
+from .ia import blessy_ai_repondre, recommander_formations
 
 
 # ================================================
@@ -173,4 +177,56 @@ def recherche_formations(request):
     return render(request, 'academie/recherche.html', {
         'resultats': resultats,
         'terme': terme,
+    })
+# ================================================
+# Intelligence Artificielle — Blessy AI
+# ================================================
+
+def chat_ia(request):
+    """Page du chat Blessy AI."""
+    return render(request, 'academie/chat_ia.html')
+
+
+@csrf_exempt
+def api_chat_ia(request):
+    """API endpoint pour le chat IA (AJAX)."""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            question = data.get('question', '').strip()
+
+            if not question:
+                return JsonResponse({'erreur': 'Question vide'}, status=400)
+
+            if len(question) > 500:
+                return JsonResponse(
+                    {'erreur': 'Question trop longue (max 500 caractères)'},
+                    status=400
+                )
+
+            formations_actives = Formation.objects.filter(actif=True)[:5]
+            reponse = blessy_ai_repondre(question, formations_actives)
+
+            return JsonResponse({'reponse': reponse})
+
+        except Exception as e:
+            return JsonResponse({'erreur': str(e)}, status=500)
+
+    return JsonResponse({'erreur': 'Méthode non autorisée'}, status=405)
+
+
+def recommandations_ia(request):
+    """Page de recommandations personnalisées."""
+    recommandations = None
+    interets = ''
+
+    if request.method == 'POST':
+        interets = request.POST.get('interets', '').strip()
+        if interets:
+            formations_actives = Formation.objects.filter(actif=True)
+            recommandations = recommander_formations(interets, formations_actives)
+
+    return render(request, 'academie/recommandations_ia.html', {
+        'recommandations': recommandations,
+        'interets': interets,
     })
