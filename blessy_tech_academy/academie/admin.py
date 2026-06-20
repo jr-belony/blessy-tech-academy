@@ -32,6 +32,9 @@ class FormationAdmin(admin.ModelAdmin):
         }),
     ]
 
+    class Media:
+        js = ['academie/admin/generer_ia.js']
+
 
 @admin.register(Inscription)
 class InscriptionAdmin(admin.ModelAdmin):

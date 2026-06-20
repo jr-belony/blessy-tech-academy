@@ -1,5 +1,6 @@
 import google.generativeai as genai
 from django.conf import settings
+import json
 
 
 def initialiser_ia():
@@ -9,20 +10,10 @@ def initialiser_ia():
 
 
 def blessy_ai_repondre(question, contexte_formations=None):
-    """
-    Répond à une question via Blessy AI.
-
-    Args:
-        question: La question de l'utilisateur
-        contexte_formations: Liste optionnelle de formations BTA
-
-    Returns:
-        str: La réponse de l'IA
-    """
+    """Répond à une question via Blessy AI."""
     try:
         model = initialiser_ia()
 
-        # Système de prompt — définit la personnalité de Blessy AI
         prompt_systeme = """
 Tu es Blessy AI, l'assistant intelligent de Blessy Tech Academy.
 Tu aides les étudiants à choisir leurs formations et à progresser
@@ -60,16 +51,7 @@ Si tu ne sais pas quelque chose, tu le dis honnêtement.
 
 
 def recommander_formations(interets, formations_disponibles):
-    """
-    Recommande des formations selon les intérêts de l'étudiant.
-
-    Args:
-        interets: Description des intérêts/objectifs de l'étudiant
-        formations_disponibles: QuerySet des formations actives
-
-    Returns:
-        str: Recommandations personnalisées
-    """
+    """Recommande des formations selon les intérêts de l'étudiant."""
     try:
         model = initialiser_ia()
 
@@ -95,3 +77,55 @@ Réponds en français.
 
     except Exception as e:
         return "Impossible de générer des recommandations pour le moment."
+
+
+def generer_contenu_formation(nom_formation, ecole_nom=""):
+    """
+    Génère automatiquement le contenu d'une formation via l'IA.
+
+    Args:
+        nom_formation: Le nom de la formation (ex: "Cybersécurité")
+        ecole_nom: Le nom de l'école associée (optionnel, pour contexte)
+
+    Returns:
+        dict: {description, debouches, prerequis, certifications}
+    """
+    try:
+        model = initialiser_ia()
+
+        prompt = f"""
+Tu es un expert pédagogique de Blessy Tech Academy, une école de
+technologie en Haïti.
+
+Génère le contenu pour une formation nommée "{nom_formation}"
+{f'dans la catégorie "{ecole_nom}"' if ecole_nom else ''}.
+
+Réponds UNIQUEMENT au format JSON suivant, sans texte avant ou après,
+sans balises markdown :
+
+{{
+    "description": "Description engageante en 2-3 phrases, orientée résultats",
+    "debouches": "Liste des débouchés professionnels, séparés par des virgules",
+    "prerequis": "Prérequis nécessaires ou 'Aucun prérequis technique nécessaire'",
+    "certifications": "Certifications reconnues pertinentes, séparées par des virgules"
+}}
+
+Le contenu doit être en français, professionnel, et adapté au
+contexte haïtien et international.
+"""
+        reponse = model.generate_content(prompt)
+        texte = reponse.text.strip()
+
+        texte = texte.replace('```json', '').replace('```', '').strip()
+
+        contenu = json.loads(texte)
+        return contenu
+
+    except Exception as e:
+        return {
+            'description': '',
+            'debouches': '',
+            'prerequis': '',
+            'certifications': '',
+            'erreur': str(e)
+        }

@@ -5,11 +5,11 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Q, Count, Avg
-from django.http import JsonResponse 
+from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import Formation, Inscription, Ecole
 from .forms import InscriptionForm, InscriptionCompteForm, ConnexionForm
-from .ia import blessy_ai_repondre, recommander_formations
+from .ia import blessy_ai_repondre, recommander_formations, generer_contenu_formation
 
 
 # ================================================
@@ -178,6 +178,8 @@ def recherche_formations(request):
         'resultats': resultats,
         'terme': terme,
     })
+
+
 # ================================================
 # Intelligence Artificielle — Blessy AI
 # ================================================
@@ -230,3 +232,26 @@ def recommandations_ia(request):
         'recommandations': recommandations,
         'interets': interets,
     })
+
+
+@staff_member_required
+@csrf_exempt
+def api_generer_formation(request):
+    """API pour générer le contenu d'une formation via l'IA (admin only)."""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            nom = data.get('nom', '').strip()
+            ecole = data.get('ecole', '').strip()
+
+            if not nom:
+                return JsonResponse({'erreur': 'Nom de formation requis'}, status=400)
+
+            contenu = generer_contenu_formation(nom, ecole)
+
+            return JsonResponse(contenu)
+
+        except Exception as e:
+            return JsonResponse({'erreur': str(e)}, status=500)
+
+    return JsonResponse({'erreur': 'Méthode non autorisée'}, status=405)

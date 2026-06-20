@@ -22,4 +22,5 @@ urlpatterns = [
     path('chat/', views.chat_ia, name='chat_ia'),
     path('api/chat/', views.api_chat_ia, name='api_chat_ia'),
     path('recommandations/', views.recommandations_ia, name='recommandations_ia'),
+    path('api/generer-formation/', views.api_generer_formation, name='api_generer_formation'),
 ]
