@@ -1,0 +1,56 @@
+{% extends 'academie/base.html' %}
+
+{% block titre %}Résultat — {{ quiz.titre }}{% endblock %}
+
+{% block contenu %}
+
+<section class="page-hero">
+    <h2>🎯 Résultat du Quiz</h2>
+</section>
+
+<section style="max-width: 600px; margin: 0 auto; padding: 40px; text-align: center;">
+
+    <div style="background: white; padding: 48px; border-radius: 16px;
+                box-shadow: var(--ombre-legere);">
+
+        <div style="font-size: 64px; font-weight: 800;
+                    color: {% if pourcentage >= 70 %}#22c55e{% elif pourcentage >= 50 %}var(--orange-accent){% else %}#e53e3e{% endif %};">
+            {{ pourcentage }}%
+        </div>
+
+        <p style="font-size: 20px; color: var(--bleu-principal);
+                margin: 16px 0;">
+            {{ score }} / {{ total }} bonnes réponses
+        </p>
+
+        {% if pourcentage >= 70 %}
+            <p style="color: var(--gris-texte);">
+                🎉 Excellent travail ! Tu maîtrises bien ce sujet.
+            </p>
+        {% elif pourcentage >= 50 %}
+            <p style="color: var(--gris-texte);">
+                👍 Pas mal ! Continue à réviser pour progresser encore.
+            </p>
+        {% else %}
+            <p style="color: var(--gris-texte);">
+                💪 Continue tes efforts — revois les notions du cours
+                et retente le quiz !
+            </p>
+        {% endif %}
+
+        <div style="margin-top: 32px; display: flex; gap: 16px;
+                    justify-content: center; flex-wrap: wrap;">
+            <a href="{% url 'passer_quiz' quiz.id %}" class="btn btn-secondaire"
+            style="border-color: var(--bleu-principal); color: var(--bleu-principal);">
+                🔄 Recommencer
+            </a>
+            <a href="{% url 'dashboard' %}" class="btn btn-principal">
+                📊 Retour au tableau de bord
+            </a>
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

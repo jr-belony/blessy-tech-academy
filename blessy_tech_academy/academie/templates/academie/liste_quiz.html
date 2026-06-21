@@ -1,0 +1,37 @@
+{% extends 'academie/base.html' %}
+
+{% block titre %}Quiz — {{ formation.nom }}{% endblock %}
+
+{% block contenu %}
+
+<section class="page-hero">
+    <h2>📝 Quiz — {{ formation.nom }}</h2>
+    <p>Teste tes connaissances sur cette formation.</p>
+</section>
+
+<section style="max-width: 700px; margin: 0 auto; padding: 40px;">
+
+    {% for quiz in quiz_disponibles %}
+    <div style="background: white; padding: 24px; border-radius: 12px;
+                box-shadow: var(--ombre-legere); margin-bottom: 20px;
+                border-left: 4px solid var(--bleu-electrique);">
+        <h3 style="color: var(--bleu-principal); margin-bottom: 8px;">
+            {{ quiz.titre }}
+        </h3>
+        <p style="color: var(--gris-texte); margin-bottom: 16px;">
+            {{ quiz.description|default:"Quiz de validation des acquis" }}
+            — {{ quiz.nombre_questions }} questions
+        </p>
+        <a href="{% url 'passer_quiz' quiz.id %}" class="btn btn-principal">
+            ▶️ Commencer le quiz
+        </a>
+    </div>
+    {% empty %}
+    <p style="text-align: center; color: var(--gris-texte);">
+        Aucun quiz disponible pour cette formation pour le moment.
+    </p>
+    {% endfor %}
+
+</section>
+
+{% endblock %}

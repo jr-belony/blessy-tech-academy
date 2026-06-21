@@ -129,3 +129,54 @@ contexte haïtien et international.
             'certifications': '',
             'erreur': str(e)
         }
+    
+    
+def generer_quiz(sujet, nombre_questions=5):
+    """
+    Génère un quiz complet via l'IA.
+
+    Args:
+        sujet: Le sujet du quiz (ex: "Python Fondamental")
+        nombre_questions: Nombre de questions à générer
+
+    Returns:
+        list: Liste de dictionnaires {texte, choix_a, choix_b, 
+              choix_c, choix_d, bonne_reponse, explication}
+    """
+    try:
+        model = initialiser_ia()
+
+        prompt = f"""
+Tu es un expert pédagogique de Blessy Tech Academy.
+
+Génère {nombre_questions} questions à choix multiples sur le sujet : "{sujet}"
+
+Niveau : débutant à intermédiaire, adapté à des étudiants en formation.
+
+Réponds UNIQUEMENT avec un tableau JSON valide, sans texte avant/après,
+sans balises markdown, au format EXACT suivant :
+
+[
+    {{
+        "texte": "Question ici ?",
+        "choix_a": "Option A",
+        "choix_b": "Option B",
+        "choix_c": "Option C",
+        "choix_d": "Option D",
+        "bonne_reponse": "a",
+        "explication": "Brève explication de la bonne réponse"
+    }}
+]
+
+Les questions doivent être en français, claires et pédagogiques.
+"bonne_reponse" doit être exactement "a", "b", "c" ou "d" (minuscule).
+"""
+        reponse = model.generate_content(prompt)
+        texte = reponse.text.strip()
+        texte = texte.replace('```json', '').replace('```', '').strip()
+
+        questions = json.loads(texte)
+        return questions
+
+    except Exception as e:
+        return []

@@ -1,0 +1,70 @@
+{% extends 'academie/base.html' %}
+
+{% block titre %}{{ quiz.titre }} — Quiz{% endblock %}
+
+{% block contenu %}
+
+<section class="page-hero">
+    <h2>📝 {{ quiz.titre }}</h2>
+    <p>{{ quiz.questions.count }} questions — Réponds du mieux possible !</p>
+</section>
+
+<section style="max-width: 700px; margin: 0 auto; padding: 40px;">
+
+    <form method="POST">
+        {% csrf_token %}
+
+        {% for question in quiz.questions.all %}
+        <div style="background: white; padding: 24px; border-radius: 12px;
+                    box-shadow: var(--ombre-legere); margin-bottom: 20px;">
+
+            <p style="font-weight: 700; color: var(--bleu-principal);
+                       margin-bottom: 16px;">
+                {{ forloop.counter }}. {{ question.texte }}
+            </p>
+
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+
+                <label style="display: flex; align-items: center; gap: 10px;
+                               padding: 10px; border-radius: 8px;
+                               cursor: pointer; background: var(--gris-clair);">
+                    <input type="radio" name="question_{{ question.id }}" value="a" required>
+                    <span>A. {{ question.choix_a }}</span>
+                </label>
+
+                <label style="display: flex; align-items: center; gap: 10px;
+                               padding: 10px; border-radius: 8px;
+                               cursor: pointer; background: var(--gris-clair);">
+                    <input type="radio" name="question_{{ question.id }}" value="b" required>
+                    <span>B. {{ question.choix_b }}</span>
+                </label>
+
+                <label style="display: flex; align-items: center; gap: 10px;
+                               padding: 10px; border-radius: 8px;
+                               cursor: pointer; background: var(--gris-clair);">
+                    <input type="radio" name="question_{{ question.id }}" value="c" required>
+                    <span>C. {{ question.choix_c }}</span>
+                </label>
+
+                <label style="display: flex; align-items: center; gap: 10px;
+                               padding: 10px; border-radius: 8px;
+                               cursor: pointer; background: var(--gris-clair);">
+                    <input type="radio" name="question_{{ question.id }}" value="d" required>
+                    <span>D. {{ question.choix_d }}</span>
+                </label>
+
+            </div>
+        </div>
+        {% endfor %}
+
+        <button type="submit" class="btn btn-principal"
+                style="width: 100%; text-align: center; padding: 16px;
+                       font-size: 16px;">
+            ✅ Valider mes réponses
+        </button>
+
+    </form>
+
+</section>
+
+{% endblock %}

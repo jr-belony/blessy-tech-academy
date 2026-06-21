@@ -23,4 +23,7 @@ urlpatterns = [
     path('api/chat/', views.api_chat_ia, name='api_chat_ia'),
     path('recommandations/', views.recommandations_ia, name='recommandations_ia'),
     path('api/generer-formation/', views.api_generer_formation, name='api_generer_formation'),
+    path('api/generer-quiz/', views.api_generer_quiz, name='api_generer_quiz'),
+    path('formation/<int:formation_id>/quiz/', views.liste_quiz, name='liste_quiz'),
+    path('quiz/<int:quiz_id>/', views.passer_quiz, name='passer_quiz'),
 ]

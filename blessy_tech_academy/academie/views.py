@@ -7,9 +7,14 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Q, Count, Avg
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import Formation, Inscription, Ecole
+from .models import Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz
 from .forms import InscriptionForm, InscriptionCompteForm, ConnexionForm
-from .ia import blessy_ai_repondre, recommander_formations, generer_contenu_formation
+from .ia import (
+    blessy_ai_repondre,
+    recommander_formations,
+    generer_contenu_formation,
+    generer_quiz,
+)
 
 
 # ================================================
@@ -255,3 +260,74 @@ def api_generer_formation(request):
             return JsonResponse({'erreur': str(e)}, status=500)
 
     return JsonResponse({'erreur': 'Méthode non autorisée'}, status=405)
+
+
+# ================================================
+# Quiz Intelligents
+# ================================================
+
+@staff_member_required
+@csrf_exempt
+def api_generer_quiz(request):
+    """API pour générer un quiz via l'IA (admin only)."""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            sujet = data.get('sujet', '').strip()
+            nombre = int(data.get('nombre', 5))
+
+            if not sujet:
+                return JsonResponse({'erreur': 'Sujet requis'}, status=400)
+
+            questions = generer_quiz(sujet, nombre)
+
+            if not questions:
+                return JsonResponse({'erreur': 'Génération échouée'}, status=500)
+
+            return JsonResponse({'questions': questions})
+
+        except Exception as e:
+            return JsonResponse({'erreur': str(e)}, status=500)
+
+    return JsonResponse({'erreur': 'Méthode non autorisée'}, status=405)
+
+
+def liste_quiz(request, formation_id):
+    """Affiche les quiz disponibles pour une formation."""
+    formation = Formation.objects.get(id=formation_id)
+    quiz_disponibles = Quiz.objects.filter(formation=formation, actif=True)
+    return render(request, 'academie/liste_quiz.html', {
+        'formation': formation,
+        'quiz_disponibles': quiz_disponibles,
+    })
+
+
+@login_required(login_url='/connexion/')
+def passer_quiz(request, quiz_id):
+    """Page pour passer un quiz."""
+    quiz = Quiz.objects.prefetch_related('questions').get(id=quiz_id)
+
+    if request.method == 'POST':
+        score = 0
+        total = quiz.questions.count()
+
+        for question in quiz.questions.all():
+            reponse_utilisateur = request.POST.get(f'question_{question.id}')
+            if reponse_utilisateur == question.bonne_reponse:
+                score += 1
+
+        ResultatQuiz.objects.create(
+            utilisateur=request.user,
+            quiz=quiz,
+            score=score,
+            total_questions=total
+        )
+
+        return render(request, 'academie/resultat_quiz.html', {
+            'quiz': quiz,
+            'score': score,
+            'total': total,
+            'pourcentage': round((score / total) * 100) if total > 0 else 0,
+        })
+
+    return render(request, 'academie/passer_quiz.html', {'quiz': quiz})

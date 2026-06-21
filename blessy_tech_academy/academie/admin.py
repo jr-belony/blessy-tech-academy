@@ -1,6 +1,5 @@
 from django.contrib import admin
-from .models import Formation, Inscription, Ecole
-
+from .models import Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz
 
 @admin.register(Ecole)
 class EcoleAdmin(admin.ModelAdmin):
@@ -46,3 +45,28 @@ class InscriptionAdmin(admin.ModelAdmin):
     search_fields = ['prenom', 'nom', 'email']
     list_editable = ['traite']
     readonly_fields = ['date_inscription']
+
+class QuestionInline(admin.TabularInline):
+    model = Question
+    extra = 5
+    fields = ['ordre', 'texte', 'choix_a', 'choix_b', 'choix_c', 'choix_d', 'bonne_reponse']
+
+
+@admin.register(Quiz)
+class QuizAdmin(admin.ModelAdmin):
+    list_display = ['titre', 'formation', 'nombre_questions', 'actif', 'date_creation']
+    list_filter = ['actif', 'formation']
+    search_fields = ['titre']
+    list_editable = ['actif']
+    inlines = [QuestionInline]
+
+    class Media:
+        js = ['academie/admin/generer_quiz.js']
+
+
+@admin.register(ResultatQuiz)
+class ResultatQuizAdmin(admin.ModelAdmin):
+    list_display = ['utilisateur', 'quiz', 'score', 'total_questions', 'pourcentage', 'date_passage']
+    list_filter = ['quiz']
+    search_fields = ['utilisateur__username']
+    readonly_fields = ['date_passage']
