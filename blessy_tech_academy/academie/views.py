@@ -15,6 +15,7 @@ from .ia import (
     generer_contenu_formation,
     generer_quiz,
     generer_programme_complet,
+    generer_contenu_lecon,
 )
 
 
@@ -392,6 +393,84 @@ def api_generer_programme(request):
 
         except Formation.DoesNotExist:
             return JsonResponse({'erreur': 'Formation introuvable'}, status=404)
+        except Exception as e:
+            return JsonResponse({'erreur': str(e)}, status=500)
+
+    return JsonResponse({'erreur': 'Méthode non autorisée'}, status=405)
+
+@staff_member_required
+@csrf_exempt
+def api_generer_contenu_lecon(request):
+    """API pour générer le contenu d'UNE leçon via l'IA."""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            lecon_id = data.get('lecon_id')
+
+            if not lecon_id:
+                return JsonResponse({'erreur': 'ID de leçon requis'}, status=400)
+
+            lecon = Lecon.objects.select_related('module__formation').get(id=lecon_id)
+
+            contenu = generer_contenu_lecon(
+                titre_lecon=lecon.titre,
+                resume_lecon=lecon.resume,
+                contexte_formation=lecon.module.formation.nom,
+                contexte_module=lecon.module.titre
+            )
+
+            lecon.contenu = contenu
+            lecon.save()
+
+            return JsonResponse({
+                'succes': True,
+                'contenu': contenu,
+            })
+
+        except Lecon.DoesNotExist:
+            return JsonResponse({'erreur': 'Leçon introuvable'}, status=404)
+        except Exception as e:
+            return JsonResponse({'erreur': str(e)}, status=500)
+
+    return JsonResponse({'erreur': 'Méthode non autorisée'}, status=405)
+
+
+@staff_member_required
+@csrf_exempt
+def api_generer_contenu_module(request):
+    """API pour générer le contenu de TOUTES les leçons d'un module."""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            module_id = data.get('module_id')
+
+            if not module_id:
+                return JsonResponse({'erreur': 'ID de module requis'}, status=400)
+
+            module = Module.objects.select_related('formation').prefetch_related('lecons').get(id=module_id)
+
+            lecons = module.lecons.all()
+            nombre_traitees = 0
+
+            for lecon in lecons:
+                contenu = generer_contenu_lecon(
+                    titre_lecon=lecon.titre,
+                    resume_lecon=lecon.resume,
+                    contexte_formation=module.formation.nom,
+                    contexte_module=module.titre
+                )
+                lecon.contenu = contenu
+                lecon.save()
+                nombre_traitees += 1
+
+            return JsonResponse({
+                'succes': True,
+                'nombre_lecons': nombre_traitees,
+                'message': f'{nombre_traitees} leçons mises à jour avec succès !'
+            })
+
+        except Module.DoesNotExist:
+            return JsonResponse({'erreur': 'Module introuvable'}, status=404)
         except Exception as e:
             return JsonResponse({'erreur': str(e)}, status=500)
 

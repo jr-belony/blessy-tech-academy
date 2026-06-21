@@ -192,7 +192,7 @@ def generer_programme_complet(nom_formation, description_formation="", niveau="d
 
     Returns:
         list: Liste de modules, chacun avec ses leçons
-              [{titre, description, lecons: [{titre, resume, duree_minutes}]}]
+                [{titre, description, lecons: [{titre, resume, duree_minutes}]}]
     """
     try:
         model = initialiser_ia()
@@ -239,3 +239,84 @@ Tout doit être en français, professionnel et pédagogique.
 
     except Exception as e:
         return []
+    
+def generer_contenu_lecon(titre_lecon, resume_lecon="", contexte_formation="", contexte_module=""):
+    """
+    Génère le contenu complet d'une leçon individuelle.
+
+    Args:
+        titre_lecon: Titre de la leçon
+        resume_lecon: Résumé existant (contexte)
+        contexte_formation: Nom de la formation parente
+        contexte_module: Nom du module parent
+
+    Returns:
+        str: Contenu complet de la leçon (texte structuré)
+    """
+    try:
+        model = initialiser_ia()
+
+        prompt = f"""
+Tu es un formateur expert de Blessy Tech Academy, une école de
+technologie professionnelle en Haïti.
+
+Rédige le contenu COMPLET d'une leçon de cours pour :
+
+Formation : {contexte_formation}
+Module : {contexte_module}
+Leçon : "{titre_lecon}"
+{f'Résumé prévu : {resume_lecon}' if resume_lecon else ''}
+
+Structure obligatoire du contenu (utilise ces titres exacts) :
+
+## Explication
+[Explique le concept clairement, avec des mots simples, 
+adapté à un débutant motivé. 2-4 paragraphes.]
+
+## Exemple concret
+[Donne un exemple pratique et réaliste. Si c'est un sujet 
+technique/code, inclus un bloc de code avec des commentaires. 
+Si c'est un sujet non-technique, donne un cas d'usage réel.]
+
+## Mini-exercice
+[Propose un petit exercice pratique que l'étudiant peut faire 
+immédiatement pour appliquer ce qu'il vient d'apprendre. 
+Donne aussi la solution ou la démarche attendue.]
+
+Réponds uniquement avec le contenu de la leçon en français,
+en utilisant le format Markdown (## pour les titres, 
+```code``` pour le code si nécessaire, **gras** pour les points clés).
+Sois pédagogique, concret, et engageant. Ne mets pas de texte 
+d'introduction ou de conclusion en dehors de cette structure.
+"""
+        reponse = model.generate_content(prompt)
+        return reponse.text.strip()
+
+    except Exception as e:
+        return f"Erreur lors de la génération : {str(e)}"
+
+
+def generer_contenu_module_complet(module_titre, lecons_liste, contexte_formation=""):
+    """
+    Génère le contenu de TOUTES les leçons d'un module en une fois.
+
+    Args:
+        module_titre: Titre du module
+        lecons_liste: Liste de dicts [{id, titre, resume}, ...]
+        contexte_formation: Nom de la formation parente
+
+    Returns:
+        dict: {lecon_id: contenu_genere, ...}
+    """
+    resultats = {}
+
+    for lecon in lecons_liste:
+        contenu = generer_contenu_lecon(
+            titre_lecon=lecon['titre'],
+            resume_lecon=lecon.get('resume', ''),
+            contexte_formation=contexte_formation,
+            contexte_module=module_titre
+        )
+        resultats[lecon['id']] = contenu
+
+    return resultats

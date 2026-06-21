@@ -90,11 +90,12 @@ class ModuleAdmin(admin.ModelAdmin):
     inlines = [LeconInline]
 
     class Media:
-        js = ['academie/admin/generer_programme.js']
-
+        js = ['academie/admin/generer_programme.js', 'academie/admin/generer_contenu_module.js']
 
 @admin.register(Lecon)
 class LeconAdmin(admin.ModelAdmin):
     list_display = ['titre', 'module', 'duree_minutes', 'ordre']
     list_filter = ['module__formation']
     search_fields = ['titre', 'contenu']
+    class Media:
+        js = ['academie/admin/generer_contenu_lecon.js']
