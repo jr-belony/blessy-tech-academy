@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz
+from .models import (Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz, Module, Lecon )
 
 @admin.register(Ecole)
 class EcoleAdmin(admin.ModelAdmin):
@@ -8,6 +8,11 @@ class EcoleAdmin(admin.ModelAdmin):
     search_fields = ['nom']
 
 
+class ModuleInline(admin.TabularInline):
+    model = Module
+    extra = 1
+    fields = ['ordre', 'titre', 'description']
+    show_change_link = True  # permet de cliquer pour gérer les leçons du module
 @admin.register(Formation)
 class FormationAdmin(admin.ModelAdmin):
     list_display = [
@@ -17,6 +22,7 @@ class FormationAdmin(admin.ModelAdmin):
     list_filter = ['actif', 'niveau', 'ecole']
     search_fields = ['nom', 'description']
     list_editable = ['actif']
+    inlines = [ModuleInline]
 
     fieldsets = [
         ('Informations principales', {
@@ -32,8 +38,7 @@ class FormationAdmin(admin.ModelAdmin):
     ]
 
     class Media:
-        js = ['academie/admin/generer_ia.js']
-
+        js = ['academie/admin/generer_ia.js', 'academie/admin/generer_programme.js']
 
 @admin.register(Inscription)
 class InscriptionAdmin(admin.ModelAdmin):
@@ -70,3 +75,26 @@ class ResultatQuizAdmin(admin.ModelAdmin):
     list_filter = ['quiz']
     search_fields = ['utilisateur__username']
     readonly_fields = ['date_passage']
+
+class LeconInline(admin.TabularInline):
+    model = Lecon
+    extra = 3
+    fields = ['ordre', 'titre', 'resume', 'duree_minutes']
+
+
+@admin.register(Module)
+class ModuleAdmin(admin.ModelAdmin):
+    list_display = ['titre', 'formation', 'ordre', 'nombre_lecons']
+    list_filter = ['formation']
+    search_fields = ['titre']
+    inlines = [LeconInline]
+
+    class Media:
+        js = ['academie/admin/generer_programme.js']
+
+
+@admin.register(Lecon)
+class LeconAdmin(admin.ModelAdmin):
+    list_display = ['titre', 'module', 'duree_minutes', 'ordre']
+    list_filter = ['module__formation']
+    search_fields = ['titre', 'contenu']

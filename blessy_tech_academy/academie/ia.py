@@ -180,3 +180,62 @@ Les questions doivent être en français, claires et pédagogiques.
 
     except Exception as e:
         return []
+    
+def generer_programme_complet(nom_formation, description_formation="", niveau="debutant"):
+    """
+    Génère un programme complet (modules + leçons) pour une formation.
+
+    Args:
+        nom_formation: Le nom de la formation
+        description_formation: Description existante (contexte)
+        niveau: Niveau de la formation (debutant, intermediaire, avance, professionnel)
+
+    Returns:
+        list: Liste de modules, chacun avec ses leçons
+              [{titre, description, lecons: [{titre, resume, duree_minutes}]}]
+    """
+    try:
+        model = initialiser_ia()
+
+        prompt = f"""
+Tu es un concepteur pédagogique expert pour Blessy Tech Academy,
+une école de technologie professionnelle en Haïti.
+
+Crée un programme de cours complet et structuré pour la formation :
+"{nom_formation}"
+
+Contexte : {description_formation}
+Niveau : {niveau}
+
+Le programme doit être progressif (du plus simple au plus avancé),
+pratique, et orienté vers de vrais résultats professionnels.
+
+Réponds UNIQUEMENT avec un tableau JSON valide, sans texte avant/après,
+sans balises markdown, au format EXACT suivant :
+
+[
+    {{
+        "titre": "Titre du Module 1",
+        "description": "Brève description de ce que couvre ce module",
+        "lecons": [
+            {{
+                "titre": "Titre de la leçon",
+                "resume": "Résumé en 1 phrase de ce qu'on apprend",
+                "duree_minutes": 20
+            }}
+        ]
+    }}
+]
+
+Crée entre 4 et 6 modules, avec 3 à 5 leçons par module.
+Tout doit être en français, professionnel et pédagogique.
+"""
+        reponse = model.generate_content(prompt)
+        texte = reponse.text.strip()
+        texte = texte.replace('```json', '').replace('```', '').strip()
+
+        programme = json.loads(texte)
+        return programme
+
+    except Exception as e:
+        return []

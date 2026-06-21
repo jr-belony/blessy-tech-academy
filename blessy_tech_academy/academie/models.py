@@ -188,3 +188,56 @@ class ResultatQuiz(models.Model):
         if self.total_questions == 0:
             return 0
         return round((self.score / self.total_questions) * 100)
+    
+class Module(models.Model):
+    """Un module = un chapitre/section d'une formation."""
+
+    formation = models.ForeignKey(
+        Formation,
+        on_delete=models.CASCADE,
+        related_name='modules'
+    )
+    titre = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    ordre = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['ordre']
+        verbose_name = 'Module'
+        verbose_name_plural = 'Modules'
+
+    def __str__(self):
+        return f"{self.formation.nom} — Module {self.ordre}: {self.titre}"
+
+    def nombre_lecons(self):
+        return self.lecons.count()
+
+
+class Lecon(models.Model):
+    """Une leçon = un contenu pédagogique précis dans un module."""
+
+    module = models.ForeignKey(
+        Module,
+        on_delete=models.CASCADE,
+        related_name='lecons'
+    )
+    titre = models.CharField(max_length=200)
+    resume = models.CharField(
+        max_length=300,
+        blank=True,
+        help_text="Court résumé visible publiquement (sans connexion)"
+    )
+    contenu = models.TextField(
+        blank=True,
+        help_text="Contenu complet du cours — visible uniquement aux étudiants connectés"
+    )
+    duree_minutes = models.IntegerField(default=15)
+    ordre = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['ordre']
+        verbose_name = 'Leçon'
+        verbose_name_plural = 'Leçons'
+
+    def __str__(self):
+        return f"{self.module.titre} — {self.titre}"

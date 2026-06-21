@@ -7,13 +7,14 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Q, Count, Avg
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz
+from .models import Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz, Module, Lecon
 from .forms import InscriptionForm, InscriptionCompteForm, ConnexionForm
 from .ia import (
     blessy_ai_repondre,
     recommander_formations,
     generer_contenu_formation,
     generer_quiz,
+    generer_programme_complet,
 )
 
 
@@ -25,7 +26,7 @@ def accueil(request):
     """Page d'accueil."""
     formations = Formation.objects.filter(actif=True)[:4]
     return render(request, 'academie/accueil.html',
-                  {'formations': formations})
+                    {'formations': formations})
 
 
 def formations(request):
@@ -92,7 +93,7 @@ def inscription_compte(request):
         form = InscriptionCompteForm()
 
     return render(request, 'academie/inscription_compte.html',
-                  {'form': form})
+                    {'form': form})
 
 
 def connexion(request):
@@ -331,3 +332,57 @@ def passer_quiz(request, quiz_id):
         })
 
     return render(request, 'academie/passer_quiz.html', {'quiz': quiz})
+
+@staff_member_required
+@csrf_exempt
+def api_generer_programme(request):
+    """API pour générer un programme complet (modules+leçons) via l'IA."""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            formation_id = data.get('formation_id')
+
+            if not formation_id:
+                return JsonResponse({'erreur': 'ID de formation requis'}, status=400)
+
+            formation = Formation.objects.get(id=formation_id)
+
+            programme = generer_programme_complet(
+                formation.nom,
+                formation.description,
+                formation.niveau
+            )
+
+            if not programme:
+                return JsonResponse({'erreur': 'Génération échouée'}, status=500)
+
+            # Sauvegarde directement en base de données
+            for index_module, module_data in enumerate(programme, start=1):
+                module = Module.objects.create(
+                    formation=formation,
+                    titre=module_data.get('titre', f'Module {index_module}'),
+                    description=module_data.get('description', ''),
+                    ordre=index_module
+                )
+
+                for index_lecon, lecon_data in enumerate(module_data.get('lecons', []), start=1):
+                    Lecon.objects.create(
+                        module=module,
+                        titre=lecon_data.get('titre', f'Leçon {index_lecon}'),
+                        resume=lecon_data.get('resume', ''),
+                        duree_minutes=lecon_data.get('duree_minutes', 15),
+                        ordre=index_lecon
+                    )
+
+            return JsonResponse({
+                'succes': True,
+                'nombre_modules': len(programme),
+                'message': f'{len(programme)} modules créés avec succès !'
+            })
+
+        except Formation.DoesNotExist:
+            return JsonResponse({'erreur': 'Formation introuvable'}, status=404)
+        except Exception as e:
+            return JsonResponse({'erreur': str(e)}, status=500)
+
+    return JsonResponse({'erreur': 'Méthode non autorisée'}, status=405)
