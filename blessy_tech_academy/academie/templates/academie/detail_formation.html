@@ -1,0 +1,110 @@
+{% extends 'academie/base.html' %}
+
+{% block titre %}{{ formation.nom }} — Blessy Tech Academy{% endblock %}
+
+{% block contenu %}
+
+<section class="page-hero">
+    <h2>{{ formation.icone }} {{ formation.nom }}</h2>
+    <p>{{ formation.description }}</p>
+</section>
+
+<section style="max-width: 900px; margin: 0 auto; padding: 60px 40px;">
+
+    <!-- Infos clés -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 16px; margin-bottom: 40px;">
+        <div style="background: var(--gris-clair); padding: 16px; border-radius: 10px; text-align: center;">
+            <p style="font-size: 13px; color: var(--gris-texte);">Durée</p>
+            <p style="font-weight: 700; color: var(--bleu-principal);">{{ formation.duree_mois }} mois</p>
+        </div>
+        <div style="background: var(--gris-clair); padding: 16px; border-radius: 10px; text-align: center;">
+            <p style="font-size: 13px; color: var(--gris-texte);">Niveau</p>
+            <p style="font-weight: 700; color: var(--bleu-principal);">{{ formation.get_niveau_display }}</p>
+        </div>
+        <div style="background: var(--gris-clair); padding: 16px; border-radius: 10px; text-align: center;">
+            <p style="font-size: 13px; color: var(--gris-texte);">Prix</p>
+            <p style="font-weight: 700; color: var(--orange-accent);">{{ formation.prix }} USD</p>
+        </div>
+        <div style="background: var(--gris-clair); padding: 16px; border-radius: 10px; text-align: center;">
+            <p style="font-size: 13px; color: var(--gris-texte);">Modules</p>
+            <p style="font-weight: 700; color: var(--bleu-principal);">{{ formation.modules.count }}</p>
+        </div>
+    </div>
+
+    <!-- Programme -->
+    <h3 style="color: var(--bleu-principal); font-size: 26px; margin-bottom: 24px;">
+        📚 Programme de la formation
+    </h3>
+
+    {% for module in formation.modules.all %}
+    <div style="background: white; border-radius: 12px; box-shadow: var(--ombre-legere);
+                margin-bottom: 16px; overflow: hidden;">
+
+        <div style="background: var(--bleu-principal); color: white; padding: 16px 24px;">
+            <p style="font-size: 13px; opacity: 0.8; margin-bottom: 4px;">
+                Module {{ forloop.counter }}
+            </p>
+            <h4 style="font-size: 18px; margin: 0;">{{ module.titre }}</h4>
+        </div>
+
+        <div style="padding: 20px 24px;">
+            {% if module.description %}
+            <p style="color: var(--gris-texte); margin-bottom: 16px; font-size: 14px;">
+                {{ module.description }}
+            </p>
+            {% endif %}
+
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                {% for lecon in module.lecons.all %}
+                <div style="display: flex; align-items: center; gap: 12px;
+                            padding: 10px 14px; background: var(--gris-clair);
+                            border-radius: 8px;">
+                    <span style="color: var(--bleu-electrique); font-size: 18px;">
+                        {% if user.is_authenticated %}▶️{% else %}🔒{% endif %}
+                    </span>
+                    <div style="flex: 1;">
+                        <p style="font-weight: 600; color: var(--bleu-principal); font-size: 14px;">
+                            {{ lecon.titre }}
+                        </p>
+                        {% if lecon.resume %}
+                        <p style="font-size: 13px; color: var(--gris-texte);">
+                            {{ lecon.resume }}
+                        </p>
+                        {% endif %}
+                    </div>
+                    <span style="font-size: 12px; color: var(--gris-texte); white-space: nowrap;">
+                        ⏱ {{ lecon.duree_minutes }} min
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p style="color: var(--gris-texte); text-align: center; padding: 40px;">
+        Le programme détaillé de cette formation sera bientôt disponible.
+    </p>
+    {% endfor %}
+
+    {% if not user.is_authenticated %}
+    <div style="background: var(--bleu-principal); color: white; padding: 32px;
+                border-radius: 12px; text-align: center; margin-top: 32px;">
+        <p style="font-size: 18px; margin-bottom: 16px;">
+            🔒 Connecte-toi pour accéder au contenu complet des leçons
+        </p>
+        <a href="{% url 'inscription_compte' %}" class="btn btn-principal">
+            Créer mon compte gratuitement
+        </a>
+    </div>
+    {% endif %}
+
+    <div style="text-align: center; margin-top: 32px;">
+        <a href="{% url 'contact' %}" class="btn btn-principal">
+            S'inscrire à cette formation
+        </a>
+    </div>
+
+</section>
+
+{% endblock %}

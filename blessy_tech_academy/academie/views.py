@@ -34,6 +34,16 @@ def formations(request):
     ecoles = Ecole.objects.prefetch_related('formations').all()
     return render(request, 'academie/formations.html', {'ecoles': ecoles})
 
+def detail_formation(request, formation_id):
+    """Page de détail d'une formation avec son programme complet."""
+    formation = Formation.objects.prefetch_related(
+        'modules__lecons'
+    ).get(id=formation_id, actif=True)
+
+    return render(request, 'academie/detail_formation.html', {
+        'formation': formation,
+    })
+
 
 def apropos(request):
     """Page à propos."""
