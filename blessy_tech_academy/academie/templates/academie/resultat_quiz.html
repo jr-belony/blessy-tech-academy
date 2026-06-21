@@ -13,13 +13,22 @@
     <div style="background: white; padding: 48px; border-radius: 16px;
                 box-shadow: var(--ombre-legere);">
 
-        <div style="font-size: 64px; font-weight: 800;
-                    color: {% if pourcentage >= 70 %}#22c55e{% elif pourcentage >= 50 %}var(--orange-accent){% else %}#e53e3e{% endif %};">
+        {% if pourcentage >= 70 %}
+        <div style="font-size: 64px; font-weight: 800; color: #22c55e;">
             {{ pourcentage }}%
         </div>
+        {% elif pourcentage >= 50 %}
+        <div style="font-size: 64px; font-weight: 800; color: var(--orange-accent);">
+            {{ pourcentage }}%
+        </div>
+        {% else %}
+        <div style="font-size: 64px; font-weight: 800; color: #e53e3e;">
+            {{ pourcentage }}%
+        </div>
+        {% endif %}
 
         <p style="font-size: 20px; color: var(--bleu-principal);
-                margin: 16px 0;">
+                  margin: 16px 0;">
             {{ score }} / {{ total }} bonnes réponses
         </p>
 
@@ -41,7 +50,7 @@
         <div style="margin-top: 32px; display: flex; gap: 16px;
                     justify-content: center; flex-wrap: wrap;">
             <a href="{% url 'passer_quiz' quiz.id %}" class="btn btn-secondaire"
-            style="border-color: var(--bleu-principal); color: var(--bleu-principal);">
+               style="border-color: var(--bleu-principal); color: var(--bleu-principal);">
                 🔄 Recommencer
             </a>
             <a href="{% url 'dashboard' %}" class="btn btn-principal">
