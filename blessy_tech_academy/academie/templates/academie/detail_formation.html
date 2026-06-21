@@ -64,9 +64,17 @@
                         {% if user.is_authenticated %}▶️{% else %}🔒{% endif %}
                     </span>
                     <div style="flex: 1;">
+                        {% if user.is_authenticated %}
+                        <a href="{% url 'lire_lecon' lecon.id %}"
+                        style="font-weight: 600; color: var(--bleu-principal);
+                                font-size: 14px; text-decoration: none;">
+                            {{ lecon.titre }}
+                        </a>
+                        {% else %}
                         <p style="font-weight: 600; color: var(--bleu-principal); font-size: 14px;">
                             {{ lecon.titre }}
                         </p>
+                        {% endif %}
                         {% if lecon.resume %}
                         <p style="font-size: 13px; color: var(--gris-texte);">
                             {{ lecon.resume }}

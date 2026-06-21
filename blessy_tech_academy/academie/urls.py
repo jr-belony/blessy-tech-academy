@@ -29,5 +29,6 @@ urlpatterns = [
     path('quiz/<int:quiz_id>/', views.passer_quiz, name='passer_quiz'),
     path('api/generer-programme/', views.api_generer_programme, name='api_generer_programme'),
     path('api/generer-contenu-lecon/', views.api_generer_contenu_lecon, name='api_generer_contenu_lecon'),
+    path('lecon/<int:lecon_id>/', views.lire_lecon, name='lire_lecon'),
     path('api/generer-contenu-module/', views.api_generer_contenu_module, name='api_generer_contenu_module'),
 ]

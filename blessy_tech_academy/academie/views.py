@@ -1,4 +1,5 @@
 import json
+import markdown as markdown_lib
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import login, logout
@@ -475,3 +476,23 @@ def api_generer_contenu_module(request):
             return JsonResponse({'erreur': str(e)}, status=500)
 
     return JsonResponse({'erreur': 'Méthode non autorisée'}, status=405)
+
+@login_required(login_url='/connexion/')
+def lire_lecon(request, lecon_id):
+    """Page de lecture d'une leçon (réservée aux connectés)."""
+    lecon = Lecon.objects.select_related('module__formation').get(id=lecon_id)
+
+    contenu_html = markdown_lib.markdown(lecon.contenu) if lecon.contenu else ''
+
+    # Navigation : leçon précédente/suivante dans le même module
+    lecons_module = list(lecon.module.lecons.all())
+    index_actuel = lecons_module.index(lecon)
+    lecon_precedente = lecons_module[index_actuel - 1] if index_actuel > 0 else None
+    lecon_suivante = lecons_module[index_actuel + 1] if index_actuel < len(lecons_module) - 1 else None
+
+    return render(request, 'academie/lire_lecon.html', {
+        'lecon': lecon,
+        'contenu_html': contenu_html,
+        'lecon_precedente': lecon_precedente,
+        'lecon_suivante': lecon_suivante,
+    })

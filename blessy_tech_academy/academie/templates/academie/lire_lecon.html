@@ -1,0 +1,97 @@
+{% extends 'academie/base.html' %}
+
+{% block titre %}{{ lecon.titre }} — Blessy Tech Academy{% endblock %}
+
+{% block contenu %}
+
+<section style="background: var(--bleu-principal); color: white;
+                padding: 32px 20px;">
+    <div style="max-width: 800px; margin: 0 auto;">
+        <a href="{% url 'detail_formation' lecon.module.formation.id %}"
+        style="color: var(--bleu-electrique); text-decoration: none;
+                font-size: 14px;">
+            ← Retour au programme de {{ lecon.module.formation.nom }}
+        </a>
+        <p style="font-size: 13px; opacity: 0.7; margin-top: 12px;">
+            {{ lecon.module.titre }}
+        </p>
+        <h2 style="margin-top: 4px;">{{ lecon.titre }}</h2>
+        <p style="font-size: 13px; opacity: 0.8;">
+            ⏱ {{ lecon.duree_minutes }} minutes de lecture
+        </p>
+    </div>
+</section>
+
+<section style="max-width: 800px; margin: 0 auto; padding: 40px 20px;">
+
+    {% if contenu_html %}
+    <div class="contenu-lecon" style="line-height: 1.8; color: #1a1a2e;">
+        {{ contenu_html|safe }}
+    </div>
+    {% else %}
+    <p style="color: var(--gris-texte); text-align: center; padding: 40px;">
+        Le contenu détaillé de cette leçon sera bientôt disponible.
+    </p>
+    {% endif %}
+
+    <div style="display: flex; justify-content: space-between;
+                margin-top: 48px; padding-top: 24px;
+                border-top: 1px solid #eee; flex-wrap: wrap; gap: 16px;">
+
+        {% if lecon_precedente %}
+        <a href="{% url 'lire_lecon' lecon_precedente.id %}"
+        style="color: var(--bleu-electrique); text-decoration: none;
+                font-weight: 600;">
+            ← {{ lecon_precedente.titre }}
+        </a>
+        {% else %}
+        <span></span>
+        {% endif %}
+
+        {% if lecon_suivante %}
+        <a href="{% url 'lire_lecon' lecon_suivante.id %}"
+        style="color: var(--bleu-electrique); text-decoration: none;
+                font-weight: 600;">
+            {{ lecon_suivante.titre }} →
+        </a>
+        {% endif %}
+
+    </div>
+
+</section>
+
+<style>
+    .contenu-lecon h2 {
+        color: var(--bleu-principal);
+        font-size: 22px;
+        margin-top: 32px;
+        margin-bottom: 12px;
+    }
+    .contenu-lecon p {
+        margin-bottom: 16px;
+    }
+    .contenu-lecon pre {
+        background: #1a1a2e;
+        color: #00B4D8;
+        padding: 16px;
+        border-radius: 8px;
+        overflow-x: auto;
+        margin-bottom: 16px;
+    }
+    .contenu-lecon code {
+        background: var(--gris-clair);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    .contenu-lecon pre code {
+        background: none;
+        padding: 0;
+        color: inherit;
+    }
+    .contenu-lecon strong {
+        color: var(--bleu-principal);
+    }
+</style>
+
+{% endblock %}
