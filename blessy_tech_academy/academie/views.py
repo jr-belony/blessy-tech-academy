@@ -146,8 +146,29 @@ def deconnexion(request):
 def dashboard(request):
     """Tableau de bord étudiant (accès protégé)."""
     user = request.user
-    return render(request, 'academie/dashboard.html', {'user': user})
 
+    # Formations en cours (au moins 1 leçon consultée)
+    formations_actives = Formation.objects.filter(actif=True)
+
+    formations_avec_progression = []
+    for formation in formations_actives:
+        pourcentage = formation.progression_pour(user)
+        if pourcentage > 0:
+            formations_avec_progression.append({
+                'formation': formation,
+                'pourcentage': pourcentage,
+            })
+
+    # Quiz récents de l'étudiant
+    resultats_recents = ResultatQuiz.objects.filter(
+        utilisateur=user
+    ).select_related('quiz__formation')[:5]
+
+    return render(request, 'academie/dashboard.html', {
+        'user': user,
+        'formations_avec_progression': formations_avec_progression,
+        'resultats_recents': resultats_recents,
+    })
 
 # ================================================
 # Statistiques (admin uniquement)
