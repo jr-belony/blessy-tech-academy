@@ -63,6 +63,25 @@ class Formation(models.Model):
 
     def __str__(self):
         return f"{self.icone} {self.nom} ({self.duree_mois} mois)"
+    
+    def progression_pour(self, utilisateur):
+        """Calcule le % de progression d'un utilisateur sur cette formation."""
+        if not utilisateur.is_authenticated:
+            return 0
+
+        toutes_lecons = Lecon.objects.filter(module__formation=self)
+        total = toutes_lecons.count()
+
+        if total == 0:
+            return 0
+
+        terminees = ProgressionLecon.objects.filter(
+            utilisateur=utilisateur,
+            lecon__in=toutes_lecons,
+            terminee=True
+        ).count()
+
+        return round((terminees / total) * 100)
 
 
 class Inscription(models.Model):
@@ -241,3 +260,28 @@ class Lecon(models.Model):
 
     def __str__(self):
         return f"{self.module.titre} — {self.titre}"
+    
+class ProgressionLecon(models.Model):
+    """Suit la progression d'un étudiant sur une leçon."""
+
+    utilisateur = models.ForeignKey(
+        'auth.User',
+        on_delete=models.CASCADE,
+        related_name='progressions'
+    )
+    lecon = models.ForeignKey(
+        Lecon,
+        on_delete=models.CASCADE,
+        related_name='progressions'
+    )
+    terminee = models.BooleanField(default=False)
+    date_completion = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ['utilisateur', 'lecon']
+        verbose_name = 'Progression de leçon'
+        verbose_name_plural = 'Progressions de leçons'
+
+    def __str__(self):
+        statut = "✅" if self.terminee else "⏳"
+        return f"{statut} {self.utilisateur.username} — {self.lecon.titre}"

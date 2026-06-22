@@ -31,4 +31,5 @@ urlpatterns = [
     path('api/generer-contenu-lecon/', views.api_generer_contenu_lecon, name='api_generer_contenu_lecon'),
     path('lecon/<int:lecon_id>/', views.lire_lecon, name='lire_lecon'),
     path('api/generer-contenu-module/', views.api_generer_contenu_module, name='api_generer_contenu_module'),
+    path('lecon/<int:lecon_id>/terminer/', views.marquer_lecon_terminee, name='marquer_lecon_terminee'),
 ]

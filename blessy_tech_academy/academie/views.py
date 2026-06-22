@@ -8,7 +8,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Q, Count, Avg
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz, Module, Lecon
+from .models import (Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz, Module, Lecon, ProgressionLecon)
 from .forms import InscriptionForm, InscriptionCompteForm, ConnexionForm
 from .ia import (
     blessy_ai_repondre,
@@ -484,15 +484,63 @@ def lire_lecon(request, lecon_id):
 
     contenu_html = markdown_lib.markdown(lecon.contenu) if lecon.contenu else ''
 
-    # Navigation : leçon précédente/suivante dans le même module
     lecons_module = list(lecon.module.lecons.all())
     index_actuel = lecons_module.index(lecon)
     lecon_precedente = lecons_module[index_actuel - 1] if index_actuel > 0 else None
     lecon_suivante = lecons_module[index_actuel + 1] if index_actuel < len(lecons_module) - 1 else None
+
+    progression = ProgressionLecon.objects.filter(
+        utilisateur=request.user,
+        lecon=lecon
+    ).first()
+    lecon_terminee = progression.terminee if progression else False
+
+    formation = lecon.module.formation
+    pourcentage_formation = formation.progression_pour(request.user)
 
     return render(request, 'academie/lire_lecon.html', {
         'lecon': lecon,
         'contenu_html': contenu_html,
         'lecon_precedente': lecon_precedente,
         'lecon_suivante': lecon_suivante,
+        'lecon_terminee': lecon_terminee,
+        'pourcentage_formation': pourcentage_formation,
     })
+
+
+@login_required(login_url='/connexion/')
+@csrf_exempt
+def marquer_lecon_terminee(request, lecon_id):
+    """Marque une leçon comme terminée (ou non) pour l'utilisateur connecté."""
+    if request.method == 'POST':
+        try:
+            lecon = Lecon.objects.get(id=lecon_id)
+
+            progression, cree = ProgressionLecon.objects.get_or_create(
+                utilisateur=request.user,
+                lecon=lecon,
+            )
+
+            # Bascule l'état : si déjà terminée, on annule ; sinon on valide
+            progression.terminee = not progression.terminee
+
+            from django.utils import timezone
+            progression.date_completion = timezone.now() if progression.terminee else None
+            progression.save()
+
+            # Calcule la nouvelle progression de la formation
+            formation = lecon.module.formation
+            nouveau_pourcentage = formation.progression_pour(request.user)
+
+            return JsonResponse({
+                'succes': True,
+                'terminee': progression.terminee,
+                'progression_formation': nouveau_pourcentage,
+            })
+
+        except Lecon.DoesNotExist:
+            return JsonResponse({'erreur': 'Leçon introuvable'}, status=404)
+        except Exception as e:
+            return JsonResponse({'erreur': str(e)}, status=500)
+
+    return JsonResponse({'erreur': 'Méthode non autorisée'}, status=405)

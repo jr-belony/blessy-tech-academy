@@ -24,10 +24,51 @@
 
 <section style="max-width: 800px; margin: 0 auto; padding: 40px 20px;">
 
+    <!-- Barre de progression de la formation -->
+    <div style="background: var(--gris-clair); border-radius: 10px;
+                padding: 16px 20px; margin-bottom: 32px;">
+        <div style="display: flex; justify-content: space-between;
+                    margin-bottom: 8px;">
+            <span style="font-size: 13px; color: var(--gris-texte); font-weight: 600;">
+                Progression — {{ lecon.module.formation.nom }}
+            </span>
+            <span id="pourcentage-texte" style="font-size: 13px; font-weight: 700;
+                        color: var(--bleu-electrique);">
+                {{ pourcentage_formation }}%
+            </span>
+        </div>
+        <div style="background: #d1d5db; border-radius: 6px; height: 8px; overflow: hidden;">
+            <div id="barre-progression" data-pourcentage="{{ pourcentage_formation }}"
+                 style="background: var(--bleu-electrique); height: 100%; transition: width 0.3s;"></div>
+        </div>
+    </div>
+
     {% if contenu_html %}
     <div class="contenu-lecon" style="line-height: 1.8; color: #1a1a2e;">
         {{ contenu_html|safe }}
     </div>
+
+    <!-- Bouton Marquer comme terminée -->
+    <div style="text-align: center; margin-top: 32px;">
+        {% if lecon_terminee %}
+        <button id="bouton-terminer"
+                data-lecon-id="{{ lecon.id }}"
+                data-terminee="true"
+                style="background: #22c55e; color: white; border: none; padding: 14px 32px;
+                       border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 15px;">
+            ✅ Leçon terminée
+        </button>
+        {% else %}
+        <button id="bouton-terminer"
+                data-lecon-id="{{ lecon.id }}"
+                data-terminee="false"
+                style="background: var(--bleu-principal); color: white; border: none; padding: 14px 32px;
+                       border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 15px;">
+            ☐ Marquer comme terminée
+        </button>
+        {% endif %}
+    </div>
+
     {% else %}
     <p style="color: var(--gris-texte); text-align: center; padding: 40px;">
         Le contenu détaillé de cette leçon sera bientôt disponible.
@@ -93,5 +134,69 @@
         color: var(--bleu-principal);
     }
 </style>
+
+<script>
+    // Initialise la largeur de la barre de progression au chargement
+    const barreInitiale = document.getElementById('barre-progression');
+    if (barreInitiale) {
+        barreInitiale.style.width = barreInitiale.dataset.pourcentage + '%';
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const boutonTerminer = document.getElementById('bouton-terminer');
+
+    if (boutonTerminer) {
+        boutonTerminer.addEventListener('click', async function () {
+            const leconId = this.dataset.leconId;
+
+            this.disabled = true;
+
+            try {
+                const reponse = await fetch(`/lecon/${leconId}/terminer/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                });
+
+                const data = await reponse.json();
+
+                if (data.succes) {
+                    if (data.terminee) {
+                        this.textContent = '✅ Leçon terminée';
+                        this.style.background = '#22c55e';
+                    } else {
+                        this.textContent = '☐ Marquer comme terminée';
+                        this.style.background = 'var(--bleu-principal)';
+                    }
+
+                    document.getElementById('pourcentage-texte').textContent =
+                        data.progression_formation + '%';
+                    document.getElementById('barre-progression').style.width =
+                        data.progression_formation + '%';
+                }
+
+            } catch (erreur) {
+                alert('Impossible de mettre à jour la progression.');
+            }
+
+            this.disabled = false;
+        });
+    }
+</script>
 
 {% endblock %}
