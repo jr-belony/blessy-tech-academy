@@ -32,4 +32,5 @@ urlpatterns = [
     path('lecon/<int:lecon_id>/', views.lire_lecon, name='lire_lecon'),
     path('api/generer-contenu-module/', views.api_generer_contenu_module, name='api_generer_contenu_module'),
     path('lecon/<int:lecon_id>/terminer/', views.marquer_lecon_terminee, name='marquer_lecon_terminee'),
+    path('formation/<int:formation_id>/certificat/', views.telecharger_certificat, name='telecharger_certificat'),
 ]

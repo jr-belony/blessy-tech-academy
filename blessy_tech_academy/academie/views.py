@@ -1,4 +1,5 @@
 import json
+import hashlib
 import markdown as markdown_lib
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -6,9 +7,14 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Q, Count, Avg
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import (Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz, Module, Lecon, ProgressionLecon, Parcours,)
+from django.template.loader import render_to_string
+from django.utils import timezone
+from .models import (
+    Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz,
+    Module, Lecon, ProgressionLecon, Parcours,
+)
 from .forms import InscriptionForm, InscriptionCompteForm, ConnexionForm
 from .ia import (
     blessy_ai_repondre,
@@ -28,7 +34,7 @@ def accueil(request):
     """Page d'accueil."""
     formations = Formation.objects.filter(actif=True)[:4]
     return render(request, 'academie/accueil.html',
-                    {'formations': formations})
+                  {'formations': formations})
 
 
 def formations(request):
@@ -40,14 +46,20 @@ def formations(request):
         'parcours_list': parcours_list,
     })
 
+
 def detail_formation(request, formation_id):
     """Page de détail d'une formation avec son programme complet."""
     formation = Formation.objects.prefetch_related(
         'modules__lecons'
     ).get(id=formation_id, actif=True)
 
+    pourcentage_progression = 0
+    if request.user.is_authenticated:
+        pourcentage_progression = formation.progression_pour(request.user)
+
     return render(request, 'academie/detail_formation.html', {
         'formation': formation,
+        'pourcentage_progression': pourcentage_progression,
     })
 
 
@@ -109,7 +121,7 @@ def inscription_compte(request):
         form = InscriptionCompteForm()
 
     return render(request, 'academie/inscription_compte.html',
-                    {'form': form})
+                  {'form': form})
 
 
 def connexion(request):
@@ -151,7 +163,6 @@ def dashboard(request):
     """Tableau de bord étudiant (accès protégé)."""
     user = request.user
 
-    # Formations en cours (au moins 1 leçon consultée)
     formations_actives = Formation.objects.filter(actif=True)
 
     formations_avec_progression = []
@@ -163,7 +174,6 @@ def dashboard(request):
                 'pourcentage': pourcentage,
             })
 
-    # Quiz récents de l'étudiant
     resultats_recents = ResultatQuiz.objects.filter(
         utilisateur=user
     ).select_related('quiz__formation')[:5]
@@ -173,6 +183,7 @@ def dashboard(request):
         'formations_avec_progression': formations_avec_progression,
         'resultats_recents': resultats_recents,
     })
+
 
 # ================================================
 # Statistiques (admin uniquement)
@@ -370,6 +381,7 @@ def passer_quiz(request, quiz_id):
 
     return render(request, 'academie/passer_quiz.html', {'quiz': quiz})
 
+
 @staff_member_required
 @csrf_exempt
 def api_generer_programme(request):
@@ -393,7 +405,6 @@ def api_generer_programme(request):
             if not programme:
                 return JsonResponse({'erreur': 'Génération échouée'}, status=500)
 
-            # Sauvegarde directement en base de données
             for index_module, module_data in enumerate(programme, start=1):
                 module = Module.objects.create(
                     formation=formation,
@@ -423,6 +434,7 @@ def api_generer_programme(request):
             return JsonResponse({'erreur': str(e)}, status=500)
 
     return JsonResponse({'erreur': 'Méthode non autorisée'}, status=405)
+
 
 @staff_member_required
 @csrf_exempt
@@ -502,6 +514,7 @@ def api_generer_contenu_module(request):
 
     return JsonResponse({'erreur': 'Méthode non autorisée'}, status=405)
 
+
 @login_required(login_url='/connexion/')
 def lire_lecon(request, lecon_id):
     """Page de lecture d'une leçon (réservée aux connectés)."""
@@ -546,14 +559,10 @@ def marquer_lecon_terminee(request, lecon_id):
                 lecon=lecon,
             )
 
-            # Bascule l'état : si déjà terminée, on annule ; sinon on valide
             progression.terminee = not progression.terminee
-
-            from django.utils import timezone
             progression.date_completion = timezone.now() if progression.terminee else None
             progression.save()
 
-            # Calcule la nouvelle progression de la formation
             formation = lecon.module.formation
             nouveau_pourcentage = formation.progression_pour(request.user)
 
@@ -569,3 +578,62 @@ def marquer_lecon_terminee(request, lecon_id):
             return JsonResponse({'erreur': str(e)}, status=500)
 
     return JsonResponse({'erreur': 'Méthode non autorisée'}, status=405)
+
+
+# ================================================
+# Certificats PDF
+# ================================================
+
+@login_required(login_url='/connexion/')
+def telecharger_certificat(request, formation_id):
+    """Génère et télécharge le certificat PDF si formation complétée à 100%."""
+    formation = Formation.objects.prefetch_related(
+        'modules__lecons'
+    ).get(id=formation_id, actif=True)
+
+    pourcentage = formation.progression_pour(request.user)
+
+    if pourcentage < 100:
+        messages.error(
+            request,
+            f'❌ Tu dois compléter 100% de la formation pour obtenir le certificat '
+            f'(progression actuelle : {pourcentage}%).'
+        )
+        return redirect('detail_formation', formation_id=formation_id)
+
+    # Génère un numéro de certificat unique
+    chaine = f"{request.user.id}-{formation.id}-{request.user.date_joined}"
+    numero_certificat = f"BTA-{hashlib.md5(chaine.encode()).hexdigest()[:8].upper()}"
+
+    contexte = {
+        'prenom': request.user.first_name or request.user.username,
+        'nom': request.user.last_name or '',
+        'formation': formation,
+        'date_emission': timezone.now().strftime('%d %B %Y'),
+        'numero_certificat': numero_certificat,
+    }
+
+    html_certificat = render_to_string(
+        'academie/pdf/certificat.html',
+        contexte,
+        request=request
+    )
+
+    try:
+        from weasyprint import HTML
+        pdf = HTML(
+            string=html_certificat,
+            base_url=request.build_absolute_uri('/')
+        ).write_pdf()
+
+        nom_fichier = f"certificat-{formation.nom.replace(' ', '-').lower()}-BTA.pdf"
+        response = HttpResponse(pdf, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{nom_fichier}"'
+        return response
+
+    except Exception as e:
+        messages.error(
+            request,
+            f'❌ Erreur lors de la génération du certificat : {str(e)}'
+        )
+        return redirect('detail_formation', formation_id=formation_id)

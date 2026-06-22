@@ -108,9 +108,42 @@
     {% endif %}
 
     <div style="text-align: center; margin-top: 32px;">
+        {% if user.is_authenticated %}
+            {% if pourcentage_progression == 100 %}
+            <div style="margin-bottom: 16px;">
+                <p style="color: #22c55e; font-weight: 700;
+                           font-size: 16px; margin-bottom: 12px;">
+                    🎉 Félicitations ! Tu as complété cette formation !
+                </p>
+                <a href="{% url 'telecharger_certificat' formation.id %}"
+                   class="btn btn-principal"
+                   style="background: #22c55e;
+                          box-shadow: 0 4px 14px rgba(34,197,94,0.35);">
+                    🎓 Télécharger mon certificat PDF
+                </a>
+            </div>
+            {% else %}
+            <p style="color: var(--gris-texte); font-size: 14px;
+                       margin-bottom: 12px;">
+                {% if pourcentage_progression > 0 %}
+                    📈 Continue ! Tu es à {{ pourcentage_progression }}% 
+                    — complète toutes les leçons pour obtenir ton certificat.
+                {% else %}
+                    🚀 Commence la formation pour progresser vers ton certificat.
+                {% endif %}
+            </p>
+            <a href="{% url 'contact' %}" class="btn btn-principal">
+                S'inscrire à cette formation
+            </a>
+            {% endif %}
+        {% else %}
+        <p style="color: var(--gris-texte); font-size: 14px; margin-bottom: 12px;">
+            🔒 Connecte-toi pour suivre ta progression et obtenir ton certificat.
+        </p>
         <a href="{% url 'contact' %}" class="btn btn-principal">
             S'inscrire à cette formation
         </a>
+        {% endif %}
     </div>
 
 </section>
