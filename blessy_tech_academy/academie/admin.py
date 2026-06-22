@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import (Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz, Module, Lecon )
+from .models import (Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz, Module, Lecon, ProgressionLecon, Parcours, )
 
 @admin.register(Ecole)
 class EcoleAdmin(admin.ModelAdmin):
@@ -99,3 +99,21 @@ class LeconAdmin(admin.ModelAdmin):
     search_fields = ['titre', 'contenu']
     class Media:
         js = ['academie/admin/generer_contenu_lecon.js']
+
+@admin.register(Parcours)
+class ParcoursAdmin(admin.ModelAdmin):
+    list_display = ['icone', 'titre', 'duree_mois', 'prix', 'nombre_formations', 'actif', 'ordre']
+    list_filter = ['actif']
+    search_fields = ['titre', 'description']
+    list_editable = ['actif', 'ordre']
+    filter_horizontal = ['formations']  # sélecteur intuitif pour ManyToMany
+
+    fieldsets = [
+        ('Informations principales', {
+            'fields': ['icone', 'titre', 'description', 'duree_mois', 'prix', 'actif', 'ordre']
+        }),
+        ('Formations incluses', {
+            'fields': ['formations'],
+            'description': 'Sélectionne les formations qui composent ce parcours.'
+        }),
+    ]

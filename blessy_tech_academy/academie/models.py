@@ -285,3 +285,30 @@ class ProgressionLecon(models.Model):
     def __str__(self):
         statut = "✅" if self.terminee else "⏳"
         return f"{statut} {self.utilisateur.username} — {self.lecon.titre}"
+    
+class Parcours(models.Model):
+    """Un parcours professionnel = combinaison de plusieurs formations."""
+
+    titre = models.CharField(max_length=200)
+    icone = models.CharField(max_length=10, default='🎓')
+    description = models.TextField(blank=True)
+    duree_mois = models.IntegerField()
+    prix = models.IntegerField()
+    formations = models.ManyToManyField(
+        Formation,
+        related_name='parcours',
+        blank=True
+    )
+    actif = models.BooleanField(default=True)
+    ordre = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['ordre', 'titre']
+        verbose_name = 'Parcours professionnel'
+        verbose_name_plural = 'Parcours professionnels'
+
+    def __str__(self):
+        return f"{self.icone} {self.titre} ({self.duree_mois} mois)"
+
+    def nombre_formations(self):
+        return self.formations.count()

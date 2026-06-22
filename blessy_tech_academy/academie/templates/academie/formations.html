@@ -56,6 +56,107 @@
 
 </section>
 
+
+<!-- Parcours Professionnels -->
+{% if parcours_list %}
+<section style="background: var(--bleu-principal); padding: 60px 40px;">
+    <div style="max-width: 1100px; margin: 0 auto;">
+
+        <h2 style="color: white; font-size: 32px;
+                margin-bottom: 8px; text-align: center;">
+            🎓 Parcours Professionnels
+        </h2>
+        <p style="color: rgba(255,255,255,0.8); text-align: center;
+                margin-bottom: 48px; font-size: 16px;">
+            Des programmes complets pour une reconversion ou une
+            spécialisation professionnelle rapide.
+        </p>
+
+        <div style="display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                    gap: 24px;">
+
+            {% for parcours in parcours_list %}
+            <div style="background: rgba(255,255,255,0.08);
+                        border: 1px solid rgba(255,255,255,0.15);
+                        border-radius: 16px; padding: 32px;
+                        transition: transform 0.2s;">
+
+                <div style="font-size: 40px; margin-bottom: 12px;">
+                    {{ parcours.icone }}
+                </div>
+
+                <h3 style="color: white; font-size: 20px; margin-bottom: 12px;">
+                    {{ parcours.titre }}
+                </h3>
+
+                {% if parcours.description %}
+                <p style="color: rgba(255,255,255,0.7); font-size: 14px;
+                        margin-bottom: 20px; line-height: 1.6;">
+                    {{ parcours.description }}
+                </p>
+                {% endif %}
+
+                <!-- Formations incluses -->
+                {% if parcours.formations.all %}
+                <div style="margin-bottom: 20px;">
+                    <p style="color: var(--bleu-electrique); font-size: 12px;
+                            font-weight: 700; text-transform: uppercase;
+                            margin-bottom: 8px;">
+                        Formations incluses
+                    </p>
+                    {% for formation in parcours.formations.all %}
+                    <div style="display: flex; align-items: center; gap: 8px;
+                                margin-bottom: 6px;">
+                        <span style="color: var(--bleu-electrique);">✓</span>
+                        <span style="color: rgba(255,255,255,0.8); font-size: 13px;">
+                            {{ formation.icone }} {{ formation.nom }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Durée et Prix -->
+                <div style="display: flex; justify-content: space-between;
+                            align-items: center; padding-top: 20px;
+                            border-top: 1px solid rgba(255,255,255,0.15);">
+                    <div>
+                        <p style="color: rgba(255,255,255,0.6); font-size: 12px;">
+                            Durée
+                        </p>
+                        <p style="color: white; font-weight: 700;">
+                            {{ parcours.duree_mois }} mois
+                        </p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="color: rgba(255,255,255,0.6); font-size: 12px;">
+                            Investissement
+                        </p>
+                        <p style="color: var(--orange-accent); font-weight: 800;
+                                    font-size: 20px;">
+                            {{ parcours.prix }} USD
+                        </p>
+                    </div>
+                </div>
+
+                <a href="{% url 'contact' %}"
+                   style="display: block; text-align: center; margin-top: 20px;
+                        background: var(--orange-accent); color: white;
+                        padding: 12px 24px; border-radius: 8px;
+                        text-decoration: none; font-weight: 700;
+                        font-size: 14px;">
+                    S'inscrire à ce parcours →
+                </a>
+
+            </div>
+            {% endfor %}
+
+        </div>
+    </div>
+</section>
+{% endif %}
+
 <section class="cta">
     <h2>Une question sur nos formations ?</h2>
     <p>Notre équipe est disponible pour t'accompagner.</p>

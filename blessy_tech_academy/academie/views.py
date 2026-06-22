@@ -8,7 +8,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Q, Count, Avg
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import (Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz, Module, Lecon, ProgressionLecon)
+from .models import (Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz, Module, Lecon, ProgressionLecon, Parcours,)
 from .forms import InscriptionForm, InscriptionCompteForm, ConnexionForm
 from .ia import (
     blessy_ai_repondre,
@@ -32,9 +32,13 @@ def accueil(request):
 
 
 def formations(request):
-    """Page des formations organisées par école."""
+    """Page des formations organisées par école + parcours professionnels."""
     ecoles = Ecole.objects.prefetch_related('formations').all()
-    return render(request, 'academie/formations.html', {'ecoles': ecoles})
+    parcours_list = Parcours.objects.prefetch_related('formations').filter(actif=True)
+    return render(request, 'academie/formations.html', {
+        'ecoles': ecoles,
+        'parcours_list': parcours_list,
+    })
 
 def detail_formation(request, formation_id):
     """Page de détail d'une formation avec son programme complet."""
