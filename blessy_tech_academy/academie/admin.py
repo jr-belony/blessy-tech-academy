@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import (Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz, Module, Lecon, ProgressionLecon, Parcours, )
+from .models import (Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz, Module, Lecon, ProgressionLecon,
+Parcours, Sujet, Reponse, Reaction, )
 
 @admin.register(Ecole)
 class EcoleAdmin(admin.ModelAdmin):
@@ -117,3 +118,38 @@ class ParcoursAdmin(admin.ModelAdmin):
             'description': 'Sélectionne les formations qui composent ce parcours.'
         }),
     ]
+
+
+class ReponseInline(admin.TabularInline):
+    model = Reponse
+    extra = 0
+    fields = ['auteur', 'contenu', 'acceptee', 'date_creation']
+    readonly_fields = ['date_creation']
+
+
+@admin.register(Sujet)
+class SujetAdmin(admin.ModelAdmin):
+    list_display = [
+        'titre', 'auteur', 'formation', 'categorie',
+        'nombre_reponses', 'vues', 'epingle', 'resolu',
+        'date_creation'
+    ]
+    list_filter = ['categorie', 'resolu', 'epingle', 'formation']
+    search_fields = ['titre', 'contenu', 'auteur__username']
+    list_editable = ['epingle', 'resolu']
+    readonly_fields = ['date_creation', 'date_modification', 'vues']
+    inlines = [ReponseInline]
+
+
+@admin.register(Reponse)
+class ReponseAdmin(admin.ModelAdmin):
+    list_display = ['auteur', 'sujet', 'acceptee', 'date_creation']
+    list_filter = ['acceptee']
+    search_fields = ['contenu', 'auteur__username']
+    readonly_fields = ['date_creation']
+
+
+@admin.register(Reaction)
+class ReactionAdmin(admin.ModelAdmin):
+    list_display = ['utilisateur', 'sujet', 'reponse', 'date_creation']
+    readonly_fields = ['date_creation']    

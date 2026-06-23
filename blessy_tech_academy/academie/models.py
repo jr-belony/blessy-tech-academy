@@ -312,3 +312,121 @@ class Parcours(models.Model):
 
     def nombre_formations(self):
         return self.formations.count()
+    
+
+class Sujet(models.Model):
+    """Un sujet de discussion dans le forum."""
+
+    CATEGORIES = [
+        ('general', 'Général'),
+        ('question', 'Question'),
+        ('partage', 'Partage de projet'),
+        ('aide', 'Demande d\'aide'),
+        ('annonce', 'Annonce'),
+    ]
+
+    titre = models.CharField(max_length=300)
+    contenu = models.TextField()
+    auteur = models.ForeignKey(
+        'auth.User',
+        on_delete=models.CASCADE,
+        related_name='sujets_forum'
+    )
+    formation = models.ForeignKey(
+        Formation,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='sujets_forum'
+    )
+    categorie = models.CharField(
+        max_length=20,
+        choices=CATEGORIES,
+        default='general'
+    )
+    vues = models.IntegerField(default=0)
+    epingle = models.BooleanField(default=False)
+    resolu = models.BooleanField(default=False)
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-epingle', '-date_creation']
+        verbose_name = 'Sujet'
+        verbose_name_plural = 'Sujets'
+
+    def __str__(self):
+        return self.titre
+
+    def nombre_reponses(self):
+        return self.reponses.count()
+
+    def nombre_likes(self):
+        return self.reactions.count()
+
+
+class Reponse(models.Model):
+    """Une réponse à un sujet du forum."""
+
+    sujet = models.ForeignKey(
+        Sujet,
+        on_delete=models.CASCADE,
+        related_name='reponses'
+    )
+    contenu = models.TextField()
+    auteur = models.ForeignKey(
+        'auth.User',
+        on_delete=models.CASCADE,
+        related_name='reponses_forum'
+    )
+    acceptee = models.BooleanField(default=False)
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['date_creation']
+        verbose_name = 'Réponse'
+        verbose_name_plural = 'Réponses'
+
+    def __str__(self):
+        return f"Réponse de {self.auteur.username} sur {self.sujet.titre[:30]}"
+
+    def nombre_likes(self):
+        return self.reactions.count()
+
+
+class Reaction(models.Model):
+    """Un like sur un sujet ou une réponse."""
+
+    utilisateur = models.ForeignKey(
+        'auth.User',
+        on_delete=models.CASCADE,
+        related_name='reactions_forum'
+    )
+    sujet = models.ForeignKey(
+        Sujet,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='reactions'
+    )
+    reponse = models.ForeignKey(
+        Reponse,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='reactions'
+    )
+    date_creation = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = [
+            ['utilisateur', 'sujet'],
+            ['utilisateur', 'reponse'],
+        ]
+        verbose_name = 'Réaction'
+        verbose_name_plural = 'Réactions'
+
+    def __str__(self):
+        cible = self.sujet or self.reponse
+        return f"❤️ {self.utilisateur.username} → {cible}"

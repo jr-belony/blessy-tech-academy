@@ -33,4 +33,10 @@ urlpatterns = [
     path('api/generer-contenu-module/', views.api_generer_contenu_module, name='api_generer_contenu_module'),
     path('lecon/<int:lecon_id>/terminer/', views.marquer_lecon_terminee, name='marquer_lecon_terminee'),
     path('formation/<int:formation_id>/certificat/', views.telecharger_certificat, name='telecharger_certificat'),
+    # Forum Communautaire
+    path('forum/', views.forum_liste, name='forum_liste'),
+    path('forum/nouveau/', views.forum_creer, name='forum_creer'),
+    path('forum/<int:sujet_id>/', views.forum_detail, name='forum_detail'),
+    path('forum/liker/<str:type_cible>/<int:cible_id>/', views.forum_liker, name='forum_liker'),
+    path('forum/accepter/<int:reponse_id>/', views.forum_accepter_reponse, name='forum_accepter_reponse'),
 ]

@@ -13,7 +13,7 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from .models import (
     Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz,
-    Module, Lecon, ProgressionLecon, Parcours,
+    Module, Lecon, ProgressionLecon, Parcours, Sujet, Reponse, Reaction
 )
 from .forms import InscriptionForm, InscriptionCompteForm, ConnexionForm
 from .ia import (
@@ -637,3 +637,190 @@ def telecharger_certificat(request, formation_id):
             f'❌ Erreur lors de la génération du certificat : {str(e)}'
         )
         return redirect('detail_formation', formation_id=formation_id)
+    
+
+    # ================================================
+# Forum Communautaire
+# ================================================
+
+def forum_liste(request):
+    """Page principale du forum — liste tous les sujets."""
+    categorie = request.GET.get('categorie', '')
+    formation_id = request.GET.get('formation', '')
+
+    sujets = Sujet.objects.select_related(
+        'auteur', 'formation'
+    ).all()
+
+    if categorie:
+        sujets = sujets.filter(categorie=categorie)
+
+    if formation_id:
+        sujets = sujets.filter(formation_id=formation_id)
+
+    formations = Formation.objects.filter(actif=True)
+
+    return render(request, 'academie/forum/liste.html', {
+        'sujets': sujets,
+        'formations': formations,
+        'categorie_active': categorie,
+        'formation_active': formation_id,
+        'categories': Sujet.CATEGORIES,
+    })
+
+
+def forum_detail(request, sujet_id):
+    """Page de détail d'un sujet avec ses réponses."""
+    sujet = Sujet.objects.select_related(
+        'auteur', 'formation'
+    ).prefetch_related(
+        'reponses__auteur', 'reponses__reactions',
+        'reactions'
+    ).get(id=sujet_id)
+
+    # Incrémente le compteur de vues
+    sujet.vues += 1
+    sujet.save(update_fields=['vues'])
+
+    # Likes de l'utilisateur connecté
+    likes_sujets = set()
+    likes_reponses = set()
+
+    if request.user.is_authenticated:
+        likes_sujets = set(
+            Reaction.objects.filter(
+                utilisateur=request.user,
+                sujet=sujet
+            ).values_list('sujet_id', flat=True)
+        )
+        likes_reponses = set(
+            Reaction.objects.filter(
+                utilisateur=request.user,
+                reponse__sujet=sujet
+            ).values_list('reponse_id', flat=True)
+        )
+
+    # Traitement du formulaire de réponse
+    if request.method == 'POST' and request.user.is_authenticated:
+        contenu = request.POST.get('contenu', '').strip()
+        if contenu:
+            Reponse.objects.create(
+                sujet=sujet,
+                contenu=contenu,
+                auteur=request.user,
+            )
+            messages.success(request, '✅ Réponse publiée !')
+            return redirect('forum_detail', sujet_id=sujet_id)
+
+    return render(request, 'academie/forum/detail.html', {
+        'sujet': sujet,
+        'likes_sujets': likes_sujets,
+        'likes_reponses': likes_reponses,
+    })
+
+
+@login_required(login_url='/connexion/')
+def forum_creer(request):
+    """Créer un nouveau sujet."""
+    if request.method == 'POST':
+        titre = request.POST.get('titre', '').strip()
+        contenu = request.POST.get('contenu', '').strip()
+        categorie = request.POST.get('categorie', 'general')
+        formation_id = request.POST.get('formation', '')
+
+        if not titre or not contenu:
+            messages.error(request, '❌ Titre et contenu sont obligatoires.')
+        else:
+            sujet = Sujet.objects.create(
+                titre=titre,
+                contenu=contenu,
+                categorie=categorie,
+                auteur=request.user,
+                formation_id=formation_id if formation_id else None,
+            )
+            messages.success(request, '✅ Sujet créé avec succès !')
+            return redirect('forum_detail', sujet_id=sujet.id)
+
+    formations = Formation.objects.filter(actif=True)
+    return render(request, 'academie/forum/creer.html', {
+        'formations': formations,
+        'categories': Sujet.CATEGORIES,
+    })
+
+
+@login_required(login_url='/connexion/')
+@csrf_exempt
+def forum_liker(request, type_cible, cible_id):
+    """Toggle like sur un sujet ou une réponse."""
+    if request.method == 'POST':
+        try:
+            if type_cible == 'sujet':
+                sujet = Sujet.objects.get(id=cible_id)
+                reaction, cree = Reaction.objects.get_or_create(
+                    utilisateur=request.user,
+                    sujet=sujet,
+                )
+                if not cree:
+                    reaction.delete()
+                    liked = False
+                else:
+                    liked = True
+                total = sujet.reactions.count()
+
+            elif type_cible == 'reponse':
+                reponse = Reponse.objects.get(id=cible_id)
+                reaction, cree = Reaction.objects.get_or_create(
+                    utilisateur=request.user,
+                    reponse=reponse,
+                )
+                if not cree:
+                    reaction.delete()
+                    liked = False
+                else:
+                    liked = True
+                total = reponse.reactions.count()
+
+            else:
+                return JsonResponse({'erreur': 'Type invalide'}, status=400)
+
+            return JsonResponse({
+                'succes': True,
+                'liked': liked,
+                'total': total,
+            })
+
+        except Exception as e:
+            return JsonResponse({'erreur': str(e)}, status=500)
+
+    return JsonResponse({'erreur': 'Méthode non autorisée'}, status=405)
+
+
+@login_required(login_url='/connexion/')
+def forum_accepter_reponse(request, reponse_id):
+    """Marque une réponse comme solution acceptée."""
+    if request.method == 'POST':
+        reponse = Reponse.objects.select_related('sujet').get(id=reponse_id)
+
+        # Seul l'auteur du sujet peut accepter une réponse
+        if request.user != reponse.sujet.auteur:
+            messages.error(
+                request,
+                '❌ Seul l\'auteur du sujet peut accepter une réponse.'
+            )
+            return redirect('forum_detail', sujet_id=reponse.sujet.id)
+
+        # Désactive toutes les autres réponses acceptées
+        Reponse.objects.filter(sujet=reponse.sujet).update(acceptee=False)
+
+        # Active celle-ci
+        reponse.acceptee = True
+        reponse.save()
+
+        # Marque le sujet comme résolu
+        reponse.sujet.resolu = True
+        reponse.sujet.save()
+
+        messages.success(request, '✅ Réponse marquée comme solution !')
+        return redirect('forum_detail', sujet_id=reponse.sujet.id)
+
+    return redirect('forum_liste')
