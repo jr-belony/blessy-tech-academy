@@ -1,0 +1,305 @@
+{% extends 'academie/base.html' %}
+
+{% block titre %}Mon Parcours Personnalisé — Blessy Tech Academy{% endblock %}
+
+{% block contenu %}
+
+<section class="page-hero">
+    <h2>🎯 Trouve ton parcours idéal</h2>
+    <p>Réponds à quelques questions et Blessy AI conçoit ton programme sur mesure.</p>
+</section>
+
+<section style="max-width: 800px; margin: 0 auto; padding: 40px 20px;">
+
+{% if not resultat %}
+
+    <!-- Formulaire d'orientation -->
+    <form method="POST" id="form-orientation">
+        {% csrf_token %}
+
+        <!-- Question 1 : Profil -->
+        <div style="background: white; border-radius: 16px; box-shadow: var(--ombre-legere);
+                    padding: 32px; margin-bottom: 24px;">
+            <h3 style="color: var(--bleu-principal); margin-bottom: 8px; font-size: 20px;">
+                1️⃣ Qui es-tu ?
+            </h3>
+            <p style="color: var(--gris-texte); margin-bottom: 20px; font-size: 14px;">
+                Choisis le profil qui te correspond le mieux
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
+                {% for valeur, label, icone in profils %}
+                <label style="cursor: pointer;">
+                    <input type="radio" name="profil" value="{{ valeur }}"
+                           style="display: none;"
+                           {% if post_data.profil == valeur %}checked{% endif %}>
+                    <div class="carte-choix" data-groupe="profil">
+                        <span style="font-size: 32px; display: block; margin-bottom: 8px;">{{ icone }}</span>
+                        <span style="font-size: 13px; font-weight: 600; color: var(--bleu-principal);">{{ label }}</span>
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Question 2 : Objectif -->
+        <div style="background: white; border-radius: 16px; box-shadow: var(--ombre-legere);
+                    padding: 32px; margin-bottom: 24px;">
+            <h3 style="color: var(--bleu-principal); margin-bottom: 8px; font-size: 20px;">
+                2️⃣ Quel est ton objectif principal ?
+            </h3>
+            <p style="color: var(--gris-texte); margin-bottom: 20px; font-size: 14px;">
+                Qu'est-ce que tu veux accomplir ?
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
+                {% for valeur, label, icone in objectifs %}
+                <label style="cursor: pointer;">
+                    <input type="radio" name="objectif" value="{{ valeur }}"
+                           style="display: none;"
+                           {% if post_data.objectif == valeur %}checked{% endif %}>
+                    <div class="carte-choix" data-groupe="objectif">
+                        <span style="font-size: 32px; display: block; margin-bottom: 8px;">{{ icone }}</span>
+                        <span style="font-size: 13px; font-weight: 600; color: var(--bleu-principal);">{{ label }}</span>
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Question 3 : Disponibilité -->
+        <div style="background: white; border-radius: 16px; box-shadow: var(--ombre-legere);
+                    padding: 32px; margin-bottom: 24px;">
+            <h3 style="color: var(--bleu-principal); margin-bottom: 8px; font-size: 20px;">
+                3️⃣ Combien de temps peux-tu consacrer par jour ?
+            </h3>
+            <p style="color: var(--gris-texte); margin-bottom: 20px; font-size: 14px;">
+                Sois honnête — c'est pour adapter ton parcours
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
+                {% for valeur, label, icone in disponibilites %}
+                <label style="cursor: pointer;">
+                    <input type="radio" name="disponibilite" value="{{ valeur }}"
+                           style="display: none;"
+                           {% if post_data.disponibilite == valeur %}checked{% endif %}>
+                    <div class="carte-choix" data-groupe="disponibilite">
+                        <span style="font-size: 32px; display: block; margin-bottom: 8px;">{{ icone }}</span>
+                        <span style="font-size: 13px; font-weight: 600; color: var(--bleu-principal);">{{ label }}</span>
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Question 4 : Détails libres -->
+        <div style="background: white; border-radius: 16px; box-shadow: var(--ombre-legere);
+                    padding: 32px; margin-bottom: 32px;">
+            <h3 style="color: var(--bleu-principal); margin-bottom: 8px; font-size: 20px;">
+                4️⃣ Dis-nous en plus sur toi <span style="font-weight: 400; font-size: 15px;">(optionnel)</span>
+            </h3>
+            <p style="color: var(--gris-texte); margin-bottom: 20px; font-size: 14px;">
+                Tes rêves, ta situation, ce qui t'inspire...
+                Plus tu nous en dis, plus Blessy AI adaptera ton parcours.
+            </p>
+            <textarea name="details" rows="4"
+                      placeholder="Ex: Je veux créer mon propre site web pour vendre mes produits. J'ai un budget limité et je veux travailler depuis chez moi..."
+                      style="width: 100%; padding: 14px 16px; border: 2px solid var(--gris-border);
+                             border-radius: 10px; font-family: inherit; font-size: 15px;
+                             resize: vertical; transition: border-color 0.3s;"
+                      onfocus="this.style.borderColor='var(--bleu-electrique)'"
+                      onblur="this.style.borderColor='var(--gris-border)'">{{ post_data.details|default:'' }}</textarea>
+        </div>
+
+        {% if erreur %}
+        <div style="background: #f8d7da; color: #721c24; padding: 14px 20px;
+                    border-radius: 8px; margin-bottom: 20px; font-weight: 500;">
+            ❌ {{ erreur }}
+        </div>
+        {% endif %}
+
+        <button type="submit" class="btn btn-principal"
+                style="width: 100%; text-align: center; padding: 16px;
+                       font-size: 17px;">
+            🤖 Générer mon parcours personnalisé
+        </button>
+
+        <p style="text-align: center; color: var(--gris-texte);
+                  font-size: 13px; margin-top: 12px;">
+            ⏳ La génération prend environ 10-15 secondes
+        </p>
+
+    </form>
+
+{% else %}
+
+    <!-- Résultat du parcours -->
+    <div style="background: linear-gradient(135deg, var(--bleu-principal), #1a4a8a);
+                border-radius: 20px; padding: 32px; margin-bottom: 32px; color: white;
+                text-align: center;">
+        <div style="font-size: 48px; margin-bottom: 16px;">🎯</div>
+        <h2 style="color: white; font-size: 26px; margin-bottom: 12px;">
+            Ton parcours personnalisé est prêt !
+        </h2>
+        <p style="opacity: 0.9; font-size: 16px; line-height: 1.7; max-width: 600px; margin: 0 auto;">
+            {{ resultat.message_personnel }}
+        </p>
+    </div>
+
+    <!-- Résumé -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 16px; margin-bottom: 32px;">
+        <div style="background: white; padding: 20px; border-radius: 12px;
+                    box-shadow: var(--ombre-legere); text-align: center;">
+            <p style="font-size: 32px; font-weight: 800; color: var(--bleu-principal); margin: 0;">
+                {{ resultat.etapes|length }}
+            </p>
+            <p style="color: var(--gris-texte); font-size: 13px; margin-top: 4px;">Formations</p>
+        </div>
+        <div style="background: white; padding: 20px; border-radius: 12px;
+                    box-shadow: var(--ombre-legere); text-align: center;">
+            <p style="font-size: 32px; font-weight: 800; color: var(--bleu-principal); margin: 0;">
+                {{ resultat.duree_totale }}
+            </p>
+            <p style="color: var(--gris-texte); font-size: 13px; margin-top: 4px;">Mois au total</p>
+        </div>
+        <div style="background: white; padding: 20px; border-radius: 12px;
+                    box-shadow: var(--ombre-legere); text-align: center;">
+            <p style="font-size: 32px; font-weight: 800; color: var(--orange-accent); margin: 0;">
+                {{ resultat.budget_total }}$
+            </p>
+            <p style="color: var(--gris-texte); font-size: 13px; margin-top: 4px;">Investissement</p>
+        </div>
+    </div>
+
+    <!-- Étapes du parcours -->
+    <h3 style="color: var(--bleu-principal); margin-bottom: 20px; font-size: 22px;">
+        📚 Ton plan de formation étape par étape
+    </h3>
+
+    {% for etape in resultat.etapes %}
+    <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 16px;">
+
+        <!-- Numéro étape -->
+        <div style="min-width: 48px; height: 48px; background: var(--bleu-principal);
+                    color: white; border-radius: 50%; display: flex; align-items: center;
+                    justify-content: center; font-weight: 800; font-size: 18px;
+                    flex-shrink: 0;">
+            {{ etape.ordre }}
+        </div>
+
+        <!-- Carte formation -->
+        <div style="background: white; border-radius: 12px; box-shadow: var(--ombre-legere);
+                    padding: 20px 24px; flex: 1;
+                    border-left: 4px solid var(--bleu-electrique);">
+            <div style="display: flex; justify-content: space-between;
+                        align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+                <h4 style="color: var(--bleu-principal); font-size: 17px; margin: 0;">
+                    {{ etape.formation_icone }} {{ etape.formation_nom }}
+                </h4>
+                <div style="display: flex; gap: 12px;">
+                    <span style="font-size: 13px; color: var(--gris-texte);">
+                        ⏱ {{ etape.duree_mois }} mois
+                    </span>
+                    <span style="font-size: 14px; font-weight: 700; color: var(--orange-accent);">
+                        {{ etape.prix }} USD
+                    </span>
+                </div>
+            </div>
+            <p style="color: var(--gris-texte); font-size: 14px; margin: 0; line-height: 1.6;">
+                💡 {{ etape.raison }}
+            </p>
+            <a href="{% url 'detail_formation' etape.formation_id %}"
+               style="display: inline-block; margin-top: 12px; font-size: 13px;
+                      color: var(--bleu-electrique); text-decoration: none; font-weight: 600;">
+                Voir le programme complet →
+            </a>
+        </div>
+    </div>
+
+    {% if not forloop.last %}
+    <div style="text-align: left; padding-left: 24px; margin-bottom: 4px;">
+        <span style="color: var(--bleu-electrique); font-size: 24px;">↓</span>
+    </div>
+    {% endif %}
+    {% endfor %}
+
+    <!-- CTA Final -->
+    <div style="background: linear-gradient(135deg, var(--orange-accent), #e85a2a);
+                border-radius: 16px; padding: 32px; text-align: center;
+                margin-top: 32px; color: white;">
+        <h3 style="color: white; font-size: 22px; margin-bottom: 12px;">
+            🚀 Prêt à commencer ton parcours ?
+        </h3>
+        <p style="opacity: 0.9; margin-bottom: 24px; font-size: 15px;">
+            Inscris-toi maintenant et commence dès cette semaine !
+        </p>
+        <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+            <a href="{% url 'contact' %}"
+               style="background: white; color: var(--orange-accent); padding: 14px 28px;
+                      border-radius: 8px; text-decoration: none; font-weight: 700;">
+                ✉️ S'inscrire maintenant
+            </a>
+            <a href="{% url 'orientation_ia' %}"
+               style="background: transparent; color: white; padding: 14px 28px;
+                      border-radius: 8px; text-decoration: none; font-weight: 600;
+                      border: 2px solid rgba(255,255,255,0.6);">
+                🔄 Refaire le test
+            </a>
+        </div>
+    </div>
+
+{% endif %}
+
+</section>
+
+<style>
+    .carte-choix {
+        padding: 20px 12px;
+        border-radius: 12px;
+        border: 2px solid var(--gris-border);
+        text-align: center;
+        transition: all 0.2s;
+        background: var(--gris-clair);
+        cursor: pointer;
+    }
+
+    .carte-choix:hover {
+        border-color: var(--bleu-electrique);
+        background: rgba(0, 180, 216, 0.05);
+        transform: translateY(-2px);
+    }
+
+    .carte-choix.selectionne {
+        border-color: var(--bleu-principal);
+        background: rgba(11, 36, 71, 0.06);
+        box-shadow: 0 0 0 3px rgba(11, 36, 71, 0.1);
+    }
+</style>
+
+<script>
+    // Gestion des cartes de choix
+    document.querySelectorAll('input[type="radio"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            const groupe = this.name;
+            document.querySelectorAll(
+                '.carte-choix[data-groupe="' + groupe + '"]'
+            ).forEach(function(carte) {
+                carte.classList.remove('selectionne');
+            });
+            this.nextElementSibling.classList.add('selectionne');
+        });
+
+        // Restaure l'état si formulaire soumis avec erreur
+        if (radio.checked) {
+            radio.nextElementSibling.classList.add('selectionne');
+        }
+    });
+
+    // Indicateur de chargement
+    document.getElementById('form-orientation') &&
+    document.getElementById('form-orientation').addEventListener('submit', function() {
+        const btn = this.querySelector('button[type="submit"]');
+        btn.textContent = '⏳ Blessy AI analyse ton profil...';
+        btn.disabled = true;
+    });
+</script>
+
+{% endblock %}

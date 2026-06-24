@@ -23,6 +23,7 @@ from .ia import (
     generer_quiz,
     generer_programme_complet,
     generer_contenu_lecon,
+    generer_parcours_oriente,
 )
 
 
@@ -859,4 +860,63 @@ def forum_creer(request):
         'form': SujetForm(),
         'formations': formations,
         'categories': Sujet.CATEGORIES,
+    })
+
+
+# ================================================
+# Parcours d'Orientation Intelligent
+# ================================================
+
+def orientation_ia(request):
+    """Page du parcours d'orientation personnalisé."""
+
+    profils = [
+        ('lyceen_etudiant', 'Lycéen / Étudiant', '🎓'),
+        ('professionnel', 'Professionnel', '💼'),
+        ('entrepreneur', 'Entrepreneur', '🚀'),
+        ('numerique', 'Déjà dans le numérique', '👨‍💻'),
+    ]
+
+    objectifs = [
+        ('developpeur', 'Devenir développeur', '💻'),
+        ('design_creation', 'Design & Création', '🎨'),
+        ('marketing_business', 'Marketing & Business', '📊'),
+        ('maitriser_ia', "Maîtriser l'IA", '🤖'),
+        ('technicien', 'Technicien informatique', '🔧'),
+    ]
+
+    disponibilites = [
+        ('1-2h', '1-2h par jour', '⏰'),
+        ('3-4h', '3-4h par jour', '⏱'),
+        ('temps_plein', 'Temps plein', '🔥'),
+    ]
+
+    resultat = None
+    erreur = None
+
+    if request.method == 'POST':
+        profil = request.POST.get('profil', '')
+        objectif = request.POST.get('objectif', '')
+        disponibilite = request.POST.get('disponibilite', '')
+        details = request.POST.get('details', '').strip()
+
+        if profil and objectif and disponibilite:
+            formations = Formation.objects.filter(actif=True).select_related('ecole')
+            resultat = generer_parcours_oriente(
+                profil, objectif, disponibilite, details, formations
+            )
+
+            if 'erreur' in resultat:
+                erreur = resultat['erreur']
+                resultat = None
+        else:
+            erreur = "Veuillez répondre aux 3 premières questions."
+
+    return render(request, 'academie/orientation.html', {
+        'resultat': resultat,
+        'erreur': erreur,
+        'profils': profils,
+        'objectifs': objectifs,
+        'disponibilites': disponibilites,
+        'post_data': request.POST if request.method == 'POST' else None,
     })

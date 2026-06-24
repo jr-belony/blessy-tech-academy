@@ -320,3 +320,77 @@ def generer_contenu_module_complet(module_titre, lecons_liste, contexte_formatio
         resultats[lecon['id']] = contenu
 
     return resultats
+
+
+def generer_parcours_oriente(profil, objectif, disponibilite, details, formations_disponibles):
+    """
+    Génère un parcours personnalisé basé sur le profil de l'étudiant.
+
+    Args:
+        profil: Type de profil (lycéen, professionnel, entrepreneur...)
+        objectif: Objectif principal (développeur, design, IA...)
+        disponibilite: Heures disponibles par jour
+        details: Description libre des objectifs
+        formations_disponibles: QuerySet des formations actives
+
+    Returns:
+        dict: {parcours: [...], message_personnel: str, duree_totale: int, budget_total: int}
+    """
+    try:
+        model = initialiser_ia()
+
+        formations_texte = "\n".join([
+            f"- ID:{f.id} | {f.nom} ({f.duree_mois} mois, {f.prix} USD) | "
+            f"Niveau: {f.niveau} | École: {f.ecole}"
+            for f in formations_disponibles
+        ])
+
+        prompt = f"""
+Tu es Blessy AI, conseiller pédagogique expert de Blessy Tech Academy en Haïti.
+
+Un étudiant a rempli son profil :
+- Profil : {profil}
+- Objectif principal : {objectif}
+- Disponibilité : {disponibilite}
+- Détails personnels : "{details}"
+
+Formations disponibles à BTA :
+{formations_texte}
+
+Crée un parcours personnalisé et progressif pour cet étudiant.
+
+Réponds UNIQUEMENT en JSON valide, sans markdown, au format EXACT :
+
+{{
+    "message_personnel": "Message d'encouragement personnalisé (2-3 phrases, chaleureux)",
+    "duree_totale": 12,
+    "budget_total": 650,
+    "etapes": [
+        {{
+            "ordre": 1,
+            "formation_id": 5,
+            "formation_nom": "Bureautique Professionnelle",
+            "formation_icone": "📊",
+            "raison": "Pourquoi cette formation en premier (1 phrase)",
+            "duree_mois": 3,
+            "prix": 150
+        }}
+    ]
+}}
+
+Règles :
+- Choisis entre 2 et 5 formations dans l'ordre logique de progression
+- Utilise UNIQUEMENT les formations disponibles (avec leur ID exact)
+- Adapte le parcours à la disponibilité (moins de temps = moins de formations)
+- Sois précis et encourageant
+- Réponds en français
+"""
+        reponse = model.generate_content(prompt)
+        texte = reponse.text.strip()
+        texte = texte.replace('```json', '').replace('```', '').strip()
+
+        resultat = json.loads(texte)
+        return resultat
+
+    except Exception as e:
+        return {'erreur': str(e)}
