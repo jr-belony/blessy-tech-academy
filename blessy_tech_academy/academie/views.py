@@ -15,7 +15,7 @@ from .models import (
     Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz,
     Module, Lecon, ProgressionLecon, Parcours, Sujet, Reponse, Reaction
 )
-from .forms import InscriptionForm, InscriptionCompteForm, ConnexionForm
+from .forms import InscriptionForm, InscriptionCompteForm, ConnexionForm, SujetForm, ReponseForm 
 from .ia import (
     blessy_ai_repondre,
     recommander_formations,
@@ -520,7 +520,7 @@ def lire_lecon(request, lecon_id):
     """Page de lecture d'une leçon (réservée aux connectés)."""
     lecon = Lecon.objects.select_related('module__formation').get(id=lecon_id)
 
-    contenu_html = markdown_lib.markdown(lecon.contenu) if lecon.contenu else ''
+    contenu_html = lecon.contenu
 
     lecons_module = list(lecon.module.lecons.all())
     index_actuel = lecons_module.index(lecon)
@@ -824,3 +824,39 @@ def forum_accepter_reponse(request, reponse_id):
         return redirect('forum_detail', sujet_id=reponse.sujet.id)
 
     return redirect('forum_liste')
+
+
+@login_required(login_url='/connexion/')
+def forum_creer(request):
+    """Créer un nouveau sujet."""
+    if request.method == 'POST':
+        titre = request.POST.get('titre', '').strip()
+        contenu = request.POST.get('contenu', '').strip()
+        categorie = request.POST.get('categorie', 'general')
+        formation_id = request.POST.get('formation', '')
+
+        if not titre or not contenu:
+            messages.error(request, '❌ Titre et contenu sont obligatoires.')
+            formations = Formation.objects.filter(actif=True)
+            return render(request, 'academie/forum/creer.html', {
+                'form': SujetForm(),
+                'formations': formations,
+                'categories': Sujet.CATEGORIES,
+            })
+
+        sujet = Sujet.objects.create(
+            titre=titre,
+            contenu=contenu,
+            categorie=categorie,
+            auteur=request.user,
+            formation_id=formation_id if formation_id else None,
+        )
+        messages.success(request, '✅ Sujet créé avec succès !')
+        return redirect('forum_detail', sujet_id=sujet.id)
+
+    formations = Formation.objects.filter(actif=True)
+    return render(request, 'academie/forum/creer.html', {
+        'form': SujetForm(),
+        'formations': formations,
+        'categories': Sujet.CATEGORIES,
+    })

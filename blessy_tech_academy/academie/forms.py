@@ -1,8 +1,9 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
-
+from django_ckeditor_5.widgets import CKEditor5Widget
 from .models import Inscription, Formation
+from .models import Sujet, Reponse
 
 
 class InscriptionForm(forms.ModelForm):
@@ -153,3 +154,46 @@ class ConnexionForm(AuthenticationForm):
         self.fields['password'].widget.attrs.update({
             'placeholder': '••••••••',
         })
+
+class SujetForm(forms.ModelForm):
+    """Formulaire de création de sujet avec éditeur riche."""
+
+    class Meta:
+        model = Sujet
+        fields = ['titre', 'categorie', 'formation', 'contenu']
+        widgets = {
+            'titre': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ex: Comment créer une API avec Django ?',
+            }),
+            'categorie': forms.Select(attrs={
+                'class': 'form-control',
+            }),
+            'formation': forms.Select(attrs={
+                'class': 'form-control',
+            }),
+            'contenu': CKEditor5Widget(
+                attrs={'class': 'django_ckeditor_5'},
+                config_name='default'
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['formation'].queryset = Formation.objects.filter(actif=True)
+        self.fields['formation'].empty_label = "-- Aucune formation --"
+        self.fields['formation'].required = False
+
+
+class ReponseForm(forms.ModelForm):
+    """Formulaire de réponse avec éditeur riche."""
+
+    class Meta:
+        model = Reponse
+        fields = ['contenu']
+        widgets = {
+            'contenu': CKEditor5Widget(
+                attrs={'class': 'django_ckeditor_5'},
+                config_name='minimal'
+            ),
+        }

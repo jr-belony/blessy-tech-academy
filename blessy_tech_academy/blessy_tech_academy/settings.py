@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_ckeditor_5',
     'academie'
 ]
 # Debug Toolbar (développement uniquement)
@@ -145,3 +146,62 @@ if DEBUG:
 else:
     # En production : WhiteNoise sert les fichiers (optimisés et compressés)
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+
+# ================================================
+# CKEditor 5 Configuration
+# ================================================
+
+CKEDITOR_5_CONFIGS = {
+    'default': {
+        'toolbar': [
+            'heading', '|',
+            'bold', 'italic', 'underline', 'strikethrough', '|',
+            'fontSize', 'fontColor', 'fontBackgroundColor', '|',
+            'alignment', '|',
+            'bulletedList', 'numberedList', '|',
+            'link', 'insertImage', 'mediaEmbed', '|',
+            'blockQuote', 'insertTable', 'codeBlock', '|',
+            'undo', 'redo'
+        ],
+        'image': {
+            'toolbar': [
+                'imageTextAlternative',
+                'imageStyle:inline',
+                'imageStyle:block',
+                'imageStyle:side',
+                'imageStyle:wrapText',
+                'imageStyle:breakText',
+            ],
+        },
+        'table': {
+            'contentToolbar': [
+                'tableColumn',
+                'tableRow',
+                'mergeTableCells',
+                'tableProperties',
+                'tableCellProperties',
+            ]
+        },
+        'height': 400,
+        'width': '100%',
+        'language': 'fr',
+    },
+    'minimal': {
+        'toolbar': [
+            'bold', 'italic', 'underline', '|',
+            'bulletedList', 'numberedList', '|',
+            'link', '|',
+            'undo', 'redo'
+        ],
+        'height': 200,
+        'width': '100%',
+        'language': 'fr',
+    }
+}
+
+# Dossier pour les images uploadées via CKEditor
+CKEDITOR_5_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

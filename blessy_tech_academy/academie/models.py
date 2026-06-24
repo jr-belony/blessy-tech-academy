@@ -1,5 +1,5 @@
 from django.db import models
-
+from django_ckeditor_5.fields import CKEditor5Field
 
 class Ecole(models.Model):
     """Représente une École (catégorie de formations)."""
@@ -246,10 +246,11 @@ class Lecon(models.Model):
         blank=True,
         help_text="Court résumé visible publiquement (sans connexion)"
     )
-    contenu = models.TextField(
-        blank=True,
-        help_text="Contenu complet du cours — visible uniquement aux étudiants connectés"
-    )
+    contenu = CKEditor5Field(
+    blank=True,
+    config_name='default',
+    help_text="Contenu complet du cours — visible uniquement aux étudiants connectés"
+)
     duree_minutes = models.IntegerField(default=15)
     ordre = models.IntegerField(default=0)
 
@@ -326,7 +327,7 @@ class Sujet(models.Model):
     ]
 
     titre = models.CharField(max_length=300)
-    contenu = models.TextField()
+    contenu = CKEditor5Field(config_name='default')
     auteur = models.ForeignKey(
         'auth.User',
         on_delete=models.CASCADE,

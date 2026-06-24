@@ -10,66 +10,43 @@
 </section>
 
 <section style="max-width: 800px; margin: 0 auto; padding: 40px 20px;">
-
     <div style="background: white; padding: 40px; border-radius: 16px;
                 box-shadow: var(--ombre-legere);">
 
-        {% if messages %}
-        {% for message in messages %}
-        <div style="background: #f8d7da; color: #721c24; padding: 12px 16px;
-                    border-radius: 8px; margin-bottom: 20px;">
-            {{ message }}
-        </div>
-        {% endfor %}
-        {% endif %}
-
-        <form method="POST">
+        <form method="POST" id="form-sujet">
             {% csrf_token %}
 
             <div class="form-groupe">
                 <label>Titre du sujet *</label>
-                <input type="text" name="titre" required
-                       placeholder="Ex: Comment créer une API avec Django ?"
-                       maxlength="300">
+                {{ form.titre }}
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                 <div class="form-groupe">
                     <label>Catégorie *</label>
-                    <select name="categorie">
-                        {% for code, label in categories %}
-                        <option value="{{ code }}">{{ label }}</option>
-                        {% endfor %}
-                    </select>
+                    {{ form.categorie }}
                 </div>
-
                 <div class="form-groupe">
                     <label>Formation liée (optionnel)</label>
-                    <select name="formation">
-                        <option value="">-- Aucune formation --</option>
-                        {% for formation in formations %}
-                        <option value="{{ formation.id }}">
-                            {{ formation.icone }} {{ formation.nom }}
-                        </option>
-                        {% endfor %}
-                    </select>
+                    {{ form.formation }}
                 </div>
             </div>
 
-            <div class="form-groupe">
+            <div class="form-groupe" style="margin-top: 16px;">
                 <label>Contenu *</label>
-                <textarea name="contenu" rows="10" required
-                          placeholder="Décris ta question ou ton sujet en détail...
-&#10;&#10;Plus tu es précis, plus tu obtiendras des réponses utiles."></textarea>
+                <div id="editor-contenu" style="border: 2px solid var(--gris-border);
+                     border-radius: 8px; min-height: 300px; padding: 12px;"></div>
+                <input type="hidden" name="contenu" id="contenu-hidden">
             </div>
 
-            <div style="display: flex; gap: 16px; justify-content: flex-end; margin-top: 8px;">
+            <div style="display: flex; gap: 16px; justify-content: flex-end; margin-top: 24px;">
                 <a href="{% url 'forum_liste' %}"
                    style="color: var(--gris-texte); text-decoration: none;
                           font-weight: 600; padding: 12px 24px;">
                     Annuler
                 </a>
-                <button type="submit" class="btn btn-principal">
+                <button type="button" onclick="soumettreFormulaire()"
+                        class="btn btn-principal">
                     🚀 Publier le sujet
                 </button>
             </div>
@@ -77,4 +54,58 @@
     </div>
 </section>
 
+<script>
+const {
+    ClassicEditor,
+    Essentials,
+    Bold,
+    Italic,
+    Underline,
+    Strikethrough,
+    Paragraph,
+    Heading,
+    Link,
+    List,
+    BlockQuote,
+    Alignment,
+    FontColor,
+    FontSize,
+    FontBackgroundColor,
+    Undo
+} = CKEDITOR;
+
+let editeurContenu;
+
+ClassicEditor.create(document.querySelector('#editor-contenu'), {
+    plugins: [
+        Essentials, Bold, Italic, Underline, Strikethrough,
+        Paragraph, Heading, Link, List, BlockQuote,
+        Alignment, FontColor, FontSize, FontBackgroundColor, Undo
+    ],
+    toolbar: {
+        items: [
+            'heading', '|',
+            'bold', 'italic', 'underline', 'strikethrough', '|',
+            'fontSize', 'fontColor', 'fontBackgroundColor', '|',
+            'alignment', '|',
+            'bulletedList', 'numberedList', '|',
+            'link', 'blockQuote', '|',
+            'undo', 'redo'
+        ]
+    },
+    language: 'fr'
+}).then(editor => {
+    editeurContenu = editor;
+}).catch(error => {
+    console.error('CKEditor error:', error);
+});
+
+function soumettreFormulaire() {
+    if (editeurContenu) {
+        document.getElementById('contenu-hidden').value =
+            editeurContenu.getData();
+    }
+    document.getElementById('form-sujet').submit();
+}
+</script>
 {% endblock %}

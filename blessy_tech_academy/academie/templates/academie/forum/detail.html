@@ -10,6 +10,7 @@
            style="color: var(--bleu-electrique); text-decoration: none; font-size: 14px;">
             ← Retour au forum
         </a>
+
         <div style="display: flex; align-items: center; gap: 10px;
                     margin-top: 12px; flex-wrap: wrap;">
             {% if sujet.resolu %}
@@ -18,10 +19,12 @@
                 ✅ RÉSOLU
             </span>
             {% endif %}
+
             <span style="background: rgba(255,255,255,0.15); color: white;
                          padding: 3px 10px; border-radius: 4px; font-size: 12px;">
                 {{ sujet.get_categorie_display }}
             </span>
+
             {% if sujet.formation %}
             <span style="background: rgba(0,180,216,0.3); color: white;
                          padding: 3px 10px; border-radius: 4px; font-size: 12px;">
@@ -29,7 +32,9 @@
             </span>
             {% endif %}
         </div>
+
         <h2 style="margin-top: 10px; font-size: 26px;">{{ sujet.titre }}</h2>
+
         <p style="font-size: 13px; opacity: 0.7; margin-top: 8px;">
             Par <strong>{{ sujet.auteur.first_name|default:sujet.auteur.username }}</strong>
             · {{ sujet.date_creation|date:"d/m/Y à H:i" }}
@@ -45,35 +50,9 @@
     <div style="background: white; border-radius: 12px; box-shadow: var(--ombre-legere);
                 padding: 32px; margin-bottom: 24px;">
 
-        <div style="line-height: 1.8; color: var(--gris-texte);
-                    white-space: pre-wrap; font-size: 15px;">
-            {{ sujet.contenu }}
-        </div>
-
-        <div style="display: flex; align-items: center; gap: 16px;
-                    margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee;">
-
-            {% if sujet.id in likes_sujets %}
-            <button class="btn-like" data-type="sujet" data-id="{{ sujet.id }}"
-                    style="display: flex; align-items: center; gap: 6px; background: none;
-                           border: 1px solid var(--gris-border); padding: 8px 16px;
-                           border-radius: 20px; cursor: pointer; font-size: 14px;
-                           font-weight: 600; color: var(--orange-accent);">
-                ❤️ <span id="likes-sujet-{{ sujet.id }}">{{ sujet.nombre_likes }}</span>
-            </button>
-            {% else %}
-            <button class="btn-like" data-type="sujet" data-id="{{ sujet.id }}"
-                    style="display: flex; align-items: center; gap: 6px; background: none;
-                           border: 1px solid var(--gris-border); padding: 8px 16px;
-                           border-radius: 20px; cursor: pointer; font-size: 14px;
-                           font-weight: 600; color: var(--gris-texte);">
-                ❤️ <span id="likes-sujet-{{ sujet.id }}">{{ sujet.nombre_likes }}</span>
-            </button>
-            {% endif %}
-
-            <span style="color: var(--gris-texte); font-size: 13px;">
-                👤 {{ sujet.auteur.first_name|default:sujet.auteur.username }}
-            </span>
+        <div class="ck-content"
+             style="line-height: 1.8; color: var(--gris-texte); font-size: 15px;">
+            {{ sujet.contenu|safe }}
         </div>
     </div>
 
@@ -83,70 +62,14 @@
     </h3>
 
     {% for reponse in sujet.reponses.all %}
-
-    {% if reponse.acceptee %}
-    <div id="reponse-{{ reponse.id }}"
-         style="background: #f0fdf4; border-radius: 12px; box-shadow: var(--ombre-legere);
-                padding: 28px; margin-bottom: 16px; border-left: 4px solid #22c55e;">
-    {% else %}
     <div id="reponse-{{ reponse.id }}"
          style="background: white; border-radius: 12px; box-shadow: var(--ombre-legere);
-                padding: 28px; margin-bottom: 16px; border-left: 4px solid var(--gris-border);">
-    {% endif %}
+                padding: 28px; margin-bottom: 16px;">
 
-        {% if reponse.acceptee %}
-        <div style="margin-bottom: 16px;">
-            <span style="background: #22c55e; color: white; padding: 4px 12px;
-                         border-radius: 20px; font-size: 12px; font-weight: 700;">
-                ✅ SOLUTION ACCEPTÉE
-            </span>
-        </div>
-        {% endif %}
-
-        <div style="line-height: 1.8; color: var(--gris-texte);
-                    white-space: pre-wrap; font-size: 15px; margin-bottom: 20px;">
-            {{ reponse.contenu }}
-        </div>
-
-        <div style="display: flex; align-items: center; gap: 16px;
-                    padding-top: 16px; border-top: 1px solid #eee; flex-wrap: wrap;">
-
-            {% if reponse.id in likes_reponses %}
-            <button class="btn-like" data-type="reponse" data-id="{{ reponse.id }}"
-                    style="display: flex; align-items: center; gap: 6px; background: none;
-                           border: 1px solid var(--gris-border); padding: 6px 14px;
-                           border-radius: 20px; cursor: pointer; font-size: 13px;
-                           font-weight: 600; color: var(--orange-accent);">
-                ❤️ <span id="likes-reponse-{{ reponse.id }}">{{ reponse.nombre_likes }}</span>
-            </button>
-            {% else %}
-            <button class="btn-like" data-type="reponse" data-id="{{ reponse.id }}"
-                    style="display: flex; align-items: center; gap: 6px; background: none;
-                           border: 1px solid var(--gris-border); padding: 6px 14px;
-                           border-radius: 20px; cursor: pointer; font-size: 13px;
-                           font-weight: 600; color: var(--gris-texte);">
-                ❤️ <span id="likes-reponse-{{ reponse.id }}">{{ reponse.nombre_likes }}</span>
-            </button>
-            {% endif %}
-
-            <span style="color: var(--gris-texte); font-size: 13px;">
-                👤 <strong>{{ reponse.auteur.first_name|default:reponse.auteur.username }}</strong>
-                · {{ reponse.date_creation|date:"d/m/Y à H:i" }}
-            </span>
-
-            {% if user == sujet.auteur and not sujet.resolu and user.is_authenticated %}
-            <form method="POST"
-                  action="{% url 'forum_accepter_reponse' reponse.id %}"
-                  style="margin: 0;">
-                {% csrf_token %}
-                <button type="submit"
-                        style="background: #22c55e; color: white; border: none;
-                               padding: 6px 14px; border-radius: 20px; cursor: pointer;
-                               font-size: 13px; font-weight: 600;">
-                    ✅ Marquer comme solution
-                </button>
-            </form>
-            {% endif %}
+        <div class="ck-content"
+             style="line-height: 1.8; color: var(--gris-texte);
+                    font-size: 15px; margin-bottom: 20px;">
+            {{ reponse.contenu|safe }}
         </div>
 
     </div>
@@ -160,103 +83,80 @@
     </div>
     {% endfor %}
 
-    <!-- Formulaire de réponse -->
+    <!-- FORMULAIRE MODIFIÉ CKEDITOR -->
     {% if user.is_authenticated %}
     <div style="background: white; border-radius: 12px; box-shadow: var(--ombre-legere);
                 padding: 32px; margin-top: 32px;">
         <h3 style="color: var(--bleu-principal); margin-bottom: 20px;">
             ✏️ Ta réponse
         </h3>
-        <form method="POST">
+
+        <form method="POST" id="form-reponse">
             {% csrf_token %}
+
             <div class="form-groupe">
-                <textarea name="contenu" rows="6" required
-                          placeholder="Écris ta réponse ici..."></textarea>
+                <div id="editor-reponse" style="border: 2px solid var(--gris-border);
+                     border-radius: 8px; min-height: 200px; padding: 12px;"></div>
+
+                <input type="hidden" name="contenu" id="reponse-hidden">
             </div>
-            <div style="text-align: right; margin-top: 8px;">
-                <button type="submit" class="btn btn-principal">
+
+            <div style="text-align: right; margin-top: 16px;">
+                <button type="button" onclick="soumettreReponse()"
+                        class="btn btn-principal">
                     🚀 Publier ma réponse
                 </button>
             </div>
         </form>
     </div>
-    {% else %}
-    <div style="background: var(--bleu-principal); color: white; padding: 32px;
-                border-radius: 12px; text-align: center; margin-top: 32px;">
-        <p style="margin-bottom: 16px; font-size: 16px;">
-            🔐 Connecte-toi pour répondre à ce sujet
-        </p>
-        <a href="{% url 'connexion' %}" class="btn btn-principal">Se connecter</a>
-    </div>
+
+    <!-- CKEditor SCRIPT REMPLACÉ -->
+    <script>
+    const {
+        ClassicEditor,
+        Essentials,
+        Bold,
+        Italic,
+        Underline,
+        Paragraph,
+        Link,
+        List,
+        Undo
+    } = CKEDITOR;
+
+    let editeurReponse;
+
+    ClassicEditor.create(document.querySelector('#editor-reponse'), {
+        plugins: [
+            Essentials, Bold, Italic, Underline,
+            Paragraph, Link, List, Undo
+        ],
+        toolbar: {
+            items: [
+                'bold', 'italic', 'underline', '|',
+                'bulletedList', 'numberedList', '|',
+                'link', '|',
+                'undo', 'redo'
+            ]
+        },
+        language: 'fr'
+    }).then(editor => {
+        editeurReponse = editor;
+    }).catch(error => {
+        console.error('CKEditor error:', error);
+    });
+
+    function soumettreReponse() {
+        if (editeurReponse) {
+            document.getElementById('reponse-hidden').value =
+                editeurReponse.getData();
+        }
+        document.getElementById('form-reponse').submit();
+    }
+    </script>
+
     {% endif %}
 
 </section>
-
-<!-- Données pour le JavaScript — sans mélanger Django et JS -->
-<div id="js-data"
-     data-connecte="{{ user.is_authenticated|yesno:'true,false' }}"
-     data-url-connexion="{% url 'connexion' %}"
-     style="display: none;">
-</div>
-
-<script>
-    // Lecture des données Django via data-attributes (propre, sans erreurs VS Code)
-    const jsData = document.getElementById('js-data');
-    const estConnecte = jsData.dataset.connecte === 'true';
-    const urlConnexion = jsData.dataset.urlConnexion;
-
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
-    async function liker(type, id, bouton) {
-        if (!estConnecte) {
-            window.location.href = urlConnexion;
-            return;
-        }
-
-        try {
-            const reponse = await fetch(
-                '/forum/liker/' + type + '/' + id + '/',
-                {
-                    method: 'POST',
-                    headers: { 'X-CSRFToken': getCookie('csrftoken') }
-                }
-            );
-
-            const data = await reponse.json();
-
-            if (data.succes) {
-                const compteur = document.getElementById('likes-' + type + '-' + id);
-                if (compteur) compteur.textContent = data.total;
-                bouton.style.color = data.liked
-                    ? 'var(--orange-accent)'
-                    : 'var(--gris-texte)';
-            }
-        } catch (e) {
-            console.error('Erreur like:', e);
-        }
-    }
-
-    // Attache les événements via data-attributes (pas d'onclick inline)
-    document.querySelectorAll('.btn-like').forEach(function(bouton) {
-        bouton.addEventListener('click', function() {
-            const type = this.dataset.type;
-            const id = this.dataset.id;
-            liker(type, id, this);
-        });
-    });
-</script>
 
 {% endblock %}
