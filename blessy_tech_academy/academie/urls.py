@@ -40,4 +40,5 @@ urlpatterns = [
     path('forum/liker/<str:type_cible>/<int:cible_id>/', views.forum_liker, name='forum_liker'),
     path('forum/accepter/<int:reponse_id>/', views.forum_accepter_reponse, name='forum_accepter_reponse'),
     path('orientation/', views.orientation_ia, name='orientation_ia'),
+    path('forum/membres/', views.forum_membres, name='forum_membres'),
 ]

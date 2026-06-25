@@ -9,164 +9,271 @@
     <p>Pose tes questions, partage tes projets, aide les autres.</p>
 </section>
 
-<style>
-.forum-btn {
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 600;
-    text-decoration: none;
-    background: var(--gris-clair);
-    color: var(--gris-texte);
-}
-
-.forum-btn.active {
-    background: var(--bleu-principal);
-    color: white;
-}
-
-.forum-tag {
-    font-size: 13px;
-    text-decoration: none;
-    padding: 4px 10px;
-    border-radius: 6px;
-    background: var(--gris-clair);
-    color: var(--gris-texte);
-}
-
-.forum-tag.active {
-    background: var(--bleu-electrique);
-    color: white;
-}
-
-.sujet {
-    background: white;
-    border-radius: 12px;
-    box-shadow: var(--ombre-legere);
-    margin-bottom: 12px;
-    padding: 20px 24px;
-    transition: 0.2s;
-    border-left: 4px solid var(--bleu-electrique);
-}
-
-.sujet.epingle {
-    border-left-color: var(--orange-accent);
-}
-
-.sujet.resolu {
-    border-left-color: #22c55e;
-}
-</style>
-
 <section style="max-width: 1100px; margin: 0 auto; padding: 40px 20px;">
 
-    <!-- Barre -->
-    <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:16px; margin-bottom:32px;">
+    <!-- Barre de recherche -->
+    <form method="GET" style="margin-bottom: 24px;">
+        <div style="display: flex; gap: 12px;">
+            <input type="text" name="q" value="{{ recherche }}"
+                   placeholder="🔍 Rechercher dans le forum..."
+                   style="flex: 1; padding: 12px 20px; border: 2px solid var(--gris-border);
+                          border-radius: 10px; font-size: 15px; font-family: inherit;">
+            {% if categorie_active %}
+            <input type="hidden" name="categorie" value="{{ categorie_active }}">
+            {% endif %}
+            {% if formation_active %}
+            <input type="hidden" name="formation" value="{{ formation_active }}">
+            {% endif %}
+            <button type="submit" class="btn btn-principal">Rechercher</button>
+        </div>
+    </form>
 
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+    <!-- Barre d'actions -->
+    <div style="display: flex; justify-content: space-between; align-items: center;
+                margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
 
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+
+            {% if not categorie_active %}
             <a href="{% url 'forum_liste' %}"
-               class="forum-btn {% if not categorie_active %}active{% endif %}">
+               style="padding: 8px 16px; border-radius: 20px; font-size: 13px;
+                      font-weight: 600; text-decoration: none;
+                      background: var(--bleu-principal); color: white;">
                 Tous
             </a>
+            {% else %}
+            <a href="{% url 'forum_liste' %}"
+               style="padding: 8px 16px; border-radius: 20px; font-size: 13px;
+                      font-weight: 600; text-decoration: none;
+                      background: var(--gris-clair); color: var(--gris-texte);">
+                Tous
+            </a>
+            {% endif %}
 
             {% for code, label in categories %}
-            <a href="?categorie={{ code }}"
-               class="forum-btn {% if categorie_active == code %}active{% endif %}">
-                {{ label }}
-            </a>
+                {% if categorie_active == code %}
+                <a href="?categorie={{ code }}{% if recherche %}&q={{ recherche }}{% endif %}"
+                   style="padding: 8px 16px; border-radius: 20px; font-size: 13px;
+                          font-weight: 600; text-decoration: none;
+                          background: var(--bleu-principal); color: white;">
+                    {{ label }}
+                </a>
+                {% else %}
+                <a href="?categorie={{ code }}{% if recherche %}&q={{ recherche }}{% endif %}"
+                   style="padding: 8px 16px; border-radius: 20px; font-size: 13px;
+                          font-weight: 600; text-decoration: none;
+                          background: var(--gris-clair); color: var(--gris-texte);">
+                    {{ label }}
+                </a>
+                {% endif %}
             {% endfor %}
-
         </div>
 
-        {% if user.is_authenticated %}
-        <a href="{% url 'forum_creer' %}" class="btn btn-principal">
-            ✏️ Nouveau sujet
-        </a>
-        {% else %}
-        <a href="{% url 'connexion' %}" class="btn btn-principal">
-            🔐 Connecte-toi pour poster
-        </a>
-        {% endif %}
-
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <a href="{% url 'forum_membres' %}"
+               style="color: var(--bleu-electrique); text-decoration: none;
+                      font-weight: 600; font-size: 14px;">
+                🏆 Classement
+            </a>
+            {% if user.is_authenticated %}
+            <a href="{% url 'forum_creer' %}" class="btn btn-principal">
+                ✏️ Nouveau sujet
+            </a>
+            {% else %}
+            <a href="{% url 'connexion' %}" class="btn btn-principal">
+                🔐 Connecte-toi pour poster
+            </a>
+            {% endif %}
+        </div>
     </div>
 
-    <!-- Filtres formation -->
-    <div style="background:white; padding:16px 20px; border-radius:10px; margin-bottom:24px;">
+    <!-- Résultat de recherche -->
+    {% if recherche %}
+    <p style="color: var(--gris-texte); margin-bottom: 16px; font-size: 14px;">
+        {% if sujets %}
+            {{ sujets.paginator.count }} résultat(s) pour
+            <strong>"{{ recherche }}"</strong>
+        {% else %}
+            Aucun résultat pour <strong>"{{ recherche }}"</strong>
+        {% endif %}
+    </p>
+    {% endif %}
 
-        <span style="font-weight:600; color:var(--bleu-principal);">
-            Filtrer :
+    <!-- Filtre par formation -->
+    <div style="background: white; padding: 16px 20px; border-radius: 10px;
+                box-shadow: var(--ombre-legere); margin-bottom: 24px;
+                display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <span style="font-weight: 600; color: var(--bleu-principal); font-size: 14px;">
+            Formation :
         </span>
-
-        <a href="{% url 'forum_liste' %}" class="forum-tag">
+        <a href="{% url 'forum_liste' %}{% if categorie_active %}?categorie={{ categorie_active }}{% endif %}"
+           style="font-size: 13px; color: var(--bleu-electrique);
+                  text-decoration: none; font-weight: 600;">
             Toutes
         </a>
-
         {% for formation in formations %}
-        <a href="?formation={{ formation.id }}"
-           class="forum-tag {% if formation_active == formation.id|stringformat:'s' %}active{% endif %}">
-            {{ formation.icone }} {{ formation.nom }}
-        </a>
+            {% if formation_active == formation.id|stringformat:'s' %}
+            <a href="?formation={{ formation.id }}{% if categorie_active %}&categorie={{ categorie_active }}{% endif %}"
+               style="font-size: 13px; text-decoration: none; padding: 4px 10px;
+                      border-radius: 6px; background: var(--bleu-electrique); color: white;">
+                {{ formation.icone }} {{ formation.nom }}
+            </a>
+            {% else %}
+            <a href="?formation={{ formation.id }}{% if categorie_active %}&categorie={{ categorie_active }}{% endif %}"
+               style="font-size: 13px; text-decoration: none; padding: 4px 10px;
+                      border-radius: 6px; background: var(--gris-clair); color: var(--gris-texte);">
+                {{ formation.icone }} {{ formation.nom }}
+            </a>
+            {% endif %}
         {% endfor %}
-
     </div>
 
-    <!-- SUJETS -->
+    <!-- Liste des sujets -->
     {% for sujet in sujets %}
 
-    <div class="sujet {% if sujet.epingle %}epingle{% elif sujet.resolu %}resolu{% endif %}">
+    {% if sujet.resolu %}
+    <div style="background: white; border-radius: 12px; box-shadow: var(--ombre-legere);
+                margin-bottom: 12px; padding: 20px 24px;
+                border-left: 4px solid #22c55e;">
+    {% elif sujet.epingle %}
+    <div style="background: white; border-radius: 12px; box-shadow: var(--ombre-legere);
+                margin-bottom: 12px; padding: 20px 24px;
+                border-left: 4px solid var(--orange-accent);">
+    {% else %}
+    <div style="background: white; border-radius: 12px; box-shadow: var(--ombre-legere);
+                margin-bottom: 12px; padding: 20px 24px;
+                border-left: 4px solid var(--bleu-electrique);">
+    {% endif %}
 
-        <div style="display:flex; justify-content:space-between; gap:16px;">
-
-            <div>
-
-                <div style="margin-bottom:8px;">
+        <div style="display: flex; justify-content: space-between;
+                    align-items: flex-start; gap: 16px;">
+            <div style="flex: 1;">
+                <div style="display: flex; align-items: center; gap: 8px;
+                            margin-bottom: 8px; flex-wrap: wrap;">
                     {% if sujet.epingle %}
-                    <span style="background:var(--orange-accent); color:white; padding:2px 8px; font-size:11px;">
+                    <span style="background: var(--orange-accent); color: white;
+                                 padding: 2px 8px; border-radius: 4px;
+                                 font-size: 11px; font-weight: 700;">
                         📌 ÉPINGLÉ
                     </span>
                     {% endif %}
-
                     {% if sujet.resolu %}
-                    <span style="background:#22c55e; color:white; padding:2px 8px; font-size:11px;">
+                    <span style="background: #22c55e; color: white;
+                                 padding: 2px 8px; border-radius: 4px;
+                                 font-size: 11px; font-weight: 700;">
                         ✅ RÉSOLU
+                    </span>
+                    {% endif %}
+                    <span style="background: var(--gris-clair); color: var(--gris-texte);
+                                 padding: 2px 8px; border-radius: 4px;
+                                 font-size: 11px; font-weight: 600;">
+                        {{ sujet.get_categorie_display }}
+                    </span>
+                    {% if sujet.formation %}
+                    <span style="background: rgba(0,180,216,0.1);
+                                 color: var(--bleu-electrique);
+                                 padding: 2px 8px; border-radius: 4px;
+                                 font-size: 11px; font-weight: 600;">
+                        {{ sujet.formation.icone }} {{ sujet.formation.nom }}
                     </span>
                     {% endif %}
                 </div>
 
                 <a href="{% url 'forum_detail' sujet.id %}"
-                   style="font-size:17px; font-weight:700; color:var(--bleu-principal); text-decoration:none;">
+                   style="font-size: 17px; font-weight: 700;
+                          color: var(--bleu-principal); text-decoration: none;
+                          line-height: 1.3; display: block; margin-bottom: 8px;">
                     {{ sujet.titre }}
                 </a>
 
-                <p style="font-size:13px; color:var(--gris-texte);">
-                    Par <strong>{{ sujet.auteur.username }}</strong>
-                    · {{ sujet.date_creation|timesince }}
+                <p style="font-size: 13px; color: var(--gris-texte);">
+                    Par <strong>{{ sujet.auteur.first_name|default:sujet.auteur.username }}</strong>
+                    · {{ sujet.date_creation|timesince }} ago
                 </p>
-
             </div>
 
-            <div style="text-align:center;">
-                <div style="font-weight:800; color:var(--bleu-principal); font-size:20px;">
-                    {{ sujet.nombre_reponses }}
+            <div style="display: flex; flex-direction: column; align-items: center;
+                        gap: 12px; min-width: 80px; text-align: center;">
+                <div>
+                    <p style="font-size: 20px; font-weight: 800;
+                               color: var(--bleu-principal); margin: 0;">
+                        {{ sujet.nombre_reponses }}
+                    </p>
+                    <p style="font-size: 11px; color: var(--gris-texte); margin: 0;">
+                        réponses
+                    </p>
                 </div>
-                <div style="font-size:11px;">réponses</div>
-
-                <div style="margin-top:8px;">
-                    👁 {{ sujet.vues }}
+                <div>
+                    <p style="font-size: 14px; font-weight: 600;
+                               color: var(--gris-texte); margin: 0;">
+                        👁 {{ sujet.vues }}
+                    </p>
                 </div>
             </div>
-
         </div>
     </div>
-
     {% empty %}
-
-    <div style="text-align:center; padding:60px;">
-        <h3>Aucun sujet</h3>
+    <div style="text-align: center; padding: 60px; background: white;
+                border-radius: 12px; box-shadow: var(--ombre-legere);">
+        <span style="font-size: 48px;">💬</span>
+        <h3 style="color: var(--bleu-principal); margin: 16px 0 8px;">
+            {% if recherche %}
+                Aucun résultat pour "{{ recherche }}"
+            {% else %}
+                Aucun sujet pour le moment
+            {% endif %}
+        </h3>
+        {% if user.is_authenticated %}
+        <a href="{% url 'forum_creer' %}" class="btn btn-principal"
+           style="display: inline-block; margin-top: 16px;">
+            ✏️ Créer le premier sujet
+        </a>
+        {% endif %}
     </div>
-
     {% endfor %}
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div style="display: flex; justify-content: center; gap: 8px;
+                margin-top: 32px; flex-wrap: wrap;">
+
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if categorie_active %}&categorie={{ categorie_active }}{% endif %}{% if recherche %}&q={{ recherche }}{% endif %}"
+           style="padding: 10px 18px; border-radius: 8px; text-decoration: none;
+                  background: white; color: var(--bleu-principal); font-weight: 600;
+                  box-shadow: var(--ombre-legere);">
+            ← Précédent
+        </a>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <span style="padding: 10px 18px; border-radius: 8px;
+                         background: var(--bleu-principal); color: white;
+                         font-weight: 700;">
+                {{ num }}
+            </span>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <a href="?page={{ num }}{% if categorie_active %}&categorie={{ categorie_active }}{% endif %}{% if recherche %}&q={{ recherche }}{% endif %}"
+               style="padding: 10px 18px; border-radius: 8px; text-decoration: none;
+                      background: white; color: var(--bleu-principal); font-weight: 600;
+                      box-shadow: var(--ombre-legere);">
+                {{ num }}
+            </a>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if categorie_active %}&categorie={{ categorie_active }}{% endif %}{% if recherche %}&q={{ recherche }}{% endif %}"
+           style="padding: 10px 18px; border-radius: 8px; text-decoration: none;
+                  background: white; color: var(--bleu-principal); font-weight: 600;
+                  box-shadow: var(--ombre-legere);">
+            Suivant →
+        </a>
+        {% endif %}
+
+    </div>
+    {% endif %}
 
 </section>
 

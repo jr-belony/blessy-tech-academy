@@ -394,3 +394,51 @@ Règles :
 
     except Exception as e:
         return {'erreur': str(e)}
+    
+def attribuer_badges_forum(utilisateur):
+    """
+    Vérifie et attribue automatiquement les badges forum
+    selon l'activité de l'utilisateur.
+    
+    Args:
+        utilisateur: Instance User Django
+    
+    Returns:
+        list: Liste des nouveaux badges attribués
+    """
+    from .models import BadgeForum, Sujet, Reponse, Reaction
+    
+    nouveaux_badges = []
+    
+    # Statistiques de l'utilisateur
+    nb_sujets = Sujet.objects.filter(auteur=utilisateur).count()
+    nb_reponses = Reponse.objects.filter(auteur=utilisateur).count()
+    nb_solutions = Reponse.objects.filter(
+        auteur=utilisateur, acceptee=True
+    ).count()
+    nb_likes_recus = Reaction.objects.filter(
+        reponse__auteur=utilisateur
+    ).count() + Reaction.objects.filter(
+        sujet__auteur=utilisateur
+    ).count()
+
+    # Badges à vérifier
+    conditions = [
+        ('premier_post', nb_sujets >= 1),
+        ('premiere_reponse', nb_reponses >= 1),
+        ('solution_acceptee', nb_solutions >= 1),
+        ('dix_reponses', nb_reponses >= 10),
+        ('cinquante_reponses', nb_reponses >= 50),
+        ('cent_likes', nb_likes_recus >= 100),
+    ]
+
+    for type_badge, condition in conditions:
+        if condition:
+            badge, cree = BadgeForum.objects.get_or_create(
+                utilisateur=utilisateur,
+                type_badge=type_badge
+            )
+            if cree:
+                nouveaux_badges.append(badge)
+
+    return nouveaux_badges

@@ -6,6 +6,8 @@ from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
+from django.core.paginator import Paginator
+from django.db.models import Count
 from django.db.models import Q, Count, Avg
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -24,6 +26,7 @@ from .ia import (
     generer_programme_complet,
     generer_contenu_lecon,
     generer_parcours_oriente,
+    attribuer_badges_forum,
 )
 
 
@@ -648,6 +651,7 @@ def forum_liste(request):
     """Page principale du forum — liste tous les sujets."""
     categorie = request.GET.get('categorie', '')
     formation_id = request.GET.get('formation', '')
+    recherche = request.GET.get('q', '')
 
     sujets = Sujet.objects.select_related(
         'auteur', 'formation'
@@ -659,16 +663,28 @@ def forum_liste(request):
     if formation_id:
         sujets = sujets.filter(formation_id=formation_id)
 
+    if recherche:
+        sujets = sujets.filter(
+            Q(titre__icontains=recherche) |
+            Q(contenu__icontains=recherche)
+        )
+
+    # Pagination — 10 sujets par page
+    paginator = Paginator(sujets, 10)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
     formations = Formation.objects.filter(actif=True)
 
     return render(request, 'academie/forum/liste.html', {
-        'sujets': sujets,
+        'sujets': page_obj,
+        'page_obj': page_obj,
         'formations': formations,
         'categorie_active': categorie,
         'formation_active': formation_id,
         'categories': Sujet.CATEGORIES,
+        'recherche': recherche,
     })
-
 
 def forum_detail(request, sujet_id):
     """Page de détail d'un sujet avec ses réponses."""
@@ -739,6 +755,8 @@ def forum_creer(request):
                 auteur=request.user,
                 formation_id=formation_id if formation_id else None,
             )
+
+            attribuer_badges_forum(request.user)
             messages.success(request, '✅ Sujet créé avec succès !')
             return redirect('forum_detail', sujet_id=sujet.id)
 
@@ -820,6 +838,7 @@ def forum_accepter_reponse(request, reponse_id):
         # Marque le sujet comme résolu
         reponse.sujet.resolu = True
         reponse.sujet.save()
+        attribuer_badges_forum(reponse.auteur)
 
         messages.success(request, '✅ Réponse marquée comme solution !')
         return redirect('forum_detail', sujet_id=reponse.sujet.id)
@@ -852,6 +871,8 @@ def forum_creer(request):
             auteur=request.user,
             formation_id=formation_id if formation_id else None,
         )
+        
+        attribuer_badges_forum(request.user)
         messages.success(request, '✅ Sujet créé avec succès !')
         return redirect('forum_detail', sujet_id=sujet.id)
 
@@ -862,6 +883,26 @@ def forum_creer(request):
         'categories': Sujet.CATEGORIES,
     })
 
+def forum_membres(request):
+    """Classement des membres du forum."""
+    from django.contrib.auth.models import User
+
+    membres = User.objects.annotate(
+        nb_sujets=Count('sujets_forum', distinct=True),
+        nb_reponses=Count('reponses_forum', distinct=True),
+        nb_solutions=Count(
+            'reponses_forum',
+            filter=Q(reponses_forum__acceptee=True),
+            distinct=True
+        ),
+        nb_likes=Count('reactions_forum', distinct=True),
+    ).filter(
+        Q(nb_sujets__gt=0) | Q(nb_reponses__gt=0)
+    ).order_by('-nb_reponses', '-nb_solutions', '-nb_sujets')[:20]
+
+    return render(request, 'academie/forum/membres.html', {
+        'membres': membres,
+    })
 
 # ================================================
 # Parcours d'Orientation Intelligent

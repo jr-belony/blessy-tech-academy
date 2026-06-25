@@ -24,11 +24,11 @@
         <nav>
     <a href="{% url 'accueil' %}">Accueil</a>
     <a href="{% url 'formations' %}">Formations</a>
+    <a href="{% url 'forum_liste' %}">💬 Forum</a>
+    <a href="{% url 'orientation_ia' %}">🎯 Mon Parcours</a>
     <a href="{% url 'apropos' %}">À propos</a>
     <a href="{% url 'contact' %}">Contact</a>
     <a href="{% url 'recherche' %}">🔍 Rechercher</a>
-    <a href="{% url 'forum_liste' %}">💬 Forum</a>
-    <a href="{% url 'orientation_ia' %}">🎯 Mon Parcours</a>
 
     {% if user.is_authenticated %}
         <a href="{% url 'dashboard' %}"

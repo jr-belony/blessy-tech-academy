@@ -431,3 +431,34 @@ class Reaction(models.Model):
     def __str__(self):
         cible = self.sujet or self.reponse
         return f"❤️ {self.utilisateur.username} → {cible}"
+    
+
+class BadgeForum(models.Model):
+    """Badge attribué à un membre du forum."""
+
+    TYPES_BADGES = [
+        ('premier_post', '✍️ Premier Post'),
+        ('premiere_reponse', '💬 Première Réponse'),
+        ('solution_acceptee', '✅ Solution Acceptée'),
+        ('dix_reponses', '🔥 10 Réponses'),
+        ('cinquante_reponses', '⭐ 50 Réponses'),
+        ('cent_likes', '❤️ 100 Likes reçus'),
+        ('sujet_populaire', '🏆 Sujet Populaire'),
+    ]
+
+    utilisateur = models.ForeignKey(
+        'auth.User',
+        on_delete=models.CASCADE,
+        related_name='badges_forum'
+    )
+    type_badge = models.CharField(max_length=30, choices=TYPES_BADGES)
+    date_obtention = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['utilisateur', 'type_badge']
+        ordering = ['-date_obtention']
+        verbose_name = 'Badge Forum'
+        verbose_name_plural = 'Badges Forum'
+
+    def __str__(self):
+        return f"{self.get_type_badge_display()} — {self.utilisateur.username}"

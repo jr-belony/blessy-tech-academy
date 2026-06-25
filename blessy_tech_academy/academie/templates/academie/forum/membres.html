@@ -1,0 +1,158 @@
+{% extends 'academie/base.html' %}
+
+{% block titre %}Classement — Forum BTA{% endblock %}
+
+{% block contenu %}
+
+<section class="page-hero">
+    <h2>🏆 Classement des membres</h2>
+    <p>Les contributeurs les plus actifs de la communauté BTA.</p>
+</section>
+
+<section style="max-width: 900px; margin: 0 auto; padding: 40px 20px;">
+
+    <div style="text-align: right; margin-bottom: 24px;">
+        <a href="{% url 'forum_liste' %}"
+           style="color: var(--bleu-electrique); text-decoration: none;
+                  font-weight: 600; font-size: 14px;">
+            ← Retour au forum
+        </a>
+    </div>
+
+    {% for membre in membres %}
+
+    {% if forloop.counter == 1 %}
+    <div style="background: white; border-radius: 12px; box-shadow: var(--ombre-legere);
+                padding: 24px; margin-bottom: 12px; display: flex;
+                align-items: center; gap: 20px; border-left: 4px solid #FFD700;">
+        <div style="min-width: 48px; height: 48px; border-radius: 50%; background: #FFD700;
+                    display: flex; align-items: center; justify-content: center;
+                    font-size: 24px; flex-shrink: 0;">🥇</div>
+    {% elif forloop.counter == 2 %}
+    <div style="background: white; border-radius: 12px; box-shadow: var(--ombre-legere);
+                padding: 24px; margin-bottom: 12px; display: flex;
+                align-items: center; gap: 20px; border-left: 4px solid #C0C0C0;">
+        <div style="min-width: 48px; height: 48px; border-radius: 50%; background: #C0C0C0;
+                    display: flex; align-items: center; justify-content: center;
+                    font-size: 24px; flex-shrink: 0;">🥈</div>
+    {% elif forloop.counter == 3 %}
+    <div style="background: white; border-radius: 12px; box-shadow: var(--ombre-legere);
+                padding: 24px; margin-bottom: 12px; display: flex;
+                align-items: center; gap: 20px; border-left: 4px solid #CD7F32;">
+        <div style="min-width: 48px; height: 48px; border-radius: 50%; background: #CD7F32;
+                    display: flex; align-items: center; justify-content: center;
+                    font-size: 24px; flex-shrink: 0;">🥉</div>
+    {% else %}
+    <div style="background: white; border-radius: 12px; box-shadow: var(--ombre-legere);
+                padding: 24px; margin-bottom: 12px; display: flex;
+                align-items: center; gap: 20px;">
+        <div style="min-width: 48px; height: 48px; border-radius: 50%;
+                    background: var(--gris-clair); display: flex; align-items: center;
+                    justify-content: center; font-weight: 800; font-size: 18px;
+                    color: var(--gris-texte); flex-shrink: 0;">
+            {{ forloop.counter }}
+        </div>
+    {% endif %}
+
+        <!-- Infos membre -->
+        <div style="flex: 1;">
+            <p style="font-weight: 700; color: var(--bleu-principal);
+                       font-size: 16px; margin-bottom: 4px;">
+                {{ membre.first_name|default:membre.username }}
+                {% if membre.last_name %}{{ membre.last_name }}{% endif %}
+            </p>
+
+            {% with badges=membre.badges_forum.all %}
+            {% if badges %}
+            <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px;">
+                {% for badge in badges %}
+                <span style="font-size: 11px; background: rgba(0,180,216,0.1);
+                             color: var(--bleu-electrique); padding: 2px 8px;
+                             border-radius: 10px; font-weight: 600;">
+                    {{ badge.get_type_badge_display }}
+                </span>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+        </div>
+
+        <!-- Stats -->
+        <div style="display: flex; gap: 24px; text-align: center;">
+            <div>
+                <p style="font-size: 22px; font-weight: 800;
+                           color: var(--bleu-principal); margin: 0;">
+                    {{ membre.nb_reponses }}
+                </p>
+                <p style="font-size: 11px; color: var(--gris-texte);
+                           margin: 0; text-transform: uppercase;">Réponses</p>
+            </div>
+            <div>
+                <p style="font-size: 22px; font-weight: 800;
+                           color: #22c55e; margin: 0;">
+                    {{ membre.nb_solutions }}
+                </p>
+                <p style="font-size: 11px; color: var(--gris-texte);
+                           margin: 0; text-transform: uppercase;">Solutions</p>
+            </div>
+            <div>
+                <p style="font-size: 22px; font-weight: 800;
+                           color: var(--orange-accent); margin: 0;">
+                    {{ membre.nb_sujets }}
+                </p>
+                <p style="font-size: 11px; color: var(--gris-texte);
+                           margin: 0; text-transform: uppercase;">Sujets</p>
+            </div>
+        </div>
+
+    </div>
+    {% empty %}
+    <div style="text-align: center; padding: 60px; background: white;
+                border-radius: 12px; box-shadow: var(--ombre-legere);">
+        <span style="font-size: 48px;">🏆</span>
+        <h3 style="color: var(--bleu-principal); margin: 16px 0 8px;">
+            Aucun membre actif pour le moment
+        </h3>
+        <p style="color: var(--gris-texte);">
+            Sois le premier à contribuer au forum !
+        </p>
+        <a href="{% url 'forum_creer' %}" class="btn btn-principal"
+           style="display: inline-block; margin-top: 16px;">
+            ✏️ Créer un sujet
+        </a>
+    </div>
+    {% endfor %}
+
+    <!-- Légende badges -->
+    <div style="background: white; border-radius: 12px; box-shadow: var(--ombre-legere);
+                padding: 24px; margin-top: 32px;">
+        <h3 style="color: var(--bleu-principal); margin-bottom: 16px; font-size: 16px;">
+            🏅 Comment obtenir des badges ?
+        </h3>
+        <div style="display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 12px;">
+            <div style="font-size: 13px; color: var(--gris-texte);">
+                ✍️ <strong>Premier Post</strong> — Crée ton premier sujet
+            </div>
+            <div style="font-size: 13px; color: var(--gris-texte);">
+                💬 <strong>Première Réponse</strong> — Réponds à un sujet
+            </div>
+            <div style="font-size: 13px; color: var(--gris-texte);">
+                ✅ <strong>Solution Acceptée</strong> — Ta réponse aide quelqu'un
+            </div>
+            <div style="font-size: 13px; color: var(--gris-texte);">
+                🔥 <strong>10 Réponses</strong> — Atteins 10 réponses publiées
+            </div>
+            <div style="font-size: 13px; color: var(--gris-texte);">
+                ⭐ <strong>50 Réponses</strong> — Atteins 50 réponses publiées
+            </div>
+            <div style="font-size: 13px; color: var(--gris-texte);">
+                ❤️ <strong>100 Likes</strong> — Reçois 100 likes sur tes contributions
+            </div>
+        </div>
+    </div>
+
+</section>
+
+{% endblock %}
