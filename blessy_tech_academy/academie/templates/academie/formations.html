@@ -30,6 +30,20 @@
                     <article class="carte-formation">
                         <div class="carte-icone">{{ formation.icone }}</div>
                         <h3>{{ formation.nom }}</h3>
+                        {% if formation.gratuit %}
+                            <span style="
+                                display:inline-block;
+                                background:#00c2ff;
+                                color:white;
+                                font-size:12px;
+                                padding:4px 10px;
+                                border-radius:20px;
+                                margin-top:6px;
+                                font-weight:700;
+                                ">
+                            🎁 GRATUIT
+                            </span>
+                    {% endif %}
                         <p>{{ formation.description }}</p>
                         <div class="carte-meta">
                             <span class="duree">⏱ {{ formation.duree_mois }} mois</span>

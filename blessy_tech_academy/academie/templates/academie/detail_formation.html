@@ -6,6 +6,21 @@
 
 <section class="page-hero">
     <h2>{{ formation.icone }} {{ formation.nom }}</h2>
+    {% if formation.gratuit %}
+    <div style="
+        display:inline-block;
+        margin-top:10px;
+        background:#00c2ff;
+        color:white;
+        font-size:13px;
+        padding:6px 14px;
+        border-radius:20px;
+        font-weight:700;
+        letter-spacing:0.3px;
+    ">
+        🎁 Formation gratuite
+    </div>
+{% endif %}
     <p>{{ formation.description }}</p>
 </section>
 
@@ -106,25 +121,54 @@
         </a>
     </div>
     {% endif %}
+    {% if formation.formation_upgrade %}
+<div style="background: linear-gradient(135deg, #ff7a00, #ff5200);
+            color: white;
+            padding: 24px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 32px;">
+
+    <p style="font-size: 16px; font-weight: 700; margin-bottom: 12px;">
+        🚀 Passe au niveau supérieur
+    </p>
+
+    <p style="font-size: 14px; opacity: 0.9; margin-bottom: 16px;">
+        Continue ton parcours avec une formation avancée recommandée
+    </p>
+
+    <a href="{% url 'detail_formation' formation.formation_upgrade.id %}"
+    style="display:inline-block;
+            background:white;
+            color:#ff5200;
+            padding:10px 18px;
+            border-radius:8px;
+            font-weight:700;
+            text-decoration:none;">
+        Voir la formation avancée →
+    </a>
+
+</div>
+{% endif %}
 
     <div style="text-align: center; margin-top: 32px;">
         {% if user.is_authenticated %}
             {% if pourcentage_progression == 100 %}
             <div style="margin-bottom: 16px;">
                 <p style="color: #22c55e; font-weight: 700;
-                           font-size: 16px; margin-bottom: 12px;">
+                        font-size: 16px; margin-bottom: 12px;">
                     🎉 Félicitations ! Tu as complété cette formation !
                 </p>
                 <a href="{% url 'telecharger_certificat' formation.id %}"
-                   class="btn btn-principal"
-                   style="background: #22c55e;
-                          box-shadow: 0 4px 14px rgba(34,197,94,0.35);">
+                class="btn btn-principal"
+                style="background: #22c55e;
+                    box-shadow: 0 4px 14px rgba(34,197,94,0.35);">
                     🎓 Télécharger mon certificat PDF
                 </a>
             </div>
             {% else %}
             <p style="color: var(--gris-texte); font-size: 14px;
-                       margin-bottom: 12px;">
+                    margin-bottom: 12px;">
                 {% if pourcentage_progression > 0 %}
                     📈 Continue ! Tu es à {{ pourcentage_progression }}% 
                     — complète toutes les leçons pour obtenir ton certificat.

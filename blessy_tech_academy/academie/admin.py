@@ -22,6 +22,7 @@ class FormationAdmin(admin.ModelAdmin):
     ]
     list_filter = ['actif', 'niveau', 'ecole']
     search_fields = ['nom', 'description']
+    autocomplete_fields = ['formation_upgrade']
     list_editable = ['actif']
     inlines = [ModuleInline]
 
@@ -30,6 +31,7 @@ class FormationAdmin(admin.ModelAdmin):
             'fields': [
                 'ecole', 'nom', 'icone', 'description',
                 'niveau', 'duree_mois', 'prix', 'actif',
+                'gratuit', 'formation_upgrade',
             ]
         }),
         ('Contenu détaillé', {

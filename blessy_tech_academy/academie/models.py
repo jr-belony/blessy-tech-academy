@@ -50,6 +50,18 @@ class Formation(models.Model):
     certifications = models.TextField(blank=True)
     actif = models.BooleanField(default=True)
     date_creation = models.DateTimeField(auto_now_add=True)
+    gratuit = models.BooleanField(
+        default=False,
+        help_text="Coche si c'est une formation gratuite (lead magnet)"
+    )
+    formation_upgrade = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='formations_gratuites',
+        help_text="Formation payante recommandée à la fin de cette formation gratuite"
+    )
 
     class Meta:
         ordering = ['nom']
@@ -63,7 +75,7 @@ class Formation(models.Model):
 
     def __str__(self):
         return f"{self.icone} {self.nom} ({self.duree_mois} mois)"
-    
+
     def progression_pour(self, utilisateur):
         """Calcule le % de progression d'un utilisateur sur cette formation."""
         if not utilisateur.is_authenticated:
@@ -82,8 +94,6 @@ class Formation(models.Model):
         ).count()
 
         return round((terminees / total) * 100)
-
-
 class Inscription(models.Model):
     """Représente une demande d'inscription."""
 
@@ -122,8 +132,6 @@ class Inscription(models.Model):
     def __str__(self):
         return f"{self.prenom} {self.nom} — {self.get_sujet_display()}"
     
-    # academie/models.py — ajoute ces 2 classes À LA FIN du fichier
-
 class Quiz(models.Model):
     """Représente un quiz lié à une formation."""
 
