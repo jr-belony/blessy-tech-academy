@@ -5,6 +5,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.paginator import Paginator
 from django.db.models import Count
@@ -209,6 +210,9 @@ def statistiques(request):
     """Page de statistiques pour les administrateurs."""
     total_formations = Formation.objects.filter(actif=True).count()
     total_inscriptions = Inscription.objects.count()
+    total_etudiants = User.objects.count()
+    total_sujets = Sujet.objects.count()
+    total_reponses = Reponse.objects.count()
     inscriptions_non_traitees = Inscription.objects.filter(traite=False).count()
     prix_moyen = Formation.objects.aggregate(Avg('prix'))['prix__avg']
     formations_populaires = Formation.objects.annotate(
@@ -218,6 +222,9 @@ def statistiques(request):
     contexte = {
         'total_formations': total_formations,
         'total_inscriptions': total_inscriptions,
+        'total_etudiants': total_etudiants,
+        'total_sujets': total_sujets,
+        'total_reponses': total_reponses,
         'inscriptions_non_traitees': inscriptions_non_traitees,
         'prix_moyen': round(prix_moyen, 2) if prix_moyen else 0,
         'formations_populaires': formations_populaires,
