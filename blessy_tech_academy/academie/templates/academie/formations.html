@@ -8,6 +8,63 @@
     <h2>Nos Formations</h2>
     <p>Des parcours concrets pour te rendre employable rapidement.</p>
 </section>
+{% if formations_gratuites %}
+<section style="padding:50px 40px; background:#f8fbff;">
+    <h2 style="
+        text-align:center;
+        color:var(--bleu-principal);
+        margin-bottom:10px;">
+        🎁 Formations Gratuites
+    </h2>
+
+    <p style="
+        text-align:center;
+        color:var(--gris-texte);
+        margin-bottom:35px;">
+        Commence gratuitement puis évolue vers un parcours professionnel complet.
+    </p>
+
+    <div class="formations-grille">
+
+        {% for formation in formations_gratuites %}
+        <article class="carte-formation">
+
+            <div class="carte-icone">
+                {{ formation.icone }}
+            </div>
+
+            <h3>{{ formation.nom }}</h3>
+
+            <span style="
+                display:inline-flex;
+                align-items:center;
+                justify-content:center;
+                background:#00c2ff;
+                color:white;
+                font-size:12px;
+                padding:6px 12px;
+                border-radius:20px;
+                font-weight:700;
+                line-height:1;
+                margin:8px 0;
+                ">
+                🎁 GRATUIT
+                </span>
+
+            <p>{{ formation.description }}</p>
+
+            <a href="{% url 'detail_formation' formation.id %}"
+               class="btn btn-principal"
+               style="margin-top:15px;">
+               Commencer gratuitement
+            </a>
+
+        </article>
+        {% endfor %}
+
+    </div>
+</section>
+{% endif %}
 
 <section class="apercu-formations">
 

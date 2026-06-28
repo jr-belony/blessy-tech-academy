@@ -42,11 +42,22 @@ def accueil(request):
 
 
 def formations(request):
-    """Page des formations organisées par école + parcours professionnels."""
+    """Page des formations organisées par école + formations gratuites + parcours professionnels."""
+
     ecoles = Ecole.objects.prefetch_related('formations').all()
-    parcours_list = Parcours.objects.prefetch_related('formations').filter(actif=True)
+
+    formations_gratuites = Formation.objects.filter(
+        actif=True,
+        gratuit=True
+    )
+
+    parcours_list = Parcours.objects.prefetch_related(
+        'formations'
+    ).filter(actif=True)
+
     return render(request, 'academie/formations.html', {
         'ecoles': ecoles,
+        'formations_gratuites': formations_gratuites,
         'parcours_list': parcours_list,
     })
 
