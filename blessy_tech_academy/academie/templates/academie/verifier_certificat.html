@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-success text-white py-4">
+                    <i class="fas fa-check-circle fa-4x mb-3"></i>
+                    <h2 class="mb-0">Certificat Vérifié</h2>
+                </div>
+                <div class="card-body p-5">
+                    <h3 class="text-muted">Blessy Tech Academy certifie que</h3>
+                    <h1 class="display-4 my-4 font-weight-bold">{{ certificat.utilisateur.get_full_name|default:certificat.utilisateur.username }}</h1>
+                    <p class="lead">a réussi avec succès la formation :</p>
+                    <h2 class="text-primary mb-4">{{ certificat.formation.nom }}</h2>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="row text-left">
+                        <div class="col-sm-6">
+                            <p><strong>ID du certificat :</strong><br><code class="text-break">{{ certificat.id_unique }}</code></p>
+                        </div>
+                        <div class="col-sm-6">
+                            <p><strong>Délivré le :</strong><br>{{ certificat.date_obtention|date:"d F Y" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-5">
+                        <a href="{% url 'formations' %}" class="btn btn-outline-primary">Découvrir nos formations</a>
+                    </div>
+                </div>
+                <div class="card-footer bg-light py-3">
+                    <small class="text-muted">Ce certificat est authentique et a été émis par le système officiel de Blessy Tech Academy.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

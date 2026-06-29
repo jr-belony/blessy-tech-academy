@@ -9,45 +9,61 @@ def initialiser_ia():
     return genai.GenerativeModel('gemini-2.5-flash')
 
 
-def blessy_ai_repondre(question, contexte_formations=None):
-    """Répond à une question via Blessy AI."""
-    try:
-        model = initialiser_ia()
-
-        prompt_systeme = """
+def construire_prompt_chat(question, historique=None, contexte_utilisateur=None, formations_disponibles=None):
+    """Construit un prompt contextualisé pour Blessy AI."""
+    prompt = """
 Tu es Blessy AI, l'assistant intelligent de Blessy Tech Academy.
-Tu aides les étudiants à choisir leurs formations et à progresser
-dans leur parcours numérique.
-
-Blessy Tech Academy est une école de technologie haïtienne qui propose :
-- Des formations en développement web (Python, Django, HTML/CSS)
-- Des formations en Intelligence Artificielle
-- De la maintenance informatique
-- De la bureautique professionnelle
-- Du graphic design
-
+Tu aides les étudiants à choisir leurs formations et à progresser.
 Tu réponds toujours en français, avec bienveillance et professionnalisme.
-Tu es concis (3-5 phrases maximum) et orienté vers l'action.
-Si tu ne sais pas quelque chose, tu le dis honnêtement.
+Sois concis, clair et orienté vers l'action.
 """
 
-        if contexte_formations:
-            formations_texte = "\n".join([
-                f"- {f.nom} ({f.duree_mois} mois, {f.prix} USD)"
-                for f in contexte_formations
-            ])
-            prompt_systeme += f"\n\nFormations actuellement disponibles :\n{formations_texte}"
+    if contexte_utilisateur:
+        prompt += f"\nContexte utilisateur :\n- Prénom : {contexte_utilisateur.get('prenom', '')}\n"
+        formations_suivies = contexte_utilisateur.get('formations_suivies', [])
+        if formations_suivies:
+            prompt += "- Formations déjà suivies : " + ", ".join(formations_suivies) + "\n"
 
-        prompt_complet = f"{prompt_systeme}\n\nQuestion de l'étudiant : {question}"
+    if historique:
+        prompt += "\nHistorique de conversation :\n"
+        for message in historique[-8:]:
+            role = "Étudiant" if message.get('role') == 'user' else "Blessy AI"
+            prompt += f"- {role} : {message.get('content', '')}\n"
 
-        reponse = model.generate_content(prompt_complet)
-        return reponse.text
+    if formations_disponibles:
+        prompt += "\nFormations disponibles :\n"
+        for formation in formations_disponibles[:5]:
+            prompt += f"- {formation.nom} ({formation.duree_mois} mois, {formation.prix} USD)\n"
 
-    except Exception as e:
-        return (
-            "Désolé, je ne suis pas disponible en ce moment. "
-            "Contactez-nous sur contact@blessyconnect.com"
+    prompt += f"\nQuestion actuelle de l'étudiant : {question}"
+    return prompt
+
+
+def repondre_chat_ia(question, historique=None, contexte_utilisateur=None, formations_disponibles=None):
+    """Répond à une question avec contexte et historique de conversation."""
+    try:
+        model = initialiser_ia()
+        prompt = construire_prompt_chat(
+            question=question,
+            historique=historique,
+            contexte_utilisateur=contexte_utilisateur,
+            formations_disponibles=formations_disponibles,
         )
+        reponse = model.generate_content(prompt)
+        texte = (reponse.text or "").strip()
+        return texte or "Je n'ai pas pu générer une réponse précise pour le moment. Réessaie dans quelques secondes."
+    except Exception:
+        return "Désolé, le chatbot est temporairement indisponible. Vous pouvez nous contacter sur contact@blessyconnect.com."
+
+
+def blessy_ai_repondre(question, contexte_formations=None, historique=None, contexte_utilisateur=None):
+    """Compatibilité avec l'ancienne signature et support mémoire/personnalisation."""
+    return repondre_chat_ia(
+        question=question,
+        historique=historique,
+        contexte_utilisateur=contexte_utilisateur,
+        formations_disponibles=list(contexte_formations) if contexte_formations else None,
+    )
 
 
 def recommander_formations(interets, formations_disponibles):
@@ -75,7 +91,7 @@ Réponds en français.
         reponse = model.generate_content(prompt)
         return reponse.text
 
-    except Exception as e:
+    except Exception:
         return "Impossible de générer des recommandations pour le moment."
 
 
@@ -129,8 +145,8 @@ contexte haïtien et international.
             'certifications': '',
             'erreur': str(e)
         }
-    
-    
+
+
 def generer_quiz(sujet, nombre_questions=5):
     """
     Génère un quiz complet via l'IA.
@@ -140,7 +156,7 @@ def generer_quiz(sujet, nombre_questions=5):
         nombre_questions: Nombre de questions à générer
 
     Returns:
-        list: Liste de dictionnaires {texte, choix_a, choix_b, 
+        list: Liste de dictionnaires {texte, choix_a, choix_b,
               choix_c, choix_d, bonne_reponse, explication}
     """
     try:
@@ -180,7 +196,8 @@ Les questions doivent être en français, claires et pédagogiques.
 
     except Exception as e:
         return []
-    
+
+
 def generer_programme_complet(nom_formation, description_formation="", niveau="debutant"):
     """
     Génère un programme complet (modules + leçons) pour une formation.
@@ -239,7 +256,8 @@ Tout doit être en français, professionnel et pédagogique.
 
     except Exception as e:
         return []
-    
+
+
 def generer_contenu_lecon(titre_lecon, resume_lecon="", contexte_formation="", contexte_module=""):
     """
     Génère le contenu complet d'une leçon individuelle.
@@ -270,23 +288,23 @@ Leçon : "{titre_lecon}"
 Structure obligatoire du contenu (utilise ces titres exacts) :
 
 ## Explication
-[Explique le concept clairement, avec des mots simples, 
+[Explique le concept clairement, avec des mots simples,
 adapté à un débutant motivé. 2-4 paragraphes.]
 
 ## Exemple concret
-[Donne un exemple pratique et réaliste. Si c'est un sujet 
-technique/code, inclus un bloc de code avec des commentaires. 
+[Donne un exemple pratique et réaliste. Si c'est un sujet
+technique/code, inclus un bloc de code avec des commentaires.
 Si c'est un sujet non-technique, donne un cas d'usage réel.]
 
 ## Mini-exercice
-[Propose un petit exercice pratique que l'étudiant peut faire 
-immédiatement pour appliquer ce qu'il vient d'apprendre. 
+[Propose un petit exercice pratique que l'étudiant peut faire
+immédiatement pour appliquer ce qu'il vient d'apprendre.
 Donne aussi la solution ou la démarche attendue.]
 
 Réponds uniquement avec le contenu de la leçon en français,
-en utilisant le format Markdown (## pour les titres, 
+en utilisant le format Markdown (## pour les titres,
 ```code``` pour le code si nécessaire, **gras** pour les points clés).
-Sois pédagogique, concret, et engageant. Ne mets pas de texte 
+Sois pédagogique, concret, et engageant. Ne mets pas de texte
 d'introduction ou de conclusion en dehors de cette structure.
 """
         reponse = model.generate_content(prompt)
@@ -296,45 +314,9 @@ d'introduction ou de conclusion en dehors de cette structure.
         return f"Erreur lors de la génération : {str(e)}"
 
 
-def generer_contenu_module_complet(module_titre, lecons_liste, contexte_formation=""):
-    """
-    Génère le contenu de TOUTES les leçons d'un module en une fois.
-
-    Args:
-        module_titre: Titre du module
-        lecons_liste: Liste de dicts [{id, titre, resume}, ...]
-        contexte_formation: Nom de la formation parente
-
-    Returns:
-        dict: {lecon_id: contenu_genere, ...}
-    """
-    resultats = {}
-
-    for lecon in lecons_liste:
-        contenu = generer_contenu_lecon(
-            titre_lecon=lecon['titre'],
-            resume_lecon=lecon.get('resume', ''),
-            contexte_formation=contexte_formation,
-            contexte_module=module_titre
-        )
-        resultats[lecon['id']] = contenu
-
-    return resultats
-
-
 def generer_parcours_oriente(profil, objectif, disponibilite, details, formations_disponibles):
     """
     Génère un parcours personnalisé basé sur le profil de l'étudiant.
-
-    Args:
-        profil: Type de profil (lycéen, professionnel, entrepreneur...)
-        objectif: Objectif principal (développeur, design, IA...)
-        disponibilite: Heures disponibles par jour
-        details: Description libre des objectifs
-        formations_disponibles: QuerySet des formations actives
-
-    Returns:
-        dict: {parcours: [...], message_personnel: str, duree_totale: int, budget_total: int}
     """
     try:
         model = initialiser_ia()
@@ -394,51 +376,37 @@ Règles :
 
     except Exception as e:
         return {'erreur': str(e)}
-    
+
+
 def attribuer_badges_forum(utilisateur):
-    """
-    Vérifie et attribue automatiquement les badges forum
-    selon l'activité de l'utilisateur.
-    
-    Args:
-        utilisateur: Instance User Django
-    
-    Returns:
-        list: Liste des nouveaux badges attribués
-    """
+    """Vérifie et attribue automatiquement les badges forum selon l'activité de l'utilisateur."""
     from .models import BadgeForum, Sujet, Reponse, Reaction
-    
+
     nouveaux_badges = []
-    
-    # Statistiques de l'utilisateur
+
     nb_sujets = Sujet.objects.filter(auteur=utilisateur).count()
     nb_reponses = Reponse.objects.filter(auteur=utilisateur).count()
-    nb_solutions = Reponse.objects.filter(
-        auteur=utilisateur, acceptee=True
-    ).count()
-    nb_likes_recus = Reaction.objects.filter(
-        reponse__auteur=utilisateur
-    ).count() + Reaction.objects.filter(
-        sujet__auteur=utilisateur
-    ).count()
+    nb_solutions = Reponse.objects.filter(auteur=utilisateur, acceptee=True).count()
+    nb_likes_recus = Reaction.objects.filter(reponse__auteur=utilisateur).count()
 
-    # Badges à vérifier
-    conditions = [
-        ('premier_post', nb_sujets >= 1),
-        ('premiere_reponse', nb_reponses >= 1),
-        ('solution_acceptee', nb_solutions >= 1),
-        ('dix_reponses', nb_reponses >= 10),
-        ('cinquante_reponses', nb_reponses >= 50),
-        ('cent_likes', nb_likes_recus >= 100),
-    ]
+    if nb_sujets >= 1 and not BadgeForum.objects.filter(utilisateur=utilisateur, type_badge='premier_post').exists():
+        BadgeForum.objects.create(utilisateur=utilisateur, type_badge='premier_post')
+        nouveaux_badges.append('premier_post')
 
-    for type_badge, condition in conditions:
-        if condition:
-            badge, cree = BadgeForum.objects.get_or_create(
-                utilisateur=utilisateur,
-                type_badge=type_badge
-            )
-            if cree:
-                nouveaux_badges.append(badge)
+    if nb_reponses >= 1 and not BadgeForum.objects.filter(utilisateur=utilisateur, type_badge='premiere_reponse').exists():
+        BadgeForum.objects.create(utilisateur=utilisateur, type_badge='premiere_reponse')
+        nouveaux_badges.append('premiere_reponse')
+
+    if nb_solutions >= 1 and not BadgeForum.objects.filter(utilisateur=utilisateur, type_badge='solution_acceptee').exists():
+        BadgeForum.objects.create(utilisateur=utilisateur, type_badge='solution_acceptee')
+        nouveaux_badges.append('solution_acceptee')
+
+    if nb_reponses >= 10 and not BadgeForum.objects.filter(utilisateur=utilisateur, type_badge='dix_reponses').exists():
+        BadgeForum.objects.create(utilisateur=utilisateur, type_badge='dix_reponses')
+        nouveaux_badges.append('dix_reponses')
+
+    if nb_likes_recus >= 100 and not BadgeForum.objects.filter(utilisateur=utilisateur, type_badge='cent_likes').exists():
+        BadgeForum.objects.create(utilisateur=utilisateur, type_badge='cent_likes')
+        nouveaux_badges.append('cent_likes')
 
     return nouveaux_badges

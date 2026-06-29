@@ -29,7 +29,26 @@ from .ia import (
     generer_parcours_oriente,
     attribuer_badges_forum,
 )
+def _construire_contexte_utilisateur(request):
+    """Construit un contexte utilisateur pour personnaliser les réponses du chatbot."""
+    contexte_utilisateur = None
+    if request.user.is_authenticated:
+        formations_suivies = []
+        progressions = (
+            ProgressionLecon.objects.filter(utilisateur=request.user, terminee=True)
+            .select_related('lecon__module__formation')
+            .order_by('-date_completion')[:3]
+        )
+        for progression in progressions:
+            formation = progression.lecon.module.formation
+            if formation and formation.nom not in formations_suivies:
+                formations_suivies.append(formation.nom)
 
+        contexte_utilisateur = {
+            'prenom': request.user.first_name or request.user.username,
+            'formations_suivies': formations_suivies,
+        }
+    return contexte_utilisateur
 
 # ================================================
 # Pages principales
@@ -267,7 +286,7 @@ def chat_ia(request):
 
 @csrf_exempt
 def api_chat_ia(request):
-    """API endpoint pour le chat IA (AJAX)."""
+    """API endpoint pour le chat IA (AJAX) avec mémoire de conversation."""
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -283,7 +302,20 @@ def api_chat_ia(request):
                 )
 
             formations_actives = Formation.objects.filter(actif=True)[:5]
-            reponse = blessy_ai_repondre(question, formations_actives)
+            historique = request.session.get('chat_historique', [])
+            contexte_utilisateur = _construire_contexte_utilisateur(request)
+
+            reponse = blessy_ai_repondre(
+                question,
+                formations_actives,
+                historique=historique,
+                contexte_utilisateur=contexte_utilisateur,
+            )
+
+            historique.append({'role': 'user', 'content': question})
+            historique.append({'role': 'assistant', 'content': reponse})
+            request.session['chat_historique'] = historique[-12:]
+            request.session.modified = True
 
             return JsonResponse({'reponse': reponse})
 
@@ -291,7 +323,6 @@ def api_chat_ia(request):
             return JsonResponse({'erreur': str(e)}, status=500)
 
     return JsonResponse({'erreur': 'Méthode non autorisée'}, status=405)
-
 
 def recommandations_ia(request):
     """Page de recommandations personnalisées."""

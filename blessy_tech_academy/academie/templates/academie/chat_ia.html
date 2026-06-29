@@ -11,7 +11,21 @@
 
 <section style="max-width: 800px; margin: 0 auto; padding: 40px;">
 
-    <!-- Fenêtre de chat -->
+    <div style="margin-bottom: 16px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <button type="button" onclick="ajouterSuggestion('Quel parcours me conseillez-vous ?')"
+                style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #ffffff; border: none; border-radius: 999px; padding: 10px 14px; font-weight: 600; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2); cursor: pointer;">
+            💡 Quel parcours me conseillez-vous ?
+        </button>
+        <button type="button" onclick="ajouterSuggestion('Quelles formations sont les plus demandées ?')"
+                style="background: linear-gradient(135deg, #0f766e, #115e59); color: #ffffff; border: none; border-radius: 999px; padding: 10px 14px; font-weight: 600; box-shadow: 0 4px 10px rgba(15, 118, 110, 0.2); cursor: pointer;">
+            📚 Quelles formations sont les plus demandées ?
+        </button>
+        <button type="button" onclick="ajouterSuggestion('Aidez-moi à choisir une formation')"
+                style="background: linear-gradient(135deg, #7c3aed, #6d28d9); color: #ffffff; border: none; border-radius: 999px; padding: 10px 14px; font-weight: 600; box-shadow: 0 4px 10px rgba(124, 58, 237, 0.2); cursor: pointer;">
+            🎯 Aidez-moi à choisir une formation
+        </button>
+    </div>
+
     <div id="chat-fenetre" style="
         background: white;
         border-radius: 16px;
@@ -24,24 +38,20 @@
         flex-direction: column;
         gap: 16px;">
 
-        <!-- Message de bienvenue -->
         <div class="message-ia">
             <span style="font-size: 24px;">🤖</span>
             <div style="background: var(--gris-clair);
                         padding: 12px 16px;
                         border-radius: 12px;
                         max-width: 80%;">
-                Bonjour ! Je suis <strong>Blessy AI</strong>, 
-                ton assistant de Blessy Tech Academy. 
+                Bonjour ! Je suis <strong>Blessy AI</strong>,
+                ton assistant de Blessy Tech Academy.
                 Comment puis-je t'aider aujourd'hui ?
-                Tu peux me demander quelle formation te convient,
-                ou poser toute question sur nos programmes. 😊
             </div>
         </div>
 
     </div>
 
-    <!-- Zone de saisie -->
     <div style="display: flex; gap: 12px;">
         <input type="text"
                id="question-input"
@@ -75,10 +85,14 @@
     const questionInput = document.getElementById('question-input');
     const btnEnvoyer = document.getElementById('btn-envoyer');
 
-    // Envoyer avec la touche Entrée
     questionInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') envoyerQuestion();
     });
+
+    function ajouterSuggestion(texte) {
+        questionInput.value = texte;
+        questionInput.focus();
+    }
 
     function ajouterMessage(texte, estUtilisateur) {
         const div = document.createElement('div');
@@ -135,12 +149,9 @@
         const question = questionInput.value.trim();
         if (!question) return;
 
-        // Affiche la question de l'utilisateur
         ajouterMessage(question, true);
         questionInput.value = '';
         btnEnvoyer.disabled = true;
-
-        // Affiche le chargement
         afficherChargement();
 
         try {
