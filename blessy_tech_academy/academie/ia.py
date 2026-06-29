@@ -410,3 +410,235 @@ def attribuer_badges_forum(utilisateur):
         nouveaux_badges.append('cent_likes')
 
     return nouveaux_badges
+
+# ================================================
+# FONCTIONS IA POUR LE BOUTON IA (6 fonctionnalités)
+# ================================================
+
+def assistant_code(code, langage="python", question=""):
+    """
+    Fonction 1 : Assistant Code
+    L'élève colle son code, l'IA analyse, corrige et explique.
+    """
+    try:
+        model = initialiser_ia()
+
+        prompt = (
+            f"Tu es un assistant de code expert pour Blessy Tech Academy.\n"
+            f"Un étudiant te soumet du code {langage} à analyser.\n\n"
+            f"```{langage}\n{code}\n```\n\n"
+        )
+        if question:
+            prompt += f"Question complémentaire de l'étudiant : {question}\n\n"
+
+        prompt += (
+            "Tu dois :\n"
+            "1. Analyser le code et identifier les erreurs éventuelles\n"
+            "2. Expliquer les erreurs de façon pédagogique, adaptée à un apprenant\n"
+            "3. Proposer une version corrigée avec des commentaires explicatifs\n"
+            "4. Suggérer des bonnes pratiques si pertinent\n"
+            "5. Encourager l'étudiant dans son apprentissage\n\n"
+            "Réponds en français, en Markdown structuré "
+            "(## Analyse, ## Erreurs trouvées, ## Code corrigé, "
+            "## Bonnes pratiques, ## Conseil).\n"
+            "Sois pédagogue, bienveillant et encourageant."
+        )
+
+        reponse = model.generate_content(prompt)
+        return (reponse.text or "").strip()
+    except Exception as e:
+        return f"❌ Erreur lors de l'analyse : {str(e)}"
+
+
+def generateur_exercices(sujet, niveau="debutant", format_exercice="code"):
+    """
+    Fonction 2 : Générateur d'exercices personnalisés
+    Crée un exercice selon le niveau et le sujet.
+    """
+    try:
+        model = initialiser_ia()
+
+        prompt = (
+            f"Tu es un générateur d'exercices pour Blessy Tech Academy.\n"
+            f"Crée un exercice personnalisé avec les critères suivants :\n\n"
+            f"- Sujet : {sujet}\n"
+            f"- Niveau : {niveau}\n"
+            f"- Format : {format_exercice}\n\n"
+            "Structure ta réponse en Markdown :\n"
+            "## 🎯 Exercice : [Titre]\n"
+            "## 📋 Consignes\n"
+            "[Consignes claires et détaillées]\n"
+            "## 💡 Indices (optionnel pour niveau débutant/intermédiaire)\n"
+            "[1-2 indices sans donner la solution]\n"
+            "## ✅ Résultat attendu\n"
+            "[Description du résultat ou exemple de sortie]\n"
+            "## 📝 Corrigé type\n"
+            "[Solution complète et commentée]\n\n"
+            "Adapte la difficulté au niveau (débutant = très guidé, "
+            "intermédiaire = moyennement guidé, avancé = autonome).\n"
+            "Si format = 'qcm', génère un QCM avec 4 choix et la bonne réponse.\n"
+            "Sois pédagogue et encourageant. Réponds en français."
+        )
+
+        reponse = model.generate_content(prompt)
+        return (reponse.text or "").strip()
+    except Exception as e:
+        return f"❌ Erreur lors de la génération : {str(e)}"
+
+
+def explication_concept(question, niveau_eleve="debutant"):
+    """
+    Fonction 3 : Explication de concept
+    L'élève pose une question, l'IA explique avec des exemples.
+    """
+    try:
+        model = initialiser_ia()
+
+        prompt = (
+            f"Tu es un tuteur expert de Blessy Tech Academy.\n"
+            f"Un étudiant de niveau {niveau_eleve} te demande :\n"
+            f'"{question}"\n\n'
+            "Tu dois :\n"
+            "1. Donner une définition simple et claire du concept\n"
+            "2. Fournir un exemple concret (code si pertinent)\n"
+            "3. Expliquer quand et pourquoi on utilise ce concept\n"
+            "4. Mentionner les erreurs fréquentes à éviter\n"
+            "5. Proposer une analogie si possible pour faciliter la compréhension\n\n"
+            "Structure ta réponse en Markdown :\n"
+            "## 📖 Définition\n"
+            "## 💻 Exemple concret\n"
+            "## 🎯 Cas d'usage\n"
+            "## ⚠️ Erreurs à éviter\n"
+            "## 💡 Pour aller plus loin\n\n"
+            "Adapte ton langage au niveau de l'étudiant.\n"
+            "Sois pédagogue, clair et encourageant. Réponds en français."
+        )
+
+        reponse = model.generate_content(prompt)
+        return (reponse.text or "").strip()
+    except Exception as e:
+        return f"❌ Erreur lors de l'explication : {str(e)}"
+
+
+def correction_automatique(enonce, reponse_eleve, bareme=""):
+    """
+    Fonction 4 : Correction automatique
+    Évalue la réponse d'un élève à un exercice.
+    """
+    try:
+        model = initialiser_ia()
+
+        prompt = (
+            f"Tu es un correcteur pédagogique de Blessy Tech Academy.\n\n"
+            f"## Énoncé de l'exercice :\n{enonce}\n\n"
+            f"## Réponse de l'étudiant :\n{reponse_eleve}\n\n"
+        )
+        if bareme:
+            prompt += f"## Barème suggéré : {bareme}\n\n"
+
+        prompt += (
+            "Tu dois :\n"
+            "1. Évaluer la réponse avec une note sur 20\n"
+            "2. Lister les points positifs (ce qui est bien fait)\n"
+            "3. Identifier les erreurs et axes d'amélioration\n"
+            "4. Donner un feedback constructif et encourageant\n"
+            "5. Suggérer ce qu'il faut réviser si la note < 12\n\n"
+            "Structure ta réponse en Markdown :\n"
+            "## 📊 Note : [X]/20\n"
+            "## ✅ Points positifs\n"
+            "## 🔧 À améliorer\n"
+            "## 💬 Feedback personnalisé\n"
+            "## 📚 À réviser (si nécessaire)\n\n"
+            "Sois juste, constructif et encourageant. "
+            "L'objectif est d'aider l'étudiant à progresser.\n"
+            "Réponds en français."
+        )
+
+        reponse = model.generate_content(prompt)
+        return (reponse.text or "").strip()
+    except Exception as e:
+        return f"❌ Erreur lors de la correction : {str(e)}"
+
+
+def parcours_adaptatif(profil_scores, parcours_actuel="", objectif=""):
+    """
+    Fonction 5 : Parcours adaptatif
+    Recommande les prochaines leçons selon les résultats.
+    """
+    try:
+        model = initialiser_ia()
+
+        profil_texte = "\n".join([
+            f"- {sujet} : {score}%" for sujet, score in profil_scores.items()
+        ])
+
+        prompt = (
+            f"Tu es un conseiller pédagogique IA de Blessy Tech Academy.\n\n"
+            f"## Profil de l'étudiant (scores par sujet) :\n"
+            f"{profil_texte}\n\n"
+            f"## Parcours actuel : "
+            f"{parcours_actuel if parcours_actuel else 'Non spécifié'}\n"
+            f"## Objectif : {objectif if objectif else 'Non spécifié'}\n\n"
+            "Analyse les forces et faiblesses, puis recommande un plan "
+            "d'action personnalisé.\n\n"
+            "Structure ta réponse en Markdown :\n"
+            "## 📊 Analyse du profil\n"
+            "[Forces identifiées, points à renforcer]\n\n"
+            "## 🎯 Recommandations\n"
+            "[3 leçons ou sujets recommandés avec justification pour chacun]\n\n"
+            "## 📝 Plan d'action\n"
+            "[Progression suggérée sur les 2-4 prochaines semaines]\n\n"
+            "## 💪 Conseil de motivation\n"
+            "[Un message encourageant personnalisé]\n\n"
+            "Sois précis, data-driven et encourageant. Réponds en français."
+        )
+
+        reponse = model.generate_content(prompt)
+        return (reponse.text or "").strip()
+    except Exception as e:
+        return f"❌ Erreur lors de l'analyse : {str(e)}"
+
+
+def chatbot_tuteur(message, historique=None, niveau_eleve="debutant"):
+    """
+    Fonction 6 : Chatbot tuteur conversationnel
+    Guide l'élève dans son apprentissage de manière interactive.
+    """
+    try:
+        model = initialiser_ia()
+
+        prompt = (
+            "Tu es Blessy AI, tuteur IA bienveillant de Blessy Tech Academy.\n"
+            "Ton rôle est d'accompagner les étudiants dans leur apprentissage.\n\n"
+            f"## Contexte :\n"
+            f"- Niveau de l'étudiant : {niveau_eleve}\n"
+            "- Tu es un guide, pas un faiseur de devoirs\n"
+            "- Encourage la réflexion plutôt que donner directement les réponses\n\n"
+            "## Directives :\n"
+            "1. Sois chaleureux, patient et encourageant\n"
+            "2. Pose des questions pour guider la réflexion\n"
+            "3. Donne des indices plutôt que des solutions complètes\n"
+            "4. Félicite les efforts et les progrès\n"
+            "5. Suggère des ressources complémentaires si pertinent\n\n"
+        )
+
+        if historique:
+            prompt += "## Historique récent :\n"
+            for m in historique[-5:]:
+                role = "Étudiant" if m.get('role') == 'user' else "Blessy AI"
+                content = m.get('content', '')[:200]
+                prompt += f"- {role} : {content}\n"
+            prompt += "\n"
+        else:
+            prompt += "Nouvelle conversation\n\n"
+
+        prompt += (
+            f"## Message de l'étudiant :\n"
+            f"{message}\n\n"
+            "Réponds en français, en Markdown. Sois concis mais complet."
+        )
+
+        reponse = model.generate_content(prompt)
+        return (reponse.text or "").strip()
+    except Exception as e:
+        return f"❌ Erreur : {str(e)}"

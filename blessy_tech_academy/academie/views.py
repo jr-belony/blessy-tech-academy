@@ -12,6 +12,7 @@ from django.db.models import Count
 from django.db.models import Q, Count, Avg
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.template.loader import render_to_string
 from django.utils import timezone
 from .models import (
@@ -28,6 +29,12 @@ from .ia import (
     generer_contenu_lecon,
     generer_parcours_oriente,
     attribuer_badges_forum,
+    assistant_code,
+    generateur_exercices,
+    explication_concept,
+    correction_automatique,
+    parcours_adaptatif,
+    chatbot_tuteur,
 )
 def _construire_contexte_utilisateur(request):
     """Construit un contexte utilisateur pour personnaliser les réponses du chatbot."""
@@ -588,7 +595,6 @@ def lire_lecon(request, lecon_id):
 
     formation = lecon.module.formation
     pourcentage_formation = formation.progression_pour(request.user)
-
     return render(request, 'academie/lire_lecon.html', {
         'lecon': lecon,
         'contenu_html': contenu_html,
@@ -891,8 +897,7 @@ def forum_accepter_reponse(request, reponse_id):
 
         messages.success(request, '✅ Réponse marquée comme solution !')
         return redirect('forum_detail', sujet_id=reponse.sujet.id)
-
-    return redirect('forum_liste')
+        return redirect('forum_liste')
 
 
 @login_required(login_url='/connexion/')
@@ -1010,3 +1015,137 @@ def orientation_ia(request):
         'disponibilites': disponibilites,
         'post_data': request.POST if request.method == 'POST' else None,
     })
+
+
+# ================================================
+# VUES API POUR LE BOUTON IA (6 fonctionnalités)
+# ================================================
+
+
+@csrf_exempt
+@require_POST
+def api_assistant_code(request):
+    """API 1 : Assistant Code - Analyse et corrige le code"""
+    try:
+        data = json.loads(request.body)
+        code = data.get('code', '')
+        langage = data.get('langage', 'python')
+        question = data.get('question', '')
+
+        if not code:
+            return JsonResponse({'erreur': 'Le champ "code" est requis.'}, status=400)
+
+        reponse = assistant_code(code=code, langage=langage, question=question)
+        return JsonResponse({'reponse': reponse, 'fonction': 'assistant_code'})
+    except json.JSONDecodeError:
+        return JsonResponse({'erreur': 'JSON invalide'}, status=400)
+    except Exception as e:
+        return JsonResponse({'erreur': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_POST
+def api_generateur_exercices(request):
+    """API 2 : Générateur d'exercices personnalisés"""
+    try:
+        data = json.loads(request.body)
+        sujet = data.get('sujet', '')
+        niveau = data.get('niveau', 'debutant')
+        format_ex = data.get('format_exercice', 'code')
+
+        if not sujet:
+            return JsonResponse({'erreur': 'Le champ "sujet" est requis.'}, status=400)
+
+        reponse = generateur_exercices(sujet=sujet, niveau=niveau, format_exercice=format_ex)
+        return JsonResponse({'reponse': reponse, 'fonction': 'generateur_exercices'})
+    except json.JSONDecodeError:
+        return JsonResponse({'erreur': 'JSON invalide'}, status=400)
+    except Exception as e:
+        return JsonResponse({'erreur': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_POST
+def api_explication_concept(request):
+    """API 3 : Explication de concept"""
+    try:
+        data = json.loads(request.body)
+        question = data.get('question', '')
+        niveau_eleve = data.get('niveau_eleve', 'debutant')
+
+        if not question:
+            return JsonResponse({'erreur': 'Le champ "question" est requis.'}, status=400)
+
+        reponse = explication_concept(question=question, niveau_eleve=niveau_eleve)
+        return JsonResponse({'reponse': reponse, 'fonction': 'explication_concept'})
+    except json.JSONDecodeError:
+        return JsonResponse({'erreur': 'JSON invalide'}, status=400)
+    except Exception as e:
+        return JsonResponse({'erreur': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_POST
+def api_correction_automatique(request):
+    """API 4 : Correction automatique d'exercice"""
+    try:
+        data = json.loads(request.body)
+        enonce = data.get('enonce', '')
+        reponse_eleve = data.get('reponse_eleve', '')
+        bareme = data.get('bareme', '')
+
+        if not enonce or not reponse_eleve:
+            return JsonResponse({'erreur': 'Les champs "enonce" et "reponse_eleve" sont requis.'}, status=400)
+
+        reponse = correction_automatique(enonce=enonce, reponse_eleve=reponse_eleve, bareme=bareme)
+        return JsonResponse({'reponse': reponse, 'fonction': 'correction_automatique'})
+    except json.JSONDecodeError:
+        return JsonResponse({'erreur': 'JSON invalide'}, status=400)
+    except Exception as e:
+        return JsonResponse({'erreur': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_POST
+def api_parcours_adaptatif(request):
+    """API 5 : Recommandation de parcours adaptatif"""
+    try:
+        data = json.loads(request.body)
+        profil_scores = data.get('profil_scores', {})
+        parcours_actuel = data.get('parcours_actuel', '')
+        objectif = data.get('objectif', '')
+
+        if not profil_scores:
+            return JsonResponse({'erreur': 'Le champ "profil_scores" est requis.'}, status=400)
+
+        reponse = parcours_adaptatif(
+            profil_scores=profil_scores,
+            parcours_actuel=parcours_actuel,
+            objectif=objectif
+        )
+        return JsonResponse({'reponse': reponse, 'fonction': 'parcours_adaptatif'})
+    except json.JSONDecodeError:
+        return JsonResponse({'erreur': 'JSON invalide'}, status=400)
+    except Exception as e:
+        return JsonResponse({'erreur': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_POST
+def api_chatbot_tuteur(request):
+    """API 6 : Chatbot tuteur conversationnel"""
+    try:
+        data = json.loads(request.body)
+        message = data.get('message', '')
+        historique = data.get('historique', [])
+        niveau_eleve = data.get('niveau_eleve', 'debutant')
+
+        if not message:
+            return JsonResponse({'erreur': 'Le champ "message" est requis.'}, status=400)
+
+        reponse = chatbot_tuteur(message=message, historique=historique, niveau_eleve=niveau_eleve)
+        return JsonResponse({'reponse': reponse, 'fonction': 'chatbot_tuteur'})
+    except json.JSONDecodeError:
+        return JsonResponse({'erreur': 'JSON invalide'}, status=400)
+    except Exception as e:
+        return JsonResponse({'erreur': str(e)}, status=500)

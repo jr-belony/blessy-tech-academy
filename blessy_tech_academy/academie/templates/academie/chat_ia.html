@@ -180,4 +180,75 @@
     }
 </script>
 
+
+
+<hr style="margin: 40px 0;">
+
+<h3 style="text-align:center; margin-bottom:20px;">⚡ Fonctions IA avancées</h3>
+
+<div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px;">
+    <button onclick="afficherFormulaire('assistant-code')" style="background:#2563eb; color:white; border:none; border-radius:8px; padding:10px 16px; cursor:pointer;">💻 Assistant Code</button>
+    <button onclick="afficherFormulaire('generateur-exercices')" style="background:#0f766e; color:white; border:none; border-radius:8px; padding:10px 16px; cursor:pointer;">📝 Générateur d'Exercices</button>
+    <button onclick="afficherFormulaire('explication-concept')" style="background:#0891b2; color:white; border:none; border-radius:8px; padding:10px 16px; cursor:pointer;">📖 Explication de Concept</button>
+    <button onclick="afficherFormulaire('correction')" style="background:#d97706; color:white; border:none; border-radius:8px; padding:10px 16px; cursor:pointer;">✅ Correction Auto</button>
+    <button onclick="afficherFormulaire('parcours-adaptatif')" style="background:#dc2626; color:white; border:none; border-radius:8px; padding:10px 16px; cursor:pointer;">🎯 Parcours Adaptatif</button>
+    <button onclick="afficherFormulaire('chatbot')" style="background:#4b5563; color:white; border:none; border-radius:8px; padding:10px 16px; cursor:pointer;">💬 Chatbot Tuteur</button>
+</div>
+
+<div id="zone-formulaire-ia" style="max-width:700px; margin:0 auto; display:none;"></div>
+<div id="resultat-ia" style="max-width:700px; margin:20px auto; display:none;"></div>
+
+<script>
+const formIA = {
+    'assistant-code': '<h4>💻 Assistant Code</h4><textarea id="ia-code" rows="6" placeholder="Collez votre code ici..." style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"></textarea><br><select id="ia-langage" style="padding:8px;border-radius:8px;margin:5px 0;"><option value="python">Python</option><option value="javascript">JavaScript</option><option value="html">HTML/CSS</option><option value="java">Java</option><option value="php">PHP</option><option value="sql">SQL</option></select><input id="ia-question" placeholder="Question (optionnel)" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;margin:5px 0;"><button onclick="envoyerIA(\'assistant-code\')" style="background:#2563eb;color:white;border:none;padding:10px 20px;border-radius:8px;">🔍 Analyser</button>',
+    'generateur-exercices': '<h4>📝 Générateur d\'Exercices</h4><input id="ia-sujet" placeholder="Sujet (ex: Boucles for)" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;margin:5px 0;"><select id="ia-niveau" style="padding:8px;border-radius:8px;"><option value="debutant">Débutant</option><option value="intermediaire">Intermédiaire</option><option value="avance">Avancé</option></select><select id="ia-format" style="padding:8px;border-radius:8px;margin-left:5px;"><option value="code">Code</option><option value="qcm">QCM</option><option value="texte_libre">Question ouverte</option></select><br><button onclick="envoyerIA(\'generateur-exercices\')" style="background:#0f766e;color:white;border:none;padding:10px 20px;border-radius:8px;margin-top:5px;">📝 Générer</button>',
+    'explication-concept': '<h4>📖 Explication de Concept</h4><textarea id="ia-question-concept" rows="3" placeholder="Votre question..." style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"></textarea><select id="ia-niveau-eleve" style="padding:8px;border-radius:8px;margin:5px 0;"><option value="debutant">Débutant</option><option value="intermediaire">Intermédiaire</option><option value="avance">Avancé</option></select><br><button onclick="envoyerIA(\'explication-concept\')" style="background:#0891b2;color:white;border:none;padding:10px 20px;border-radius:8px;">📖 Expliquer</button>',
+    'correction': '<h4>✅ Correction Automatique</h4><textarea id="ia-enonce" rows="3" placeholder="Énoncé..." style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"></textarea><textarea id="ia-reponse-eleve" rows="4" placeholder="Votre réponse..." style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;margin:5px 0;"></textarea><input id="ia-bareme" placeholder="Barème (optionnel)" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"><br><button onclick="envoyerIA(\'correction\')" style="background:#d97706;color:white;border:none;padding:10px 20px;border-radius:8px;margin-top:5px;">✅ Corriger</button>',
+    'parcours-adaptatif': '<h4>🎯 Parcours Adaptatif</h4><textarea id="ia-profil" rows="3" placeholder=\'{"Python": 85, "JavaScript": 60}\' style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"></textarea><input id="ia-parcours" placeholder="Parcours actuel (optionnel)" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;margin:5px 0;"><input id="ia-objectif" placeholder="Objectif (optionnel)" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"><br><button onclick="envoyerIA(\'parcours-adaptatif\')" style="background:#dc2626;color:white;border:none;padding:10px 20px;border-radius:8px;margin-top:5px;">🎯 Recommander</button>',
+    'chatbot': '<h4>💬 Chatbot Tuteur</h4><textarea id="ia-message" rows="3" placeholder="Posez votre question..." style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"></textarea><br><button onclick="envoyerIA(\'chatbot\')" style="background:#4b5563;color:white;border:none;padding:10px 20px;border-radius:8px;margin-top:5px;">💬 Envoyer</button>'
+};
+
+function afficherFormulaire(fonction) {
+    document.getElementById('zone-formulaire-ia').style.display = 'block';
+    document.getElementById('zone-formulaire-ia').innerHTML = formIA[fonction];
+    document.getElementById('resultat-ia').style.display = 'none';
+}
+
+async function envoyerIA(fonction) {
+    let data = {};
+    if (fonction === 'assistant-code') {
+        data = {code: document.getElementById('ia-code').value, langage: document.getElementById('ia-langage').value, question: document.getElementById('ia-question').value};
+    } else if (fonction === 'generateur-exercices') {
+        data = {sujet: document.getElementById('ia-sujet').value, niveau: document.getElementById('ia-niveau').value, format_exercice: document.getElementById('ia-format').value};
+    } else if (fonction === 'explication-concept') {
+        data = {question: document.getElementById('ia-question-concept').value, niveau_eleve: document.getElementById('ia-niveau-eleve').value};
+    } else if (fonction === 'correction') {
+        data = {enonce: document.getElementById('ia-enonce').value, reponse_eleve: document.getElementById('ia-reponse-eleve').value, bareme: document.getElementById('ia-bareme').value};
+    } else if (fonction === 'parcours-adaptatif') {
+        try { data = {profil_scores: JSON.parse(document.getElementById('ia-profil').value), parcours_actuel: document.getElementById('ia-parcours').value, objectif: document.getElementById('ia-objectif').value}; }
+        catch(e) { alert('JSON invalide pour les scores.'); return; }
+    } else if (fonction === 'chatbot') {
+        data = {message: document.getElementById('ia-message').value, niveau_eleve: 'debutant'};
+    }
+
+    document.getElementById('resultat-ia').style.display = 'block';
+    document.getElementById('resultat-ia').innerHTML = '<p>⏳ Blessy AI réfléchit...</p>';
+
+    try {
+        const response = await fetch('/api/ia/' + fonction + '/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (result.reponse) {
+            document.getElementById('resultat-ia').innerHTML = '<div style="background:white;padding:20px;border-radius:12px;">' + result.reponse.replace(/\n/g, '<br>').replace(/## (.+)/g, '<h4>$1</h4>').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') + '</div>';
+        } else {
+            document.getElementById('resultat-ia').innerHTML = '<div style="color:red;">❌ ' + (result.erreur || 'Erreur') + '</div>';
+        }
+    } catch(e) {
+        document.getElementById('resultat-ia').innerHTML = '<div style="color:red;">❌ Erreur de connexion.</div>';
+    }
+}
+</script>
 {% endblock %}

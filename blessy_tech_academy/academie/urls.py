@@ -33,6 +33,16 @@ urlpatterns = [
     path('api/generer-contenu-module/', views.api_generer_contenu_module, name='api_generer_contenu_module'),
     path('lecon/<int:lecon_id>/terminer/', views.marquer_lecon_terminee, name='marquer_lecon_terminee'),
     path('formation/<int:formation_id>/certificat/', views.telecharger_certificat, name='telecharger_certificat'),
+    
+    # Routes API pour le bouton IA (6 fonctionnalités)
+    path('api/ia/assistant-code/', views.api_assistant_code, name='api-assistant-code'),
+    path('api/ia/generateur-exercices/', views.api_generateur_exercices, name='api-generateur-exercices'),
+    path('api/ia/explication-concept/', views.api_explication_concept, name='api-explication-concept'),
+    path('api/ia/correction/', views.api_correction_automatique, name='api-correction'),
+    path('api/ia/parcours-adaptatif/', views.api_parcours_adaptatif, name='api-parcours-adaptatif'),
+    path('api/ia/chatbot/', views.api_chatbot_tuteur, name='api-chatbot'),
+    
+    
     # Forum Communautaire
     path('forum/', views.forum_liste, name='forum_liste'),
     path('forum/nouveau/', views.forum_creer, name='forum_creer'),
