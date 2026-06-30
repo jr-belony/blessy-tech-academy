@@ -3,29 +3,33 @@
 {% block titre %}Blessy AI — Assistant Intelligent{% endblock %}
 
 {% block contenu %}
+<!-- Conteneur global avec marge intérieure en bas pour éviter le footer -->
+<div style="padding-bottom: 100px;">
 
 <section class="page-hero">
     <h2>🤖 Blessy AI</h2>
     <p>Ton assistant intelligent pour choisir ta formation et progresser.</p>
 </section>
 
-<section style="max-width: 800px; margin: 0 auto; padding: 40px;">
+<section style="max-width: 800px; margin: 0 auto; padding: 40px 20px;">
 
+    <!-- Suggestions rapides -->
     <div style="margin-bottom: 16px; display: flex; gap: 10px; flex-wrap: wrap;">
         <button type="button" onclick="ajouterSuggestion('Quel parcours me conseillez-vous ?')"
-                style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #ffffff; border: none; border-radius: 999px; padding: 10px 14px; font-weight: 600; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2); cursor: pointer;">
-            💡 Quel parcours me conseillez-vous ?
+                style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border: none; border-radius: 999px; padding: 10px 14px; font-weight: 600; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2); cursor: pointer; white-space: nowrap;">
+            💡 Quel parcours ?
         </button>
         <button type="button" onclick="ajouterSuggestion('Quelles formations sont les plus demandées ?')"
-                style="background: linear-gradient(135deg, #0f766e, #115e59); color: #ffffff; border: none; border-radius: 999px; padding: 10px 14px; font-weight: 600; box-shadow: 0 4px 10px rgba(15, 118, 110, 0.2); cursor: pointer;">
-            📚 Quelles formations sont les plus demandées ?
+                style="background: linear-gradient(135deg, #0f766e, #115e59); color: #fff; border: none; border-radius: 999px; padding: 10px 14px; font-weight: 600; box-shadow: 0 4px 10px rgba(15, 118, 110, 0.2); cursor: pointer; white-space: nowrap;">
+            📚 Formations demandées
         </button>
         <button type="button" onclick="ajouterSuggestion('Aidez-moi à choisir une formation')"
-                style="background: linear-gradient(135deg, #7c3aed, #6d28d9); color: #ffffff; border: none; border-radius: 999px; padding: 10px 14px; font-weight: 600; box-shadow: 0 4px 10px rgba(124, 58, 237, 0.2); cursor: pointer;">
-            🎯 Aidez-moi à choisir une formation
+                style="background: linear-gradient(135deg, #7c3aed, #6d28d9); color: #fff; border: none; border-radius: 999px; padding: 10px 14px; font-weight: 600; box-shadow: 0 4px 10px rgba(124, 58, 237, 0.2); cursor: pointer; white-space: nowrap;">
+            🎯 Choisir une formation
         </button>
     </div>
 
+    <!-- Fenêtre de chat -->
     <div id="chat-fenetre" style="
         background: white;
         border-radius: 16px;
@@ -49,14 +53,14 @@
                 Comment puis-je t'aider aujourd'hui ?
             </div>
         </div>
-
     </div>
 
-    <div style="display: flex; gap: 12px;">
+    <!-- Saisie et bouton Envoyer -->
+    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
         <input type="text"
                id="question-input"
                placeholder="Pose ta question à Blessy AI..."
-               style="flex: 1; padding: 14px 18px;
+               style="flex: 1 1 200px; padding: 14px 18px;
                       border: 2px solid #e2e8f0;
                       border-radius: 10px; font-size: 15px;
                       font-family: inherit;"
@@ -64,7 +68,7 @@
         <button onclick="envoyerQuestion()"
                 class="btn btn-principal"
                 id="btn-envoyer"
-                style="padding: 14px 24px; white-space: nowrap;">
+                style="padding: 14px 24px; white-space: nowrap; flex: 0 0 auto;">
             Envoyer ✈️
         </button>
     </div>
@@ -79,6 +83,53 @@
     </p>
 
 </section>
+
+<hr style="margin: 40px 0;">
+
+<h3 style="text-align:center; margin-bottom:20px;">⚡ Fonctions IA avancées</h3>
+
+<!-- Grille de boutons responsive -->
+<div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 20px; padding: 0 20px;">
+    <button onclick="afficherFormulaire('assistant-code')"
+            style="background:#2563eb; color:white; border:none; border-radius:8px; padding:12px 16px; cursor:pointer; flex: 1 1 calc(50% - 10px); min-width: 140px; max-width: 200px;">
+        💻 Assistant Code
+    </button>
+    <button onclick="afficherFormulaire('generateur-exercices')"
+            style="background:#0f766e; color:white; border:none; border-radius:8px; padding:12px 16px; cursor:pointer; flex: 1 1 calc(50% - 10px); min-width: 140px; max-width: 200px;">
+        📝 Générateur
+    </button>
+    <button onclick="afficherFormulaire('explication-concept')"
+            style="background:#0891b2; color:white; border:none; border-radius:8px; padding:12px 16px; cursor:pointer; flex: 1 1 calc(50% - 10px); min-width: 140px; max-width: 200px;">
+        📖 Explication
+    </button>
+    <button onclick="afficherFormulaire('correction')"
+            style="background:#d97706; color:white; border:none; border-radius:8px; padding:12px 16px; cursor:pointer; flex: 1 1 calc(50% - 10px); min-width: 140px; max-width: 200px;">
+        ✅ Correction
+    </button>
+    <button onclick="afficherFormulaire('parcours-adaptatif')"
+            style="background:#dc2626; color:white; border:none; border-radius:8px; padding:12px 16px; cursor:pointer; flex: 1 1 calc(50% - 10px); min-width: 140px; max-width: 200px;">
+        🎯 Parcours
+    </button>
+    <button onclick="afficherFormulaire('chatbot')"
+            style="background:#4b5563; color:white; border:none; border-radius:8px; padding:12px 16px; cursor:pointer; flex: 1 1 calc(50% - 10px); min-width: 140px; max-width: 200px;">
+        💬 Tuteur
+    </button>
+</div>
+
+<div id="zone-formulaire-ia" style="max-width:700px; margin:0 auto; display:none; padding: 0 20px;"></div>
+<div id="resultat-ia" style="max-width:700px; margin:20px auto; display:none; padding: 0 20px;"></div>
+
+<style>
+    @media (max-width: 576px) {
+        #zone-formulaire-ia button {
+            width: 100%;
+            display: block;
+            margin-top: 10px;
+        }
+    }
+</style>
+
+</div><!-- fin du conteneur global avec padding-bottom -->
 
 <script>
     const chatFenetre = document.getElementById('chat-fenetre');
@@ -180,32 +231,14 @@
     }
 </script>
 
-
-
-<hr style="margin: 40px 0;">
-
-<h3 style="text-align:center; margin-bottom:20px;">⚡ Fonctions IA avancées</h3>
-
-<div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px;">
-    <button onclick="afficherFormulaire('assistant-code')" style="background:#2563eb; color:white; border:none; border-radius:8px; padding:10px 16px; cursor:pointer;">💻 Assistant Code</button>
-    <button onclick="afficherFormulaire('generateur-exercices')" style="background:#0f766e; color:white; border:none; border-radius:8px; padding:10px 16px; cursor:pointer;">📝 Générateur d'Exercices</button>
-    <button onclick="afficherFormulaire('explication-concept')" style="background:#0891b2; color:white; border:none; border-radius:8px; padding:10px 16px; cursor:pointer;">📖 Explication de Concept</button>
-    <button onclick="afficherFormulaire('correction')" style="background:#d97706; color:white; border:none; border-radius:8px; padding:10px 16px; cursor:pointer;">✅ Correction Auto</button>
-    <button onclick="afficherFormulaire('parcours-adaptatif')" style="background:#dc2626; color:white; border:none; border-radius:8px; padding:10px 16px; cursor:pointer;">🎯 Parcours Adaptatif</button>
-    <button onclick="afficherFormulaire('chatbot')" style="background:#4b5563; color:white; border:none; border-radius:8px; padding:10px 16px; cursor:pointer;">💬 Chatbot Tuteur</button>
-</div>
-
-<div id="zone-formulaire-ia" style="max-width:700px; margin:0 auto; display:none;"></div>
-<div id="resultat-ia" style="max-width:700px; margin:20px auto; display:none;"></div>
-
 <script>
 const formIA = {
-    'assistant-code': '<h4>💻 Assistant Code</h4><textarea id="ia-code" rows="6" placeholder="Collez votre code ici..." style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"></textarea><br><select id="ia-langage" style="padding:8px;border-radius:8px;margin:5px 0;"><option value="python">Python</option><option value="javascript">JavaScript</option><option value="html">HTML/CSS</option><option value="java">Java</option><option value="php">PHP</option><option value="sql">SQL</option></select><input id="ia-question" placeholder="Question (optionnel)" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;margin:5px 0;"><button onclick="envoyerIA(\'assistant-code\')" style="background:#2563eb;color:white;border:none;padding:10px 20px;border-radius:8px;">🔍 Analyser</button>',
-    'generateur-exercices': '<h4>📝 Générateur d\'Exercices</h4><input id="ia-sujet" placeholder="Sujet (ex: Boucles for)" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;margin:5px 0;"><select id="ia-niveau" style="padding:8px;border-radius:8px;"><option value="debutant">Débutant</option><option value="intermediaire">Intermédiaire</option><option value="avance">Avancé</option></select><select id="ia-format" style="padding:8px;border-radius:8px;margin-left:5px;"><option value="code">Code</option><option value="qcm">QCM</option><option value="texte_libre">Question ouverte</option></select><br><button onclick="envoyerIA(\'generateur-exercices\')" style="background:#0f766e;color:white;border:none;padding:10px 20px;border-radius:8px;margin-top:5px;">📝 Générer</button>',
-    'explication-concept': '<h4>📖 Explication de Concept</h4><textarea id="ia-question-concept" rows="3" placeholder="Votre question..." style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"></textarea><select id="ia-niveau-eleve" style="padding:8px;border-radius:8px;margin:5px 0;"><option value="debutant">Débutant</option><option value="intermediaire">Intermédiaire</option><option value="avance">Avancé</option></select><br><button onclick="envoyerIA(\'explication-concept\')" style="background:#0891b2;color:white;border:none;padding:10px 20px;border-radius:8px;">📖 Expliquer</button>',
-    'correction': '<h4>✅ Correction Automatique</h4><textarea id="ia-enonce" rows="3" placeholder="Énoncé..." style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"></textarea><textarea id="ia-reponse-eleve" rows="4" placeholder="Votre réponse..." style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;margin:5px 0;"></textarea><input id="ia-bareme" placeholder="Barème (optionnel)" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"><br><button onclick="envoyerIA(\'correction\')" style="background:#d97706;color:white;border:none;padding:10px 20px;border-radius:8px;margin-top:5px;">✅ Corriger</button>',
-    'parcours-adaptatif': '<h4>🎯 Parcours Adaptatif</h4><textarea id="ia-profil" rows="3" placeholder=\'{"Python": 85, "JavaScript": 60}\' style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"></textarea><input id="ia-parcours" placeholder="Parcours actuel (optionnel)" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;margin:5px 0;"><input id="ia-objectif" placeholder="Objectif (optionnel)" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"><br><button onclick="envoyerIA(\'parcours-adaptatif\')" style="background:#dc2626;color:white;border:none;padding:10px 20px;border-radius:8px;margin-top:5px;">🎯 Recommander</button>',
-    'chatbot': '<h4>💬 Chatbot Tuteur</h4><textarea id="ia-message" rows="3" placeholder="Posez votre question..." style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"></textarea><br><button onclick="envoyerIA(\'chatbot\')" style="background:#4b5563;color:white;border:none;padding:10px 20px;border-radius:8px;margin-top:5px;">💬 Envoyer</button>'
+    'assistant-code': '<h4>💻 Assistant Code</h4><textarea id="ia-code" rows="6" placeholder="Collez votre code ici..." style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"></textarea><br><select id="ia-langage" style="padding:8px;border-radius:8px;margin:5px 0;"><option value="python">Python</option><option value="javascript">JavaScript</option><option value="html">HTML/CSS</option><option value="java">Java</option><option value="php">PHP</option><option value="sql">SQL</option></select><input id="ia-question" placeholder="Question (optionnel)" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;margin:5px 0;"><button onclick="envoyerIA(\'assistant-code\')" style="background:#2563eb;color:white;border:none;padding:12px 20px;border-radius:8px;margin-top:5px;">🔍 Analyser</button>',
+    'generateur-exercices': '<h4>📝 Générateur d\'Exercices</h4><input id="ia-sujet" placeholder="Sujet (ex: Boucles for)" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;margin:5px 0;"><select id="ia-niveau" style="padding:8px;border-radius:8px;"><option value="debutant">Débutant</option><option value="intermediaire">Intermédiaire</option><option value="avance">Avancé</option></select><select id="ia-format" style="padding:8px;border-radius:8px;margin-left:5px;"><option value="code">Code</option><option value="qcm">QCM</option><option value="texte_libre">Question ouverte</option></select><br><button onclick="envoyerIA(\'generateur-exercices\')" style="background:#0f766e;color:white;border:none;padding:12px 20px;border-radius:8px;margin-top:10px;">📝 Générer</button>',
+    'explication-concept': '<h4>📖 Explication de Concept</h4><textarea id="ia-question-concept" rows="3" placeholder="Votre question..." style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"></textarea><select id="ia-niveau-eleve" style="padding:8px;border-radius:8px;margin:5px 0;"><option value="debutant">Débutant</option><option value="intermediaire">Intermédiaire</option><option value="avance">Avancé</option></select><br><button onclick="envoyerIA(\'explication-concept\')" style="background:#0891b2;color:white;border:none;padding:12px 20px;border-radius:8px;margin-top:5px;">📖 Expliquer</button>',
+    'correction': '<h4>✅ Correction Automatique</h4><textarea id="ia-enonce" rows="3" placeholder="Énoncé..." style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"></textarea><textarea id="ia-reponse-eleve" rows="4" placeholder="Votre réponse..." style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;margin:5px 0;"></textarea><input id="ia-bareme" placeholder="Barème (optionnel)" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"><br><button onclick="envoyerIA(\'correction\')" style="background:#d97706;color:white;border:none;padding:12px 20px;border-radius:8px;margin-top:10px;">✅ Corriger</button>',
+    'parcours-adaptatif': '<h4>🎯 Parcours Adaptatif</h4><textarea id="ia-profil" rows="3" placeholder=\'{"Python": 85, "JavaScript": 60}\' style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"></textarea><input id="ia-parcours" placeholder="Parcours actuel (optionnel)" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;margin:5px 0;"><input id="ia-objectif" placeholder="Objectif (optionnel)" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"><br><button onclick="envoyerIA(\'parcours-adaptatif\')" style="background:#dc2626;color:white;border:none;padding:12px 20px;border-radius:8px;margin-top:10px;">🎯 Recommander</button>',
+    'chatbot': '<h4>💬 Chatbot Tuteur</h4><textarea id="ia-message" rows="3" placeholder="Posez votre question..." style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"></textarea><br><button onclick="envoyerIA(\'chatbot\')" style="background:#4b5563;color:white;border:none;padding:12px 20px;border-radius:8px;margin-top:10px;">💬 Envoyer</button>'
 };
 
 function afficherFormulaire(fonction) {
