@@ -29,6 +29,7 @@ from .ia import (
     generer_contenu_lecon,
     generer_parcours_oriente,
     attribuer_badges_forum,
+    attribuer_badges,
     assistant_code,
     generateur_exercices,
     explication_concept,
@@ -66,7 +67,7 @@ def accueil(request):
     """Page d'accueil."""
     formations = Formation.objects.filter(actif=True)[:4]
     return render(request, 'academie/accueil.html',
-                  {'formations': formations})
+                {'formations': formations})
 
 
 def formations(request):
@@ -204,13 +205,13 @@ def deconnexion(request):
 @login_required(login_url='/connexion/')
 def dashboard(request):
     """Tableau de bord étudiant moderne."""
-    from .ia import calculer_stats_etudiant
+    from .ia import calculer_stats_etudiant, attribuer_badges
 
     user = request.user
     stats = calculer_stats_etudiant(user)
 
     # Récupère les derniers badges (max 6)
-    derniers_badges = stats['badges'][-6:]
+    tous_badges = stats['badges']
 
     # Formations récemment actives (triées par progression)
     formations_actives = sorted(
@@ -218,11 +219,13 @@ def dashboard(request):
         key=lambda f: f['pourcentage'],
         reverse=True
     )[:4]
-
+    nouveaux_badges = attribuer_badges(user)
+    if nouveaux_badges:
+        messages.success(request, f'🎉 Nouveau(x) badge(s) : {", ".join(nouveaux_badges)} !')
     return render(request, 'academie/dashboard.html', {
         'user': user,
         'stats': stats,
-        'derniers_badges': derniers_badges,
+        'badges': tous_badges,
         'formations_actives': formations_actives,
     })
 # ================================================
@@ -429,7 +432,7 @@ def passer_quiz(request, quiz_id):
             score=score,
             total_questions=total
         )
-
+        attribuer_badges (request.user)
         return render(request, 'academie/resultat_quiz.html', {
             'quiz': quiz,
             'score': score,
@@ -809,7 +812,7 @@ def forum_creer(request):
                 formation_id=formation_id if formation_id else None,
             )
 
-            attribuer_badges_forum(request.user)
+            attribuer_badges(request.user)
             messages.success(request, '✅ Sujet créé avec succès !')
             return redirect('forum_detail', sujet_id=sujet.id)
 
@@ -891,7 +894,7 @@ def forum_accepter_reponse(request, reponse_id):
         # Marque le sujet comme résolu
         reponse.sujet.resolu = True
         reponse.sujet.save()
-        attribuer_badges_forum(reponse.auteur)
+        attribuer_badges(reponse.auteur)
 
         messages.success(request, '✅ Réponse marquée comme solution !')
         return redirect('forum_detail', sujet_id=reponse.sujet.id)
@@ -924,7 +927,7 @@ def forum_creer(request):
             formation_id=formation_id if formation_id else None,
         )
         
-        attribuer_badges_forum(request.user)
+        attribuer_badges(request.user)
         messages.success(request, '✅ Sujet créé avec succès !')
         return redirect('forum_detail', sujet_id=sujet.id)
 

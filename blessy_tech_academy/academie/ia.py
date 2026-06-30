@@ -378,38 +378,110 @@ Règles :
         return {'erreur': str(e)}
 
 
-def attribuer_badges_forum(utilisateur):
-    """Vérifie et attribue automatiquement les badges forum selon l'activité de l'utilisateur."""
-    from .models import BadgeForum, Sujet, Reponse, Reaction
+def attribuer_badges(utilisateur):
+    """
+    Vérifie et attribue automatiquement TOUS les badges (forum + apprentissage).
+    Retourne la liste des nouveaux badges attribués.
+    """
+    from .models import BadgeForum, Sujet, Reponse, Reaction, ResultatQuiz, ProgressionLecon, Lecon, Formation
 
     nouveaux_badges = []
+    badges_existants = set(BadgeForum.objects.filter(utilisateur=utilisateur).values_list('type_badge', flat=True))
 
+    # --- Badges Forum ---
     nb_sujets = Sujet.objects.filter(auteur=utilisateur).count()
     nb_reponses = Reponse.objects.filter(auteur=utilisateur).count()
     nb_solutions = Reponse.objects.filter(auteur=utilisateur, acceptee=True).count()
     nb_likes_recus = Reaction.objects.filter(reponse__auteur=utilisateur).count()
 
-    if nb_sujets >= 1 and not BadgeForum.objects.filter(utilisateur=utilisateur, type_badge='premier_post').exists():
-        BadgeForum.objects.create(utilisateur=utilisateur, type_badge='premier_post')
-        nouveaux_badges.append('premier_post')
+    forum_badges = [
+        ('premier_post', nb_sujets >= 1),
+        ('premiere_reponse', nb_reponses >= 1),
+        ('solution_acceptee', nb_solutions >= 1),
+        ('dix_reponses', nb_reponses >= 10),
+        ('cinquante_reponses', nb_reponses >= 50),
+        ('cent_likes', nb_likes_recus >= 100),
+        ('sujet_populaire', Sujet.objects.filter(auteur=utilisateur, vues__gte=500).exists()),
+    ]
 
-    if nb_reponses >= 1 and not BadgeForum.objects.filter(utilisateur=utilisateur, type_badge='premiere_reponse').exists():
-        BadgeForum.objects.create(utilisateur=utilisateur, type_badge='premiere_reponse')
-        nouveaux_badges.append('premiere_reponse')
+    # --- Badges Apprentissage ---
+    quiz_reussis = ResultatQuiz.objects.filter(utilisateur=utilisateur)
+    nb_quiz_reussis = sum(1 for q in quiz_reussis if q.pourcentage() >= 70)
 
-    if nb_solutions >= 1 and not BadgeForum.objects.filter(utilisateur=utilisateur, type_badge='solution_acceptee').exists():
-        BadgeForum.objects.create(utilisateur=utilisateur, type_badge='solution_acceptee')
-        nouveaux_badges.append('solution_acceptee')
+    lecons_terminees = ProgressionLecon.objects.filter(utilisateur=utilisateur, terminee=True)
+    nb_lecons = lecons_terminees.count()
+    heures_apprentissage = nb_lecons * 0.5  # ~30 min par leçon
 
-    if nb_reponses >= 10 and not BadgeForum.objects.filter(utilisateur=utilisateur, type_badge='dix_reponses').exists():
-        BadgeForum.objects.create(utilisateur=utilisateur, type_badge='dix_reponses')
-        nouveaux_badges.append('dix_reponses')
+    formations_completees = []
+    for formation in Formation.objects.filter(actif=True):
+        if formation.progression_pour(utilisateur) == 100:
+            formations_completees.append(formation)
 
-    if nb_likes_recus >= 100 and not BadgeForum.objects.filter(utilisateur=utilisateur, type_badge='cent_likes').exists():
-        BadgeForum.objects.create(utilisateur=utilisateur, type_badge='cent_likes')
-        nouveaux_badges.append('cent_likes')
+    nb_formations = len(formations_completees)
+
+    apprentissage_badges = [
+        ('premier_quiz', nb_quiz_reussis >= 1),
+        ('cinq_quiz', nb_quiz_reussis >= 5),
+        ('dix_heures', heures_apprentissage >= 10),
+        ('cinquante_heures', heures_apprentissage >= 50),
+        ('premiere_formation', nb_formations >= 1),
+        ('trois_formations', nb_formations >= 3),
+    ]
+
+    # --- Badges Compétences ---
+    formations_noms = [f.nom.lower() for f in formations_completees]
+    progression_noms = []
+    for p in ProgressionLecon.objects.filter(utilisateur=utilisateur, terminee=True).select_related('lecon__module__formation'):
+        nom = p.lecon.module.formation.nom.lower()
+        if nom not in progression_noms:
+            progression_noms.append(nom)
+
+    competences_badges = [
+        ('expert_python', 'python' in progression_noms),
+        ('expert_web', any(m in ' '.join(formations_noms) for m in ['web', 'html', 'css', 'javascript'])),
+        ('expert_data', any(m in ' '.join(formations_noms) for m in ['donnée', 'data', 'analyse'])),
+        ('expert_cyber', 'cybersécurité' in ' '.join(formations_noms)),
+        ('expert_design', any(m in ' '.join(formations_noms) for m in ['design', 'graphique', 'création'])),
+    ]
+
+    # --- Badges Projet ---
+    # Basé sur les formations complétées (une formation = un projet)
+    projets_badges = [
+        ('projet_termine', nb_formations >= 1),
+        ('trois_projets', nb_formations >= 3),
+    ]
+
+    # --- Badges Social ---
+    profile_complet = all([
+        utilisateur.first_name,
+        utilisateur.last_name,
+        utilisateur.email,
+    ])
+
+    social_badges = [
+        ('profile_complet', profile_complet),
+        ('premier_certificat', nb_formations >= 1),
+        ('membre_actif', nb_reponses >= 5 or nb_sujets >= 3 or nb_quiz_reussis >= 3),
+    ]
+
+    # Attribuer tous les badges mérités
+    tous_badges = forum_badges + apprentissage_badges + competences_badges + projets_badges + social_badges
+
+    for type_badge, condition in tous_badges:
+        if condition and type_badge not in badges_existants:
+            BadgeForum.objects.create(utilisateur=utilisateur, type_badge=type_badge)
+            nouveaux_badges.append(type_badge)
+            badges_existants.add(type_badge)
 
     return nouveaux_badges
+
+
+# Garder l'ancienne fonction pour rétrocompatibilité
+def attribuer_badges_forum(utilisateur):
+    """Ancienne fonction - appelle la nouvelle."""
+    return attribuer_badges(utilisateur)
+
+
 
 # ================================================
 # FONCTIONS IA POUR LE BOUTON IA (6 fonctionnalités)

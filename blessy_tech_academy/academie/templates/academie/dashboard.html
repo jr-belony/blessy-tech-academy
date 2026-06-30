@@ -131,20 +131,27 @@
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
 
             <!-- Badges -->
-            <div style="background: white; padding: 32px; border-radius: 12px;
-                        box-shadow: var(--ombre-legere);">
-                <h3 style="color: var(--bleu-principal); margin-bottom: 20px;">
-                    🏆 Badges ({{ stats.badges|length }})
-                </h3>
-                {% if derniers_badges %}
-                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                        {% for badge in derniers_badges %}
-                            <span style="background: #f59e0b; color: white; padding: 8px 12px;
-                                    border-radius: 20px; font-size: 13px; font-weight: 600;">
-                                {{ badge.type_badge }}
-                            </span>
-                        {% endfor %}
-                    </div>
+<div style="background: white; padding: 32px; border-radius: 12px;
+            box-shadow: var(--ombre-legere);">
+    <h3 style="color: var(--bleu-principal); margin-bottom: 20px;">
+        🏆 Badges ({{ badges|length }})
+    </h3>
+    {% if badges %}
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            {% for badge in badges %}
+                <span style="background: #f59e0b; color: white; padding: 8px 12px;
+                        border-radius: 20px; font-size: 13px; font-weight: 600;"
+                    title="Obtenu le {{ badge.date_obtention|date:'d/m/Y' }}">
+                    {{ badge.type_badge }}
+                </span>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p style="color: var(--gris-texte);">
+            Aucun badge pour le moment. Continue d'apprendre, de participer au forum et de passer des quiz pour en débloquer !
+        </p>
+    {% endif %}
+</div>
                 {% else %}
                     <p style="color: var(--gris-texte);">
                         Participe au <a href="{% url 'forum_liste' %}" 

@@ -445,14 +445,37 @@ class BadgeForum(models.Model):
     """Badge attribué à un membre du forum."""
 
     TYPES_BADGES = [
-        ('premier_post', '✍️ Premier Post'),
-        ('premiere_reponse', '💬 Première Réponse'),
-        ('solution_acceptee', '✅ Solution Acceptée'),
-        ('dix_reponses', '🔥 10 Réponses'),
-        ('cinquante_reponses', '⭐ 50 Réponses'),
-        ('cent_likes', '❤️ 100 Likes reçus'),
-        ('sujet_populaire', '🏆 Sujet Populaire'),
-    ]
+    # Badges Forum (existants)
+    ('premier_post', '✍️ Premier Post'),
+    ('premiere_reponse', '💬 Première Réponse'),
+    ('solution_acceptee', '✅ Solution Acceptée'),
+    ('dix_reponses', '🔥 10 Réponses'),
+    ('cinquante_reponses', '⭐ 50 Réponses'),
+    ('cent_likes', '❤️ 100 Likes reçus'),
+    ('sujet_populaire', '🏆 Sujet Populaire'),
+    
+    # Badges Apprentissage (nouveaux)
+    ('premier_quiz', '🏅 Premier Quiz Réussi'),
+    ('cinq_quiz', '📝 5 Quiz Réussis'),
+    ('dix_heures', '⏰ 10 Heures d\'Apprentissage'),
+    ('cinquante_heures', '🎯 50 Heures d\'Apprentissage'),
+    ('premiere_formation', '🎓 Première Formation Complétée'),
+    ('trois_formations', '🏆 3 Formations Complétées'),
+    
+    # Badges Compétences (nouveaux)
+    ('expert_python', '🐍 Expert Python'),
+    ('expert_web', '🌐 Expert Web'),
+    ('expert_data', '📊 Expert Données'),
+    ('expert_cyber', '🔒 Expert Cybersécurité'),
+    ('expert_design', '🎨 Expert Design'),
+    # Badges Projet (nouveaux)
+    ('projet_termine', '🚀 Projet Terminé'),
+    ('trois_projets', '💼 3 Projets Livrés'),
+    # Badges Social (nouveaux)
+    ('profile_complet', '👤 Profil Complété'),
+    ('premier_certificat', '📜 Premier Certificat'),
+    ('membre_actif', '🌟 Membre Actif'),
+]
 
     utilisateur = models.ForeignKey(
         'auth.User',
