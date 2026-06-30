@@ -1,3 +1,6 @@
+from django.urls import path
+from django.shortcuts import render
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import admin
 from .models import (Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz, Module, Lecon, ProgressionLecon,
 Parcours, Sujet, Reponse, Reaction, )
@@ -87,19 +90,36 @@ class LeconInline(admin.TabularInline):
 
 @admin.register(Module)
 class ModuleAdmin(admin.ModelAdmin):
-    list_display = ['titre', 'formation', 'ordre', 'nombre_lecons']
-    list_filter = ['formation']
-    search_fields = ['titre']
+    list_display = ['titre', 'get_ecole', 'formation', 'ordre', 'nombre_lecons']
+    list_filter = ['formation__ecole', 'formation']
+    search_fields = ['titre', 'formation__nom']
+    ordering = ['formation__ecole', 'formation', 'ordre']
     inlines = [LeconInline]
+
+    def get_ecole(self, obj):
+        return obj.formation.ecole if obj.formation.ecole else "—"
+    get_ecole.short_description = 'École'
+    get_ecole.admin_order_field = 'formation__ecole'
 
     class Media:
         js = ['academie/admin/generer_programme.js', 'academie/admin/generer_contenu_module.js']
-
 @admin.register(Lecon)
 class LeconAdmin(admin.ModelAdmin):
-    list_display = ['titre', 'module', 'duree_minutes', 'ordre']
-    list_filter = ['module__formation']
-    search_fields = ['titre', 'contenu']
+    list_display = ['titre', 'get_ecole', 'get_formation', 'module', 'duree_minutes', 'ordre']
+    list_filter = ['module__formation__ecole', 'module__formation']
+    search_fields = ['titre', 'contenu', 'module__formation__nom']
+    ordering = ['module__formation__ecole', 'module__formation', 'module__ordre', 'ordre']
+
+    def get_ecole(self, obj):
+        return obj.module.formation.ecole if obj.module.formation.ecole else "—"
+    get_ecole.short_description = 'École'
+    get_ecole.admin_order_field = 'module__formation__ecole'
+
+    def get_formation(self, obj):
+        return obj.module.formation
+    get_formation.short_description = 'Formation'
+    get_formation.admin_order_field = 'module__formation'
+
     class Media:
         js = ['academie/admin/generer_contenu_lecon.js']
 
@@ -155,3 +175,40 @@ class ReponseAdmin(admin.ModelAdmin):
 class ReactionAdmin(admin.ModelAdmin):
     list_display = ['utilisateur', 'sujet', 'reponse', 'date_creation']
     readonly_fields = ['date_creation']    
+
+
+    # ================================================
+# Vue personnalisée — Gestion organisée par École
+# ================================================
+
+
+class GestionCoursAdminSite:
+    """Ajoute une page personnalisée de gestion des cours par école."""
+
+    def get_urls(self, original_urls):
+        custom_urls = [
+            path('gestion-cours/', admin.site.admin_view(self.vue_gestion_cours),
+                name='gestion_cours'),
+        ]
+        return custom_urls + original_urls
+
+    def vue_gestion_cours(self, request):
+        ecoles = Ecole.objects.prefetch_related(
+            'formations__modules__lecons'
+        ).all()
+
+        return render(request, 'admin/gestion_cours.html', {
+            'ecoles': ecoles,
+            'title': 'Gestion des cours par école',
+            'site_header': admin.site.site_header,
+        })
+
+
+# Injecte les nouvelles URLs dans l'admin
+_original_get_urls = admin.site.get_urls
+_gestion = GestionCoursAdminSite()
+
+def get_urls_avec_gestion():
+    return _gestion.get_urls(_original_get_urls())
+
+admin.site.get_urls = get_urls_avec_gestion
