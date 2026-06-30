@@ -46,6 +46,9 @@ urlpatterns = [
     path('simulateur-carriere/', views.simulateur_carriere, name='simulateur_carriere'),
     path('api/ia/simuler-carriere/', views.api_simuler_carriere, name='api-simuler-carriere'),
     
+    # Espace recrutement / Portfolio
+    path('recrutement/', views.espace_recrutement, name='espace_recrutement'),
+    path('mon-portfolio/', views.mon_portfolio, name='mon_portfolio'),
     
     # Forum Communautaire
     path('forum/', views.forum_liste, name='forum_liste'),

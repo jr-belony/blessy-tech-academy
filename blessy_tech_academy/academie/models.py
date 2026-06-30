@@ -493,3 +493,26 @@ class BadgeForum(models.Model):
 
     def __str__(self):
         return f"{self.get_type_badge_display()} — {self.utilisateur.username}"
+    
+
+class ProjetEtudiant(models.Model):
+    """Projet réalisé par un étudiant pour son portfolio."""
+    auteur = models.ForeignKey(
+        'auth.User',
+        on_delete=models.CASCADE,
+        related_name='projets'
+    )
+    titre = models.CharField(max_length=200)
+    description = models.TextField()
+    image = models.ImageField(upload_to='projets/', blank=True, null=True)
+    lien = models.URLField(blank=True, null=True)
+    technologies = models.CharField(max_length=300, blank=True, help_text="Ex: Python, Django, React")
+    date_creation = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date_creation']
+        verbose_name = 'Projet étudiant'
+        verbose_name_plural = 'Projets étudiants'
+
+    def __str__(self):
+        return f"{self.titre} par {self.auteur.username}"

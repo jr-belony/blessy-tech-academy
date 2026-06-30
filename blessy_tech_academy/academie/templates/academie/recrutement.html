@@ -1,0 +1,90 @@
+{% extends 'academie/base.html' %}
+
+{% block titre %}Espace Recrutement — Blessy Tech Academy{% endblock %}
+
+{% block contenu %}
+
+<section class="page-hero">
+    <h2>💼 Espace Recrutement</h2>
+    <p>Découvrez les talents formés chez Blessy Tech Academy.</p>
+</section>
+
+<section style="background: var(--gris-clair); padding: 60px 40px;">
+    <div style="max-width: 1100px; margin: 0 auto;">
+
+        {% if etudiants_data %}
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
+                {% for item in etudiants_data %}
+                <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: var(--ombre-legere);">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                        <span style="font-size: 40px;">👤</span>
+                        <div>
+                            <h3 style="margin: 0; color: var(--bleu-principal);">
+                                {{ item.user.first_name }} {{ item.user.last_name }}
+                            </h3>
+                            <p style="margin: 0; color: var(--gris-texte); font-size: 14px;">
+                                @{{ item.user.username }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Stats -->
+                    <div style="display: flex; gap: 16px; margin-bottom: 16px; font-size: 14px;">
+                        <span>🎓 {{ item.nb_formations }} certif.</span>
+                        <span>📝 {{ item.nb_quiz }} quiz</span>
+                        <span>🏆 {{ item.nb_badges }} badges</span>
+                        <span>🚀 {{ item.nb_projets }} projets</span>
+                    </div>
+
+                    <!-- Certifications -->
+                    {% if item.certifications %}
+                        <h4 style="font-size: 16px; margin-bottom: 8px;">🎓 Certifications</h4>
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;">
+                            {% for cert in item.certifications %}
+                                <span style="background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 12px; font-size: 12px;">
+                                    {{ cert.nom }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <!-- Badges -->
+                    {% if item.badges %}
+                        <h4 style="font-size: 16px; margin-bottom: 8px;">🏅 Badges</h4>
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;">
+                            {% for badge in item.badges|slice:":5" %}
+                                <span style="background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 12px; font-size: 12px;">
+                                    {{ badge.type_badge }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <!-- Projets -->
+                    {% if item.projets %}
+                        <h4 style="font-size: 16px; margin-bottom: 8px;">💻 Projets récents</h4>
+                        {% for projet in item.projets %}
+                            <div style="background: #f9fafb; padding: 10px; border-radius: 8px; margin-bottom: 8px;">
+                                <strong style="color: var(--bleu-principal);">{{ projet.titre }}</strong>
+                                <p style="font-size: 13px; margin: 4px 0;">{{ projet.description|truncatewords:20 }}</p>
+                                {% if projet.lien %}
+                                    <a href="{{ projet.lien }}" target="_blank" style="font-size: 12px; color: var(--bleu-electrique);">Voir le projet →</a>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 40px;">
+                <span style="font-size: 48px;">🔍</span>
+                <h3 style="color: var(--bleu-principal);">Aucun étudiant pour le moment</h3>
+                <p style="color: var(--gris-texte);">Les étudiants qui complètent des formations et ajoutent des projets apparaîtront ici.</p>
+            </div>
+        {% endif %}
+
+    </div>
+</section>
+{% endblock %}

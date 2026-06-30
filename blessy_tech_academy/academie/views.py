@@ -17,7 +17,7 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from .models import (
     Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz,
-    Module, Lecon, ProgressionLecon, Parcours, Sujet, Reponse, Reaction
+    Module, Lecon, ProgressionLecon, Parcours, Sujet, Reponse, Reaction, ProjetEtudiant
 )
 from .forms import InscriptionForm, InscriptionCompteForm, ConnexionForm, SujetForm, ReponseForm 
 from .ia import (
@@ -1186,3 +1186,82 @@ def simulateur_carriere(request):
         {'id': 'administrateur-reseaux', 'nom': 'Administrateur Réseaux', 'icone': '🌐'},
     ]
     return render(request, 'academie/simulateur_carriere.html', {'metiers': metiers})
+
+
+# ================================================
+# Espace Recrutement / Portfolio
+# ================================================
+
+def espace_recrutement(request):
+    """Page publique présentant les meilleurs étudiants avec leurs portfolios."""
+    from django.contrib.auth.models import User
+    from .models import Formation, BadgeForum, ProjetEtudiant
+    from django.db.models import Count, Q
+
+    etudiants_qs = User.objects.annotate(
+        nb_formations=Count('progressions__lecon__module__formation', 
+                            filter=Q(progressions__terminee=True), distinct=True),
+        nb_quiz=Count('resultats_quiz', distinct=True),
+        nb_projets=Count('projets', distinct=True),
+        nb_badges=Count('badges_forum', distinct=True),
+    ).filter(
+        Q(nb_formations__gt=0) | Q(nb_projets__gt=0)
+    ).order_by('-nb_badges', '-nb_formations')[:20]
+
+    etudiants_data = []
+    for user in etudiants_qs:
+        # Formations complétées à 100%
+        formations_completees = []
+        for formation in Formation.objects.filter(actif=True):
+            if formation.progression_pour(user) == 100:
+                formations_completees.append(formation)
+
+        # Projets récents (max 3)
+        projets = ProjetEtudiant.objects.filter(auteur=user).order_by('-date_creation')[:3]
+
+        # Badges
+        badges = BadgeForum.objects.filter(utilisateur=user)
+
+        etudiants_data.append({
+            'user': user,
+            'certifications': formations_completees,
+            'badges': badges,
+            'projets': projets,
+            'nb_formations': user.nb_formations,
+            'nb_quiz': user.nb_quiz,
+            'nb_projets': user.nb_projets,
+            'nb_badges': user.nb_badges,
+        })
+
+    return render(request, 'academie/recrutement.html', {
+        'etudiants_data': etudiants_data,
+    })
+
+@login_required(login_url='/connexion/')
+def mon_portfolio(request):
+    """Page où l'étudiant gère ses projets."""
+    if request.method == 'POST':
+        titre = request.POST.get('titre', '').strip()
+        description = request.POST.get('description', '').strip()
+        technologies = request.POST.get('technologies', '').strip()
+        lien = request.POST.get('lien', '').strip()
+        image = request.FILES.get('image')
+
+        if titre and description:
+            ProjetEtudiant.objects.create(
+                auteur=request.user,
+                titre=titre,
+                description=description,
+                technologies=technologies,
+                lien=lien if lien else None,
+                image=image,
+            )
+            messages.success(request, '✅ Projet ajouté avec succès !')
+            return redirect('mon_portfolio')
+        else:
+            messages.error(request, '❌ Titre et description sont obligatoires.')
+
+    projets = ProjetEtudiant.objects.filter(auteur=request.user)
+    return render(request, 'academie/portfolio.html', {
+        'projets': projets,
+    })

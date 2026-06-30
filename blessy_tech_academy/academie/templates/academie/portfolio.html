@@ -1,0 +1,70 @@
+{% extends 'academie/base.html' %}
+
+{% block titre %}Mon Portfolio — {{ user.first_name }}{% endblock %}
+
+{% block contenu %}
+
+<section class="page-hero">
+    <h2>📂 Mon Portfolio</h2>
+    <p>Ajoute et gère tes projets pour attirer les recruteurs.</p>
+</section>
+
+<section style="background: var(--gris-clair); padding: 60px 40px;">
+    <div style="max-width: 800px; margin: 0 auto;">
+
+        <!-- Formulaire d'ajout -->
+        <div style="background: white; padding: 32px; border-radius: 12px; box-shadow: var(--ombre-legere); margin-bottom: 32px;">
+            <h3 style="color: var(--bleu-principal); margin-bottom: 20px;">➕ Ajouter un projet</h3>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="text" name="titre" placeholder="Titre du projet *" required
+                       style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 10px;">
+                <textarea name="description" rows="3" placeholder="Description *" required
+                          style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 10px;"></textarea>
+                <input type="text" name="technologies" placeholder="Technologies (ex: Python, Django)"
+                       style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 10px;">
+                <input type="url" name="lien" placeholder="Lien du projet (optionnel)"
+                       style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 10px;">
+                <input type="file" name="image" accept="image/*"
+                       style="margin-bottom: 10px;">
+                <button type="submit" class="btn btn-principal">📤 Publier le projet</button>
+            </form>
+        </div>
+
+        <!-- Projets existants -->
+        <h3 style="color: var(--bleu-principal); margin-bottom: 20px;">🌟 Mes projets ({{ projets.count }})</h3>
+        {% if projets %}
+            <div style="display: grid; gap: 16px;">
+                {% for projet in projets %}
+                <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: var(--ombre-legere);">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <h4 style="margin: 0; color: var(--bleu-principal);">{{ projet.titre }}</h4>
+                        <span style="font-size: 12px; color: var(--gris-texte);">{{ projet.date_creation|date:"d/m/Y" }}</span>
+                    </div>
+                    <p style="margin: 8px 0;">{{ projet.description }}</p>
+                    {% if projet.technologies %}
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
+                            {% for tech in projet.technologies.split %}
+                                <span style="background: #e0e7ff; color: #3730a3; padding: 2px 8px; border-radius: 10px; font-size: 12px;">{{ tech }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    {% if projet.lien %}
+                        <a href="{{ projet.lien }}" target="_blank" style="font-size: 14px; color: var(--bleu-electrique);">🔗 Voir le projet</a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="color: var(--gris-texte); text-align: center; padding: 20px;">Aucun projet pour le moment.</p>
+        {% endif %}
+
+        <div style="margin-top: 32px; text-align: center;">
+            <a href="{% url 'espace_recrutement' %}" class="btn btn-principal">
+                👀 Voir l'espace recrutement
+            </a>
+        </div>
+
+    </div>
+</section>
+{% endblock %}
