@@ -13,7 +13,7 @@
     <div style="max-width: 1100px; margin: 0 auto;">
 
         <h2 style="color: var(--bleu-principal); margin-bottom: 32px;">
-            Mon tableau de bord
+            📊 Mon tableau de bord
         </h2>
 
         <!-- Cartes de stats -->
@@ -23,22 +23,34 @@
 
             <div style="background: white; padding: 28px; border-radius: 12px;
                         box-shadow: var(--ombre-legere); text-align: center;">
-                <span style="font-size: 40px;">📚</span>
+                <span style="font-size: 40px;">📈</span>
                 <p style="font-size: 28px; font-weight: 800;
-                          color: var(--bleu-principal); margin: 8px 0;">
-                    {{ formations_avec_progression|length }}
+                        color: var(--bleu-principal); margin: 8px 0;">
+                    {{ stats.progression_globale }}%
                 </p>
                 <p style="color: var(--gris-texte); font-size: 14px;">
-                    Formations en cours
+                    Progression globale
                 </p>
             </div>
 
             <div style="background: white; padding: 28px; border-radius: 12px;
                         box-shadow: var(--ombre-legere); text-align: center;">
-                <span style="font-size: 40px;">🏆</span>
+                <span style="font-size: 40px;">✅</span>
                 <p style="font-size: 28px; font-weight: 800;
                         color: var(--bleu-principal); margin: 8px 0;">
-                    {{ resultats_recents|length }}
+                    {{ stats.lecons_terminees }}/{{ stats.total_lecons }}
+                </p>
+                <p style="color: var(--gris-texte); font-size: 14px;">
+                    Leçons terminées
+                </p>
+            </div>
+
+            <div style="background: white; padding: 28px; border-radius: 12px;
+                        box-shadow: var(--ombre-legere); text-align: center;">
+                <span style="font-size: 40px;">📝</span>
+                <p style="font-size: 28px; font-weight: 800;
+                        color: var(--bleu-principal); margin: 8px 0;">
+                    {{ stats.quiz_passes }}
                 </p>
                 <p style="color: var(--gris-texte); font-size: 14px;">
                     Quiz passés
@@ -47,137 +59,126 @@
 
             <div style="background: white; padding: 28px; border-radius: 12px;
                         box-shadow: var(--ombre-legere); text-align: center;">
-                <span style="font-size: 40px;">⚡</span>
+                <span style="font-size: 40px;">⭐</span>
                 <p style="font-size: 28px; font-weight: 800;
-                          color: var(--bleu-principal); margin: 8px 0;">
-                    {% if formations_avec_progression %}
-                        {% with total=0 %}
-                            {% for item in formations_avec_progression %}
-                                {% with total=total|add:item.pourcentage %}{% endwith %}
-                            {% endfor %}
-                        {% endwith %}
-                        {{ formations_avec_progression.0.pourcentage }}%
-                    {% else %}
-                        0%
-                    {% endif %}
+                        color: var(--bleu-principal); margin: 8px 0;">
+                    {{ stats.score_moyen_quiz }}/20
                 </p>
                 <p style="color: var(--gris-texte); font-size: 14px;">
-                    Progression (1ère formation)
+                    Score moyen quiz
                 </p>
             </div>
 
-            <div style="background: white; padding: 28px; border-radius: 12px;
-                        box-shadow: var(--ombre-legere); text-align: center;">
-                <span style="font-size: 40px;">📅</span>
-                <p style="font-size: 28px; font-weight: 800;
-                          color: var(--bleu-principal); margin: 8px 0;">
-                    {{ user.date_joined|timesince|truncatewords:2 }}
-                </p>
-                <p style="color: var(--gris-texte); font-size: 14px;">
-                    Membre depuis
-                </p>
-            </div>
-
+            <a href="{% url 'simulateur_carriere' %}" 
+        style="background: white; padding: 28px; border-radius: 12px;
+        box-shadow: var(--ombre-legere); text-align: center;
+        text-decoration: none; display: block;">
+        <span style="font-size: 40px;">🚀</span>
+        <p style="font-size: 16px; font-weight: 800;
+        color: var(--bleu-principal); margin: 8px 0;">
+            Simulateur de carrière
+    </p>
+    <p style="color: var(--gris-texte); font-size: 14px;">
+        Explore ton futur métier →
+    </p>
+</a>
         </div>
 
         <!-- Formations en cours -->
-        {% if formations_avec_progression %}
         <div style="background: white; padding: 32px; border-radius: 12px;
                     box-shadow: var(--ombre-legere); margin-bottom: 32px;">
 
             <h3 style="color: var(--bleu-principal); margin-bottom: 24px;">
-                📚 Mes formations en cours
+                📚 Formations en cours
             </h3>
 
-            {% for item in formations_avec_progression %}
-            <div style="margin-bottom: 20px; padding-bottom: 20px;
-                        border-bottom: 1px solid #eee;">
-                <div style="display: flex; justify-content: space-between;
-                            align-items: center; margin-bottom: 8px;">
-                    <a href="{% url 'detail_formation' item.formation.id %}"
-                       style="font-weight: 700; color: var(--bleu-principal);
-                              text-decoration: none; font-size: 15px;">
-                        {{ item.formation.icone }} {{ item.formation.nom }}
+            {% if formations_actives %}
+                {% for f in formations_actives %}
+                <div style="margin-bottom: 20px; padding-bottom: 20px;
+                            border-bottom: 1px solid #eee;">
+                    <div style="display: flex; justify-content: space-between;
+                                align-items: center; margin-bottom: 8px;">
+                        <a href="{% url 'detail_formation' f.id %}"
+                        style="font-weight: 700; color: var(--bleu-principal);
+                                text-decoration: none; font-size: 15px;">
+                            {{ f.icone }} {{ f.nom }}
+                        </a>
+                        <span style="font-weight: 700; color: var(--bleu-electrique);
+                                    font-size: 14px;">
+                            {{ f.pourcentage }}%
+                        </span>
+                    </div>
+                    <div style="background: #d1d5db; border-radius: 6px;
+                                height: 8px; overflow: hidden;">
+                        <div class="barre-progression" data-pourcentage="{{ f.pourcentage }}"
+                            style="background: var(--bleu-electrique); height: 100%; width: 0%;">
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="color: var(--gris-texte); text-align: center; padding: 20px;">
+                    Aucune formation commencée.
+                    <a href="{% url 'formations' %}" style="color: var(--bleu-electrique);">
+                        Découvre les formations →
                     </a>
-                    <span style="font-weight: 700; color: var(--bleu-electrique);
-                                 font-size: 14px;">
-                        {{ item.pourcentage }}%
-                    </span>
-                </div>
-                <div style="background: #d1d5db; border-radius: 6px;
-                            height: 8px; overflow: hidden;">
-                    <div data-pourcentage="{{ item.pourcentage }}"
-     class="barre-prog"
-     style="background: var(--bleu-electrique); height: 100%; transition: width 0.3s;">
-</div>
-                </div>
-                <p style="font-size: 12px; color: var(--gris-texte); margin-top: 6px;">
-                    {{ item.formation.ecole }} —
-                    {% if item.pourcentage == 100 %}
-                        🎉 Formation complétée !
-                    {% else %}
-                        En cours…
-                    {% endif %}
                 </p>
-            </div>
-            {% endfor %}
-
-            <a href="{% url 'formations' %}" class="btn btn-principal"
-               style="display: inline-block; margin-top: 8px;">
-                Voir toutes les formations →
-            </a>
+            {% endif %}
 
         </div>
-        {% endif %}
 
-        <!-- Quiz récents -->
-        {% if resultats_recents %}
-        <div style="background: white; padding: 32px; border-radius: 12px;
-                    box-shadow: var(--ombre-legere); margin-bottom: 32px;">
+        <!-- Badges + Certificats -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
 
-            <h3 style="color: var(--bleu-principal); margin-bottom: 24px;">
-                📝 Mes quiz récents
-            </h3>
-
-            {% for resultat in resultats_recents %}
-            <div style="display: flex; justify-content: space-between;
-                        align-items: center; padding: 12px 0;
-                        border-bottom: 1px solid #eee;">
-                <div>
-                    <p style="font-weight: 600; color: var(--bleu-principal);">
-                        {{ resultat.quiz.titre }}
+            <!-- Badges -->
+            <div style="background: white; padding: 32px; border-radius: 12px;
+                        box-shadow: var(--ombre-legere);">
+                <h3 style="color: var(--bleu-principal); margin-bottom: 20px;">
+                    🏆 Badges ({{ stats.badges|length }})
+                </h3>
+                {% if derniers_badges %}
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        {% for badge in derniers_badges %}
+                            <span style="background: #f59e0b; color: white; padding: 8px 12px;
+                                    border-radius: 20px; font-size: 13px; font-weight: 600;">
+                                {{ badge.type_badge }}
+                            </span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p style="color: var(--gris-texte);">
+                        Participe au <a href="{% url 'forum_liste' %}" 
+                        style="color: var(--bleu-electrique);">forum</a> pour gagner des badges !
                     </p>
-                    <p style="font-size: 13px; color: var(--gris-texte);">
-                        {{ resultat.quiz.formation.nom }} —
-                        {{ resultat.date_passage|date:"d/m/Y" }}
-                    </p>
-                </div>
-                <div style="text-align: right;">
-                    {% if resultat.pourcentage >= 70 %}
-<p style="font-weight: 800; font-size: 18px; color: #22c55e;">
-    {{ resultat.pourcentage }}%
-</p>
-{% elif resultat.pourcentage >= 50 %}
-<p style="font-weight: 800; font-size: 18px; color: var(--orange-accent);">
-    {{ resultat.pourcentage }}%
-</p>
-{% else %}
-<p style="font-weight: 800; font-size: 18px; color: #e53e3e;">
-    {{ resultat.pourcentage }}%
-</p>
-{% endif %}
-                    <p style="font-size: 12px; color: var(--gris-texte);">
-                        {{ resultat.score }}/{{ resultat.total_questions }}
-                    </p>
-                </div>
+                {% endif %}
             </div>
-            {% endfor %}
+
+            <!-- Certificats -->
+            <div style="background: white; padding: 32px; border-radius: 12px;
+                        box-shadow: var(--ombre-legere);">
+                <h3 style="color: var(--bleu-principal); margin-bottom: 20px;">
+                    🎓 Certificats ({{ stats.certificats_disponibles }})
+                </h3>
+                {% if stats.formations_completees %}
+                    {% for f in stats.formations_completees %}
+                        <div style="display: flex; justify-content: space-between;
+                                    align-items: center; margin-bottom: 8px;">
+                            <span>{{ f.icone }} {{ f.nom }}</span>
+                            <span style="background: #22c55e; color: white; padding: 4px 10px;
+                                    border-radius: 12px; font-size: 12px;">✅ 100%</span>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="color: var(--gris-texte);">
+                        Termine une formation à 100% pour débloquer ton certificat !
+                    </p>
+                {% endif %}
+            </div>
 
         </div>
-        {% endif %}
 
         <!-- Si aucune activité -->
-        {% if not formations_avec_progression and not resultats_recents %}
+        {% if not formations_actives and stats.quiz_passes == 0 %}
         <div style="background: white; padding: 40px; border-radius: 12px;
                     box-shadow: var(--ombre-legere); text-align: center;
                     margin-bottom: 32px;">
@@ -207,9 +208,7 @@
 
                 <div>
                     <p style="font-weight: 600; color: var(--gris-texte);
-                               font-size: 13px; text-transform: uppercase;">
-                        Prénom
-                    </p>
+                            font-size: 13px; text-transform: uppercase;">Prénom</p>
                     <p style="font-size: 16px; color: var(--bleu-principal);">
                         {{ user.first_name|default:"Non renseigné" }}
                     </p>
@@ -217,9 +216,7 @@
 
                 <div>
                     <p style="font-weight: 600; color: var(--gris-texte);
-                               font-size: 13px; text-transform: uppercase;">
-                        Nom
-                    </p>
+                            font-size: 13px; text-transform: uppercase;">Nom</p>
                     <p style="font-size: 16px; color: var(--bleu-principal);">
                         {{ user.last_name|default:"Non renseigné" }}
                     </p>
@@ -227,9 +224,7 @@
 
                 <div>
                     <p style="font-weight: 600; color: var(--gris-texte);
-                               font-size: 13px; text-transform: uppercase;">
-                        Email
-                    </p>
+                            font-size: 13px; text-transform: uppercase;">Email</p>
                     <p style="font-size: 16px; color: var(--bleu-principal);">
                         {{ user.email|default:"Non renseigné" }}
                     </p>
@@ -237,9 +232,7 @@
 
                 <div>
                     <p style="font-weight: 600; color: var(--gris-texte);
-                               font-size: 13px; text-transform: uppercase;">
-                        Membre depuis
-                    </p>
+                            font-size: 13px; text-transform: uppercase;">Membre depuis</p>
                     <p style="font-size: 16px; color: var(--bleu-principal);">
                         {{ user.date_joined|date:"d/m/Y" }}
                     </p>
@@ -253,8 +246,8 @@
                     📚 Voir les formations
                 </a>
                 <a href="{% url 'deconnexion' %}"
-                   style="margin-left: 16px; color: #e53e3e;
-                          text-decoration: none; font-weight: 600;">
+                style="margin-left: 16px; color: #e53e3e;
+                        text-decoration: none; font-weight: 600;">
                     👋 Se déconnecter
                 </a>
             </div>
@@ -265,8 +258,7 @@
 </section>
 
 <script>
-    // Initialise la largeur de toutes les barres de progression
-    document.querySelectorAll('.barre-prog').forEach(function(barre) {
+    document.querySelectorAll('.barre-progression').forEach(function(barre) {
         barre.style.width = barre.dataset.pourcentage + '%';
     });
 </script>

@@ -642,3 +642,107 @@ def chatbot_tuteur(message, historique=None, niveau_eleve="debutant"):
         return (reponse.text or "").strip()
     except Exception as e:
         return f"❌ Erreur : {str(e)}"
+    
+
+def calculer_stats_etudiant(utilisateur):
+    """
+    Calcule les statistiques globales d'un étudiant.
+    Retourne un dict avec progression, quiz, badges, score, etc.
+    """
+    from .models import (
+        Formation, ProgressionLecon, ResultatQuiz, 
+        BadgeForum, Lecon, Inscription
+    )
+    from django.db.models import Avg, Sum
+
+    # Progression globale
+    total_lecons = Lecon.objects.count()
+    lecons_terminees = ProgressionLecon.objects.filter(
+        utilisateur=utilisateur, terminee=True
+    ).count()
+    progression_globale = round((lecons_terminees / total_lecons) * 100) if total_lecons > 0 else 0
+
+    # Formations avec progression
+    formations_avec_progression = []
+    for formation in Formation.objects.filter(actif=True):
+        pourcentage = formation.progression_pour(utilisateur)
+        if pourcentage > 0:
+            formations_avec_progression.append({
+                'id': formation.id,
+                'nom': formation.nom,
+                'icone': formation.icone,
+                'pourcentage': pourcentage,
+                'niveau': formation.get_niveau_display(),
+            })
+
+    # Formations complétées (100%)
+    formations_completees = [f for f in formations_avec_progression if f['pourcentage'] == 100]
+
+    # Quiz
+    resultats_quiz = ResultatQuiz.objects.filter(utilisateur=utilisateur)
+    quiz_passes = resultats_quiz.count()
+    score_moyen_quiz = round(resultats_quiz.aggregate(Avg('score'))['score__avg'] or 0, 1)
+    total_questions_reussies = resultats_quiz.aggregate(Sum('score'))['score__sum'] or 0
+    total_questions = resultats_quiz.aggregate(Sum('total_questions'))['total_questions__sum'] or 0
+
+    # Badges forum
+    badges = list(BadgeForum.objects.filter(utilisateur=utilisateur).values('type_badge', 'date_obtention'))
+
+    # Formations en cours (progression > 0 et < 100)
+    en_cours = [f for f in formations_avec_progression if f['pourcentage'] < 100]
+
+    return {
+        'progression_globale': progression_globale,
+        'lecons_terminees': lecons_terminees,
+        'total_lecons': total_lecons,
+        'formations_avec_progression': formations_avec_progression,
+        'formations_completees': formations_completees,
+        'en_cours': en_cours,
+        'quiz_passes': quiz_passes,
+        'score_moyen_quiz': score_moyen_quiz,
+        'total_questions_reussies': total_questions_reussies,
+        'total_questions': total_questions,
+        'badges': badges,
+        'certificats_disponibles': len(formations_completees),
+    }
+
+
+def simuler_carriere(metier):
+    """
+    Simule une carrière : salaire, compétences, formations recommandées.
+    """
+    try:
+        model = initialiser_ia()
+
+        prompt = (
+            f"Tu es un expert en orientation professionnelle pour Blessy Tech Academy.\n\n"
+            f"Un étudiant s'intéresse au métier : **{metier}**\n\n"
+            "Fournis une analyse complète en français. Structure TA réponse EXACTEMENT comme ceci :\n\n"
+            "## 💼 Présentation du métier\n"
+            "[Description du métier en 2-3 phrases]\n\n"
+            "## 💰 Salaire moyen\n"
+            "- Junior (0-2 ans) : [montant en USD]\n"
+            "- Confirmé (3-5 ans) : [montant en USD]\n"
+            "- Senior (5+ ans) : [montant en USD]\n"
+            "- En Haïti : [estimation locale]\n\n"
+            "## 🛠️ Compétences requises\n"
+            "- Compétence 1 : description courte\n"
+            "- Compétence 2 : description courte\n"
+            "- Compétence 3 : description courte\n"
+            "- Compétence 4 : description courte\n"
+            "- Compétence 5 : description courte\n\n"
+            "## 🎓 Formations recommandées à BTA\n"
+            "[Suggère 2-3 formations pertinentes parmi : Développement Web, "
+            "Python Fondamental, Cybersécurité, Bureautique, Design Graphique, "
+            "Analyse de Données, IA & Machine Learning, Réseaux Informatiques]\n\n"
+            "## 🚀 Évolution de carrière\n"
+            "[Parcours type sur 5-10 ans]\n\n"
+            "## 🌍 Débouchés\n"
+            "[Secteurs qui recrutent, types d'entreprises]\n\n"
+            "Sois réaliste, motivant et orienté vers le marché du travail en Haïti et à l'international."
+        )
+
+        reponse = model.generate_content(prompt)
+        return (reponse.text or "").strip()
+    except Exception as e:
+        return f"❌ Erreur : {str(e)}"

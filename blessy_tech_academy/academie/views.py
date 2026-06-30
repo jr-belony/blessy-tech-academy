@@ -35,6 +35,7 @@ from .ia import (
     correction_automatique,
     parcours_adaptatif,
     chatbot_tuteur,
+    simuler_carriere,
 )
 def _construire_contexte_utilisateur(request):
     """Construit un contexte utilisateur pour personnaliser les réponses du chatbot."""
@@ -163,7 +164,7 @@ def inscription_compte(request):
         form = InscriptionCompteForm()
 
     return render(request, 'academie/inscription_compte.html',
-                  {'form': form})
+                {'form': form})
 
 
 def connexion(request):
@@ -202,31 +203,28 @@ def deconnexion(request):
 
 @login_required(login_url='/connexion/')
 def dashboard(request):
-    """Tableau de bord étudiant (accès protégé)."""
+    """Tableau de bord étudiant moderne."""
+    from .ia import calculer_stats_etudiant
+
     user = request.user
+    stats = calculer_stats_etudiant(user)
 
-    formations_actives = Formation.objects.filter(actif=True)
+    # Récupère les derniers badges (max 6)
+    derniers_badges = stats['badges'][-6:]
 
-    formations_avec_progression = []
-    for formation in formations_actives:
-        pourcentage = formation.progression_pour(user)
-        if pourcentage > 0:
-            formations_avec_progression.append({
-                'formation': formation,
-                'pourcentage': pourcentage,
-            })
-
-    resultats_recents = ResultatQuiz.objects.filter(
-        utilisateur=user
-    ).select_related('quiz__formation')[:5]
+    # Formations récemment actives (triées par progression)
+    formations_actives = sorted(
+        stats['en_cours'],
+        key=lambda f: f['pourcentage'],
+        reverse=True
+    )[:4]
 
     return render(request, 'academie/dashboard.html', {
         'user': user,
-        'formations_avec_progression': formations_avec_progression,
-        'resultats_recents': resultats_recents,
+        'stats': stats,
+        'derniers_badges': derniers_badges,
+        'formations_actives': formations_actives,
     })
-
-
 # ================================================
 # Statistiques (admin uniquement)
 # ================================================
@@ -1149,3 +1147,39 @@ def api_chatbot_tuteur(request):
         return JsonResponse({'erreur': 'JSON invalide'}, status=400)
     except Exception as e:
         return JsonResponse({'erreur': str(e)}, status=500)
+    
+
+    # ================================================
+# Simulateur de carrière
+# ================================================
+
+@csrf_exempt
+@require_POST
+def api_simuler_carriere(request):
+    """API pour le simulateur de carrière."""
+    try:
+        data = json.loads(request.body)
+        metier = data.get('metier', '').strip()
+
+        if not metier:
+            return JsonResponse({'erreur': 'Le champ "metier" est requis.'}, status=400)
+
+        reponse = simuler_carriere(metier=metier)
+        return JsonResponse({'reponse': reponse, 'metier': metier})
+    except json.JSONDecodeError:
+        return JsonResponse({'erreur': 'JSON invalide'}, status=400)
+    except Exception as e:
+        return JsonResponse({'erreur': str(e)}, status=500)
+
+
+def simulateur_carriere(request):
+    """Page du simulateur de carrière."""
+    metiers = [
+        {'id': 'developpeur-web', 'nom': 'Développeur Web', 'icone': '💻'},
+        {'id': 'analyste-donnees', 'nom': 'Analyste de Données', 'icone': '📊'},
+        {'id': 'expert-cybersecurite', 'nom': 'Expert Cybersécurité', 'icone': '🔒'},
+        {'id': 'designer-graphique', 'nom': 'Designer Graphique', 'icone': '🎨'},
+        {'id': 'ia-machine-learning', 'nom': 'IA & Machine Learning', 'icone': '🤖'},
+        {'id': 'administrateur-reseaux', 'nom': 'Administrateur Réseaux', 'icone': '🌐'},
+    ]
+    return render(request, 'academie/simulateur_carriere.html', {'metiers': metiers})

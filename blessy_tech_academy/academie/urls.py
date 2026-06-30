@@ -42,6 +42,10 @@ urlpatterns = [
     path('api/ia/parcours-adaptatif/', views.api_parcours_adaptatif, name='api-parcours-adaptatif'),
     path('api/ia/chatbot/', views.api_chatbot_tuteur, name='api-chatbot'),
     
+    # Simulateur de carrière
+    path('simulateur-carriere/', views.simulateur_carriere, name='simulateur_carriere'),
+    path('api/ia/simuler-carriere/', views.api_simuler_carriere, name='api-simuler-carriere'),
+    
     
     # Forum Communautaire
     path('forum/', views.forum_liste, name='forum_liste'),
