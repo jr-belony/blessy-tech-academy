@@ -25,7 +25,7 @@
                         box-shadow: var(--ombre-legere); text-align: center;">
                 <span style="font-size: 40px;">📈</span>
                 <p style="font-size: 28px; font-weight: 800;
-                        color: var(--bleu-principal); margin: 8px 0;">
+                          color: var(--bleu-principal); margin: 8px 0;">
                     {{ stats.progression_globale }}%
                 </p>
                 <p style="color: var(--gris-texte); font-size: 14px;">
@@ -37,7 +37,7 @@
                         box-shadow: var(--ombre-legere); text-align: center;">
                 <span style="font-size: 40px;">✅</span>
                 <p style="font-size: 28px; font-weight: 800;
-                        color: var(--bleu-principal); margin: 8px 0;">
+                          color: var(--bleu-principal); margin: 8px 0;">
                     {{ stats.lecons_terminees }}/{{ stats.total_lecons }}
                 </p>
                 <p style="color: var(--gris-texte); font-size: 14px;">
@@ -49,7 +49,7 @@
                         box-shadow: var(--ombre-legere); text-align: center;">
                 <span style="font-size: 40px;">📝</span>
                 <p style="font-size: 28px; font-weight: 800;
-                        color: var(--bleu-principal); margin: 8px 0;">
+                          color: var(--bleu-principal); margin: 8px 0;">
                     {{ stats.quiz_passes }}
                 </p>
                 <p style="color: var(--gris-texte); font-size: 14px;">
@@ -61,7 +61,7 @@
                         box-shadow: var(--ombre-legere); text-align: center;">
                 <span style="font-size: 40px;">⭐</span>
                 <p style="font-size: 28px; font-weight: 800;
-                        color: var(--bleu-principal); margin: 8px 0;">
+                          color: var(--bleu-principal); margin: 8px 0;">
                     {{ stats.score_moyen_quiz }}/20
                 </p>
                 <p style="color: var(--gris-texte); font-size: 14px;">
@@ -70,18 +70,18 @@
             </div>
 
             <a href="{% url 'simulateur_carriere' %}" 
-        style="background: white; padding: 28px; border-radius: 12px;
-        box-shadow: var(--ombre-legere); text-align: center;
-        text-decoration: none; display: block;">
-        <span style="font-size: 40px;">🚀</span>
-        <p style="font-size: 16px; font-weight: 800;
-        color: var(--bleu-principal); margin: 8px 0;">
-            Simulateur de carrière
-    </p>
-    <p style="color: var(--gris-texte); font-size: 14px;">
-        Explore ton futur métier →
-    </p>
-</a>
+               style="background: white; padding: 28px; border-radius: 12px;
+                      box-shadow: var(--ombre-legere); text-align: center;
+                      text-decoration: none; display: block;">
+                <span style="font-size: 40px;">🚀</span>
+                <p style="font-size: 16px; font-weight: 800;
+                          color: var(--bleu-principal); margin: 8px 0;">
+                    Simulateur de carrière
+                </p>
+                <p style="color: var(--gris-texte); font-size: 14px;">
+                    Explore ton futur métier →
+                </p>
+            </a>
         </div>
 
         <!-- Formations en cours -->
@@ -111,7 +111,7 @@
                     <div style="background: #d1d5db; border-radius: 6px;
                                 height: 8px; overflow: hidden;">
                         <div class="barre-progression" data-pourcentage="{{ f.pourcentage }}"
-                            style="background: var(--bleu-electrique); height: 100%; width: 0%;">
+                             style="background: var(--bleu-electrique); height: 100%; width: 0%;">
                         </div>
                     </div>
                 </div>
@@ -131,31 +131,24 @@
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
 
             <!-- Badges -->
-<div style="background: white; padding: 32px; border-radius: 12px;
-            box-shadow: var(--ombre-legere);">
-    <h3 style="color: var(--bleu-principal); margin-bottom: 20px;">
-        🏆 Badges ({{ badges|length }})
-    </h3>
-    {% if badges %}
-        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-            {% for badge in badges %}
-                <span style="background: #f59e0b; color: white; padding: 8px 12px;
-                        border-radius: 20px; font-size: 13px; font-weight: 600;"
-                    title="Obtenu le {{ badge.date_obtention|date:'d/m/Y' }}">
-                    {{ badge.type_badge }}
-                </span>
-            {% endfor %}
-        </div>
-    {% else %}
-        <p style="color: var(--gris-texte);">
-            Aucun badge pour le moment. Continue d'apprendre, de participer au forum et de passer des quiz pour en débloquer !
-        </p>
-    {% endif %}
-</div>
+            <div style="background: white; padding: 32px; border-radius: 12px;
+                        box-shadow: var(--ombre-legere);">
+                <h3 style="color: var(--bleu-principal); margin-bottom: 20px;">
+                    🏆 Badges ({{ badges|length }})
+                </h3>
+                {% if badges %}
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        {% for badge in badges %}
+                            <span style="background: #f59e0b; color: white; padding: 8px 12px;
+                                       border-radius: 20px; font-size: 13px; font-weight: 600;"
+                                  title="Obtenu le {{ badge.date_obtention|date:'d/m/Y' }}">
+                                {{ badge.type_badge }}
+                            </span>
+                        {% endfor %}
+                    </div>
                 {% else %}
                     <p style="color: var(--gris-texte);">
-                        Participe au <a href="{% url 'forum_liste' %}" 
-                        style="color: var(--bleu-electrique);">forum</a> pour gagner des badges !
+                        Aucun badge pour le moment. Continue d'apprendre, de participer au forum et de passer des quiz pour en débloquer !
                     </p>
                 {% endif %}
             </div>
@@ -172,7 +165,7 @@
                                     align-items: center; margin-bottom: 8px;">
                             <span>{{ f.icone }} {{ f.nom }}</span>
                             <span style="background: #22c55e; color: white; padding: 4px 10px;
-                                    border-radius: 12px; font-size: 12px;">✅ 100%</span>
+                                       border-radius: 12px; font-size: 12px;">✅ 100%</span>
                         </div>
                     {% endfor %}
                 {% else %}
@@ -252,9 +245,8 @@
                 <a href="{% url 'formations' %}" class="btn btn-principal">
                     📚 Voir les formations
                 </a>
-                <a href="{% url 'mon_portfolio' %}" class="btn btn-principal" 
-                style="margin-left: 10px;">
-                        📂 Mon Portfolio
+                <a href="{% url 'mon_portfolio' %}" class="btn btn-principal" style="margin-left: 10px;">
+                    📂 Mon Portfolio
                 </a>
                 <a href="{% url 'deconnexion' %}"
                 style="margin-left: 16px; color: #e53e3e;
