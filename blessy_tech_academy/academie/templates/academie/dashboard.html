@@ -128,7 +128,7 @@
         </div>
 
         <!-- Badges + Certificats -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
+        <div class="badges-certifs-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
 
             <!-- Badges -->
             <div style="background: white; padding: 32px; border-radius: 12px;
@@ -240,8 +240,8 @@
 
             </div>
 
-            <div style="margin-top: 24px; padding-top: 24px;
-                        border-top: 1px solid #eee;">
+            <div class="mes-infos-boutons" style="margin-top: 24px; padding-top: 24px;
+                        border-top: 1px solid #eee; display: flex; align-items: center; flex-wrap: wrap;">
                 <a href="{% url 'formations' %}" class="btn btn-principal">
                     📚 Voir les formations
                 </a>
@@ -265,4 +265,17 @@
         barre.style.width = barre.dataset.pourcentage + '%';
     });
 </script>
+
+<style>
+    @media (max-width: 576px) {
+        .badges-certifs-grid {
+            grid-template-columns: 1fr !important;
+        }
+        .mes-infos-boutons {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 12px !important;
+        }
+    }
+</style>
 {% endblock %}
