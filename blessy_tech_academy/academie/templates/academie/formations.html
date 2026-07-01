@@ -10,8 +10,7 @@
 </section>
 
 {% if formations_gratuites %}
-<section style="padding:50px 40px; background:#f8fbff;">
-    <h2 style="text-align:center; color:var(--bleu-principal); margin-bottom:10px;">
+<section class="fade-in-section" style="padding:50px 40px; background:#f8fbff;">    <h2 style="text-align:center; color:var(--bleu-principal); margin-bottom:10px;">
         🎁 Formations Gratuites
     </h2>
     <p style="text-align:center; color:var(--gris-texte); margin-bottom:35px;">
@@ -26,7 +25,7 @@
 </section>
 {% endif %}
 
-<section class="apercu-formations">
+<section class="apercu-formations fade-in-section">
     {% for ecole in ecoles %}
         {% if ecole.formations.all %}
         <div style="margin-bottom: 56px;">
@@ -53,8 +52,7 @@
 
 <!-- Parcours Professionnels -->
 {% if parcours_list %}
-<section style="background: var(--bleu-principal); padding: 60px 40px;">
-    <div style="max-width: 1100px; margin: 0 auto;">
+<section class="fade-in-section" style="background: var(--bleu-principal); padding: 60px 40px;">    <div style="max-width: 1100px; margin: 0 auto;">
         <h2 style="color: white; font-size: 32px; margin-bottom: 8px; text-align: center;">
             🎓 Parcours Professionnels
         </h2>
@@ -121,7 +119,7 @@
 </section>
 {% endif %}
 
-<section class="cta">
+<section class="cta fade-in-section">
     <h2>Une question sur nos formations ?</h2>
     <p>Notre équipe est disponible pour t'accompagner.</p>
     <a href="{% url 'contact' %}" class="btn btn-principal">

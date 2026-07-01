@@ -1,0 +1,44 @@
+/* ==============================================
+   ANIMATIONS MODERNES - Blessy Tech Academy
+   ============================================== */
+
+/* ----- 1. Hover Cards (obligatoire) ----- */
+.carte-formation-moderne {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.carte-formation-moderne:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 32px rgba(0,0,0,0.12);
+}
+.carte-formation-moderne:hover .carte-illustration {
+    transform: scale(1.08);
+}
+.carte-illustration {
+    transition: transform 0.25s ease;
+}
+
+/* ----- 2. Fade-in au scroll ----- */
+.fade-in-section {
+    opacity: 0;
+    transform: translateY(25px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+.fade-in-section.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ----- 3. Boutons modernes ----- */
+.btn, .btn-principal, .btn-secondaire, .carte-bouton {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.btn:hover, .btn-principal:hover, .btn-secondaire:hover, .carte-bouton:hover {
+    transform: scale(1.03);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+/* ----- 4. Compteurs animés (style) ----- */
+.stat-nombre {
+    display: inline-block;
+    transition: 0.1s;
+}
