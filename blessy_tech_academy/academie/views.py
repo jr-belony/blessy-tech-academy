@@ -64,10 +64,23 @@ def _construire_contexte_utilisateur(request):
 # ================================================
 
 def accueil(request):
-    """Page d'accueil."""
+    """Page d'accueil avec statistiques dynamiques."""
     formations = Formation.objects.filter(actif=True)[:4]
-    return render(request, 'academie/accueil.html',
-                {'formations': formations})
+
+    nb_etudiants = User.objects.filter(is_active=True).count()
+    nb_formations = Formation.objects.filter(actif=True).count()
+    nb_sujets_forum = Sujet.objects.count()
+
+    stats = [
+        {'valeur': nb_etudiants, 'suffixe': '+', 'label': 'Étudiants'},
+        {'valeur': nb_formations, 'suffixe': '', 'label': 'Formations'},
+        {'valeur': nb_sujets_forum, 'suffixe': '', 'label': 'Sujets forum'},
+    ]
+
+    return render(request, 'academie/accueil.html', {
+        'formations': formations,
+        'stats': stats,
+    })
 
 
 def formations(request):
