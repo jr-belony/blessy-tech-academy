@@ -204,7 +204,7 @@
                 👤 Mes informations
             </h3>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="infos-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
 
                 <div>
                     <p style="font-weight: 600; color: var(--gris-texte);
@@ -275,6 +275,9 @@
             flex-direction: column !important;
             align-items: flex-start !important;
             gap: 12px !important;
+        }
+        .infos-grid {
+            grid-template-columns: 1fr !important;
         }
     }
 </style>
