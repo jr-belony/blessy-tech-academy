@@ -288,8 +288,11 @@ def recherche_formations(request):
 # ================================================
 
 def chat_ia(request):
-    """Page du chat Blessy AI."""
-    return render(request, 'academie/chat_ia.html')
+    """Page du chat Blessy AI avec historique."""
+    historique = request.session.get('chat_historique', [])
+    return render(request, 'academie/chat_ia.html', {
+        'historique_chat': historique,
+    })
 
 
 @csrf_exempt
