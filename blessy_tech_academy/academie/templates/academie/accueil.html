@@ -26,24 +26,16 @@
     </div>
 </section>
 
-<section class="stats">
+<section class="stats fade-in-section">
     <div class="stats-grille">
+        {% for stat in stats %}
         <div class="stat-item">
-            <span class="stat-nombre">5+</span>
-            <span class="stat-label">Formations</span>
+            <span class="stat-nombre"
+                  data-target="{{ stat.valeur }}"
+                  data-suffix="{{ stat.suffixe }}">0{{ stat.suffixe }}</span>
+            <span class="stat-label">{{ stat.label }}</span>
         </div>
-        <div class="stat-item">
-            <span class="stat-nombre">100%</span>
-            <span class="stat-label">Pratique</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-nombre">5</span>
-            <span class="stat-label">Mois en moyenne</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-nombre">∞</span>
-            <span class="stat-label">Opportunités</span>
-        </div>
+        {% endfor %}
     </div>
 </section>
 

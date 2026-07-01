@@ -76,7 +76,7 @@ def accueil(request):
         {'valeur': nb_formations, 'suffixe': '', 'label': 'Formations'},
         {'valeur': nb_sujets_forum, 'suffixe': '', 'label': 'Sujets forum'},
     ]
-
+    print("DEBUG STATS:", stats)
     return render(request, 'academie/accueil.html', {
         'formations': formations,
         'stats': stats,

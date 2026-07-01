@@ -42,3 +42,25 @@
     display: inline-block;
     transition: 0.1s;
 }
+
+
+/* ----- Barre de progression animée ----- */
+.barre-progression {
+    transition: width 1s ease-in-out;
+}
+
+
+/* ----- Skeleton Loading ----- */
+.skeleton-line {
+    height: 12px;
+    background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}

@@ -261,8 +261,13 @@
 </section>
 
 <script>
-    document.querySelectorAll('.barre-progression').forEach(function(barre) {
-        barre.style.width = barre.dataset.pourcentage + '%';
+    // Attend que la page soit chargée pour lancer l'animation
+    window.addEventListener('load', function() {
+        setTimeout(function() {
+            document.querySelectorAll('.barre-progression').forEach(function(barre) {
+                barre.style.width = barre.dataset.pourcentage + '%';
+            });
+        }, 200); // Petit délai pour que le CSS soit prêt
     });
 </script>
 

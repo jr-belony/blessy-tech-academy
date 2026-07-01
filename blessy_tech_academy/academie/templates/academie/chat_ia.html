@@ -185,19 +185,20 @@
     }
 
     function afficherChargement() {
-        const div = document.createElement('div');
-        div.id = 'chargement';
-        div.style.cssText = 'display: flex; gap: 10px; align-items: center;';
-        div.innerHTML = `
-            <span style="font-size: 24px;">🤖</span>
-            <div style="background: var(--gris-clair); padding: 12px 16px;
-                        border-radius: 12px; color: var(--gris-texte);">
-                Blessy AI réfléchit... ⏳
-            </div>
-        `;
-        chatFenetre.appendChild(div);
-        chatFenetre.scrollTop = chatFenetre.scrollHeight;
-    }
+    const div = document.createElement('div');
+    div.id = 'chargement';
+    div.style.cssText = 'display: flex; gap: 10px; align-items: flex-start;';
+    div.innerHTML = `
+        <span style="font-size: 24px;">🤖</span>
+        <div style="background: var(--gris-clair); padding: 16px; border-radius: 12px; width: 70%;">
+            <div class="skeleton-line" style="width: 80%;"></div>
+            <div class="skeleton-line" style="width: 60%;"></div>
+            <div class="skeleton-line" style="width: 40%;"></div>
+        </div>
+    `;
+    chatFenetre.appendChild(div);
+    chatFenetre.scrollTop = chatFenetre.scrollHeight;
+}
 
     function supprimerChargement() {
         const chargement = document.getElementById('chargement');
