@@ -13,10 +13,11 @@
 
     <!-- Barre de recherche -->
     <form method="GET" style="margin-bottom: 24px;">
-        <div style="display: flex; gap: 12px;">
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
             <input type="text" name="q" value="{{ recherche }}"
                    placeholder="🔍 Rechercher dans le forum..."
-                   style="flex: 1; padding: 12px 20px; border: 2px solid var(--gris-border);
+                   style="flex: 1; min-width: 200px; padding: 12px 20px;
+                          border: 2px solid var(--gris-border);
                           border-radius: 10px; font-size: 15px; font-family: inherit;">
             {% if categorie_active %}
             <input type="hidden" name="categorie" value="{{ categorie_active }}">
@@ -24,7 +25,8 @@
             {% if formation_active %}
             <input type="hidden" name="formation" value="{{ formation_active }}">
             {% endif %}
-            <button type="submit" class="btn btn-principal">Rechercher</button>
+            <button type="submit" class="btn btn-principal"
+                    style="white-space: nowrap;">Rechercher</button>
         </div>
     </form>
 
