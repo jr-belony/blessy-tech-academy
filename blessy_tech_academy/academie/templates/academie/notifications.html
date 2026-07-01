@@ -1,0 +1,38 @@
+{% extends 'academie/base.html' %}
+
+{% block titre %}Notifications — Blessy Tech Academy{% endblock %}
+
+{% block contenu %}
+
+<section class="page-hero">
+    <h2>🔔 Notifications</h2>
+</section>
+
+<section style="max-width: 700px; margin: 0 auto; padding: 40px 20px;">
+    {% for notification in notifications %}
+    <div class="notification-item {% if not notification.lue %}notification-non-lue{% endif %}">
+        <strong>{{ notification.titre }}</strong>
+        <p style="margin: 4px 0 0; color: #666;">{{ notification.message }}</p>
+        <small style="color: #999;">{{ notification.date_creation|timesince }} ago</small>
+        {% if notification.lien %}
+            <br><a href="{{ notification.lien }}" style="font-size: 13px; color: var(--bleu-electrique);">Voir →</a>
+        {% endif %}
+    </div>
+    {% empty %}
+    <p style="text-align: center; color: var(--gris-texte);">Aucune notification pour le moment.</p>
+    {% endfor %}
+</section>
+
+<style>
+    .notification-item {
+        background: white;
+        padding: 16px;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        box-shadow: var(--ombre-legere);
+    }
+    .notification-non-lue {
+        border-left: 4px solid #f59e0b;
+    }
+</style>
+{% endblock %}

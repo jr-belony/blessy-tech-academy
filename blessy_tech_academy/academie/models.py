@@ -554,3 +554,26 @@ class Certificat(models.Model):
 
     def __str__(self):
         return f"Certificat {self.numero} - {self.utilisateur.username} ({self.formation.nom})"
+    
+
+class Notification(models.Model):
+    """Notification envoyée à un utilisateur."""
+    utilisateur = models.ForeignKey(
+        'auth.User',
+        on_delete=models.CASCADE,
+        related_name='notifications'
+    )
+    titre = models.CharField(max_length=200)
+    message = models.TextField()
+    lien = models.URLField(blank=True, default='')
+    lue = models.BooleanField(default=False)
+    date_creation = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date_creation']
+        verbose_name = 'Notification'
+        verbose_name_plural = 'Notifications'
+
+    def __str__(self):
+        statut = "✓" if self.lue else "●"
+        return f"{statut} {self.titre} — {self.utilisateur.username}"

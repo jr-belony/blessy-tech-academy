@@ -20,6 +20,7 @@ from .models import (
     Module, Lecon, ProgressionLecon, Parcours, Sujet, Reponse, Reaction, ProjetEtudiant
 )
 from .forms import InscriptionForm, InscriptionCompteForm, ConnexionForm, SujetForm, ReponseForm 
+from . import notifications
 from .ia import (
     blessy_ai_repondre,
     recommander_formations,
@@ -235,6 +236,7 @@ def dashboard(request):
     nouveaux_badges = attribuer_badges(user)
     if nouveaux_badges:
         messages.success(request, f'🎉 Nouveau(x) badge(s) : {", ".join(nouveaux_badges)} !')
+    for badge_type in nouveaux_badges: notifications.notifier_badge(user, badge_type)
     return render(request, 'academie/dashboard.html', {
         'user': user,
         'stats': stats,
@@ -449,6 +451,13 @@ def passer_quiz(request, quiz_id):
             total_questions=total
         )
         attribuer_badges (request.user)
+    if score >= (total * 0.7):  # 70% ou plus
+        notifications.creer_notification(
+        request.user,
+        "📝 Quiz réussi !",
+        f"Tu as obtenu {score}/{total} au quiz \"{quiz.titre}\".",
+        f"/formation/{quiz.formation.id}/quiz/"
+        )
         return render(request, 'academie/resultat_quiz.html', {
             'quiz': quiz,
             'score': score,
@@ -639,6 +648,13 @@ def marquer_lecon_terminee(request, lecon_id):
             progression.date_completion = timezone.now() if progression.terminee else None
             progression.save()
 
+            # Notification si la formation est maintenant complétée
+            if progression.terminee:
+                formation = lecon.module.formation
+                pourcentage = formation.progression_pour(request.user)
+                if pourcentage == 100:
+                    notifications.notifier_formation_completee(request.user, formation.nom)
+
             formation = lecon.module.formation
             nouveau_pourcentage = formation.progression_pour(request.user)
 
@@ -654,7 +670,6 @@ def marquer_lecon_terminee(request, lecon_id):
             return JsonResponse({'erreur': str(e)}, status=500)
 
     return JsonResponse({'erreur': 'Méthode non autorisée'}, status=405)
-
 
 # ================================================
 # Certificats PDF
@@ -861,6 +876,11 @@ def forum_creer(request):
             )
 
             attribuer_badges(request.user)
+            notifications.creer_notification(request.user,
+                "📝 Sujet créé",
+                f"Ton sujet \"{sujet.titre}\" a été publié avec succès.",
+                f"/forum/{sujet.id}/"
+)
             messages.success(request, '✅ Sujet créé avec succès !')
             return redirect('forum_detail', sujet_id=sujet.id)
 
@@ -943,7 +963,12 @@ def forum_accepter_reponse(request, reponse_id):
         reponse.sujet.resolu = True
         reponse.sujet.save()
         attribuer_badges(reponse.auteur)
-
+        notifications.creer_notification(
+            reponse.auteur,
+            "✅ Réponse acceptée",
+            f"Ta réponse sur \"{reponse.sujet.titre}\" a été acceptée comme solution.",
+            f"/forum/{reponse.sujet.id}/"
+        )
         messages.success(request, '✅ Réponse marquée comme solution !')
         return redirect('forum_detail', sujet_id=reponse.sujet.id)
         return redirect('forum_liste')
@@ -976,6 +1001,12 @@ def forum_creer(request):
         )
         
         attribuer_badges(request.user)
+        notifications.creer_notification(
+            request.user,
+            "📝 Sujet créé",
+            f"Ton sujet \"{sujet.titre}\" a été publié avec succès.",
+            f"/forum/{sujet.id}/"
+        )
         messages.success(request, '✅ Sujet créé avec succès !')
         return redirect('forum_detail', sujet_id=sujet.id)
 
@@ -1327,3 +1358,15 @@ def verifier_certificat(request, numero):
     return render(request, 'academie/verifier_certificat.html', {
         'certificat': certificat
     })
+
+
+@login_required(login_url='/connexion/')
+def notifications_liste(request):
+    """Page listant les notifications de l'utilisateur connecté."""
+    from .models import Notification
+    notifs = Notification.objects.filter(utilisateur=request.user).order_by('-date_creation')[:30]
+    # Marque comme lues toutes les notifications affichées
+    ids_non_lues = [n.id for n in notifs if not n.lue]
+    if ids_non_lues:
+        Notification.objects.filter(id__in=ids_non_lues).update(lue=True)
+    return render(request, 'academie/notifications.html', {'notifications': notifs})
