@@ -2,303 +2,95 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <title>Certificat - {{ formation.nom }}</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Playfair+Display:wght@700&display=swap');
-
-        * {
+        @page {
+            size: A4 landscape;
+            margin: 0;
+        }
+        body {
+            font-family: 'Helvetica', Arial, sans-serif;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', Arial, sans-serif;
-            background: #ffffff;
-            width: 297mm;
-            height: 210mm;
-            overflow: hidden;
-        }
-
-        .certificat {
-            width: 297mm;
-            height: 210mm;
-            position: relative;
-            background: #ffffff;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 20mm 24mm;
+            height: 100vh;
         }
-
-        /* Bordure décorative extérieure */
-        .bordure-exterieure {
-            position: absolute;
-            inset: 8mm;
-            border: 3px solid #0B2447;
-            border-radius: 4mm;
-        }
-
-        /* Bordure décorative intérieure */
-        .bordure-interieure {
-            position: absolute;
-            inset: 11mm;
-            border: 1px solid #00B4D8;
-            border-radius: 3mm;
-        }
-
-        /* Coins décoratifs */
-        .coin {
-            position: absolute;
-            width: 12mm;
-            height: 12mm;
-        }
-        .coin-hg { top: 6mm; left: 6mm; border-top: 4px solid #FF6B35; border-left: 4px solid #FF6B35; }
-        .coin-hd { top: 6mm; right: 6mm; border-top: 4px solid #FF6B35; border-right: 4px solid #FF6B35; }
-        .coin-bg { bottom: 6mm; left: 6mm; border-bottom: 4px solid #FF6B35; border-left: 4px solid #FF6B35; }
-        .coin-bd { bottom: 6mm; right: 6mm; border-bottom: 4px solid #FF6B35; border-right: 4px solid #FF6B35; }
-
-        /* Fond décoratif subtil */
-        .fond-deco {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 120mm;
-            height: 120mm;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(0,180,216,0.04) 0%, transparent 70%);
-        }
-
-        /* Contenu principal */
-        .contenu {
+        .certificat {
+            width: 100%;
+            max-width: 900px;
+            border: 8px solid #0B2447;
+            border-radius: 20px;
+            padding: 60px 80px;
+            text-align: center;
             position: relative;
-            z-index: 10;
-            text-align: center;
-            width: 100%;
+            background: white;
+            box-shadow: 0 0 40px rgba(0,0,0,0.05);
         }
-
-        /* Header */
-        .header-cert {
-            margin-bottom: 8mm;
-        }
-
-        .logo-texte {
-            font-size: 13pt;
-            font-weight: 800;
+        .certificat h1 {
+            font-size: 40px;
             color: #0B2447;
-            letter-spacing: 2px;
-            text-transform: uppercase;
+            margin-bottom: 10px;
         }
-
-        .logo-sous {
-            font-size: 8pt;
+        .certificat h2 {
+            font-size: 28px;
             color: #00B4D8;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            margin-top: 1mm;
-            font-weight: 600;
+            margin: 20px 0;
         }
-
-        .separateur {
-            width: 40mm;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #00B4D8, transparent);
-            margin: 4mm auto;
-        }
-
-        /* Titre principal */
-        .titre-certificat {
-            font-size: 28pt;
-            font-weight: 800;
+        .certificat .nom {
+            font-size: 36px;
+            font-weight: bold;
             color: #0B2447;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            margin-bottom: 2mm;
-            font-family: 'Inter', Arial, sans-serif;
+            margin: 20px 0 10px;
         }
-
-        .sous-titre-certificat {
-            font-size: 9pt;
-            color: #4A5568;
-            letter-spacing: 6px;
-            text-transform: uppercase;
-            margin-bottom: 8mm;
-            font-weight: 500;
-        }
-
-        /* Corps du certificat */
-        .corps {
-            margin-bottom: 6mm;
-        }
-
-        .texte-decerne {
-            font-size: 10pt;
-            color: #4A5568;
-            letter-spacing: 1px;
-            margin-bottom: 3mm;
-        }
-
-        .nom-etudiant {
-            font-size: 30pt;
-            font-weight: 800;
+        .certificat .formation-nom {
+            font-size: 24px;
             color: #0B2447;
-            margin-bottom: 4mm;
-            letter-spacing: -0.5px;
-            line-height: 1.1;
+            margin: 10px 0 30px;
         }
-
-        .texte-completion {
-            font-size: 10pt;
-            color: #4A5568;
-            margin-bottom: 3mm;
+        .certificat .details {
+            font-size: 16px;
+            color: #555;
+            margin: 10px 0;
         }
-
-        .nom-formation {
-            font-size: 18pt;
-            font-weight: 700;
-            color: #FF6B35;
-            margin-bottom: 2mm;
-            line-height: 1.2;
+        .certificat .numero {
+            font-size: 14px;
+            color: #777;
+            margin-top: 30px;
         }
-
-        .ecole-formation {
-            font-size: 9pt;
-            color: #00B4D8;
-            font-weight: 600;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-
-        /* Footer */
-        .footer-cert {
-            margin-top: 8mm;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            width: 100%;
-            padding: 0 10mm;
-        }
-
-        .bloc-signature {
-            text-align: center;
-            min-width: 50mm;
-        }
-
-        .ligne-signature {
-            width: 50mm;
-            height: 1px;
-            background: #0B2447;
-            margin: 0 auto 2mm;
-        }
-
-        .nom-signataire {
-            font-size: 9pt;
-            font-weight: 700;
-            color: #0B2447;
-        }
-
-        .titre-signataire {
-            font-size: 8pt;
-            color: #4A5568;
-            margin-top: 1mm;
-        }
-
-        .bloc-central {
+        .qr-section {
+            margin-top: 20px;
             text-align: center;
         }
-
-        .date-emission {
-            font-size: 8pt;
-            color: #4A5568;
-            margin-bottom: 2mm;
+        .qr-section img {
+            width: 100px;
+            height: 100px;
         }
-
-        .badge-completion {
-            display: inline-block;
-            background: #0B2447;
-            color: white;
-            padding: 2mm 6mm;
-            border-radius: 2mm;
-            font-size: 8pt;
-            font-weight: 700;
-            letter-spacing: 1px;
-        }
-
-        .numero-cert {
-            font-size: 7pt;
-            color: #A0AEC0;
-            margin-top: 2mm;
-            letter-spacing: 1px;
+        .qr-section p {
+            font-size: 11px;
+            color: #999;
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
-<div class="certificat">
+    <div class="certificat">
+        <h1>🎓 Certificat de réussite</h1>
+        <h2>Blessy Tech Academy</h2>
 
-    <!-- Bordures décoratives -->
-    <div class="bordure-exterieure"></div>
-    <div class="bordure-interieure"></div>
+        <p style="font-size:18px; color:#555;">Ce certificat est décerné à</p>
+        <p class="nom">{{ prenom }} {{ nom }}</p>
+        <p style="font-size:18px; color:#555;">pour avoir complété avec succès la formation</p>
+        <p class="formation-nom">{{ formation.icone }} {{ formation.nom }}</p>
 
-    <!-- Coins -->
-    <div class="coin coin-hg"></div>
-    <div class="coin coin-hd"></div>
-    <div class="coin coin-bg"></div>
-    <div class="coin coin-bd"></div>
+        <p class="details">Date d'émission : {{ date_emission }}</p>
+        <p class="details">Numéro de certificat : <strong>{{ numero_certificat }}</strong></p>
 
-    <!-- Fond décoratif -->
-    <div class="fond-deco"></div>
-
-    <!-- Contenu -->
-    <div class="contenu">
-
-        <!-- Header -->
-        <div class="header-cert">
-            <div class="logo-texte">🎓 Blessy Tech Academy</div>
-            <div class="logo-sous">École de Technologie Professionnelle — Haïti</div>
+        <div class="qr-section">
+            <img src="data:image/png;base64,{{ qr_code_base64 }}" alt="QR Code de vérification">
+            <p>Scannez ce QR code pour vérifier l'authenticité du certificat</p>
         </div>
-
-        <div class="separateur"></div>
-
-        <!-- Titre -->
-        <div class="titre-certificat">Certificat</div>
-        <div class="sous-titre-certificat">de réussite</div>
-
-        <!-- Corps -->
-        <div class="corps">
-            <div class="texte-decerne">Ce certificat est décerné à</div>
-            <div class="nom-etudiant">{{ prenom }} {{ nom }}</div>
-            <div class="texte-completion">
-                pour avoir complété avec succès la formation
-            </div>
-            <div class="nom-formation">{{ formation.nom }}</div>
-            <div class="ecole-formation">{{ formation.ecole }}</div>
-        </div>
-
-        <div class="separateur"></div>
-
-        <!-- Footer -->
-        <div class="footer-cert">
-            <div class="bloc-signature">
-                <div class="ligne-signature"></div>
-                <div class="nom-signataire">Jean Raymond BELONY</div>
-                <div class="titre-signataire">Fondateur — Blessy Tech Academy</div>
-            </div>
-
-            <div class="bloc-central">
-                <div class="date-emission">Émis le {{ date_emission }}</div>
-                <div class="badge-completion">✓ FORMATION COMPLÉTÉE</div>
-                <div class="numero-cert">N° {{ numero_certificat }}</div>
-            </div>
-
-            <div class="bloc-signature">
-                <div class="ligne-signature"></div>
-                <div class="nom-signataire">{{ formation.duree_mois }} mois</div>
-                <div class="titre-signataire">Durée de la formation</div>
-            </div>
-        </div>
-
     </div>
-</div>
 </body>
 </html>

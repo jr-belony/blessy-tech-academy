@@ -58,4 +58,6 @@ urlpatterns = [
     path('forum/accepter/<int:reponse_id>/', views.forum_accepter_reponse, name='forum_accepter_reponse'),
     path('orientation/', views.orientation_ia, name='orientation_ia'),
     path('forum/membres/', views.forum_membres, name='forum_membres'),
+
+    path('certificat/<str:numero>/', views.verifier_certificat, name='verifier_certificat'),
 ]

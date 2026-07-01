@@ -662,7 +662,12 @@ def marquer_lecon_terminee(request, lecon_id):
 
 @login_required(login_url='/connexion/')
 def telecharger_certificat(request, formation_id):
-    """Génère et télécharge le certificat PDF si formation complétée à 100%."""
+    """Génère et télécharge le certificat PDF avec QR code de vérification."""
+    from .models import Certificat
+    import qrcode
+    from io import BytesIO
+    import base64
+
     formation = Formation.objects.prefetch_related(
         'modules__lecons'
     ).get(id=formation_id, actif=True)
@@ -679,14 +684,42 @@ def telecharger_certificat(request, formation_id):
 
     # Génère un numéro de certificat unique
     chaine = f"{request.user.id}-{formation.id}-{request.user.date_joined}"
-    numero_certificat = f"BTA-{hashlib.md5(chaine.encode()).hexdigest()[:8].upper()}"
+    numero = f"BTA-{hashlib.md5(chaine.encode()).hexdigest()[:8].upper()}"
+
+    # Crée le certificat en base s'il n'existe pas
+    certificat, created = Certificat.objects.get_or_create(
+        utilisateur=request.user,
+        formation=formation,
+        defaults={'numero': numero}
+    )
+    # Si déjà existant, utiliser le numéro existant
+    if not created:
+        numero = certificat.numero
+
+    # URL de vérification
+    url_verification = request.build_absolute_uri(
+        f"/certificat/{numero}/"
+    )
+
+    # Génère le QR code
+    qr = qrcode.QRCode(version=1, box_size=10, border=2)
+    qr.add_data(url_verification)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+
+    # Convertit l'image en base64 pour l'insérer dans le HTML
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+    qr_code_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
 
     contexte = {
         'prenom': request.user.first_name or request.user.username,
         'nom': request.user.last_name or '',
         'formation': formation,
-        'date_emission': timezone.now().strftime('%d %B %Y'),
-        'numero_certificat': numero_certificat,
+        'date_emission': certificat.date_emission.strftime('%d %B %Y'),
+        'numero_certificat': numero,
+        'qr_code_base64': qr_code_base64,
+        'url_verification': url_verification,
     }
 
     html_certificat = render_to_string(
@@ -713,7 +746,6 @@ def telecharger_certificat(request, formation_id):
             f'❌ Erreur lors de la génération du certificat : {str(e)}'
         )
         return redirect('detail_formation', formation_id=formation_id)
-    
 
     # ================================================
 # Forum Communautaire
@@ -1280,4 +1312,18 @@ def mon_portfolio(request):
     projets = ProjetEtudiant.objects.filter(auteur=request.user)
     return render(request, 'academie/portfolio.html', {
         'projets': projets,
+    })
+
+
+def verifier_certificat(request, numero):
+    """Page publique de vérification d'un certificat."""
+    from .models import Certificat
+    certificat = None
+    try:
+        certificat = Certificat.objects.select_related('utilisateur', 'formation').get(numero=numero)
+    except:
+        pass
+
+    return render(request, 'academie/verifier_certificat.html', {
+        'certificat': certificat
     })

@@ -528,3 +528,29 @@ class ProjetEtudiant(models.Model):
 
     def __str__(self):
         return f"{self.titre} par {self.auteur.username}"
+    
+
+class Certificat(models.Model):
+    """Certificat émis à un étudiant après complétion d'une formation."""
+    utilisateur = models.ForeignKey(
+        'auth.User',
+        on_delete=models.CASCADE,
+        related_name='certificats'
+    )
+    formation = models.ForeignKey(
+        Formation,
+        on_delete=models.CASCADE,
+        related_name='certificats'
+    )
+    numero = models.CharField(max_length=20, unique=True)
+    date_emission = models.DateTimeField(auto_now_add=True)
+    verifie = models.BooleanField(default=False)  # pour usage futur
+
+    class Meta:
+        unique_together = ['utilisateur', 'formation']
+        ordering = ['-date_emission']
+        verbose_name = 'Certificat'
+        verbose_name_plural = 'Certificats'
+
+    def __str__(self):
+        return f"Certificat {self.numero} - {self.utilisateur.username} ({self.formation.nom})"
