@@ -1,0 +1,84 @@
+/* ==============================================
+   MODE SOMBRE - Blessy Tech Academy
+   ============================================== */
+
+body.dark-mode {
+    background-color: #121212;
+    color: #e0e0e0;
+}
+
+/* Header */
+body.dark-mode header {
+    background-color: #1e1e1e;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+body.dark-mode .logo-texte {
+    color: #ffffff;
+}
+body.dark-mode nav a {
+    color: #cccccc;
+}
+body.dark-mode nav a:hover {
+    color: #ffffff;
+}
+
+/* Hero */
+body.dark-mode .page-hero,
+body.dark-mode .hero {
+    background: linear-gradient(135deg, #0a0a2e, #1a1a3e);
+    color: #ffffff;
+}
+
+/* Cards */
+body.dark-mode .carte-formation-moderne,
+body.dark-mode .card,
+body.dark-mode [style*="background: white"],
+body.dark-mode [style*="background: #fff"],
+body.dark-mode [style*="background: var(--gris-clair)"] {
+    background-color: #1e1e2e !important;
+    color: #e0e0e0;
+    border-color: #2a2a3e;
+}
+
+/* Textes */
+body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, body.dark-mode h4,
+body.dark-mode .carte-titre,
+body.dark-mode [style*="color: var(--bleu-principal)"] {
+    color: #90caf9 !important;
+}
+body.dark-mode p,
+body.dark-mode [style*="color: var(--gris-texte)"] {
+    color: #b0b0b0 !important;
+}
+
+/* Stats */
+body.dark-mode .stats {
+    background-color: #1a1a2e;
+}
+
+/* Footer */
+body.dark-mode footer {
+    background-color: #0d0d1a;
+    color: #aaa;
+}
+
+/* Boutons */
+body.dark-mode .btn-principal {
+    background: #00B4D8;
+    color: white;
+}
+
+/* Formulaires */
+body.dark-mode input, body.dark-mode textarea, body.dark-mode select {
+    background-color: #2a2a3e;
+    color: #e0e0e0;
+    border-color: #444;
+}
+
+/* Forum */
+body.dark-mode .module-card,
+body.dark-mode .quiz-card,
+body.dark-mode .notification-item {
+    background: #1e1e2e !important;
+    color: #e0e0e0;
+}

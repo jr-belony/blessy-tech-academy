@@ -7,6 +7,8 @@
     <title>{% block titre %}Blessy Tech Academy{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'academie/style.css' %}">
     <link rel="stylesheet" href="{% static 'academie/css/animations.css' %}">
+    <link rel="stylesheet" href="{% static 'academie/css/dark-mode.css' %}">
+    
     <!-- CKEditor 5 -->
 <script src="https://cdn.ckeditor.com/ckeditor5/43.0.0/ckeditor5.umd.js"></script>
 <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/43.0.0/ckeditor5.css">
@@ -53,12 +55,17 @@
     {% else %}
         <a href="{% url 'connexion' %}">Connexion</a>
         <a href="{% url 'inscription_compte' %}"
-           style="background: var(--orange-accent);
-                  padding: 6px 14px;
-                  border-radius: 6px;">
+        style="background: var(--orange-accent);
+                padding: 6px 14px;
+                border-radius: 6px;">
             S'inscrire
         </a>
     {% endif %}
+    
+    <!-- Bouton mode sombre -->
+    <a href="#" id="dark-mode-toggle" style="cursor: pointer; margin-left: 12px;" title="Mode sombre">
+        🌙
+    </a>
 </nav>
     </header>
 
@@ -104,5 +111,29 @@
         </div>
     </footer>
 <script src="{% static 'academie/js/animations.js' %}"></script>
+
+<!-- Script mode sombre -->
+<script>
+    const body = document.body;
+    const toggleBtn = document.getElementById('dark-mode-toggle');
+
+    // Vérifie la préférence sauvegardée
+    if (localStorage.getItem('dark-mode') === 'enabled') {
+        body.classList.add('dark-mode');
+        toggleBtn.textContent = '☀️';
+    }
+
+    toggleBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        body.classList.toggle('dark-mode');
+        if (body.classList.contains('dark-mode')) {
+            localStorage.setItem('dark-mode', 'enabled');
+            toggleBtn.textContent = '☀️';
+        } else {
+            localStorage.setItem('dark-mode', 'disabled');
+            toggleBtn.textContent = '🌙';
+        }
+    });
+</script>
 </body>
 </html>
