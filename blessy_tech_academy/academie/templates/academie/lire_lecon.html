@@ -54,6 +54,7 @@
         <button id="bouton-terminer"
                 data-lecon-id="{{ lecon.id }}"
                 data-terminee="true"
+                class="btn-terminer"
                 style="background: #22c55e; color: white; border: none; padding: 14px 32px;
                        border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 15px;">
             ✅ Leçon terminée
@@ -62,6 +63,7 @@
         <button id="bouton-terminer"
                 data-lecon-id="{{ lecon.id }}"
                 data-terminee="false"
+                class="btn-terminer"
                 style="background: var(--bleu-principal); color: white; border: none; padding: 14px 32px;
                        border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 15px;">
             ☐ Marquer comme terminée
@@ -75,14 +77,14 @@
     </p>
     {% endif %}
 
-    <div style="display: flex; justify-content: space-between;
+    <!-- Navigation entre leçons -->
+    <div class="nav-lecons" style="display: flex; justify-content: space-between;
                 margin-top: 48px; padding-top: 24px;
                 border-top: 1px solid #eee; flex-wrap: wrap; gap: 16px;">
 
         {% if lecon_precedente %}
         <a href="{% url 'lire_lecon' lecon_precedente.id %}"
-        style="color: var(--bleu-electrique); text-decoration: none;
-                font-weight: 600;">
+           class="nav-lien" style="color: var(--bleu-electrique); text-decoration: none; font-weight: 600;">
             ← {{ lecon_precedente.titre }}
         </a>
         {% else %}
@@ -91,17 +93,16 @@
 
         {% if lecon_suivante %}
         <a href="{% url 'lire_lecon' lecon_suivante.id %}"
-        style="color: var(--bleu-electrique); text-decoration: none;
-                font-weight: 600;">
+           class="nav-lien" style="color: var(--bleu-electrique); text-decoration: none; font-weight: 600;">
             {{ lecon_suivante.titre }} →
         </a>
         {% endif %}
-
     </div>
 
 </section>
 
 <style>
+    /* Styles pour le contenu de la leçon */
     .contenu-lecon h2 {
         color: var(--bleu-principal);
         font-size: 22px;
@@ -132,6 +133,35 @@
     }
     .contenu-lecon strong {
         color: var(--bleu-principal);
+    }
+    /* Images et iframes responsives */
+    .contenu-lecon img,
+    .contenu-lecon iframe,
+    .contenu-lecon video {
+        max-width: 100%;
+        height: auto;
+    }
+    /* Tableaux responsives */
+    .contenu-lecon table {
+        width: 100%;
+        overflow-x: auto;
+        display: block;
+    }
+
+    /* Responsive mobile */
+    @media (max-width: 576px) {
+        .btn-terminer {
+            width: 100%;
+            padding: 12px 20px !important;
+        }
+        .nav-lecons {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .nav-lien {
+            font-size: 14px;
+        }
     }
 </style>
 

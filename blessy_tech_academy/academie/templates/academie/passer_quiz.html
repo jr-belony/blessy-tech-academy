@@ -9,45 +9,45 @@
     <p>{{ quiz.questions.count }} questions — Réponds du mieux possible !</p>
 </section>
 
-<section style="max-width: 700px; margin: 0 auto; padding: 40px;">
+<section style="max-width: 700px; margin: 0 auto; padding: 40px 20px;">
 
     <form method="POST">
         {% csrf_token %}
 
         {% for question in quiz.questions.all %}
-        <div style="background: white; padding: 24px; border-radius: 12px;
+        <div class="question-card" style="background: white; padding: 24px; border-radius: 12px;
                     box-shadow: var(--ombre-legere); margin-bottom: 20px;">
 
             <p style="font-weight: 700; color: var(--bleu-principal);
-                       margin-bottom: 16px;">
+                       margin-bottom: 16px; word-wrap: break-word;">
                 {{ forloop.counter }}. {{ question.texte }}
             </p>
 
-            <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div class="choix-list" style="display: flex; flex-direction: column; gap: 10px;">
 
-                <label style="display: flex; align-items: center; gap: 10px;
-                               padding: 10px; border-radius: 8px;
+                <label class="choix-label" style="display: flex; align-items: center; gap: 10px;
+                               padding: 10px 12px; border-radius: 8px;
                                cursor: pointer; background: var(--gris-clair);">
                     <input type="radio" name="question_{{ question.id }}" value="a" required>
                     <span>A. {{ question.choix_a }}</span>
                 </label>
 
-                <label style="display: flex; align-items: center; gap: 10px;
-                               padding: 10px; border-radius: 8px;
+                <label class="choix-label" style="display: flex; align-items: center; gap: 10px;
+                               padding: 10px 12px; border-radius: 8px;
                                cursor: pointer; background: var(--gris-clair);">
                     <input type="radio" name="question_{{ question.id }}" value="b" required>
                     <span>B. {{ question.choix_b }}</span>
                 </label>
 
-                <label style="display: flex; align-items: center; gap: 10px;
-                               padding: 10px; border-radius: 8px;
+                <label class="choix-label" style="display: flex; align-items: center; gap: 10px;
+                               padding: 10px 12px; border-radius: 8px;
                                cursor: pointer; background: var(--gris-clair);">
                     <input type="radio" name="question_{{ question.id }}" value="c" required>
                     <span>C. {{ question.choix_c }}</span>
                 </label>
 
-                <label style="display: flex; align-items: center; gap: 10px;
-                               padding: 10px; border-radius: 8px;
+                <label class="choix-label" style="display: flex; align-items: center; gap: 10px;
+                               padding: 10px 12px; border-radius: 8px;
                                cursor: pointer; background: var(--gris-clair);">
                     <input type="radio" name="question_{{ question.id }}" value="d" required>
                     <span>D. {{ question.choix_d }}</span>
@@ -57,7 +57,7 @@
         </div>
         {% endfor %}
 
-        <button type="submit" class="btn btn-principal"
+        <button type="submit" class="btn btn-principal btn-valider"
                 style="width: 100%; text-align: center; padding: 16px;
                        font-size: 16px;">
             ✅ Valider mes réponses
@@ -66,5 +66,29 @@
     </form>
 
 </section>
+
+<style>
+    /* Responsive mobile */
+    @media (max-width: 576px) {
+        .question-card {
+            padding: 16px !important;
+        }
+        .choix-label {
+            padding: 8px 10px !important;
+            font-size: 14px;
+        }
+        .choix-label input[type="radio"] {
+            flex-shrink: 0;
+        }
+        .choix-label span {
+            word-break: break-word;
+        }
+        .btn-valider {
+            position: sticky;
+            bottom: 10px;
+            z-index: 10;
+        }
+    }
+</style>
 
 {% endblock %}
