@@ -204,8 +204,15 @@ class GestionCoursAdminSite:
         return custom_urls + original_urls
 
     def vue_gestion_cours(self, request):
+        from django.db.models import Prefetch
         ecoles = Ecole.objects.prefetch_related(
-            'formations__modules__lecons'
+            Prefetch(
+                'formations',
+                queryset=Formation.objects.prefetch_related(
+                    Prefetch('modules', queryset=Module.objects.prefetch_related('lecons').order_by('ordre')),
+                    Prefetch('quiz_set', queryset=Quiz.objects.prefetch_related('questions'))
+                ).order_by('nom')
+            )
         ).all()
 
         return render(request, 'admin/gestion_cours.html', {
@@ -213,8 +220,6 @@ class GestionCoursAdminSite:
             'title': 'Gestion des cours par école',
             'site_header': admin.site.site_header,
         })
-
-
 # Injecte les nouvelles URLs dans l'admin
 _original_get_urls = admin.site.get_urls
 _gestion = GestionCoursAdminSite()

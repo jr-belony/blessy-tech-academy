@@ -8,7 +8,7 @@
     </h1>
 
     <p style="color: #666; margin-bottom: 32px;">
-        Vue d'ensemble organisée : École → Formation → Modules → Leçons.
+        Vue d'ensemble organisée : École → Formation → Modules → Leçons → Quiz.
         Clique sur un élément pour le modifier directement.
     </p>
 
@@ -94,6 +94,26 @@
                     Aucun module — utilise le générateur IA sur cette formation
                 </p>
                 {% endif %}
+
+                <!-- Quiz (NOUVEAU) -->
+                <div style="margin-top: 12px; margin-left: 16px;">
+                    <strong style="font-size: 14px; color: #0B2447;">📝 Quiz :</strong>
+                    {% if formation.quiz_set.all %}
+                    <ul style="margin: 4px 0 0 20px; padding: 0;">
+                        {% for quiz in formation.quiz_set.all %}
+                        <li>
+                            <a href="/admin/academie/quiz/{{ quiz.id }}/change/"
+                               style="color: #333; font-size: 13px;">
+                                {{ quiz.titre }}
+                            </a>
+                            ({{ quiz.questions.count }} questions)
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p style="color: #999; font-size: 13px; margin-left: 20px;">Aucun quiz</p>
+                    {% endif %}
+                </div>
 
             </div>
             {% empty %}
