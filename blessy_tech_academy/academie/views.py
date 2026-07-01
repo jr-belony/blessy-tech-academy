@@ -15,9 +15,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.template.loader import render_to_string
 from django.utils import timezone
+from datetime import timedelta
+from django.db.models.functions import TruncMonth
 from .models import (
     Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz,
-    Module, Lecon, ProgressionLecon, Parcours, Sujet, Reponse, Reaction, ProjetEtudiant
+    Module, Lecon, ProgressionLecon, Parcours, Sujet, Reponse, Reaction, ProjetEtudiant, Certificat
 )
 from .forms import InscriptionForm, InscriptionCompteForm, ConnexionForm, SujetForm, ReponseForm 
 from . import notifications
@@ -249,30 +251,109 @@ def dashboard(request):
 
 @staff_member_required
 def statistiques(request):
-    """Page de statistiques pour les administrateurs."""
+    """Centre de Commande EdTech - Phases 1, 2 et 3."""
+    from django.db.models import Sum
+    from django.db.models.functions import TruncMonth
+
+    # --- KPIs Phase 1 ---
+    total_etudiants = User.objects.filter(is_active=True).count()
     total_formations = Formation.objects.filter(actif=True).count()
+    total_certificats = Certificat.objects.count()
+    total_leads = Inscription.objects.filter(formation__gratuit=True).count()
     total_inscriptions = Inscription.objects.count()
-    total_etudiants = User.objects.count()
+    taux_conversion = 0
+    if total_leads > 0:
+        taux_conversion = round((total_inscriptions / total_leads) * 100)
+
+    # --- Tunnel Freemium (Phase 2) ---
+    telechargements = total_leads
+    comptes_crees = User.objects.count()
+    inscriptions_payantes = Inscription.objects.filter(formation__gratuit=False).count()
+    certificats_delivres = total_certificats
+    taux_leads_comptes = round((comptes_crees / telechargements) * 100) if telechargements > 0 else 0
+    taux_comptes_payant = round((inscriptions_payantes / comptes_crees) * 100) if comptes_crees > 0 else 0
+    taux_payant_certif = round((certificats_delivres / inscriptions_payantes) * 100) if inscriptions_payantes > 0 else 0
+
+    # --- Revenus (Phase 2) ---
+    total_revenus = Inscription.objects.filter(formation__gratuit=False).aggregate(
+        total=Sum('formation__prix')
+    )['total'] or 0
+
+    # --- Certificats ce mois ---
+    debut_mois = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    certificats_mois = Certificat.objects.filter(date_emission__gte=debut_mois).count()
+
+    # --- IA Analytics (Phase 3) ---
+    quiz_generees = Quiz.objects.count()
+    contenus_generes = Lecon.objects.filter(contenu__isnull=False).exclude(contenu='').count()
+
+    # --- Formations populaires ---
+    formations_populaires = Formation.objects.filter(actif=True).annotate(
+        nb_inscriptions=Count('inscriptions')
+    ).order_by('-nb_inscriptions')[:5]
+
+    # --- Inscriptions par mois ---
+    douze_mois = timezone.now() - timedelta(days=365)
+    inscriptions_mensuelles = (
+        Inscription.objects
+        .filter(date_inscription__gte=douze_mois)
+        .annotate(mois=TruncMonth('date_inscription'))
+        .values('mois')
+        .annotate(total=Count('id'))
+        .order_by('mois')
+    )
+    mois_labels = [item['mois'].strftime('%b %Y') for item in inscriptions_mensuelles]
+    mois_data = [item['total'] for item in inscriptions_mensuelles]
+
+    # --- Activité forum ---
     total_sujets = Sujet.objects.count()
     total_reponses = Reponse.objects.count()
+    membres_actifs = User.objects.annotate(
+        nb_actions=Count('sujets_forum', distinct=True) + Count('reponses_forum', distinct=True)
+    ).filter(nb_actions__gt=0).count()
+
+    # --- Centre d'alertes ---
+    alertes = []
     inscriptions_non_traitees = Inscription.objects.filter(traite=False).count()
-    prix_moyen = Formation.objects.aggregate(Avg('prix'))['prix__avg']
-    formations_populaires = Formation.objects.annotate(
-        nombre_inscrits=Count('inscriptions')
-    ).order_by('-nombre_inscrits')[:5]
+    if inscriptions_non_traitees > 0:
+        alertes.append(f"{inscriptions_non_traitees} inscriptions non traitées")
+    formations_sans_modules = Formation.objects.filter(actif=True, modules__isnull=True).count()
+    if formations_sans_modules > 0:
+        alertes.append(f"{formations_sans_modules} formations sans modules")
+    etudiants_inactifs = User.objects.filter(is_active=True, progressions__isnull=True).count()
+    if etudiants_inactifs > 0:
+        alertes.append(f"{etudiants_inactifs} étudiants inactifs")
 
     contexte = {
-        'total_formations': total_formations,
-        'total_inscriptions': total_inscriptions,
+        # Phase 1
         'total_etudiants': total_etudiants,
+        'total_formations': total_formations,
+        'total_certificats': total_certificats,
+        'total_revenus': total_revenus,
+        'total_leads': total_leads,
+        'total_inscriptions': total_inscriptions,
+        'taux_conversion': taux_conversion,
+        'formations_populaires': formations_populaires,
+        'mois_labels': mois_labels,
+        'mois_data': mois_data,
         'total_sujets': total_sujets,
         'total_reponses': total_reponses,
-        'inscriptions_non_traitees': inscriptions_non_traitees,
-        'prix_moyen': round(prix_moyen, 2) if prix_moyen else 0,
-        'formations_populaires': formations_populaires,
+        'membres_actifs': membres_actifs,
+        'alertes': alertes,
+        # Phase 2
+        'telechargements': telechargements,
+        'comptes_crees': comptes_crees,
+        'inscriptions_payantes': inscriptions_payantes,
+        'certificats_delivres': certificats_delivres,
+        'taux_leads_comptes': taux_leads_comptes,
+        'taux_comptes_payant': taux_comptes_payant,
+        'taux_payant_certif': taux_payant_certif,
+        'certificats_mois': certificats_mois,
+        # Phase 3
+        'quiz_generees': quiz_generees,
+        'contenus_generes': contenus_generes,
     }
     return render(request, 'academie/statistiques.html', contexte)
-
 
 # ================================================
 # Recherche

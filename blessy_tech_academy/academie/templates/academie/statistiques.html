@@ -1,121 +1,215 @@
 {% extends 'academie/base.html' %}
 
-{% block titre %}Statistiques — Blessy Tech Academy{% endblock %}
+{% block titre %}Centre de Commande — BTA{% endblock %}
 
 {% block contenu %}
 
-<section class="page-hero">
-    <h2>📊 Statistiques BTA</h2>
-    <p>Tableau de bord administrateur</p>
-</section>
-
-<section style="padding: 60px 40px; max-width: 1000px; margin: 0 auto;">
-
-    <div style="display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 20px;
-                margin-bottom: 40px;">
-
-        <div style="background: white; padding: 24px;
-                    border-radius: 12px; text-align: center;
-                    box-shadow: var(--ombre-legere);">
-            <p style="font-size: 32px; font-weight: 800;
-                      color: var(--bleu-principal);">
-                {{ total_formations }}
-            </p>
-            <p style="color: var(--gris-texte);">Formations actives</p>
-        </div>
-        
-        <div style="background: white; padding: 24px;
-            border-radius: 12px; text-align: center;
-            box-shadow: var(--ombre-legere);">
-        <p style="font-size: 32px; font-weight: 800;
-              color: var(--bleu-electrique);">
-        {{ total_etudiants }}
-        </p>
-        <p style="color: var(--gris-texte);">
-        Étudiants
-        </p>
-        </div>
-            <div style="background: white; padding: 24px;
-            border-radius: 12px; text-align: center;
-            box-shadow: var(--ombre-legere);">
-            <p style="font-size: 32px; font-weight: 800;
-            color: #22c55e;">
-            {{ total_sujets }}
-            </p>
-            <p style="color: var(--gris-texte);">
-            Sujets forum
-            </p>
-    </div>
-        <div style="background: white; padding: 24px;
-            border-radius: 12px; text-align: center;
-            box-shadow: var(--ombre-legere);">
-            <p style="font-size: 32px; font-weight: 800;
-              color: #f59e0b;">
-            {{ total_reponses }}
-            </p>
-            <p style="color: var(--gris-texte);">
-            Réponses forum
-            </p>
+<div style="background: var(--bleu-principal); color: white; padding: 32px 40px;">
+    <h1 style="margin: 0; font-size: 28px;">📊 Centre de Commande</h1>
+    <p style="margin: 8px 0 0; opacity: 0.8;">Vue d'ensemble de Blessy Tech Academy</p>
 </div>
-        <div style="background: white; padding: 24px;
-                    border-radius: 12px; text-align: center;
-                    box-shadow: var(--ombre-legere);">
-            <p style="font-size: 32px; font-weight: 800;
-                      color: var(--bleu-principal);">
-                {{ total_inscriptions }}
-            </p>
-            <p style="color: var(--gris-texte);">Inscriptions totales</p>
-        </div>
 
-        <div style="background: white; padding: 24px;
-                    border-radius: 12px; text-align: center;
-                    box-shadow: var(--ombre-legere);">
-            <p style="font-size: 32px; font-weight: 800;
-                      color: var(--orange-accent);">
-                {{ inscriptions_non_traitees }}
-            </p>
-            <p style="color: var(--gris-texte);">À traiter</p>
-        </div>
+<section style="max-width: 1300px; margin: 0 auto; padding: 40px 20px;">
 
-        <div style="background: white; padding: 24px;
-                    border-radius: 12px; text-align: center;
-                    box-shadow: var(--ombre-legere);">
-            <p style="font-size: 32px; font-weight: 800;
-                      color: var(--bleu-principal);">
-                {{ prix_moyen }} USD
-            </p>
-            <p style="color: var(--gris-texte);">Prix moyen</p>
+    <!-- 🟢 KPI Cards Phase 1 -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; margin-bottom: 40px;">
+        <div class="kpi-card">
+            <span class="kpi-icon">🎓</span>
+            <div>
+                <p class="kpi-value">{{ total_etudiants }}</p>
+                <p class="kpi-label">Étudiants actifs</p>
+            </div>
         </div>
-
+        <div class="kpi-card">
+            <span class="kpi-icon">📚</span>
+            <div>
+                <p class="kpi-value">{{ total_formations }}</p>
+                <p class="kpi-label">Formations</p>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <span class="kpi-icon">🏅</span>
+            <div>
+                <p class="kpi-value">{{ total_certificats }}</p>
+                <p class="kpi-label">Certificats</p>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <span class="kpi-icon">💰</span>
+            <div>
+                <p class="kpi-value">{{ total_revenus }} USD</p>
+                <p class="kpi-label">Revenus</p>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <span class="kpi-icon">🎁</span>
+            <div>
+                <p class="kpi-value">{{ total_leads }}</p>
+                <p class="kpi-label">Leads gratuits</p>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <span class="kpi-icon">📈</span>
+            <div>
+                <p class="kpi-value">{{ taux_conversion }}%</p>
+                <p class="kpi-label">Conversion</p>
+            </div>
+        </div>
     </div>
 
-    <h3 style="color: var(--bleu-principal); margin-bottom: 16px;">
-        🏆 Formations les plus demandées
-    </h3>
+    <!-- 🎯 Tunnel Freemium (Phase 2) -->
+    <div class="chart-card" style="margin-bottom: 40px;">
+        <h3>🎯 Tunnel Freemium</h3>
+        <div style="display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 20px; padding: 20px 0;">
+            <div style="text-align: center;">
+                <p class="kpi-value">{{ telechargements }}</p>
+                <p class="kpi-label">Téléchargements</p>
+            </div>
+            <span style="font-size: 24px; color: #00B4D8;">→</span>
+            <div style="text-align: center;">
+                <p class="kpi-value">{{ comptes_crees }}</p>
+                <p class="kpi-label">Comptes créés</p>
+                <p class="kpi-label" style="font-size:12px;">({{ taux_leads_comptes }}%)</p>
+            </div>
+            <span style="font-size: 24px; color: #00B4D8;">→</span>
+            <div style="text-align: center;">
+                <p class="kpi-value">{{ inscriptions_payantes }}</p>
+                <p class="kpi-label">Formations payantes</p>
+                <p class="kpi-label" style="font-size:12px;">({{ taux_comptes_payant }}%)</p>
+            </div>
+            <span style="font-size: 24px; color: #00B4D8;">→</span>
+            <div style="text-align: center;">
+                <p class="kpi-value">{{ certificats_delivres }}</p>
+                <p class="kpi-label">Certificats</p>
+                <p class="kpi-label" style="font-size:12px;">({{ taux_payant_certif }}%)</p>
+            </div>
+        </div>
+        <p style="text-align: center; color: #666; font-size: 13px;">Formation gratuite → Compte créé → Formation payante → Certificat</p>
+    </div>
 
-    <table class="tableau-formations">
-        <thead>
-            <tr>
-                <th>Formation</th>
-                <th>Inscriptions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for formation in formations_populaires %}
-            <tr>
-                <td>{{ formation.icone }} {{ formation.nom }}</td>
-                <td>{{ formation.nombre_inscrits }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="2">Aucune donnée disponible.</td>
-            </tr>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 40px;">
+        <!-- 📈 Graphique Inscriptions par mois -->
+        <div class="chart-card">
+            <h3>📈 Inscriptions par mois</h3>
+            <canvas id="inscriptionsChart"></canvas>
+        </div>
+
+        <!-- 🏆 Formations populaires -->
+        <div class="chart-card">
+            <h3>🏆 Formations les plus populaires</h3>
+            {% if formations_populaires %}
+            <ol style="padding-left: 20px; color: #0B2447;">
+                {% for f in formations_populaires %}
+                <li style="margin-bottom: 12px; font-weight: 600;">
+                    {{ f.icone }} {{ f.nom }}
+                    <span style="color: #00B4D8; margin-left: 10px;">({{ f.nb_inscriptions }} inscriptions)</span>
+                </li>
+                {% endfor %}
+            </ol>
+            {% else %}
+            <p style="color: #999;">Aucune donnée disponible.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 40px;">
+        <!-- 💬 Forum -->
+        <div class="chart-card">
+            <h3>💬 Activité Forum</h3>
+            <ul style="list-style: none; padding: 0; color: #0B2447;">
+                <li>📝 Sujets créés : <strong>{{ total_sujets }}</strong></li>
+                <li>💬 Réponses : <strong>{{ total_reponses }}</strong></li>
+                <li>👥 Membres actifs : <strong>{{ membres_actifs }}</strong></li>
+            </ul>
+        </div>
+
+        <!-- 🤖 IA Analytics (Phase 3) -->
+        <div class="chart-card">
+            <h3>🤖 IA Analytics</h3>
+            <ul style="list-style: none; padding: 0; color: #0B2447;">
+                <li>📝 Quiz générés par IA : <strong>{{ quiz_generees }}</strong></li>
+                <li>📚 Contenus de leçons générés : <strong>{{ contenus_generes }}</strong></li>
+                <li>🎓 Certificats ce mois : <strong>{{ certificats_mois }}</strong></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ⚠️ Alertes -->
+    <div class="chart-card" style="margin-bottom: 40px;">
+        <h3>⚠️ Centre d'Alertes</h3>
+        {% if alertes %}
+        <ul style="list-style: none; padding: 0; color: #e53e3e;">
+            {% for alerte in alertes %}
+            <li style="margin-bottom: 8px;">🔴 {{ alerte }}</li>
             {% endfor %}
-        </tbody>
-    </table>
+        </ul>
+        {% else %}
+        <p style="color: #22c55e;">✅ Aucune alerte en cours.</p>
+        {% endif %}
+    </div>
 
 </section>
 
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<!-- Données pour le graphique -->
+{{ mois_labels|json_script:"mois-labels" }}
+{{ mois_data|json_script:"mois-data" }}
+
+<script>
+    // Récupération sécurisée des données
+    const moisLabels = JSON.parse(document.getElementById('mois-labels').textContent);
+    const moisData = JSON.parse(document.getElementById('mois-data').textContent);
+
+    const ctx = document.getElementById('inscriptionsChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: moisLabels,
+                datasets: [{
+                    label: 'Inscriptions',
+                    data: moisData,
+                    backgroundColor: '#00B4D8',
+                    borderRadius: 6,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                }
+            }
+        });
+    }
+</script>
+
+<style>
+    .kpi-card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    .kpi-icon { font-size: 36px; }
+    .kpi-value { font-size: 28px; font-weight: 800; color: #0B2447; margin: 0; }
+    .kpi-label { font-size: 13px; color: #666; margin: 4px 0 0; }
+    .chart-card {
+        background: white;
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    @media (max-width: 768px) {
+        .kpi-card { flex-direction: column; align-items: flex-start; }
+        div[style*="grid-template-columns: 1fr 1fr"] {
+            grid-template-columns: 1fr !important;
+        }
+    }
+</style>
 {% endblock %}
