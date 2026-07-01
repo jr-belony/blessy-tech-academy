@@ -17,6 +17,7 @@ class ModuleInline(admin.TabularInline):
     extra = 1
     fields = ['ordre', 'titre', 'description']
     show_change_link = True  # permet de cliquer pour gérer les leçons du module
+
 @admin.register(Formation)
 class FormationAdmin(admin.ModelAdmin):
     list_display = [
@@ -42,6 +43,17 @@ class FormationAdmin(admin.ModelAdmin):
             'classes': ['collapse'],
         }),
     ]
+
+    actions = ['partager_sur_reseaux']
+
+    @admin.action(description="📢 Partager les formations sélectionnées sur les réseaux sociaux (simulation)")
+    def partager_sur_reseaux(self, request, queryset):
+        from .social import partager_formation
+        n = 0
+        for formation in queryset:
+            partager_formation(formation)
+            n += 1
+        self.message_user(request, f"✅ {n} formation(s) partagée(s) (simulation). Voir les logs pour le contenu.")
 
     class Media:
         js = ['academie/admin/generer_ia.js', 'academie/admin/generer_programme.js']
@@ -177,10 +189,9 @@ class ReactionAdmin(admin.ModelAdmin):
     readonly_fields = ['date_creation']    
 
 
-    # ================================================
+# ================================================
 # Vue personnalisée — Gestion organisée par École
 # ================================================
-
 
 class GestionCoursAdminSite:
     """Ajoute une page personnalisée de gestion des cours par école."""

@@ -49,6 +49,12 @@ class Formation(models.Model):
     prerequis = models.TextField(blank=True)
     certifications = models.TextField(blank=True)
     actif = models.BooleanField(default=True)
+    message_partage = models.CharField(
+    max_length=500,
+    blank=True,
+    default="",
+    help_text="Message utilisé pour le partage automatique sur les réseaux sociaux. Laissez vide pour générer automatiquement."
+)
     date_creation = models.DateTimeField(auto_now_add=True)
     gratuit = models.BooleanField(
         default=False,
