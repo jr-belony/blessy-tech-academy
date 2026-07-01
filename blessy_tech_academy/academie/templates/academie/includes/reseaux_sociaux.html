@@ -1,0 +1,20 @@
+<!-- Boutons de partage social -->
+<div class="social-share" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 20px 0;">
+    <span style="font-weight: 600; margin-right: 5px;">Partager :</span>
+    <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank"
+       style="background: #1877f2; color: white; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px;">
+        📘 Facebook
+    </a>
+    <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.build_absolute_uri }}" target="_blank"
+       style="background: #0a66c2; color: white; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px;">
+        💼 LinkedIn
+    </a>
+    <a href="https://wa.me/?text={{ request.build_absolute_uri|urlencode }}" target="_blank"
+       style="background: #25d366; color: white; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px;">
+        💬 WhatsApp
+    </a>
+    <a href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri|urlencode }}&text={{ formation.nom|default:'Blessy Tech Academy'|urlencode }}" target="_blank"
+       style="background: #1da1f2; color: white; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px;">
+        𝕏 Twitter
+    </a>
+</div>
