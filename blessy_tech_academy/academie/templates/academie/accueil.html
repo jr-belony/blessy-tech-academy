@@ -55,15 +55,7 @@
 
     <div class="formations-grille">
         {% for formation in formations %}
-            <article class="carte-formation">
-                <div class="carte-icone">{{ formation.icone }}</div>
-                <h3>{{ formation.nom }}</h3>
-                <p>{{ formation.description }}</p>
-                <div class="carte-meta">
-                    <span class="duree">⏱ {{ formation.duree }}</span>
-                    <span class="prix">{{ formation.prix }} USD</span>
-                </div>
-            </article>
+            {% include 'academie/includes/carte_formation.html' with formation=formation %}
         {% endfor %}
     </div>
 

@@ -8,70 +8,28 @@
     <h2>Nos Formations</h2>
     <p>Des parcours concrets pour te rendre employable rapidement.</p>
 </section>
+
 {% if formations_gratuites %}
 <section style="padding:50px 40px; background:#f8fbff;">
-    <h2 style="
-        text-align:center;
-        color:var(--bleu-principal);
-        margin-bottom:10px;">
+    <h2 style="text-align:center; color:var(--bleu-principal); margin-bottom:10px;">
         🎁 Formations Gratuites
     </h2>
-
-    <p style="
-        text-align:center;
-        color:var(--gris-texte);
-        margin-bottom:35px;">
+    <p style="text-align:center; color:var(--gris-texte); margin-bottom:35px;">
         Commence gratuitement puis évolue vers un parcours professionnel complet.
     </p>
 
     <div class="formations-grille">
-
         {% for formation in formations_gratuites %}
-        <article class="carte-formation">
-
-            <div class="carte-icone">
-                {{ formation.icone }}
-            </div>
-
-            <h3>{{ formation.nom }}</h3>
-
-            <span style="
-                display:inline-flex;
-                align-items:center;
-                justify-content:center;
-                background:#00c2ff;
-                color:white;
-                font-size:12px;
-                padding:6px 12px;
-                border-radius:20px;
-                font-weight:700;
-                line-height:1;
-                margin:8px 0;
-                ">
-                🎁 GRATUIT
-                </span>
-
-            <p>{{ formation.description }}</p>
-
-            <a href="{% url 'detail_formation' formation.id %}"
-               class="btn btn-principal"
-               style="margin-top:15px;">
-               Commencer gratuitement
-            </a>
-
-        </article>
+            {% include 'academie/includes/carte_formation.html' with formation=formation %}
         {% endfor %}
-
     </div>
 </section>
 {% endif %}
 
 <section class="apercu-formations">
-
     {% for ecole in ecoles %}
         {% if ecole.formations.all %}
         <div style="margin-bottom: 56px;">
-
             <h3 style="color: var(--bleu-principal); font-size: 24px;
                     margin-bottom: 8px; border-bottom: 3px solid var(--bleu-electrique);
                     padding-bottom: 8px; display: inline-block;">
@@ -84,101 +42,51 @@
             <div class="formations-grille">
                 {% for formation in ecole.formations.all %}
                     {% if formation.actif %}
-                    <article class="carte-formation">
-                        <div class="carte-icone">{{ formation.icone }}</div>
-                        <h3>{{ formation.nom }}</h3>
-                        {% if formation.gratuit %}
-                            <span style="
-                                display:inline-block;
-                                background:#00c2ff;
-                                color:white;
-                                font-size:12px;
-                                padding:4px 10px;
-                                border-radius:20px;
-                                margin-top:6px;
-                                font-weight:700;
-                                ">
-                            🎁 GRATUIT
-                            </span>
-                    {% endif %}
-                        <p>{{ formation.description }}</p>
-                        <div class="carte-meta">
-                            <span class="duree">⏱ {{ formation.duree_mois }} mois</span>
-                            <span class="prix">{{ formation.prix }} USD</span>
-                        </div>
-                        <a href="{% url 'detail_formation' formation.id %}"
-                        style="color: var(--bleu-electrique); font-size: 13px;
-                                text-decoration: none; font-weight: 600;
-                                display: block; margin-top: 8px;">
-                            📋 Voir le programme complet →
-                        </a>
-                        <a href="{% url 'contact' %}" class="btn btn-principal"
-                        style="text-align:center; margin-top:8px;">
-                            S'inscrire
-                        </a>
-                    </article>
+                        {% include 'academie/includes/carte_formation.html' with formation=formation %}
                     {% endif %}
                 {% endfor %}
             </div>
-
         </div>
         {% endif %}
     {% endfor %}
-
 </section>
-
 
 <!-- Parcours Professionnels -->
 {% if parcours_list %}
 <section style="background: var(--bleu-principal); padding: 60px 40px;">
     <div style="max-width: 1100px; margin: 0 auto;">
-
-        <h2 style="color: white; font-size: 32px;
-                margin-bottom: 8px; text-align: center;">
+        <h2 style="color: white; font-size: 32px; margin-bottom: 8px; text-align: center;">
             🎓 Parcours Professionnels
         </h2>
-        <p style="color: rgba(255,255,255,0.8); text-align: center;
-                margin-bottom: 48px; font-size: 16px;">
-            Des programmes complets pour une reconversion ou une
-            spécialisation professionnelle rapide.
+        <p style="color: rgba(255,255,255,0.8); text-align: center; margin-bottom: 48px; font-size: 16px;">
+            Des programmes complets pour une reconversion ou une spécialisation professionnelle rapide.
         </p>
 
-        <div style="display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-                    gap: 24px;">
-
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
             {% for parcours in parcours_list %}
             <div style="background: rgba(255,255,255,0.08);
                         border: 1px solid rgba(255,255,255,0.15);
                         border-radius: 16px; padding: 32px;
                         transition: transform 0.2s;">
-
                 <div style="font-size: 40px; margin-bottom: 12px;">
                     {{ parcours.icone }}
                 </div>
-
                 <h3 style="color: white; font-size: 20px; margin-bottom: 12px;">
                     {{ parcours.titre }}
                 </h3>
-
                 {% if parcours.description %}
-                <p style="color: rgba(255,255,255,0.7); font-size: 14px;
-                        margin-bottom: 20px; line-height: 1.6;">
+                <p style="color: rgba(255,255,255,0.7); font-size: 14px; margin-bottom: 20px; line-height: 1.6;">
                     {{ parcours.description }}
                 </p>
                 {% endif %}
 
-                <!-- Formations incluses -->
                 {% if parcours.formations.all %}
                 <div style="margin-bottom: 20px;">
-                    <p style="color: var(--bleu-electrique); font-size: 12px;
-                            font-weight: 700; text-transform: uppercase;
-                            margin-bottom: 8px;">
+                    <p style="color: var(--bleu-electrique); font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px;">
                         Formations incluses
                     </p>
                     {% for formation in parcours.formations.all %}
-                    <div style="display: flex; align-items: center; gap: 8px;
-                                margin-bottom: 6px;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
                         <span style="color: var(--bleu-electrique);">✓</span>
                         <span style="color: rgba(255,255,255,0.8); font-size: 13px;">
                             {{ formation.icone }} {{ formation.nom }}
@@ -188,26 +96,14 @@
                 </div>
                 {% endif %}
 
-                <!-- Durée et Prix -->
-                <div style="display: flex; justify-content: space-between;
-                            align-items: center; padding-top: 20px;
-                            border-top: 1px solid rgba(255,255,255,0.15);">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.15);">
                     <div>
-                        <p style="color: rgba(255,255,255,0.6); font-size: 12px;">
-                            Durée
-                        </p>
-                        <p style="color: white; font-weight: 700;">
-                            {{ parcours.duree_mois }} mois
-                        </p>
+                        <p style="color: rgba(255,255,255,0.6); font-size: 12px;">Durée</p>
+                        <p style="color: white; font-weight: 700;">{{ parcours.duree_mois }} mois</p>
                     </div>
                     <div style="text-align: right;">
-                        <p style="color: rgba(255,255,255,0.6); font-size: 12px;">
-                            Investissement
-                        </p>
-                        <p style="color: var(--orange-accent); font-weight: 800;
-                                    font-size: 20px;">
-                            {{ parcours.prix }} USD
-                        </p>
+                        <p style="color: rgba(255,255,255,0.6); font-size: 12px;">Investissement</p>
+                        <p style="color: var(--orange-accent); font-weight: 800; font-size: 20px;">{{ parcours.prix }} USD</p>
                     </div>
                 </div>
 
@@ -215,14 +111,11 @@
                    style="display: block; text-align: center; margin-top: 20px;
                         background: var(--orange-accent); color: white;
                         padding: 12px 24px; border-radius: 8px;
-                        text-decoration: none; font-weight: 700;
-                        font-size: 14px;">
+                        text-decoration: none; font-weight: 700; font-size: 14px;">
                     S'inscrire à ce parcours →
                 </a>
-
             </div>
             {% endfor %}
-
         </div>
     </div>
 </section>

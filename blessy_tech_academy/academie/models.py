@@ -37,6 +37,12 @@ class Formation(models.Model):
     )
     nom = models.CharField(max_length=200)
     icone = models.CharField(max_length=10, default='📚')
+    illustration = models.CharField(
+        max_length=10,
+        blank=True,
+        default='',
+        help_text="Émoji d'illustration moderne (ex: 💻, 📈, 🔐)"
+    )
     description = models.TextField()
     duree_mois = models.IntegerField()
     prix = models.IntegerField()
