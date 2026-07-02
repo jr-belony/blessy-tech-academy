@@ -61,4 +61,5 @@ urlpatterns = [
 
     path('certificat/<str:numero>/', views.verifier_certificat, name='verifier_certificat'),
     path('notifications/', views.notifications_liste, name='notifications_liste'),
+    path('classement/', views.classement, name='classement'),
 ]

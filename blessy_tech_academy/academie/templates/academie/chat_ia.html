@@ -176,7 +176,13 @@
                 ? 'background: var(--bleu-principal); color: white;'
                 : 'background: var(--gris-clair); color: var(--gris-texte);'}
         `;
-        bulle.innerHTML = texte.replace(/\n/g, '<br>');
+
+        // CORRECTION : si le texte commence par '<' (HTML), on l'injecte tel quel
+        if (texte.trim().startsWith('<')) {
+            bulle.innerHTML = texte;
+        } else {
+            bulle.innerHTML = texte.replace(/\n/g, '<br>');
+        }
 
         div.appendChild(icone);
         div.appendChild(bulle);
@@ -185,20 +191,20 @@
     }
 
     function afficherChargement() {
-    const div = document.createElement('div');
-    div.id = 'chargement';
-    div.style.cssText = 'display: flex; gap: 10px; align-items: flex-start;';
-    div.innerHTML = `
-        <span style="font-size: 24px;">🤖</span>
-        <div style="background: var(--gris-clair); padding: 16px; border-radius: 12px; width: 70%;">
-            <div class="skeleton-line" style="width: 80%;"></div>
-            <div class="skeleton-line" style="width: 60%;"></div>
-            <div class="skeleton-line" style="width: 40%;"></div>
-        </div>
-    `;
-    chatFenetre.appendChild(div);
-    chatFenetre.scrollTop = chatFenetre.scrollHeight;
-}
+        const div = document.createElement('div');
+        div.id = 'chargement';
+        div.style.cssText = 'display: flex; gap: 10px; align-items: flex-start;';
+        div.innerHTML = `
+            <span style="font-size: 24px;">🤖</span>
+            <div style="background: var(--gris-clair); padding: 16px; border-radius: 12px; width: 70%;">
+                <div class="skeleton-line" style="width: 80%;"></div>
+                <div class="skeleton-line" style="width: 60%;"></div>
+                <div class="skeleton-line" style="width: 40%;"></div>
+            </div>
+        `;
+        chatFenetre.appendChild(div);
+        chatFenetre.scrollTop = chatFenetre.scrollHeight;
+    }
 
     function supprimerChargement() {
         const chargement = document.getElementById('chargement');
@@ -240,25 +246,25 @@
     }
 
     // --- Gestion de l'historique ---
-window.addEventListener('DOMContentLoaded', function() {
-    const historiqueData = document.getElementById('historique-data');
-    if (historiqueData) {
-        try {
-            const historique = JSON.parse(historiqueData.textContent);
-            if (historique && historique.length > 0) {
-                historique.forEach(function(msg) {
-                    if (msg.role === 'user') {
-                        ajouterMessage(msg.content, true);
-                    } else if (msg.role === 'assistant') {
-                        ajouterMessage(msg.content, false);
-                    }
-                });
+    window.addEventListener('DOMContentLoaded', function() {
+        const historiqueData = document.getElementById('historique-data');
+        if (historiqueData) {
+            try {
+                const historique = JSON.parse(historiqueData.textContent);
+                if (historique && historique.length > 0) {
+                    historique.forEach(function(msg) {
+                        if (msg.role === 'user') {
+                            ajouterMessage(msg.content, true);
+                        } else if (msg.role === 'assistant') {
+                            ajouterMessage(msg.content, false);
+                        }
+                    });
+                }
+            } catch(e) {
+                console.error('Erreur parsing historique:', e);
             }
-        } catch(e) {
-            console.error('Erreur parsing historique:', e);
         }
-    }
-});
+    });
 
     function nouvelleConversation() {
         if (confirm('Veux-tu vraiment effacer toute la conversation ?')) {

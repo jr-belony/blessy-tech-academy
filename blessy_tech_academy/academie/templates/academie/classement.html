@@ -1,0 +1,52 @@
+{% extends 'academie/base.html' %}
+
+{% block titre %}🏆 Classement — Blessy Tech Academy{% endblock %}
+
+{% block contenu %}
+
+<section class="page-hero">
+    <h2>🏆 Classement des meilleurs étudiants</h2>
+    <p>Les étudiants les plus actifs et les plus performants.</p>
+</section>
+
+<section style="max-width: 800px; margin: 0 auto; padding: 40px 20px;">
+
+    {% if profils %}
+    <div class="classement-grid" style="display: flex; flex-direction: column; gap: 12px;">
+        {% for profil in profils %}
+        <div class="classement-item" style="display: flex; align-items: center; background: white; padding: 16px 20px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); gap: 16px; flex-wrap: wrap;">
+            <div style="font-size: 24px; font-weight: 800; color: var(--bleu-principal); min-width: 40px; text-align: center;">
+                {{ forloop.counter }}
+            </div>
+            <div style="flex: 1; min-width: 150px;">
+                <p style="font-weight: 700; color: #0B2447; margin: 0;">
+                    {{ profil.utilisateur.first_name|default:profil.utilisateur.username }}
+                    {{ profil.utilisateur.last_name }}
+                </p>
+                <p style="font-size: 13px; color: #666; margin: 4px 0 0;">
+                    {{ profil.niveau_actuel }} · {{ profil.xp }} XP
+                </p>
+            </div>
+            {% if profil.streak > 0 %}
+            <div style="color: var(--orange-accent); font-weight: 600; font-size: 14px; white-space: nowrap;">
+                🔥 {{ profil.streak }} jour(s)
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="text-align: center; color: var(--gris-texte);">Aucun étudiant classé pour le moment.</p>
+    {% endif %}
+
+</section>
+
+<style>
+    @media (max-width: 576px) {
+        .classement-item {
+            flex-direction: column;
+            align-items: flex-start !important;
+        }
+    }
+</style>
+{% endblock %}

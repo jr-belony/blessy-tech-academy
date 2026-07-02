@@ -424,12 +424,20 @@ def api_chat_ia(request):
             request.session['chat_historique'] = historique[-12:]
             request.session.modified = True
 
-            return JsonResponse({'reponse': reponse})
+            # Convertir le Markdown en HTML
+            try:
+                reponse_html = markdown_lib.markdown(reponse)
+            except Exception:
+                reponse_html = reponse  # fallback si erreur
+
+            return JsonResponse({'reponse': reponse_html})
 
         except Exception as e:
             return JsonResponse({'erreur': str(e)}, status=500)
 
     return JsonResponse({'erreur': 'Méthode non autorisée'}, status=405)
+
+
 
 def recommandations_ia(request):
     """Page de recommandations personnalisées."""
@@ -1475,3 +1483,16 @@ def notifications_liste(request):
     if ids_non_lues:
         Notification.objects.filter(id__in=ids_non_lues).update(lue=True)
     return render(request, 'academie/notifications.html', {'notifications': notifs})
+
+
+def classement(request):
+    """Classement des meilleurs étudiants par XP."""
+    from .models import ProfilUtilisateur
+
+    profils = ProfilUtilisateur.objects.select_related('utilisateur').filter(
+        xp__gt=0
+    ).order_by('-xp', '-streak')[:50]
+
+    return render(request, 'academie/classement.html', {
+        'profils': profils,
+    })
