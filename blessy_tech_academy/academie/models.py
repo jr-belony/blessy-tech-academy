@@ -588,3 +588,58 @@ class Notification(models.Model):
     def __str__(self):
         statut = "✓" if self.lue else "●"
         return f"{statut} {self.titre} — {self.utilisateur.username}"
+    
+
+class ProfilUtilisateur(models.Model):
+    """Profil étendu de l'utilisateur avec XP et niveau."""
+    utilisateur = models.OneToOneField(
+        'auth.User',
+        on_delete=models.CASCADE,
+        related_name='profil'
+    )
+    xp = models.IntegerField(default=0)
+    streak = models.IntegerField(default=0)  # jours consécutifs
+    derniere_activite = models.DateField(null=True, blank=True)
+
+    NIVEAUX = [
+        (0, 'Débutant'),
+        (500, 'Explorateur'),
+        (1000, 'Apprenant'),
+        (2500, 'Praticien'),
+        (5000, 'Professionnel'),
+        (10000, 'Expert'),
+        (20000, 'Master Tech'),
+    ]
+
+    class Meta:
+        verbose_name = 'Profil utilisateur'
+        verbose_name_plural = 'Profils utilisateurs'
+
+    def __str__(self):
+        return f"Profil de {self.utilisateur.username}"
+
+    def niveau_actuel(self):
+        """Retourne le nom du niveau actuel."""
+        niveau = 'Débutant'
+        for seuil, nom in sorted(self.NIVEAUX, reverse=True):
+            if self.xp >= seuil:
+                niveau = nom
+                break
+        return niveau
+
+    def xp_prochain_niveau(self):
+        """Retourne le XP nécessaire pour le prochain niveau."""
+        for seuil, nom in sorted(self.NIVEAUX):
+            if self.xp < seuil:
+                return seuil
+        return self.xp  # déjà au max
+
+    def pourcentage_progression(self):
+        """Pourcentage vers le prochain niveau."""
+        prochain = self.xp_prochain_niveau()
+        if prochain == self.xp:
+            return 100
+        # Trouver le seuil précédent
+        seuils = [s for s, _ in self.NIVEAUX]
+        seuil_actuel = max([s for s in seuils if s <= self.xp])
+        return round(((self.xp - seuil_actuel) / (prochain - seuil_actuel)) * 100) if prochain > seuil_actuel else 0

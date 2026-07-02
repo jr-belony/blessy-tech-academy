@@ -23,6 +23,7 @@ from .models import (
 )
 from .forms import InscriptionForm, InscriptionCompteForm, ConnexionForm, SujetForm, ReponseForm 
 from . import notifications
+from .xp_utils import ajouter_xp
 from .ia import (
     blessy_ai_repondre,
     recommander_formations,
@@ -31,7 +32,6 @@ from .ia import (
     generer_programme_complet,
     generer_contenu_lecon,
     generer_parcours_oriente,
-    attribuer_badges_forum,
     attribuer_badges,
     assistant_code,
     generateur_exercices,
@@ -531,23 +531,32 @@ def passer_quiz(request, quiz_id):
             score=score,
             total_questions=total
         )
-        attribuer_badges (request.user)
-    if score >= (total * 0.7):  # 70% ou plus
-        notifications.creer_notification(
-        request.user,
-        "📝 Quiz réussi !",
-        f"Tu as obtenu {score}/{total} au quiz \"{quiz.titre}\".",
-        f"/formation/{quiz.formation.id}/quiz/"
-        )
+
+        # Attribution des badges (toujours)
+        attribuer_badges(request.user)
+
+        # XP seulement si score >= 70%
+        pourcentage = round((score / total) * 100) if total > 0 else 0
+        if pourcentage >= 70:
+            from .xp_utils import ajouter_xp
+            ajouter_xp(request.user, 'quiz_reussi')
+
+            # Notification de succès
+            notifications.creer_notification(
+                request.user,
+                "📝 Quiz réussi !",
+                f"Tu as obtenu {score}/{total} au quiz \"{quiz.titre}\".",
+                f"/formation/{quiz.formation.id}/quiz/"
+            )
+
         return render(request, 'academie/resultat_quiz.html', {
             'quiz': quiz,
             'score': score,
             'total': total,
-            'pourcentage': round((score / total) * 100) if total > 0 else 0,
+            'pourcentage': pourcentage,
         })
 
     return render(request, 'academie/passer_quiz.html', {'quiz': quiz})
-
 
 @staff_member_required
 @csrf_exempt
@@ -729,8 +738,11 @@ def marquer_lecon_terminee(request, lecon_id):
             progression.date_completion = timezone.now() if progression.terminee else None
             progression.save()
 
-            # Notification si la formation est maintenant complétée
+            # Ajouter XP seulement si la leçon est maintenant terminée
             if progression.terminee:
+                ajouter_xp(request.user, 'lecon_terminee')
+
+                # Notification si la formation est maintenant complétée
                 formation = lecon.module.formation
                 pourcentage = formation.progression_pour(request.user)
                 if pourcentage == 100:
@@ -751,7 +763,6 @@ def marquer_lecon_terminee(request, lecon_id):
             return JsonResponse({'erreur': str(e)}, status=500)
 
     return JsonResponse({'erreur': 'Méthode non autorisée'}, status=405)
-
 # ================================================
 # Certificats PDF
 # ================================================
@@ -843,6 +854,8 @@ def telecharger_certificat(request, formation_id):
         )
         return redirect('detail_formation', formation_id=formation_id)
 
+    
+    
     # ================================================
 # Forum Communautaire
 # ================================================
@@ -926,6 +939,10 @@ def forum_detail(request, sujet_id):
                 contenu=contenu,
                 auteur=request.user,
             )
+
+            # Ajouter XP pour la réponse postée
+            ajouter_xp(request.user, 'reponse_forum')
+
             messages.success(request, '✅ Réponse publiée !')
             return redirect('forum_detail', sujet_id=sujet_id)
 
@@ -934,7 +951,6 @@ def forum_detail(request, sujet_id):
         'likes_sujets': likes_sujets,
         'likes_reponses': likes_reponses,
     })
-
 
 @login_required(login_url='/connexion/')
 def forum_creer(request):
@@ -957,11 +973,14 @@ def forum_creer(request):
             )
 
             attribuer_badges(request.user)
-            notifications.creer_notification(request.user,
+            ajouter_xp(request.user, 'sujet_forum')                     # ← XP ajouté ici
+
+            notifications.creer_notification(
+                request.user,
                 "📝 Sujet créé",
                 f"Ton sujet \"{sujet.titre}\" a été publié avec succès.",
                 f"/forum/{sujet.id}/"
-)
+            )
             messages.success(request, '✅ Sujet créé avec succès !')
             return redirect('forum_detail', sujet_id=sujet.id)
 
@@ -1044,6 +1063,10 @@ def forum_accepter_reponse(request, reponse_id):
         reponse.sujet.resolu = True
         reponse.sujet.save()
         attribuer_badges(reponse.auteur)
+
+        # Ajouter XP pour la réponse acceptée
+        ajouter_xp(reponse.auteur, 'reponse_acceptee')
+
         notifications.creer_notification(
             reponse.auteur,
             "✅ Réponse acceptée",
@@ -1052,7 +1075,8 @@ def forum_accepter_reponse(request, reponse_id):
         )
         messages.success(request, '✅ Réponse marquée comme solution !')
         return redirect('forum_detail', sujet_id=reponse.sujet.id)
-        return redirect('forum_liste')
+
+    return redirect('forum_liste')
 
 
 @login_required(login_url='/connexion/')

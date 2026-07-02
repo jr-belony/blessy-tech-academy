@@ -83,7 +83,37 @@
                 </p>
             </a>
         </div>
-
+    
+        <!-- Niveau et XP -->
+<div style="background: white; padding: 28px; border-radius: 12px;
+            box-shadow: var(--ombre-legere); margin-bottom: 32px;">
+    <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+        <div>
+            <span style="font-size: 40px;">⭐</span>
+        </div>
+        <div style="flex: 1;">
+            <p style="font-size: 14px; color: var(--gris-texte); margin: 0;">
+                Niveau actuel
+            </p>
+            <p style="font-size: 24px; font-weight: 800; color: var(--bleu-principal); margin: 4px 0;">
+                {{ stats.niveau }}
+            </p>
+            <p style="font-size: 13px; color: var(--gris-texte); margin: 4px 0;">
+                {{ stats.xp }} XP · Prochain niveau : {{ stats.xp_prochain }} XP
+            </p>
+            <div style="background: #d1d5db; border-radius: 6px; height: 8px; overflow: hidden; margin-top: 8px;">
+                <div class="barre-progression" data-pourcentage="{{ stats.pourcentage_xp }}"
+                    style="background: var(--bleu-electrique); height: 100%; width: 0%;">
+                </div>
+            </div>
+            {% if stats.streak > 0 %}
+            <p style="font-size: 13px; color: var(--orange-accent); margin-top: 6px;">
+                🔥 {{ stats.streak }} jour(s) consécutif(s)
+            </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
         <!-- Formations en cours -->
         <div style="background: white; padding: 32px; border-radius: 12px;
                     box-shadow: var(--ombre-legere); margin-bottom: 32px;">
@@ -111,7 +141,7 @@
                     <div style="background: #d1d5db; border-radius: 6px;
                                 height: 8px; overflow: hidden;">
                         <div class="barre-progression" data-pourcentage="{{ f.pourcentage }}"
-                             style="background: var(--bleu-electrique); height: 100%; width: 0%;">
+                            style="background: var(--bleu-electrique); height: 100%; width: 0%;">
                         </div>
                     </div>
                 </div>
@@ -140,8 +170,8 @@
                     <div style="display: flex; flex-wrap: wrap; gap: 8px;">
                         {% for badge in badges %}
                             <span style="background: #f59e0b; color: white; padding: 8px 12px;
-                                       border-radius: 20px; font-size: 13px; font-weight: 600;"
-                                  title="Obtenu le {{ badge.date_obtention|date:'d/m/Y' }}">
+                                    border-radius: 20px; font-size: 13px; font-weight: 600;"
+                                title="Obtenu le {{ badge.date_obtention|date:'d/m/Y' }}">
                                 {{ badge.type_badge }}
                             </span>
                         {% endfor %}
@@ -165,7 +195,7 @@
                                     align-items: center; margin-bottom: 8px;">
                             <span>{{ f.icone }} {{ f.nom }}</span>
                             <span style="background: #22c55e; color: white; padding: 4px 10px;
-                                       border-radius: 12px; font-size: 12px;">✅ 100%</span>
+                                    border-radius: 12px; font-size: 12px;">✅ 100%</span>
                         </div>
                     {% endfor %}
                 {% else %}
