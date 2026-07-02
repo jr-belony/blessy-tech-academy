@@ -157,7 +157,7 @@ def generer_quiz(sujet, nombre_questions=5):
 
     Returns:
         list: Liste de dictionnaires {texte, choix_a, choix_b,
-              choix_c, choix_d, bonne_reponse, explication}
+            choix_c, choix_d, bonne_reponse, explication}
     """
     try:
         model = initialiser_ia()
@@ -380,7 +380,7 @@ Règles :
 
 def attribuer_badges(utilisateur):
     """
-    Vérifie et attribue automatiquement TOUS les badges (forum + apprentissage).
+    Vérifie et attribue automatiquement TOUS les badges (forum + apprentissage + compétences + projets + social + nouveaux).
     Retourne la liste des nouveaux badges attribués.
     """
     from .models import BadgeForum, Sujet, Reponse, Reaction, ResultatQuiz, ProgressionLecon, Lecon, Formation
@@ -388,7 +388,7 @@ def attribuer_badges(utilisateur):
     nouveaux_badges = []
     badges_existants = set(BadgeForum.objects.filter(utilisateur=utilisateur).values_list('type_badge', flat=True))
 
-    # --- Badges Forum ---
+    # --- Badges Forum (existants) ---
     nb_sujets = Sujet.objects.filter(auteur=utilisateur).count()
     nb_reponses = Reponse.objects.filter(auteur=utilisateur).count()
     nb_solutions = Reponse.objects.filter(auteur=utilisateur, acceptee=True).count()
@@ -402,6 +402,7 @@ def attribuer_badges(utilisateur):
         ('cinquante_reponses', nb_reponses >= 50),
         ('cent_likes', nb_likes_recus >= 100),
         ('sujet_populaire', Sujet.objects.filter(auteur=utilisateur, vues__gte=500).exists()),
+        ('membre_actif_forum', nb_sujets >= 3 or nb_reponses >= 5),  # nouveau
     ]
 
     # --- Badges Apprentissage ---
@@ -410,13 +411,12 @@ def attribuer_badges(utilisateur):
 
     lecons_terminees = ProgressionLecon.objects.filter(utilisateur=utilisateur, terminee=True)
     nb_lecons = lecons_terminees.count()
-    heures_apprentissage = nb_lecons * 0.5  # ~30 min par leçon
+    heures_apprentissage = nb_lecons * 0.5  # 30 min par leçon
 
     formations_completees = []
     for formation in Formation.objects.filter(actif=True):
         if formation.progression_pour(utilisateur) == 100:
             formations_completees.append(formation)
-
     nb_formations = len(formations_completees)
 
     apprentissage_badges = [
@@ -426,9 +426,15 @@ def attribuer_badges(utilisateur):
         ('cinquante_heures', heures_apprentissage >= 50),
         ('premiere_formation', nb_formations >= 1),
         ('trois_formations', nb_formations >= 3),
+        
+        # --- nouveaux badges apprentissage ---
+        ('premier_cours_termine', nb_formations >= 1),  # déjà couvert, mais on le laisse
+        ('cinq_lecons', nb_lecons >= 5),
+        ('dix_lecons', nb_lecons >= 10),
+        ('cinquante_lecons', nb_lecons >= 50),
     ]
 
-    # --- Badges Compétences ---
+    # --- Badges Compétences (existants + nouveaux) ---
     formations_noms = [f.nom.lower() for f in formations_completees]
     progression_noms = []
     for p in ProgressionLecon.objects.filter(utilisateur=utilisateur, terminee=True).select_related('lecon__module__formation'):
@@ -442,22 +448,18 @@ def attribuer_badges(utilisateur):
         ('expert_data', any(m in ' '.join(formations_noms) for m in ['donnée', 'data', 'analyse'])),
         ('expert_cyber', 'cybersécurité' in ' '.join(formations_noms)),
         ('expert_design', any(m in ' '.join(formations_noms) for m in ['design', 'graphique', 'création'])),
+        ('expert_excel', any(m in ' '.join(formations_noms) for m in ['excel', 'bureautique'])),  # nouveau
+        ('expert_ia', any(m in ' '.join(formations_noms) for m in ['ia', 'intelligence artificielle', 'prompt'])),  # nouveau
     ]
 
     # --- Badges Projet ---
-    # Basé sur les formations complétées (une formation = un projet)
     projets_badges = [
         ('projet_termine', nb_formations >= 1),
         ('trois_projets', nb_formations >= 3),
     ]
 
     # --- Badges Social ---
-    profile_complet = all([
-        utilisateur.first_name,
-        utilisateur.last_name,
-        utilisateur.email,
-    ])
-
+    profile_complet = all([utilisateur.first_name, utilisateur.last_name, utilisateur.email])
     social_badges = [
         ('profile_complet', profile_complet),
         ('premier_certificat', nb_formations >= 1),
@@ -474,14 +476,6 @@ def attribuer_badges(utilisateur):
             badges_existants.add(type_badge)
 
     return nouveaux_badges
-
-
-# Garder l'ancienne fonction pour rétrocompatibilité
-def attribuer_badges_forum(utilisateur):
-    """Ancienne fonction - appelle la nouvelle."""
-    return attribuer_badges(utilisateur)
-
-
 
 # ================================================
 # FONCTIONS IA POUR LE BOUTON IA (6 fonctionnalités)

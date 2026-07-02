@@ -465,30 +465,41 @@ class BadgeForum(models.Model):
     ('cinquante_reponses', '⭐ 50 Réponses'),
     ('cent_likes', '❤️ 100 Likes reçus'),
     ('sujet_populaire', '🏆 Sujet Populaire'),
-    
-    # Badges Apprentissage (nouveaux)
+
+    # Badges Apprentissage (existants)
     ('premier_quiz', '🏅 Premier Quiz Réussi'),
     ('cinq_quiz', '📝 5 Quiz Réussis'),
     ('dix_heures', '⏰ 10 Heures d\'Apprentissage'),
     ('cinquante_heures', '🎯 50 Heures d\'Apprentissage'),
     ('premiere_formation', '🎓 Première Formation Complétée'),
     ('trois_formations', '🏆 3 Formations Complétées'),
-    
-    # Badges Compétences (nouveaux)
+
+    # Badges Apprentissage (nouveaux)
+    ('premier_cours_termine', '🏅 Premier cours terminé'),
+    ('cinq_lecons', '📚 5 leçons terminées'),
+    ('dix_lecons', '📘 10 leçons terminées'),
+
+    # Badges Compétences (existants)
     ('expert_python', '🐍 Expert Python'),
     ('expert_web', '🌐 Expert Web'),
     ('expert_data', '📊 Expert Données'),
     ('expert_cyber', '🔒 Expert Cybersécurité'),
     ('expert_design', '🎨 Expert Design'),
-    # Badges Projet (nouveaux)
+
+    # Badges Compétences (nouveaux)
+    ('expert_excel', '📊 Expert Excel'),
+    ('expert_ia', '🤖 Expert IA'),
+
+    # Badges Projet (existants)
     ('projet_termine', '🚀 Projet Terminé'),
     ('trois_projets', '💼 3 Projets Livrés'),
-    # Badges Social (nouveaux)
+
+    # Badges Social (existants)
     ('profile_complet', '👤 Profil Complété'),
     ('premier_certificat', '📜 Premier Certificat'),
     ('membre_actif', '🌟 Membre Actif'),
+    ('membre_actif_forum', '💬 Membre actif du forum'),
 ]
-
     utilisateur = models.ForeignKey(
         'auth.User',
         on_delete=models.CASCADE,
