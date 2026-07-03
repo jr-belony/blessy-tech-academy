@@ -15,6 +15,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.template.loader import render_to_string
 from django.utils import timezone
+from django.conf import settings
+from django.utils import translation
 from datetime import timedelta
 from django.db.models.functions import TruncMonth
 from .models import (
@@ -1496,3 +1498,66 @@ def classement(request):
     return render(request, 'academie/classement.html', {
         'profils': profils,
     })
+
+
+def set_lang_fr(request):
+    """Passe la langue en français et redirige."""
+    from django.utils import translation
+    translation.activate('fr')
+    response = redirect(request.META.get('HTTP_REFERER', '/'))
+    response.set_cookie(settings.LANGUAGE_COOKIE_NAME, 'fr')
+    return response
+
+def set_lang_ht(request):
+    """Passe la langue en créole et redirige."""
+    from django.utils import translation
+    translation.activate('ht')
+    response = redirect(request.META.get('HTTP_REFERER', '/'))
+    response.set_cookie(settings.LANGUAGE_COOKIE_NAME, 'ht')
+    return response
+
+
+def ressources(request):
+    """Page listant tous les articles de blog publiés."""
+    from .models import Article
+    articles = Article.objects.filter(statut='publie').order_by('-date_publication')
+    
+    # Pagination
+    paginator = Paginator(articles, 6)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'academie/ressources.html', {
+        'articles': page_obj,
+        'page_obj': page_obj,
+    })
+
+
+def article_detail(request, slug):
+    """Page de détail d'un article."""
+    from .models import Article
+    article = Article.objects.get(slug=slug, statut='publie')
+    return render(request, 'academie/article_detail.html', {
+        'article': article,
+    })
+
+
+@staff_member_required
+@csrf_exempt
+def api_generer_article(request):
+    """API pour générer un article via l'IA (admin only)."""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            titre = data.get('titre', '').strip()
+            tags = data.get('tags', '').strip()
+
+            if not titre:
+                return JsonResponse({'erreur': 'Titre requis'}, status=400)
+
+            from .ia import generer_article
+            resultat = generer_article(titre, tags)
+            return JsonResponse(resultat)
+        except Exception as e:
+            return JsonResponse({'erreur': str(e)}, status=500)
+    return JsonResponse({'erreur': 'Méthode non autorisée'}, status=405)

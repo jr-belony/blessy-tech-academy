@@ -643,3 +643,30 @@ class ProfilUtilisateur(models.Model):
         seuils = [s for s, _ in self.NIVEAUX]
         seuil_actuel = max([s for s in seuils if s <= self.xp])
         return round(((self.xp - seuil_actuel) / (prochain - seuil_actuel)) * 100) if prochain > seuil_actuel else 0
+    
+
+class Article(models.Model):
+    """Article de blog / Ressource pédagogique."""
+    STATUS = [
+        ('brouillon', 'Brouillon'),
+        ('publie', 'Publié'),
+    ]
+
+    titre = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=200, unique=True)
+    contenu = CKEditor5Field(config_name='default')
+    resume = models.TextField(max_length=500, help_text="Résumé affiché dans la liste des articles")
+    image = models.ImageField(upload_to='blog/', blank=True, null=True)
+    auteur = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='articles')
+    statut = models.CharField(max_length=20, choices=STATUS, default='brouillon')
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_publication = models.DateTimeField(blank=True, null=True)
+    tags = models.CharField(max_length=300, blank=True, help_text="Mots-clés séparés par des virgules")
+
+    class Meta:
+        ordering = ['-date_creation']
+        verbose_name = 'Article'
+        verbose_name_plural = 'Articles'
+
+    def __str__(self):
+        return self.titre   

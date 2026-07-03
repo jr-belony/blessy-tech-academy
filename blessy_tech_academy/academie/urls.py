@@ -62,4 +62,8 @@ urlpatterns = [
     path('certificat/<str:numero>/', views.verifier_certificat, name='verifier_certificat'),
     path('notifications/', views.notifications_liste, name='notifications_liste'),
     path('classement/', views.classement, name='classement'),
+    path('setlang/fr/', views.set_lang_fr, name='set_lang_fr'),
+    path('setlang/ht/', views.set_lang_ht, name='set_lang_ht'),
+    path('ressources/', views.ressources, name='ressources'),
+    path('ressources/<slug:slug>/', views.article_detail, name='article_detail'),
 ]

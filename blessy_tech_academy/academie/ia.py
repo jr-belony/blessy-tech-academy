@@ -583,3 +583,42 @@ def calculer_stats_etudiant(utilisateur):
         'badges': badges,
         'certificats_disponibles': len(formations_completees),
     }
+
+
+def generer_article(sujet, mots_cles=""):
+    """
+    Génère un article de blog pédagogique via l'IA.
+    
+    Args:
+        sujet: Le sujet principal de l'article
+        mots_cles: Mots-clés supplémentaires (optionnel)
+    
+    Returns:
+        dict: {titre, resume, contenu, tags}
+    """
+    try:
+        client = initialiser_ia()
+        
+        prompt = f"""
+Tu es un rédacteur expert pour Blessy Tech Academy, une école de technologie en Haïti.
+Rédige un article de blog pédagogique complet sur le sujet suivant : "{sujet}".
+{"Mots-clés à intégrer : " + mots_cles if mots_cles else ""}
+
+Structure TA réponse UNIQUEMENT au format JSON suivant, sans texte avant/après, sans markdown :
+
+{{
+    "titre": "Titre accrocheur et SEO-friendly",
+    "resume": "Résumé de 2-3 phrases qui donne envie de lire",
+    "contenu": "Contenu complet en Markdown avec ## pour les titres, **gras**, listes, etc. Minimum 500 mots.",
+    "tags": "mot-clé1, mot-clé2, mot-clé3"
+}}
+
+Le contenu doit être en français, pédagogique, professionnel, et adapté au contexte haïtien et international.
+Utilise un ton engageant et inclusif. Structure avec introduction, corps (2-3 sections), et conclusion.
+"""
+        response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
+        texte = response.text.strip().replace('```json', '').replace('```', '').strip()
+        return json.loads(texte)
+    except Exception as e:
+        logger.exception("Erreur génération article")
+        return {'titre': '', 'resume': '', 'contenu': '', 'tags': '', 'erreur': str(e)}

@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -10,8 +11,8 @@
     <link rel="stylesheet" href="{% static 'academie/css/dark-mode.css' %}">
     
     <!-- CKEditor 5 -->
-<script src="https://cdn.ckeditor.com/ckeditor5/43.0.0/ckeditor5.umd.js"></script>
-<link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/43.0.0/ckeditor5.css">
+    <script src="https://cdn.ckeditor.com/ckeditor5/43.0.0/ckeditor5.umd.js"></script>
+    <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/43.0.0/ckeditor5.css">
 </head>
 <body>
 
@@ -25,56 +26,75 @@
         <label for="menu-toggle" class="menu-burger">☰</label>
 
         <nav>
-    <a href="{% url 'accueil' %}">Accueil</a>
-    <a href="{% url 'formations' %}">Formations</a>
-    <a href="{% url 'forum_liste' %}">💬 Forum</a>
-    <a href="{% url 'classement' %}">🏆 Classement</a>
-    <a href="{% url 'orientation_ia' %}">🎯 Mon Parcours</a>
-    <a href="{% url 'apropos' %}">À propos</a>
-    <a href="{% url 'contact' %}">Contact</a>
-    <a href="{% url 'recherche' %}">🔍 Rechercher</a>
-    <a href="{% url 'chat_ia' %}">🤖 Chat IA</a>
-    <a href="{% url 'notifications_liste' %}" style="position: relative; display: inline-flex; align-items: center;">
-    🔔
-    {% if nb_notifications > 0 %}
-    <span style="position: absolute; top: -8px; right: -12px; background: #e53e3e; color: white; border-radius: 50%; padding: 2px 6px; font-size: 11px; font-weight: bold; line-height: 1;">
-        {{ nb_notifications }}
-    </span>
-    {% endif %}
-</a>
+            <!-- Toujours visibles -->
+            <a href="{% url 'accueil' %}">{% trans "Accueil" %}</a>
+            <a href="{% url 'formations' %}">{% trans "Formations" %}</a>
 
-    {% if user.is_authenticated %}
-        <a href="{% url 'dashboard' %}"
-        style="color: var(--bleu-electrique);">
-            👤 {{ user.first_name|default:user.username }}
-        </a>
-        {% if user.is_staff %}
-        <a href="{% url 'statistiques' %}" style="color: var(--orange-accent);">
-            📊 Stats
-        </a>
-    {% endif %}
-    {% else %}
-        <a href="{% url 'connexion' %}">Connexion</a>
-        <a href="{% url 'inscription_compte' %}"
-        style="background: var(--orange-accent);
-                padding: 6px 14px;
-                border-radius: 6px;">
-            S'inscrire
-        </a>
-    {% endif %}
-    
-    <!-- Bouton mode sombre -->
-    <a href="#" id="dark-mode-toggle" style="cursor: pointer; margin-left: 12px;" title="Mode sombre">
-        🌙
-    </a>
-</nav>
+            {% if user.is_authenticated %}
+                <!-- Après connexion -->
+                <a href="{% url 'forum_liste' %}">{% trans "Forum" %}</a>
+                <a href="{% url 'orientation_ia' %}">{% trans "Mon parcours" %}</a>
+                <a href="{% url 'classement' %}">{% trans "Classement" %}</a>
+            {% else %}
+                <!-- Avant connexion -->
+                <a href="{% url 'orientation_ia' %}">{% trans "Parcours" %}</a>
+                <a href="{% url 'forum_liste' %}">{% trans "Forum" %}</a>
+            {% endif %}
+
+            <a href="{% url 'ressources' %}">{% trans "Ressources" %}</a>
+            <a href="{% url 'apropos' %}">{% trans "À propos" %}</a>
+            <a href="{% url 'contact' %}">{% trans "Contact" %}</a>
+
+            <!-- Recherche -->
+            <a href="{% url 'recherche' %}" title="{% trans 'Rechercher' %}">🔍</a>
+
+            <!-- Blessy AI -->
+            <a href="{% url 'chat_ia' %}">🤖 {% trans "Blessy AI" %}</a>
+
+            <!-- Sélecteur de langue -->
+            <div style="display: inline-flex; align-items: center; margin-left: 6px; gap: 6px;">
+                <a href="{% url 'set_lang_fr' %}" class="lang-link {% if request.LANGUAGE_CODE == 'fr' %}lang-active{% endif %}">🇫🇷</a>
+                <span style="color:#ccc;">|</span>
+                <a href="{% url 'set_lang_ht' %}" class="lang-link {% if request.LANGUAGE_CODE == 'ht' %}lang-active{% endif %}">🇭🇹</a>
+            </div>
+
+            {% if user.is_authenticated %}
+                <!-- Notifications -->
+                <a href="{% url 'notifications_liste' %}" style="position: relative; display: inline-flex; align-items: center;">
+                    🔔
+                    {% if nb_notifications > 0 %}
+                    <span style="position: absolute; top: -8px; right: -12px; background: #e53e3e; color: white; border-radius: 50%; padding: 2px 6px; font-size: 11px; font-weight: bold; line-height: 1;">
+                        {{ nb_notifications }}
+                    </span>
+                    {% endif %}
+                </a>
+                <!-- Profil connecté -->
+                <a href="{% url 'dashboard' %}" style="color: var(--bleu-electrique);">
+                    👤 {{ user.first_name|default:user.username }}
+                </a>
+                {% if user.is_staff %}
+                <a href="{% url 'statistiques' %}" style="color: var(--orange-accent);">
+                    {% trans "Stats" %}
+                </a>
+                {% endif %}
+            {% else %}
+                <!-- Non connecté -->
+                <a href="{% url 'connexion' %}">{% trans "Connexion" %}</a>
+                <a href="{% url 'inscription_compte' %}" style="background: var(--orange-accent); padding: 6px 14px; border-radius: 6px;">
+                    🎁 {% trans "Commencer gratuitement" %}
+                </a>
+            {% endif %}
+
+            <!-- Bouton mode sombre -->
+            <a href="#" id="dark-mode-toggle" style="cursor: pointer; margin-left: 6px;" title="Mode sombre">
+                🌙
+            </a>
+        </nav>
     </header>
 
     <main>
-        <>
-
-    <!-- Messages de confirmation/erreur -->
-    {% if messages %}
+        <!-- Messages de confirmation/erreur -->
+        {% if messages %}
         <div class="messages-container">
             {% for message in messages %}
                 <div class="message message-{{ message.tags }}">
@@ -82,7 +102,8 @@
                 </div>
             {% endfor %}
         </div>
-    {% endif %}
+        {% endif %}
+
         {% block contenu %}{% endblock %}
     </main>
 
@@ -90,51 +111,64 @@
         <div class="footer-contenu">
             <div class="footer-bloc">
                 <h4>⚡ Blessy Tech Academy</h4>
-                <p>L'école de la haute technologie moderne d'Haïti.</p>
+                <p>{% trans "L'école de la haute technologie moderne d'Haïti." %}</p>
             </div>
             <div class="footer-bloc">
-                <h4>Navigation</h4>
+                <h4>{% trans "Navigation" %}</h4>
                 <ul>
-                    <li><a href="{% url 'accueil' %}">Accueil</a></li>
-                    <li><a href="{% url 'formations' %}">Formations</a></li>
-                    <li><a href="{% url 'apropos' %}">À propos</a></li>
-                    <li><a href="{% url 'contact' %}">Contact</a></li>
+                    <li><a href="{% url 'accueil' %}">{% trans "Accueil" %}</a></li>
+                    <li><a href="{% url 'formations' %}">{% trans "Formations" %}</a></li>
+                    <li><a href="{% url 'apropos' %}">{% trans "À propos" %}</a></li>
+                    <li><a href="{% url 'contact' %}">{% trans "Contact" %}</a></li>
                 </ul>
             </div>
             <div class="footer-bloc">
-                <h4>Contact</h4>
+                <h4>{% trans "Contact" %}</h4>
                 <p>📧 contact@blessyconnect.com</p>
                 <p>📍 Haïti & Diaspora</p>
             </div>
         </div>
         <div class="footer-bas">
-            <p>&copy; 2026 Blessy Tech Academy — Tous droits réservés</p>
+            <p>&copy; 2026 Blessy Tech Academy — {% trans "Tous droits réservés" %}</p>
         </div>
     </footer>
-<script src="{% static 'academie/js/animations.js' %}"></script>
 
-<!-- Script mode sombre -->
-<script>
-    const body = document.body;
-    const toggleBtn = document.getElementById('dark-mode-toggle');
+    <script src="{% static 'academie/js/animations.js' %}"></script>
 
-    // Vérifie la préférence sauvegardée
-    if (localStorage.getItem('dark-mode') === 'enabled') {
-        body.classList.add('dark-mode');
-        toggleBtn.textContent = '☀️';
-    }
-
-    toggleBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        body.classList.toggle('dark-mode');
-        if (body.classList.contains('dark-mode')) {
-            localStorage.setItem('dark-mode', 'enabled');
-            toggleBtn.textContent = '☀️';
-        } else {
-            localStorage.setItem('dark-mode', 'disabled');
-            toggleBtn.textContent = '🌙';
+    <!-- Styles pour les boutons de langue -->
+    <style>
+        .lang-link {
+            text-decoration: none;
+            color: var(--gris-texte);
         }
-    });
-</script>
+        .lang-active {
+            font-weight: bold;
+            color: var(--bleu-principal);
+        }
+    </style>
+
+    <!-- Script mode sombre -->
+    <script>
+        const body = document.body;
+        const toggleBtn = document.getElementById('dark-mode-toggle');
+
+        // Vérifie la préférence sauvegardée
+        if (localStorage.getItem('dark-mode') === 'enabled') {
+            body.classList.add('dark-mode');
+            toggleBtn.textContent = '☀️';
+        }
+
+        toggleBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            body.classList.toggle('dark-mode');
+            if (body.classList.contains('dark-mode')) {
+                localStorage.setItem('dark-mode', 'enabled');
+                toggleBtn.textContent = '☀️';
+            } else {
+                localStorage.setItem('dark-mode', 'disabled');
+                toggleBtn.textContent = '🌙';
+            }
+        });
+    </script>
 </body>
 </html>

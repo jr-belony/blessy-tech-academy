@@ -1,17 +1,14 @@
 document.addEventListener('DOMContentLoaded', function () {
-
-    // Actif uniquement sur la page de modification d'une Leçon existante
     const correspondance = window.location.pathname.match(/\/admin\/academie\/lecon\/(\d+)\/change\//);
     if (!correspondance) return;
 
     const leconId = correspondance[1];
-
     const champContenu = document.querySelector('#id_contenu');
     if (!champContenu) return;
 
     const bouton = document.createElement('button');
     bouton.type = 'button';
-    bouton.textContent = '✨ Générer le contenu de cette leçon avec Blessy AI';
+    bouton.textContent = '✨ Générer le contenu avec Blessy AI';
     bouton.style.cssText = `
         background: linear-gradient(135deg, #0B2447, #00B4D8);
         color: white;
@@ -43,16 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     bouton.addEventListener('click', async function () {
-
-        if (champContenu.value.trim().length > 50) {
-            const confirmation = confirm(
-                "⚠️ Cette leçon a déjà du contenu. Le générer à nouveau " +
-                "remplacera le contenu existant. Continuer ?"
-            );
-            if (!confirmation) return;
-        }
-
-        bouton.textContent = '⏳ Génération en cours (10-20s)...';
+        bouton.textContent = '⏳ Génération en cours...';
         bouton.disabled = true;
 
         try {
@@ -62,23 +50,30 @@ document.addEventListener('DOMContentLoaded', function () {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': getCookie('csrftoken'),
                 },
-                body: JSON.stringify({ lecon_id: leconId })
+                body: JSON.stringify({ lecon_id: parseInt(leconId) })
             });
 
             const data = await reponse.json();
 
-            if (data.erreur) {
-                alert('❌ Erreur : ' + data.erreur);
-            } else {
+            if (data.succes) {
+                // Textarea source (pour la sauvegarde Django)
                 champContenu.value = data.contenu;
-                alert('✅ Contenu généré ! Relis et ajuste si nécessaire avant de sauvegarder.');
-            }
 
+                // Éditeur visuel CKEditor 5
+                const editorVisual = document.querySelector('.ck-editor__editable');
+                if (editorVisual) {
+                    editorVisual.innerHTML = data.contenu;
+                }
+
+                alert('✅ Contenu généré ! Sauvegarde pour conserver.');
+            } else {
+                alert('❌ Erreur : ' + (data.erreur || 'Inconnue'));
+            }
         } catch (erreur) {
             alert('❌ Impossible de contacter le serveur.');
         }
 
-        bouton.textContent = '✨ Générer le contenu de cette leçon avec Blessy AI';
+        bouton.textContent = '✨ Générer le contenu avec Blessy AI';
         bouton.disabled = false;
     });
 });

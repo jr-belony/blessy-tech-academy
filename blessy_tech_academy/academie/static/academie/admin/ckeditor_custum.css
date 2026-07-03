@@ -1,0 +1,12 @@
+/* Agrandir l'éditeur CKEditor pour les articles et les leçons */
+.cke_editor_id_contenu {
+    min-height: 600px !important;
+}
+.cke_contents {
+    min-height: 550px !important;
+}
+
+/* Si tu utilises aussi CKEditor 5 */
+.ck-editor__editable {
+    min-height: 500px !important;
+}

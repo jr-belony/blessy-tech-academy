@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import admin
 from .models import (Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz, Module, Lecon, ProgressionLecon,
-Parcours, Sujet, Reponse, Reaction, )
+Parcours, Sujet, Reponse, Reaction, Article) 
 
 @admin.register(Ecole)
 class EcoleAdmin(admin.ModelAdmin):
@@ -115,6 +115,7 @@ class ModuleAdmin(admin.ModelAdmin):
 
     class Media:
         js = ['academie/admin/generer_programme.js', 'academie/admin/generer_contenu_module.js']
+
 @admin.register(Lecon)
 class LeconAdmin(admin.ModelAdmin):
     list_display = ['titre', 'get_ecole', 'get_formation', 'module', 'duree_minutes', 'ordre']
@@ -190,6 +191,57 @@ class ReactionAdmin(admin.ModelAdmin):
 
 
 # ================================================
+# Articles de blog
+# ================================================
+
+@admin.register(Article)
+class ArticleAdmin(admin.ModelAdmin):
+    list_display = ['titre', 'auteur', 'statut', 'date_creation', 'date_publication']
+    list_filter = ['statut', 'date_creation']
+    search_fields = ['titre', 'contenu', 'tags']
+    prepopulated_fields = {'slug': ('titre',)}
+    readonly_fields = ['date_creation']
+    list_editable = ['statut']
+
+    fieldsets = [
+        ('Informations principales', {
+            'fields': ['titre', 'slug', 'auteur', 'statut']
+        }),
+        ('Contenu', {
+            'fields': ['resume', 'contenu', 'image']
+        }),
+        ('Publication', {
+            'fields': ['tags', 'date_creation', 'date_publication']
+        }),
+    ]
+
+    actions = ['generer_article_ia']
+
+    @admin.action(description="🤖 Générer le contenu avec l'IA")
+    def generer_article_ia(self, request, queryset):
+        from .ia import generer_article
+        for article in queryset:
+            if not article.contenu:
+                resultat = generer_article(article.titre, article.tags)
+                if 'erreur' not in resultat or not resultat['erreur']:
+                    article.contenu = resultat.get('contenu', '')
+                    article.resume = resultat.get('resume', '')
+                    article.tags = resultat.get('tags', '')
+                    article.save()
+                    self.message_user(request, f"✅ Article '{article.titre}' généré avec succès.")
+                else:
+                    self.message_user(request, f"❌ Erreur pour '{article.titre}': {resultat['erreur']}", level='error')
+            else:
+                self.message_user(request, f"⚠️ '{article.titre}' a déjà du contenu.", level='warning')
+
+    class Media:
+        css = {
+            'all': ['academie/admin/ckeditor_custom.css']
+        }
+        js = ['academie/admin/generer_article.js']
+
+
+# ================================================
 # Vue personnalisée — Gestion organisée par École
 # ================================================
 
@@ -220,6 +272,7 @@ class GestionCoursAdminSite:
             'title': 'Gestion des cours par école',
             'site_header': admin.site.site_header,
         })
+
 # Injecte les nouvelles URLs dans l'admin
 _original_get_urls = admin.site.get_urls
 _gestion = GestionCoursAdminSite()
