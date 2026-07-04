@@ -21,7 +21,8 @@ from datetime import timedelta
 from django.db.models.functions import TruncMonth
 from .models import (
     Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz,
-    Module, Lecon, ProgressionLecon, Parcours, Sujet, Reponse, Reaction, ProjetEtudiant, Certificat
+    Module, Lecon, ProgressionLecon, Parcours, Sujet, Reponse, Reaction, 
+    ProjetEtudiant, Certificat, Article
 )
 from .forms import InscriptionForm, InscriptionCompteForm, ConnexionForm, SujetForm, ReponseForm 
 from . import notifications
@@ -71,6 +72,9 @@ def _construire_contexte_utilisateur(request):
 def accueil(request):
     """Page d'accueil avec statistiques dynamiques."""
     formations = Formation.objects.filter(actif=True)[:4]
+    formations_gratuites = Formation.objects.filter(actif=True, gratuit=True)
+    ecoles = Ecole.objects.all()
+    parcours_list = Parcours.objects.filter(actif=True)
 
     nb_etudiants = User.objects.filter(is_active=True).count()
     nb_formations = Formation.objects.filter(actif=True).count()
@@ -82,9 +86,16 @@ def accueil(request):
         {'valeur': nb_sujets_forum, 'suffixe': '', 'label': 'Sujets forum'},
     ]
     print("DEBUG STATS:", stats)
+
+    articles_recents = Article.objects.filter(statut='publie').order_by('-date_publication')[:3]
+
     return render(request, 'academie/accueil.html', {
         'formations': formations,
+        'formations_gratuites': formations_gratuites,
+        'ecoles': ecoles,
+        'parcours_list': parcours_list,
         'stats': stats,
+        'articles_recents': articles_recents,
     })
 
 
@@ -1518,20 +1529,52 @@ def set_lang_ht(request):
 
 
 def ressources(request):
-    """Page listant tous les articles de blog publiés."""
+    """Page listant tous les articles de blog publiés avec recherche et filtres."""
     from .models import Article
+
+    # Récupérer les paramètres de recherche et de filtre
+    recherche = request.GET.get('q', '').strip()
+    tag_filtre = request.GET.get('tag', '').strip()
+
     articles = Article.objects.filter(statut='publie').order_by('-date_publication')
-    
+
+    if recherche:
+        articles = articles.filter(
+            Q(titre__icontains=recherche) | Q(contenu__icontains=recherche)
+        )
+
+    if tag_filtre:
+        articles = articles.filter(tags__icontains=tag_filtre)
+
+    # Article vedette (le plus récent)
+    article_vedette = articles.first()
+
+    # Derniers articles (sans le vedette)
+    derniers_articles = articles[1:] if article_vedette else articles
+
     # Pagination
-    paginator = Paginator(articles, 6)
+    paginator = Paginator(derniers_articles, 6)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
 
-    return render(request, 'academie/ressources.html', {
-        'articles': page_obj,
-        'page_obj': page_obj,
-    })
+    # Récupérer tous les tags distincts pour les filtres
+    tous_articles = Article.objects.filter(statut='publie')
+    tags_set = set()
+    for article in tous_articles:
+        if article.tags:
+            for tag in article.tags.split(','):
+                tag_clean = tag.strip()
+                if tag_clean:
+                    tags_set.add(tag_clean)
+    tags_list = sorted(tags_set)
 
+    return render(request, 'academie/ressources.html', {
+        'article_vedette': article_vedette,
+        'page_obj': page_obj,
+        'recherche': recherche,
+        'tag_filtre': tag_filtre,
+        'tags_list': tags_list,
+    })
 
 def article_detail(request, slug):
     """Page de détail d'un article."""

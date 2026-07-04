@@ -26,6 +26,50 @@
     </div>
 </section>
 
+<!-- TRUST BAR -->
+<section class="trust-bar fade-in-section">
+
+    <div class="trust-container">
+
+        <div class="trust-item">
+            <div class="trust-icon">🎓</div>
+            <h3>Certificats vérifiables</h3>
+            <p>QR Code & ID unique</p>
+        </div>
+
+        <div class="trust-item">
+            <div class="trust-icon">🤖</div>
+            <h3>IA pédagogique</h3>
+            <p>Blessy AI disponible 24h/24</p>
+        </div>
+
+        <div class="trust-item">
+            <div class="trust-icon">💼</div>
+            <h3>Formation pratique</h3>
+            <p>Projets réels & compétences métier</p>
+        </div>
+
+        <div class="trust-item">
+            <div class="trust-icon">🏅</div>
+            <h3>XP & Badges</h3>
+            <p>Progression gamifiée</p>
+        </div>
+
+        <div class="trust-item">
+            <div class="trust-icon">🌍</div>
+            <h3>Accessible partout</h3>
+            <p>PC, tablette & mobile</p>
+        </div>
+
+        <div class="trust-item">
+            <div class="trust-icon">💬</div>
+            <h3>Forum collaboratif</h3>
+            <p>Apprendre avec la communauté</p>
+        </div>
+
+    </div>
+
+</section>
 <section class="stats fade-in-section">
     <div class="stats-grille">
         {% for stat in stats %}
@@ -83,6 +127,46 @@
         </div>
     </div>
 </section>
+
+
+<!-- 🔟 BLESSY AI (fond clair pour contraste) -->
+<section class="ai-light fade-in-section">
+    <div class="ai-light-content">
+        <span class="ai-light-icon">🤖</span>
+        <h2>Blessy AI, ton assistant pédagogique</h2>
+        <p>Pose toutes tes questions, fais corriger ton code, génère des exercices et progresse plus vite avec l'intelligence artificielle intégrée à ta formation.</p>
+        <a href="{% url 'chat_ia' %}" class="btn-ai">Essayer Blessy AI →</a>
+    </div>
+</section>
+
+
+<!-- 1️⃣1️⃣ CENTRE DE RESSOURCES -->
+<section class="ressources-bta fade-in-section">
+    <h2 class="ressources-bta-title">📚 Centre de ressources</h2>
+    <p class="ressources-bta-desc">Articles et tutoriels pour booster tes compétences.</p>
+    {% if articles_recents %}
+    <div class="ressources-bta-grid">
+        {% for article in articles_recents %}
+        <a href="{% url 'article_detail' article.slug %}" class="ressources-bta-card">
+            {% if article.image %}
+            <img src="{{ article.image.url }}" alt="{{ article.titre }}">
+            {% endif %}
+            <div class="ressources-bta-card-body">
+                <h3>{{ article.titre }}</h3>
+                <p>{{ article.resume|truncatewords:15 }}</p>
+                <span class="ressources-bta-date">{{ article.date_publication|date:"d/m/Y" }}</span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="ressources-bta-desc">Aucun article pour le moment. Reviens bientôt !</p>
+    {% endif %}
+    <div class="ressources-bta-footer">
+        <a href="{% url 'ressources' %}" class="btn-premium-outline">Voir toutes les ressources →</a>
+    </div>
+</section>
+
 
 <section class="cta fade-in-section">
     <h2>Prêt à commencer ton parcours ?</h2>

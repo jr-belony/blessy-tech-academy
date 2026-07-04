@@ -5,44 +5,132 @@
 
 {% block contenu %}
 
+<!-- HERO DE LA PAGE RESSOURCES -->
 <section class="page-hero">
-    <h2>📚 {% trans "Ressources" %}</h2>
-    <p>{% trans "Articles, tutoriels et ressources pédagogiques." %}</p>
+    <h2>📚 {% trans "Centre de Ressources" %}</h2>
+    <p>{% trans "Articles, tutoriels et ressources pour booster tes compétences." %}</p>
 </section>
 
-<section style="max-width: 1100px; margin: 0 auto; padding: 40px 20px;">
-    <div class="formations-grille">
-        {% for article in articles %}
-        <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: var(--ombre-legere);">
-            {% if article.image %}
-            <img src="{{ article.image.url }}" alt="{{ article.titre }}" style="width:100%; height:180px; object-fit:cover; border-radius:8px; margin-bottom:12px;">
-            {% endif %}
-            <h3 style="font-size:18px; margin-bottom:8px;">
-                <a href="{% url 'article_detail' article.slug %}" style="color: var(--bleu-principal); text-decoration:none;">
-                    {{ article.titre }}
-                </a>
-            </h3>
-            <p style="font-size:14px; color:#666; margin-bottom:12px;">{{ article.resume|truncatewords:20 }}</p>
-            <div style="display:flex; justify-content:space-between; font-size:12px; color:#999;">
-                <span>{{ article.date_publication|date:"d/m/Y" }}</span>
-                <span>{{ article.auteur.first_name|default:article.auteur.username }}</span>
-            </div>
-        </div>
-        {% empty %}
-        <p style="text-align:center; color:#999;">{% trans "Aucun article pour le moment." %}</p>
-        {% endfor %}
-    </div>
+<!-- BARRE DE RECHERCHE + FILTRES -->
+<section style="background: white; padding: 32px 20px; border-bottom: 1px solid #f0f0f0;">
+    <div style="max-width: 1100px; margin: 0 auto;">
 
-    {% if page_obj.has_other_pages %}
-    <div style="display:flex; justify-content:center; gap:8px; margin-top:32px;">
-        {% if page_obj.has_previous %}
-        <a href="?page={{ page_obj.previous_page_number }}" style="padding:8px 16px; background:white; border-radius:6px;">← {% trans "Précédent" %}</a>
+        <!-- Barre de recherche -->
+        <form method="GET" style="display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;">
+            <input type="text" name="q" value="{{ recherche }}" placeholder="🔍 {% trans 'Rechercher un article...' %}"
+                   style="flex: 1; min-width: 200px; padding: 14px 20px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 15px; font-family: inherit;">
+            <button type="submit" class="btn-premium-outline" style="white-space: nowrap;">
+                {% trans "Rechercher" %}
+            </button>
+            {% if recherche %}
+            <a href="{% url 'ressources' %}" class="btn-premium-outline" style="white-space: nowrap;">
+                ✕ {% trans "Effacer" %}
+            </a>
+            {% endif %}
+        </form>
+
+        <!-- Filtres par tags -->
+        {% if tags_list %}
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <a href="{% url 'ressources' %}" class="filter-pill {% if not tag_filtre %}filter-pill-active{% endif %}">
+                {% trans "Tous" %}
+            </a>
+            {% for tag in tags_list %}
+            <a href="?tag={{ tag|urlencode }}{% if recherche %}&q={{ recherche|urlencode }}{% endif %}" 
+               class="filter-pill {% if tag_filtre == tag %}filter-pill-active{% endif %}">
+                {{ tag }}
+            </a>
+            {% endfor %}
+        </div>
         {% endif %}
-        {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}" style="padding:8px 16px; background:white; border-radius:6px;">{% trans "Suivant" %} →</a>
-        {% endif %}
+
     </div>
-    {% endif %}
+</section>
+
+<!-- SECTION ARTICLES -->
+<section style="background: #f8fafc; padding: 60px 20px;">
+    <div style="max-width: 1100px; margin: 0 auto;">
+
+        <!-- Article vedette -->
+        {% if article_vedette %}
+        <div style="margin-bottom: 56px;">
+            <p style="font-size: 13px; color: #00B4D8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;">
+                🔥 {% trans "Article vedette" %}
+            </p>
+            <a href="{% url 'article_detail' article_vedette.slug %}" class="article-hero-card">
+                {% if article_vedette.image %}
+                <div class="article-hero-image">
+                    <img src="{{ article_vedette.image.url }}" alt="{{ article_vedette.titre }}">
+                </div>
+                {% endif %}
+                <div class="article-hero-body">
+                    <span class="article-hero-tag">{{ article_vedette.tags|default:""|slice:":30" }}</span>
+                    <h2>{{ article_vedette.titre }}</h2>
+                    <p>{{ article_vedette.resume|truncatewords:25 }}</p>
+                    <div class="article-hero-meta">
+                        <span>{{ article_vedette.auteur.first_name|default:article_vedette.auteur.username }}</span>
+                        <span>{{ article_vedette.date_publication|date:"d/m/Y" }}</span>
+                        <span>{% trans "Lire l'article" %} →</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- Derniers articles (grille) -->
+        {% if page_obj %}
+        <div class="articles-grid">
+            {% for article in page_obj %}
+            <a href="{% url 'article_detail' article.slug %}" class="article-card">
+                {% if article.image %}
+                <div class="article-card-image">
+                    <img src="{{ article.image.url }}" alt="{{ article.titre }}">
+                </div>
+                {% endif %}
+                <div class="article-card-body">
+                    <span class="article-card-tag">{{ article.tags|default:""|slice:":30" }}</span>
+                    <h3>{{ article.titre }}</h3>
+                    <p>{{ article.resume|truncatewords:15 }}</p>
+                    <div class="article-card-meta">
+                        <span>{{ article.date_publication|date:"d/m/Y" }}</span>
+                        <span>→ {% trans "Lire" %}</span>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% elif not article_vedette %}
+        <p style="text-align: center; color: #666; padding: 60px 0;">
+            {% trans "Aucun article pour le moment. Reviens bientôt !" %}
+        </p>
+        {% endif %}
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="pagination-modern">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if tag_filtre %}&tag={{ tag_filtre|urlencode }}{% endif %}{% if recherche %}&q={{ recherche|urlencode }}{% endif %}" class="pagination-btn">
+                ← {% trans "Précédent" %}
+            </a>
+            {% endif %}
+            <div class="pagination-numbers">
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <span class="pagination-current">{{ num }}</span>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <a href="?page={{ num }}{% if tag_filtre %}&tag={{ tag_filtre|urlencode }}{% endif %}{% if recherche %}&q={{ recherche|urlencode }}{% endif %}" class="pagination-link">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if tag_filtre %}&tag={{ tag_filtre|urlencode }}{% endif %}{% if recherche %}&q={{ recherche|urlencode }}{% endif %}" class="pagination-btn">
+                {% trans "Suivant" %} →
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    </div>
 </section>
 
 {% endblock %}
