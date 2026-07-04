@@ -19,6 +19,7 @@ from django.conf import settings
 from django.utils import translation
 from datetime import timedelta
 from django.db.models.functions import TruncMonth
+from django_ratelimit.decorators import ratelimit
 from .models import (
     Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz,
     Module, Lecon, ProgressionLecon, Parcours, Sujet, Reponse, Reaction, 
@@ -168,6 +169,7 @@ def contact(request):
 # Authentification
 # ================================================
 
+@ratelimit(key='ip', rate='3/m', block=True)
 def inscription_compte(request):
     """Créer un nouveau compte étudiant."""
     if request.user.is_authenticated:
@@ -197,6 +199,7 @@ def inscription_compte(request):
                 {'form': form})
 
 
+@ratelimit(key='ip', rate='5/m', block=True)
 def connexion(request):
     """Connexion à un compte existant."""
     if request.user.is_authenticated:
@@ -405,6 +408,7 @@ def chat_ia(request):
 
 
 @csrf_exempt
+@ratelimit(key='user_or_ip', rate='10/m', block=True)
 def api_chat_ia(request):
     """API endpoint pour le chat IA (AJAX) avec mémoire de conversation."""
     if request.method == 'POST':

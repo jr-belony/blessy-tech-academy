@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.facebook',
 
     'academie',
+    
 ]
 # Debug Toolbar (développement uniquement)
 if DEBUG:
@@ -68,6 +69,7 @@ if DEBUG:
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'csp.middleware.CSPMiddleware',          # ← ici
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',          # ← Multilingue
@@ -273,3 +275,48 @@ ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_EMAIL_VERIFICATION = 'optional'
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_LOGIN_ON_GET = True
+
+
+# ========== Sécurité des cookies ==========
+CSRF_COOKIE_HTTPONLY = True
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Strict'
+SESSION_COOKIE_SAMESITE = 'Strict'
+CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+
+# ========== HSTS et HTTPS ==========
+if not DEBUG:
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# ========== Protection XSS ==========
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+
+# ========== Anti-clickjacking ==========
+X_FRAME_OPTIONS = 'DENY'
+
+# ========== Content Security Policy ==========
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC = ("'self'",
+                "https://cdn.ckeditor.com",
+                "https://cdn.jsdelivr.net",
+                "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js")
+CSP_STYLE_SRC = ("'self'",
+                "https://cdn.ckeditor.com",
+                "https://cdn.jsdelivr.net",
+                "'unsafe-inline'")
+CSP_IMG_SRC = ("'self'", "data:", "https://*")
+CSP_FONT_SRC = ("'self'",)
+CSP_CONNECT_SRC = ("'self'",)
+
+# ========== Journalisation sécurité ==========
+LOGGING['loggers']['django.security'] = {
+    'handlers': ['file', 'console'],
+    'level': 'WARNING',
+    'propagate': False,
+}

@@ -1,30 +1,643 @@
 {% extends 'academie/base.html' %}
 
-{% block titre %}Accueil — Blessy Tech Academy{% endblock %}
+{% block titre %}Blessy Tech Academy — L'école de la haute technologie moderne d'Haïti{% endblock %}
 
 {% block contenu %}
 
-<section class="hero">
-    <div class="hero-contenu">
-        <p class="hero-tag"> L'école de la haute technologie moderne d'Haïti</p>
-        <h2>Formez-vous aux métiers
-            <span class="accent">du numérique</span>
-        </h2>
-        <p class="hero-description">
+<!-- ================================================
+     SECTION 1 : HERO MODERNISÉ
+     ================================================ -->
+<section class="hero-modern">
+
+    <!-- Fond animé technologique -->
+    <div class="hero-bg-grid"></div>
+    <div class="hero-bg-glow hero-glow-1"></div>
+    <div class="hero-bg-glow hero-glow-2"></div>
+
+    <div class="hero-modern-contenu">
+
+        <!-- Badge de confiance -->
+        <div class="hero-badge">
+            <span class="hero-badge-dot"></span>
+            🏆 Plateforme EdTech #1 en Haïti — Formation certifiante
+        </div>
+
+        <!-- Titre principal -->
+        <h1 class="hero-titre">
+            Deviens un
+            <span class="hero-titre-anime">
+                <span class="mot-anime actif">Développeur</span>
+                <span class="mot-anime">Designer</span>
+                <span class="mot-anime">Data Analyst</span>
+                <span class="mot-anime">Expert IA</span>
+                <span class="mot-anime">Entrepreneur</span>
+            </span>
+            <br>professionnel
+        </h1>
+
+        <!-- Sous-titre -->
+        <p class="hero-sous-titre">
             Blessy Tech Academy forme la nouvelle génération de professionnels
-            du numérique en Haïti et dans la diaspora, à travers des projets
-            réels et un accompagnement personnalisé.
+            du numérique en Haïti et dans la diaspora — avec des formations
+            certifiantes, un assistant IA intégré et un accompagnement
+            personnalisé de haut niveau.
         </p>
-        <div class="hero-boutons">
-            <a href="{% url 'formations' %}" class="btn btn-principal">
-                Voir les formations
+
+        <!-- CTAs -->
+        <div class="hero-ctas">
+            <a href="{% url 'orientation_ia' %}" class="btn-hero-principal">
+                🎯 Trouver ma formation
+                <span class="btn-arrow">→</span>
             </a>
-            <a href="{% url 'apropos' %}" class="btn btn-secondaire">
-                En savoir plus
+            <a href="{% url 'formations' %}" class="btn-hero-secondaire">
+                📚 Explorer les formations
             </a>
         </div>
+
+        <!-- Social proof rapide -->
+        <div class="hero-social-proof">
+            <div class="hero-avatars">
+                <div class="avatar avatar-1">JR</div>
+                <div class="avatar avatar-2">MB</div>
+                <div class="avatar avatar-3">CL</div>
+                <div class="avatar avatar-4">AP</div>
+                <div class="avatar avatar-5">+</div>
+            </div>
+            <div class="hero-proof-texte">
+                <strong>50+ étudiants</strong> transforment déjà leur carrière
+                <span class="hero-stars">★★★★★</span>
+            </div>
+        </div>
+
     </div>
+
+    <!-- Mockup dashboard -->
+    <div class="hero-mockup">
+        <div class="mockup-browser">
+            <div class="mockup-barre">
+                <span class="mockup-dot rouge"></span>
+                <span class="mockup-dot orange"></span>
+                <span class="mockup-dot vert"></span>
+                <div class="mockup-url">blessy-tech-academy.app</div>
+            </div>
+            <div class="mockup-contenu">
+                <!-- Mini dashboard -->
+                <div class="mockup-header-dash">
+                    <span>👋 Bonjour, Étudiant !</span>
+                    <span class="mockup-badge-ai">🤖 Blessy AI</span>
+                </div>
+                <div class="mockup-stats-dash">
+                    <div class="mockup-stat">
+                        <div class="mockup-stat-val" style="color: #00B4D8;">3</div>
+                        <div class="mockup-stat-label">Formations</div>
+                    </div>
+                    <div class="mockup-stat">
+                        <div class="mockup-stat-val" style="color: #22c55e;">75%</div>
+                        <div class="mockup-stat-label">Progression</div>
+                    </div>
+                    <div class="mockup-stat">
+                        <div class="mockup-stat-val" style="color: #FF6B35;">2</div>
+                        <div class="mockup-stat-label">Certificats</div>
+                    </div>
+                </div>
+                <!-- Barre de progression -->
+                <div class="mockup-cours">
+                    <div class="mockup-cours-titre">🐍 Python & Django</div>
+                    <div class="mockup-progress-bar">
+                        <div class="mockup-progress-fill" style="width: 75%;"></div>
+                    </div>
+                    <div class="mockup-cours-titre">🤖 Intelligence Artificielle</div>
+                    <div class="mockup-progress-bar">
+                        <div class="mockup-progress-fill" style="width: 40%; background: #FF6B35;"></div>
+                    </div>
+                    <div class="mockup-cours-titre">🎨 Design Web</div>
+                    <div class="mockup-progress-bar">
+                        <div class="mockup-progress-fill" style="width: 90%; background: #22c55e;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating cards -->
+        <div class="floating-card card-top-right">
+            <span class="floating-icon">🎓</span>
+            <div>
+                <div class="floating-titre">Certificat obtenu !</div>
+                <div class="floating-sous">Python Fondamental</div>
+            </div>
+        </div>
+
+        <div class="floating-card card-bottom-left">
+            <span class="floating-icon">🤖</span>
+            <div>
+                <div class="floating-titre">Blessy AI</div>
+                <div class="floating-sous">Toujours disponible</div>
+            </div>
+        </div>
+
+    </div>
+
 </section>
+
+<!-- CSS Hero Modern (inline pour isolation) -->
+<style>
+/* ================================================
+   HERO MODERNE
+   ================================================ */
+
+.hero-modern {
+    min-height: 90vh;
+    background: linear-gradient(135deg, #050d1a 0%, #0B2447 50%, #0a1f3d 100%);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 80px 6%;
+    position: relative;
+    overflow: hidden;
+    gap: 40px;
+}
+
+/* Fond grille technologique */
+.hero-bg-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(0,180,216,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,180,216,0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+}
+
+/* Halos lumineux */
+.hero-bg-glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+}
+
+.hero-glow-1 {
+    width: 500px;
+    height: 500px;
+    background: rgba(0, 180, 216, 0.12);
+    top: -100px;
+    right: 20%;
+}
+
+.hero-glow-2 {
+    width: 300px;
+    height: 300px;
+    background: rgba(255, 107, 53, 0.08);
+    bottom: -50px;
+    left: 10%;
+}
+
+/* Contenu hero */
+.hero-modern-contenu {
+    position: relative;
+    z-index: 2;
+    max-width: 580px;
+    flex-shrink: 0;
+}
+
+/* Badge */
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 180, 216, 0.1);
+    border: 1px solid rgba(0, 180, 216, 0.3);
+    padding: 8px 18px;
+    border-radius: 50px;
+    font-size: 13px;
+    color: #00B4D8;
+    font-weight: 600;
+    margin-bottom: 28px;
+    animation: apparition 0.6s ease-out both;
+}
+
+.hero-badge-dot {
+    width: 8px;
+    height: 8px;
+    background: #00B4D8;
+    border-radius: 50%;
+    animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* Titre hero */
+.hero-titre {
+    font-size: 58px;
+    font-weight: 800;
+    color: white;
+    line-height: 1.1;
+    letter-spacing: -2px;
+    margin-bottom: 24px;
+    animation: apparition 0.6s ease-out 0.1s both;
+}
+
+/* Animation des mots */
+.hero-titre-anime {
+    display: inline-block;
+    position: relative;
+    color: #00B4D8;
+    min-width: 320px;
+}
+
+.mot-anime {
+    display: none;
+    animation: mot-entrant 0.5s ease-out both;
+}
+
+.mot-anime.actif {
+    display: inline;
+}
+
+@keyframes mot-entrant {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Sous-titre */
+.hero-sous-titre {
+    font-size: 17px;
+    color: rgba(255,255,255,0.75);
+    line-height: 1.8;
+    margin-bottom: 36px;
+    max-width: 520px;
+    animation: apparition 0.6s ease-out 0.2s both;
+}
+
+/* CTAs */
+.hero-ctas {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+    animation: apparition 0.6s ease-out 0.3s both;
+}
+
+.btn-hero-principal {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #FF6B35, #e85a2a);
+    color: white;
+    padding: 16px 32px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 16px;
+    text-decoration: none;
+    box-shadow: 0 8px 30px rgba(255,107,53,0.4);
+    transition: all 0.3s ease;
+}
+
+.btn-hero-principal:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(255,107,53,0.5);
+}
+
+.btn-arrow {
+    transition: transform 0.3s;
+}
+
+.btn-hero-principal:hover .btn-arrow {
+    transform: translateX(4px);
+}
+
+.btn-hero-secondaire {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.08);
+    color: white;
+    padding: 16px 32px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 16px;
+    text-decoration: none;
+    border: 1px solid rgba(255,255,255,0.2);
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.btn-hero-secondaire:hover {
+    background: rgba(255,255,255,0.15);
+    transform: translateY(-2px);
+}
+
+/* Social proof */
+.hero-social-proof {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    animation: apparition 0.6s ease-out 0.4s both;
+}
+
+.hero-avatars {
+    display: flex;
+}
+
+.avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid #0B2447;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+    margin-left: -8px;
+}
+
+.avatar:first-child { margin-left: 0; }
+.avatar-1 { background: #00B4D8; }
+.avatar-2 { background: #FF6B35; }
+.avatar-3 { background: #22c55e; }
+.avatar-4 { background: #a855f7; }
+.avatar-5 { background: rgba(255,255,255,0.2); font-size: 14px; }
+
+.hero-proof-texte {
+    font-size: 14px;
+    color: rgba(255,255,255,0.75);
+    line-height: 1.4;
+}
+
+.hero-proof-texte strong {
+    color: white;
+}
+
+.hero-stars {
+    display: block;
+    color: #FFD700;
+    font-size: 12px;
+    letter-spacing: 2px;
+}
+
+/* ================================================
+   MOCKUP DASHBOARD
+   ================================================ */
+
+.hero-mockup {
+    position: relative;
+    z-index: 2;
+    flex-shrink: 0;
+    animation: apparition 0.8s ease-out 0.3s both;
+}
+
+.mockup-browser {
+    width: 460px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    overflow: hidden;
+    backdrop-filter: blur(20px);
+    box-shadow:
+        0 40px 80px rgba(0,0,0,0.4),
+        0 0 0 1px rgba(255,255,255,0.05),
+        inset 0 1px 0 rgba(255,255,255,0.1);
+}
+
+.mockup-barre {
+    background: rgba(255,255,255,0.05);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.mockup-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.mockup-dot.rouge { background: #ff5f57; }
+.mockup-dot.orange { background: #ffbd2e; }
+.mockup-dot.vert { background: #28c840; }
+
+.mockup-url {
+    margin-left: 12px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    background: rgba(255,255,255,0.05);
+    padding: 4px 12px;
+    border-radius: 6px;
+    flex: 1;
+    text-align: center;
+}
+
+.mockup-contenu {
+    padding: 20px;
+}
+
+.mockup-header-dash {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    font-size: 14px;
+    color: rgba(255,255,255,0.8);
+    font-weight: 600;
+}
+
+.mockup-badge-ai {
+    background: rgba(0,180,216,0.2);
+    color: #00B4D8;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.mockup-stats-dash {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.mockup-stat {
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+}
+
+.mockup-stat-val {
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.mockup-stat-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    margin-top: 2px;
+}
+
+.mockup-cours {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.mockup-cours-titre {
+    font-size: 12px;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.mockup-progress-bar {
+    height: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+
+.mockup-progress-fill {
+    height: 100%;
+    background: #00B4D8;
+    border-radius: 10px;
+    transition: width 1s ease;
+}
+
+/* Floating cards */
+.floating-card {
+    position: absolute;
+    background: rgba(255,255,255,0.95);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: float 3s ease-in-out infinite;
+    min-width: 180px;
+}
+
+.card-top-right {
+    top: -20px;
+    right: -30px;
+    animation-delay: 0s;
+}
+
+.card-bottom-left {
+    bottom: -20px;
+    left: -30px;
+    animation-delay: 1.5s;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+.floating-icon {
+    font-size: 28px;
+}
+
+.floating-titre {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0B2447;
+}
+
+.floating-sous {
+    font-size: 11px;
+    color: #718096;
+}
+
+/* ================================================
+   RESPONSIVE HERO
+   ================================================ */
+
+@media (max-width: 1100px) {
+    .hero-mockup {
+        display: none;
+    }
+
+    .hero-modern {
+        justify-content: center;
+        text-align: center;
+        min-height: 70vh;
+    }
+
+    .hero-modern-contenu {
+        max-width: 100%;
+    }
+
+    .hero-ctas {
+        justify-content: center;
+    }
+
+    .hero-social-proof {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-moderne {
+        padding: 60px 24px;
+    }
+
+    .hero-titre {
+        font-size: 36px;
+        letter-spacing: -1px;
+    }
+
+    .hero-titre-anime {
+        min-width: auto;
+        display: block;
+        margin-top: 4px;
+    }
+
+    .hero-sous-titre {
+        font-size: 15px;
+    }
+
+    .btn-hero-principal,
+    .btn-hero-secondaire {
+        padding: 14px 24px;
+        font-size: 15px;
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-titre {
+        font-size: 28px;
+    }
+}
+</style>
+
+<script>
+/* Animation des mots du titre */
+(function() {
+    const mots = document.querySelectorAll('.mot-anime');
+    let indexActuel = 0;
+
+    if (mots.length === 0) return;
+
+    setInterval(function() {
+        mots[indexActuel].classList.remove('actif');
+        indexActuel = (indexActuel + 1) % mots.length;
+        mots[indexActuel].classList.add('actif');
+    }, 2500);
+})();
+</script>
+
+<!-- LES AUTRES SECTIONS EXISTANTES RESTENT INTACTES -->
+<!-- ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ -->
 
 <!-- TRUST BAR -->
 <section class="trust-bar fade-in-section">
