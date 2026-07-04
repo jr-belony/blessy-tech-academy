@@ -97,6 +97,9 @@ def accueil(request):
         'parcours_list': parcours_list,
         'stats': stats,
         'articles_recents': articles_recents,
+        'nb_etudiants': nb_etudiants,
+        'nb_formations': nb_formations,
+        'nb_sujets_forum': nb_sujets_forum,
     })
 
 

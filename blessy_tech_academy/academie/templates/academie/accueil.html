@@ -639,154 +639,3441 @@
 <!-- LES AUTRES SECTIONS EXISTANTES RESTENT INTACTES -->
 <!-- ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ -->
 
-<!-- TRUST BAR -->
-<section class="trust-bar fade-in-section">
 
-    <div class="trust-container">
-
-        <div class="trust-item">
-            <div class="trust-icon">🎓</div>
-            <h3>Certificats vérifiables</h3>
-            <p>QR Code & ID unique</p>
-        </div>
-
-        <div class="trust-item">
-            <div class="trust-icon">🤖</div>
-            <h3>IA pédagogique</h3>
-            <p>Blessy AI disponible 24h/24</p>
-        </div>
-
-        <div class="trust-item">
-            <div class="trust-icon">💼</div>
-            <h3>Formation pratique</h3>
-            <p>Projets réels & compétences métier</p>
-        </div>
-
-        <div class="trust-item">
-            <div class="trust-icon">🏅</div>
-            <h3>XP & Badges</h3>
-            <p>Progression gamifiée</p>
-        </div>
-
-        <div class="trust-item">
-            <div class="trust-icon">🌍</div>
-            <h3>Accessible partout</h3>
-            <p>PC, tablette & mobile</p>
-        </div>
-
-        <div class="trust-item">
-            <div class="trust-icon">💬</div>
-            <h3>Forum collaboratif</h3>
-            <p>Apprendre avec la communauté</p>
-        </div>
-
-    </div>
-
-</section>
-<section class="stats fade-in-section">
-    <div class="stats-grille">
-        {% for stat in stats %}
-        <div class="stat-item">
-            <span class="stat-nombre"
-                  data-target="{{ stat.valeur }}"
-                  data-suffix="{{ stat.suffixe }}">0{{ stat.suffixe }}</span>
-            <span class="stat-label">{{ stat.label }}</span>
-        </div>
-        {% endfor %}
-    </div>
-</section>
-
-<section class="apercu-formations fade-in-section">
-    <h2>Nos formations phares</h2>
-    <p class="sous-titre">
-        Des parcours construits pour te rendre employable et autonome.
-    </p>
-
-    <div class="formations-grille">
-        {% for formation in formations %}
-            {% include 'academie/includes/carte_formation.html' with formation=formation %}
-        {% endfor %}
-    </div>
-
-    <div class="centrer">
-        <a href="{% url 'formations' %}" class="btn btn-principal">
-            Voir toutes les formations →
-        </a>
-    </div>
-</section>
-
-<section class="pourquoi fade-in-section">
-    <h2>Pourquoi choisir Blessy Tech Academy ?</h2>
-    <div class="avantages-grille">
-        <div class="avantage">
-            <span class="avantage-icone">🎯</span>
-            <h3>Formations pratiques</h3>
-            <p>Tu codes dès le premier jour.</p>
-        </div>
-        <div class="avantage">
-            <span class="avantage-icone">🏆</span>
-            <h3>Certifications reconnues</h3>
-            <p>Un certificat numérique vérifiable.</p>
-        </div>
-        <div class="avantage">
-            <span class="avantage-icone">🤝</span>
-            <h3>Accompagnement personnalisé</h3>
-            <p>Un mentor dédié pour ta progression.</p>
-        </div>
-        <div class="avantage">
-            <span class="avantage-icone">💼</span>
-            <h3>Préparation à l'emploi</h3>
-            <p>CV, portfolio, entretiens — on t'accompagne.</p>
-        </div>
-    </div>
-</section>
-
-
-<!-- 🔟 BLESSY AI (fond clair pour contraste) -->
-<section class="ai-light fade-in-section">
-    <div class="ai-light-content">
-        <span class="ai-light-icon">🤖</span>
-        <h2>Blessy AI, ton assistant pédagogique</h2>
-        <p>Pose toutes tes questions, fais corriger ton code, génère des exercices et progresse plus vite avec l'intelligence artificielle intégrée à ta formation.</p>
-        <a href="{% url 'chat_ia' %}" class="btn-ai">Essayer Blessy AI →</a>
-    </div>
-</section>
-
-
-<!-- 1️⃣1️⃣ CENTRE DE RESSOURCES -->
-<section class="ressources-bta fade-in-section">
-    <h2 class="ressources-bta-title">📚 Centre de ressources</h2>
-    <p class="ressources-bta-desc">Articles et tutoriels pour booster tes compétences.</p>
-    {% if articles_recents %}
-    <div class="ressources-bta-grid">
-        {% for article in articles_recents %}
-        <a href="{% url 'article_detail' article.slug %}" class="ressources-bta-card">
-            {% if article.image %}
-            <img src="{{ article.image.url }}" alt="{{ article.titre }}">
-            {% endif %}
-            <div class="ressources-bta-card-body">
-                <h3>{{ article.titre }}</h3>
-                <p>{{ article.resume|truncatewords:15 }}</p>
-                <span class="ressources-bta-date">{{ article.date_publication|date:"d/m/Y" }}</span>
+<!-- ================================================
+     SECTION 2 : TRUST BAR
+     ================================================ -->
+<section class="trust-bar">
+    <div class="trust-bar-label">Certifications reconnues & partenaires</div>
+    <div class="trust-bar-piste">
+        <div class="trust-bar-contenu">
+            <!-- Répété 2x pour l'animation en boucle -->
+            <div class="trust-item">
+                <span class="trust-logo">🎓</span>
+                <span>Google Certificates</span>
             </div>
-        </a>
-        {% endfor %}
+            <div class="trust-item">
+                <span class="trust-logo">🏆</span>
+                <span>CompTIA</span>
+            </div>
+            <div class="trust-item">
+                <span class="trust-logo">💼</span>
+                <span>Microsoft Learn</span>
+            </div>
+            <div class="trust-item">
+                <span class="trust-logo">🤖</span>
+                <span>IBM SkillsBuild</span>
+            </div>
+            <div class="trust-item">
+                <span class="trust-logo">📊</span>
+                <span>Meta Blueprint</span>
+            </div>
+            <div class="trust-item">
+                <span class="trust-logo">☁️</span>
+                <span>AWS Educate</span>
+            </div>
+            <div class="trust-item">
+                <span class="trust-logo">🔐</span>
+                <span>ISC2 Certified</span>
+            </div>
+            <div class="trust-item">
+                <span class="trust-logo">🌐</span>
+                <span>Cisco NetAcad</span>
+            </div>
+            <!-- Duplication pour boucle fluide -->
+            <div class="trust-item">
+                <span class="trust-logo">🎓</span>
+                <span>Google Certificates</span>
+            </div>
+            <div class="trust-item">
+                <span class="trust-logo">🏆</span>
+                <span>CompTIA</span>
+            </div>
+            <div class="trust-item">
+                <span class="trust-logo">💼</span>
+                <span>Microsoft Learn</span>
+            </div>
+            <div class="trust-item">
+                <span class="trust-logo">🤖</span>
+                <span>IBM SkillsBuild</span>
+            </div>
+            <div class="trust-item">
+                <span class="trust-logo">📊</span>
+                <span>Meta Blueprint</span>
+            </div>
+            <div class="trust-item">
+                <span class="trust-logo">☁️</span>
+                <span>AWS Educate</span>
+            </div>
+            <div class="trust-item">
+                <span class="trust-logo">🔐</span>
+                <span>ISC2 Certified</span>
+            </div>
+            <div class="trust-item">
+                <span class="trust-logo">🌐</span>
+                <span>Cisco NetAcad</span>
+            </div>
+        </div>
     </div>
-    {% else %}
-    <p class="ressources-bta-desc">Aucun article pour le moment. Reviens bientôt !</p>
-    {% endif %}
-    <div class="ressources-bta-footer">
-        <a href="{% url 'ressources' %}" class="btn-premium-outline">Voir toutes les ressources →</a>
+</section>
+
+<!-- ================================================
+     SECTION 3 : STATISTIQUES PREMIUM
+     ================================================ -->
+<section class="stats-premium">
+    <div class="stats-premium-inner">
+
+        <div class="stat-card-premium">
+            <div class="stat-card-icone">👨‍🎓</div>
+            <div class="stat-card-valeur">
+                <span class="compteur" data-cible="50">0</span>+
+            </div>
+            <div class="stat-card-titre">Étudiants formés</div>
+            <div class="stat-card-desc">
+                En Haïti et dans la diaspora
+            </div>
+        </div>
+
+        <div class="stat-card-premium">
+            <div class="stat-card-icone">📚</div>
+            <div class="stat-card-valeur">
+                <span class="compteur" data-cible="20">0</span>+
+            </div>
+            <div class="stat-card-titre">Formations certifiantes</div>
+            <div class="stat-card-desc">
+                Du débutant au professionnel
+            </div>
+        </div>
+
+        <div class="stat-card-premium">
+            <div class="stat-card-icone">🏆</div>
+            <div class="stat-card-valeur">
+                <span class="compteur" data-cible="95">0</span>%
+            </div>
+            <div class="stat-card-titre">Taux de satisfaction</div>
+            <div class="stat-card-desc">
+                Noté par nos étudiants actifs
+            </div>
+        </div>
+
+        <div class="stat-card-premium">
+            <div class="stat-card-icone">🤖</div>
+            <div class="stat-card-valeur">
+                24/7
+            </div>
+            <div class="stat-card-titre">Assistant IA disponible</div>
+            <div class="stat-card-desc">
+                Blessy AI toujours à tes côtés
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- ================================================
+     CSS SECTIONS 2 & 3
+     ================================================ -->
+<style>
+
+/* ---- TRUST BAR ---- */
+
+.trust-bar {
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 20px 0;
+    overflow: hidden;
+    position: relative;
+}
+
+.trust-bar-label {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #a0aec0;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+
+.trust-bar-piste {
+    overflow: hidden;
+    position: relative;
+}
+
+/* Fondu gauche/droite */
+.trust-bar-piste::before,
+.trust-bar-piste::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 120px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.trust-bar-piste::before {
+    left: 0;
+    background: linear-gradient(to right, #f8fafc, transparent);
+}
+
+.trust-bar-piste::after {
+    right: 0;
+    background: linear-gradient(to left, #f8fafc, transparent);
+}
+
+.trust-bar-contenu {
+    display: flex;
+    gap: 0;
+    animation: defilement-trust 25s linear infinite;
+    width: max-content;
+}
+
+@keyframes defilement-trust {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+}
+
+.trust-bar-contenu:hover {
+    animation-play-state: paused;
+}
+
+.trust-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 36px;
+    white-space: nowrap;
+    font-size: 14px;
+    font-weight: 600;
+    color: #4a5568;
+    border-right: 1px solid #e2e8f0;
+    transition: color 0.2s;
+}
+
+.trust-item:hover {
+    color: var(--bleu-principal);
+}
+
+.trust-logo {
+    font-size: 20px;
+}
+
+/* ---- STATS PREMIUM ---- */
+
+.stats-premium {
+    background: linear-gradient(135deg, #0B2447 0%, #0d2d55 100%);
+    padding: 80px 40px;
+    position: relative;
+    overflow: hidden;
+}
+
+.stats-premium::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(0,180,216,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,180,216,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+.stats-premium-inner {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+}
+
+.stat-card-premium {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 32px 24px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    transition: transform 0.3s, background 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card-premium::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #00B4D8, #FF6B35);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.stat-card-premium:hover {
+    transform: translateY(-6px);
+    background: rgba(255,255,255,0.09);
+}
+
+.stat-card-premium:hover::before {
+    opacity: 1;
+}
+
+.stat-card-icone {
+    font-size: 40px;
+    margin-bottom: 16px;
+    display: block;
+}
+
+.stat-card-valeur {
+    font-size: 52px;
+    font-weight: 800;
+    color: white;
+    line-height: 1;
+    margin-bottom: 8px;
+    letter-spacing: -2px;
+}
+
+.stat-card-valeur .compteur {
+    background: linear-gradient(135deg, #00B4D8, #7dd3fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.stat-card-titre {
+    font-size: 15px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 6px;
+}
+
+.stat-card-desc {
+    font-size: 13px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.5;
+}
+
+/* ---- RESPONSIVE ---- */
+
+@media (max-width: 768px) {
+    .stats-premium {
+        padding: 48px 20px;
+    }
+
+    .stat-card-valeur {
+        font-size: 40px;
+    }
+
+    .trust-item {
+        padding: 8px 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-premium-inner {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+
+    .stat-card-premium {
+        padding: 20px 16px;
+    }
+
+    .stat-card-valeur {
+        font-size: 32px;
+    }
+
+    .stat-card-icone {
+        font-size: 28px;
+    }
+}
+
+</style>
+
+<!-- ================================================
+     JS — Compteur animé (déclenché à l'entrée dans le viewport)
+     ================================================ -->
+<script>
+(function() {
+    function animer_compteur(el) {
+        const cible = parseInt(el.dataset.cible);
+        const duree = 2000;
+        const debut = performance.now();
+
+        function step(temps) {
+            const elapsed = temps - debut;
+            const progress = Math.min(elapsed / duree, 1);
+            // Easing easeOutExpo
+            const eased = progress === 1
+                ? 1
+                : 1 - Math.pow(2, -10 * progress);
+            el.textContent = Math.floor(eased * cible);
+            if (progress < 1) requestAnimationFrame(step);
+        }
+
+        requestAnimationFrame(step);
+    }
+
+    // Déclenche les compteurs quand visible
+    const compteurs = document.querySelectorAll('.compteur');
+    const observateur = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+                animer_compteur(entry.target);
+                observateur.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.3 });
+
+    compteurs.forEach(function(c) { observateur.observe(c); });
+})();
+</script>
+
+
+
+<!-- ================================================
+     SECTION 4 : FORMATIONS GRATUITES (LEAD MAGNETS)
+     ================================================ -->
+<section class="section-gratuites">
+    <div class="section-inner">
+
+        <!-- En-tête section -->
+        <div class="section-header">
+            <div class="section-tag">🎁 Accès immédiat</div>
+            <h2 class="section-titre">Commence gratuitement aujourd'hui</h2>
+            <p class="section-sous-titre">
+                3 mini-formations offertes pour découvrir notre méthode
+                avant de t'engager. Aucune carte bancaire requise.
+            </p>
+        </div>
+
+        <!-- Grille formations gratuites -->
+        <div class="gratuites-grille">
+            {% for formation in formations %}
+            {% if formation.gratuit %}
+            <div class="carte-gratuite">
+
+                <!-- Badge GRATUIT -->
+                <div class="gratuite-badge-top">
+                    🎁 GRATUIT
+                </div>
+
+                <!-- Icône + Titre -->
+                <div class="gratuite-icone">{{ formation.icone }}</div>
+                <h3 class="gratuite-titre">{{ formation.nom }}</h3>
+                <p class="gratuite-desc">{{ formation.description|truncatewords:20 }}</p>
+
+                <!-- Méta -->
+                <div class="gratuite-meta">
+                    <span>⏱ {{ formation.duree_mois }} mois</span>
+                    <span class="gratuite-prix">GRATUIT</span>
+                </div>
+
+                <!-- CTA -->
+                <a href="{% url 'detail_formation' formation.id %}"
+                   class="btn-gratuite">
+                    Commencer maintenant →
+                </a>
+
+                <!-- Upgrade suggestion -->
+                {% if formation.formation_upgrade %}
+                <div class="gratuite-upgrade">
+                    <span>🚀 Envie d'aller plus loin ?</span>
+                    <a href="{% url 'detail_formation' formation.formation_upgrade.id %}">
+                        {{ formation.formation_upgrade.nom }} →
+                    </a>
+                </div>
+                {% endif %}
+
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+
+    </div>
+</section>
+
+<!-- ================================================
+     SECTION 5 : NOS ÉCOLES
+     ================================================ -->
+<section class="section-ecoles">
+    <div class="section-inner">
+
+        <div class="section-header">
+            <div class="section-tag">🏫 Structure pédagogique</div>
+            <h2 class="section-titre">Nos 6 Écoles spécialisées</h2>
+            <p class="section-sous-titre">
+                Chaque école est un parcours complet vers l'expertise professionnelle.
+                Choisis le domaine qui correspond à ton ambition.
+            </p>
+        </div>
+
+        <div class="ecoles-grille">
+            {% for ecole in ecoles %}
+            <a href="{% url 'formations' %}" class="carte-ecole">
+                <div class="ecole-icone-wrapper">
+                    <span class="ecole-icone">{{ ecole.icone }}</span>
+                </div>
+                <h3 class="ecole-titre">{{ ecole.nom }}</h3>
+                <p class="ecole-desc">{{ ecole.description|truncatewords:12 }}</p>
+                <div class="ecole-meta">
+                    <span>{{ ecole.formations.count }} formation(s)</span>
+                    <span class="ecole-fleche">→</span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+
+    </div>
+</section>
+
+<!-- ================================================
+     SECTION 6 : FORMATIONS PHARES
+     ================================================ -->
+<section class="section-phares">
+    <div class="section-inner">
+
+        <div class="section-header">
+            <div class="section-tag">⭐ Les plus populaires</div>
+            <h2 class="section-titre">Nos formations phares</h2>
+            <p class="section-sous-titre">
+                Les parcours les plus demandés par les professionnels
+                haïtiens et de la diaspora en 2026.
+            </p>
+        </div>
+
+        <div class="phares-grille">
+            {% for formation in formations %}
+            {% if not formation.gratuit %}
+            <div class="carte-phare">
+
+                <!-- Header carte -->
+                <div class="phare-header">
+                    <span class="phare-icone">{{ formation.icone }}</span>
+                    {% if formation.niveau == 'debutant' %}
+                    <span class="phare-niveau niveau-debutant">Débutant</span>
+                    {% elif formation.niveau == 'intermediaire' %}
+                    <span class="phare-niveau niveau-intermediaire">Intermédiaire</span>
+                    {% elif formation.niveau == 'avance' %}
+                    <span class="phare-niveau niveau-avance">Avancé</span>
+                    {% else %}
+                    <span class="phare-niveau niveau-pro">Professionnel</span>
+                    {% endif %}
+                </div>
+
+                <!-- Contenu -->
+                <h3 class="phare-titre">{{ formation.nom }}</h3>
+                {% if formation.ecole %}
+                <div class="phare-ecole">
+                    {{ formation.ecole.icone }} {{ formation.ecole.nom }}
+                </div>
+                {% endif %}
+                <p class="phare-desc">{{ formation.description|truncatewords:18 }}</p>
+
+                <!-- Stats -->
+                <div class="phare-stats">
+                    <div class="phare-stat">
+                        <span class="phare-stat-val">{{ formation.duree_mois }}</span>
+                        <span class="phare-stat-label">mois</span>
+                    </div>
+                    <div class="phare-stat-sep"></div>
+                    <div class="phare-stat">
+                        <span class="phare-stat-val">{{ formation.modules.count }}</span>
+                        <span class="phare-stat-label">modules</span>
+                    </div>
+                    <div class="phare-stat-sep"></div>
+                    <div class="phare-stat">
+                        <span class="phare-stat-val" style="color: var(--orange-accent);">
+                            {{ formation.prix }} $
+                        </span>
+                        <span class="phare-stat-label">USD</span>
+                    </div>
+                </div>
+
+                <!-- Footer carte -->
+                <div class="phare-footer">
+                    <a href="{% url 'detail_formation' formation.id %}"
+                       class="btn-phare">
+                        Voir le programme
+                    </a>
+                    <a href="{% url 'contact' %}" class="btn-phare-secondaire">
+                        S'inscrire
+                    </a>
+                </div>
+
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+
+        <div style="text-align: center; margin-top: 48px;">
+            <a href="{% url 'formations' %}" class="btn-voir-tout">
+                Voir toutes les formations
+                <span>→</span>
+            </a>
+        </div>
+
+    </div>
+</section>
+
+<!-- ================================================
+     CSS SECTIONS 4, 5, 6
+     ================================================ -->
+<style>
+
+/* ---- UTILITAIRES COMMUNS ---- */
+
+.section-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 56px;
+}
+
+.section-tag {
+    display: inline-block;
+    background: rgba(0,180,216,0.1);
+    border: 1px solid rgba(0,180,216,0.25);
+    color: #00B4D8;
+    padding: 6px 18px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+}
+
+.section-titre {
+    font-size: 40px;
+    font-weight: 800;
+    color: var(--bleu-principal);
+    letter-spacing: -1px;
+    margin-bottom: 16px;
+    line-height: 1.15;
+}
+
+.section-sous-titre {
+    font-size: 17px;
+    color: var(--gris-texte);
+    max-width: 580px;
+    margin: 0 auto;
+    line-height: 1.7;
+}
+
+/* ---- SECTION 4 : GRATUITES ---- */
+
+.section-gratuites {
+    padding: 100px 40px;
+    background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%);
+}
+
+.gratuites-grille {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 28px;
+}
+
+.carte-gratuite {
+    background: white;
+    border-radius: 20px;
+    padding: 32px;
+    position: relative;
+    border: 2px solid #e2e8f0;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.carte-gratuite::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #00B4D8, #0B2447);
+}
+
+.carte-gratuite:hover {
+    transform: translateY(-8px);
+    border-color: #00B4D8;
+    box-shadow: 0 20px 60px rgba(0,180,216,0.15);
+}
+
+.gratuite-badge-top {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #00B4D8, #0090b8);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.gratuite-icone {
+    font-size: 52px;
+    margin-bottom: 16px;
+    display: block;
+}
+
+.gratuite-titre {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--bleu-principal);
+    margin-bottom: 10px;
+    line-height: 1.3;
+}
+
+.gratuite-desc {
+    font-size: 14px;
+    color: var(--gris-texte);
+    line-height: 1.7;
+    margin-bottom: 20px;
+}
+
+.gratuite-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-top: 1px solid #f0f0f0;
+    border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: var(--gris-texte);
+}
+
+.gratuite-prix {
+    font-weight: 800;
+    color: #22c55e;
+    font-size: 15px;
+}
+
+.btn-gratuite {
+    display: block;
+    text-align: center;
+    background: var(--bleu-principal);
+    color: white;
+    padding: 13px 24px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 14px;
+    transition: all 0.3s;
+    margin-bottom: 16px;
+}
+
+.btn-gratuite:hover {
+    background: #00B4D8;
+    transform: translateY(-2px);
+}
+
+.gratuite-upgrade {
+    text-align: center;
+    font-size: 12px;
+    color: var(--gris-texte);
+    padding-top: 12px;
+    border-top: 1px dashed #e2e8f0;
+}
+
+.gratuite-upgrade a {
+    color: var(--orange-accent);
+    font-weight: 700;
+    text-decoration: none;
+    display: block;
+    margin-top: 4px;
+}
+
+.gratuite-upgrade a:hover {
+    text-decoration: underline;
+}
+
+/* ---- SECTION 5 : ÉCOLES ---- */
+
+.section-ecoles {
+    padding: 100px 40px;
+    background: white;
+}
+
+.ecoles-grille {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+.carte-ecole {
+    background: var(--gris-clair);
+    border-radius: 20px;
+    padding: 36px 28px;
+    text-decoration: none;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    display: block;
+    position: relative;
+    overflow: hidden;
+}
+
+.carte-ecole::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,180,216,0.05), rgba(11,36,71,0.05));
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.carte-ecole:hover {
+    border-color: var(--bleu-electrique);
+    transform: translateY(-6px);
+    box-shadow: 0 20px 50px rgba(0,180,216,0.12);
+    background: white;
+}
+
+.carte-ecole:hover::after {
+    opacity: 1;
+}
+
+.ecole-icone-wrapper {
+    width: 72px;
+    height: 72px;
+    background: linear-gradient(135deg, var(--bleu-principal), #1a4a8a);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    transition: transform 0.3s;
+}
+
+.carte-ecole:hover .ecole-icone-wrapper {
+    transform: scale(1.1) rotate(-5deg);
+}
+
+.ecole-icone {
+    font-size: 36px;
+}
+
+.ecole-titre {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--bleu-principal);
+    margin-bottom: 8px;
+    line-height: 1.3;
+}
+
+.ecole-desc {
+    font-size: 13px;
+    color: var(--gris-texte);
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.ecole-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: var(--bleu-electrique);
+    font-weight: 600;
+}
+
+.ecole-fleche {
+    font-size: 20px;
+    transition: transform 0.3s;
+}
+
+.carte-ecole:hover .ecole-fleche {
+    transform: translateX(6px);
+}
+
+/* ---- SECTION 6 : FORMATIONS PHARES ---- */
+
+.section-phares {
+    padding: 100px 40px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.phares-grille {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 28px;
+}
+
+.carte-phare {
+    background: white;
+    border-radius: 20px;
+    padding: 28px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.carte-phare::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--bleu-electrique), var(--orange-accent));
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+    transform-origin: left;
+}
+
+.carte-phare:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 24px 60px rgba(11,36,71,0.12);
+    border-color: transparent;
+}
+
+.carte-phare:hover::after {
+    transform: scaleX(1);
+}
+
+.phare-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.phare-icone {
+    font-size: 40px;
+    line-height: 1;
+}
+
+.phare-niveau {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+}
+
+.niveau-debutant {
+    background: rgba(34,197,94,0.12);
+    color: #22c55e;
+}
+
+.niveau-intermediaire {
+    background: rgba(0,180,216,0.12);
+    color: #00B4D8;
+}
+
+.niveau-avance {
+    background: rgba(255,107,53,0.12);
+    color: #FF6B35;
+}
+
+.niveau-pro {
+    background: rgba(168,85,247,0.12);
+    color: #a855f7;
+}
+
+.phare-titre {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--bleu-principal);
+    line-height: 1.3;
+}
+
+.phare-ecole {
+    font-size: 12px;
+    color: var(--bleu-electrique);
+    font-weight: 600;
+}
+
+.phare-desc {
+    font-size: 14px;
+    color: var(--gris-texte);
+    line-height: 1.6;
+    flex-grow: 1;
+}
+
+.phare-stats {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 16px 0;
+    border-top: 1px solid #f0f0f0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.phare-stat {
+    flex: 1;
+    text-align: center;
+}
+
+.phare-stat-val {
+    display: block;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--bleu-principal);
+    line-height: 1;
+}
+
+.phare-stat-label {
+    display: block;
+    font-size: 11px;
+    color: #a0aec0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 3px;
+}
+
+.phare-stat-sep {
+    width: 1px;
+    height: 36px;
+    background: #e2e8f0;
+}
+
+.phare-footer {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.btn-phare {
+    flex: 1;
+    text-align: center;
+    background: var(--bleu-principal);
+    color: white;
+    padding: 11px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 13px;
+    transition: all 0.3s;
+}
+
+.btn-phare:hover {
+    background: var(--bleu-electrique);
+}
+
+.btn-phare-secondaire {
+    flex: 1;
+    text-align: center;
+    background: transparent;
+    color: var(--bleu-principal);
+    padding: 11px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 13px;
+    border: 2px solid #e2e8f0;
+    transition: all 0.3s;
+}
+
+.btn-phare-secondaire:hover {
+    border-color: var(--bleu-principal);
+    background: rgba(11,36,71,0.04);
+}
+
+.btn-voir-tout {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bleu-principal);
+    color: white;
+    padding: 16px 40px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 16px;
+    transition: all 0.3s;
+    box-shadow: 0 8px 30px rgba(11,36,71,0.2);
+}
+
+.btn-voir-tout:hover {
+    background: #00B4D8;
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0,180,216,0.3);
+}
+
+/* ---- RESPONSIVE 4-5-6 ---- */
+
+@media (max-width: 768px) {
+    .section-gratuites,
+    .section-ecoles,
+    .section-phares {
+        padding: 60px 20px;
+    }
+
+    .section-titre {
+        font-size: 28px;
+    }
+
+    .section-sous-titre {
+        font-size: 15px;
+    }
+
+    .gratuites-grille,
+    .ecoles-grille,
+    .phares-grille {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .section-titre {
+        font-size: 24px;
+        letter-spacing: -0.5px;
+    }
+
+    .phare-footer {
+        flex-direction: column;
+    }
+}
+
+</style>
+
+
+<!-- ================================================
+     SECTION 7 : PARCOURS PROFESSIONNELS
+     ================================================ -->
+<section class="section-parcours">
+    <div class="section-inner">
+
+        <div class="section-header">
+            <div class="section-tag">🚀 Programmes complets</div>
+            <h2 class="section-titre">Parcours Professionnels</h2>
+            <p class="section-sous-titre">
+                Des programmes multi-formations conçus pour une reconversion
+                rapide ou une spécialisation pointue — avec un seul objectif :
+                te rendre employable ou entrepreneurial en moins d'un an.
+            </p>
+        </div>
+
+        <div class="parcours-grille">
+            {% for parcours in parcours_list %}
+            <div class="carte-parcours {% if forloop.counter == 2 %}carte-parcours-featured{% endif %}">
+
+                {% if forloop.counter == 2 %}
+                <div class="parcours-badge-top">⭐ MEILLEUR CHOIX</div>
+                {% endif %}
+
+                <!-- Icône + Titre -->
+                <div class="parcours-header">
+                    <span class="parcours-icone">{{ parcours.icone }}</span>
+                    <div>
+                        <h3 class="parcours-titre">{{ parcours.titre }}</h3>
+                        <p class="parcours-duree">⏱ {{ parcours.duree_mois }} mois</p>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                {% if parcours.description %}
+                <p class="parcours-desc">{{ parcours.description|truncatewords:20 }}</p>
+                {% endif %}
+
+                <!-- Formations incluses -->
+                <div class="parcours-formations">
+                    <p class="parcours-formations-titre">Ce parcours inclut :</p>
+                    {% for formation in parcours.formations.all %}
+                    <div class="parcours-formation-item">
+                        <span class="parcours-check">✓</span>
+                        <span>{{ formation.icone }} {{ formation.nom }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Prix + CTA -->
+                <div class="parcours-footer">
+                    <div class="parcours-prix-wrapper">
+                        <span class="parcours-prix-label">Investissement</span>
+                        <span class="parcours-prix">{{ parcours.prix }} USD</span>
+                    </div>
+                    <a href="{% url 'contact' %}" class="btn-parcours">
+                        S'inscrire →
+                    </a>
+                </div>
+
+            </div>
+            {% empty %}
+            <p style="text-align:center; color: var(--gris-texte); grid-column: 1/-1;">
+                Les parcours seront bientôt disponibles.
+            </p>
+            {% endfor %}
+        </div>
+
+    </div>
+</section>
+
+<!-- ================================================
+     SECTION 8 : POURQUOI BTA
+     ================================================ -->
+<section class="section-pourquoi">
+    <div class="section-inner">
+
+        <div class="pourquoi-layout">
+
+            <!-- Gauche : texte fort -->
+            <div class="pourquoi-gauche">
+                <div class="section-tag" style="margin-bottom: 20px;">
+                    💡 Notre différence
+                </div>
+                <h2 class="section-titre" style="text-align: left; margin-bottom: 20px;">
+                    Pourquoi choisir<br>
+                    <span style="color: var(--bleu-electrique);">Blessy Tech Academy ?</span>
+                </h2>
+                <p style="font-size: 16px; color: var(--gris-texte); line-height: 1.8; margin-bottom: 32px;">
+                    BTA n'est pas une école ordinaire. C'est la première
+                    plateforme EdTech haïtienne à intégrer l'intelligence
+                    artificielle dans chaque étape de l'apprentissage —
+                    du diagnostic d'orientation jusqu'au certificat final.
+                </p>
+
+                <!-- Chiffres clés -->
+                <div class="pourquoi-chiffres">
+                    <div class="pourquoi-chiffre">
+                        <span class="pourquoi-chiffre-val">100%</span>
+                        <span class="pourquoi-chiffre-label">Pratique</span>
+                    </div>
+                    <div class="pourquoi-chiffre">
+                        <span class="pourquoi-chiffre-val">IA</span>
+                        <span class="pourquoi-chiffre-label">Intégrée</span>
+                    </div>
+                    <div class="pourquoi-chiffre">
+                        <span class="pourquoi-chiffre-val">24/7</span>
+                        <span class="pourquoi-chiffre-label">Support</span>
+                    </div>
+                </div>
+
+                <a href="{% url 'orientation_ia' %}" class="btn-hero-principal"
+                   style="display: inline-flex; margin-top: 32px;">
+                    🎯 Trouver ma formation →
+                </a>
+            </div>
+
+            <!-- Droite : grille avantages -->
+            <div class="pourquoi-droite">
+
+                <div class="avantage-card">
+                    <div class="avantage-card-icone">🤖</div>
+                    <div>
+                        <h4 class="avantage-card-titre">Assistant IA personnel</h4>
+                        <p class="avantage-card-desc">
+                            Blessy AI t'accompagne 24h/24 — répond à tes questions,
+                            génère des exercices, adapte le contenu à ton niveau.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="avantage-card">
+                    <div class="avantage-card-icone">🎯</div>
+                    <div>
+                        <h4 class="avantage-card-titre">Orientation personnalisée</h4>
+                        <p class="avantage-card-desc">
+                            Un système d'orientation IA analyse ton profil et
+                            construit ton parcours idéal en quelques minutes.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="avantage-card">
+                    <div class="avantage-card-icone">🏆</div>
+                    <div>
+                        <h4 class="avantage-card-titre">Certifications reconnues</h4>
+                        <p class="avantage-card-desc">
+                            Nos formations préparent aux certifications Google,
+                            Microsoft, CompTIA et IBM — reconnues mondialement.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="avantage-card">
+                    <div class="avantage-card-icone">💬</div>
+                    <div>
+                        <h4 class="avantage-card-titre">Communauté active</h4>
+                        <p class="avantage-card-desc">
+                            Forum d'entraide, classement des membres, badges —
+                            apprends entouré d'une communauté qui progresse ensemble.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="avantage-card">
+                    <div class="avantage-card-icone">📱</div>
+                    <div>
+                        <h4 class="avantage-card-titre">100% en ligne & mobile</h4>
+                        <p class="avantage-card-desc">
+                            Apprends où tu veux, quand tu veux — sur ordinateur,
+                            tablette ou téléphone, à ton rythme.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="avantage-card">
+                    <div class="avantage-card-icone">🇭🇹</div>
+                    <div>
+                        <h4 class="avantage-card-titre">Contexte haïtien & diaspora</h4>
+                        <p class="avantage-card-desc">
+                            Contenu adapté au marché haïtien et international,
+                            avec des cas réels de la diaspora et de l'économie locale.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </div>
 </section>
 
 
-<section class="cta fade-in-section">
-    <h2>Prêt à commencer ton parcours ?</h2>
-    <p>Rejoins des centaines d'étudiants qui transforment leur carrière.</p>
-    <a href="{% url 'contact' %}" class="btn btn-principal">
-        S'inscrire maintenant
-    </a>
+<!-- ================================================
+    SECTION 9 : APERÇU DASHBOARD ÉTUDIANT
+    ================================================ -->
+<section class="section-dashboard">
+    <div class="section-inner">
+
+        <div class="section-header">
+            <div class="section-tag">📊 Ton espace personnel</div>
+            <h2 class="section-titre">Un dashboard conçu pour ta réussite</h2>
+            <p class="section-sous-titre">
+                Suis ta progression en temps réel, accède à tes cours,
+                passe des quiz et télécharge tes certificats — tout depuis
+                un seul espace intuitif.
+            </p>
+        </div>
+
+        <div class="dashboard-preview">
+
+            <!-- Features gauche -->
+            <div class="dashboard-features">
+
+                <div class="dash-feature actif-feature">
+                    <div class="dash-feature-icone">📈</div>
+                    <div>
+                        <h4 class="dash-feature-titre">Suivi de progression</h4>
+                        <p class="dash-feature-desc">
+                            Barre de progression par formation, leçons terminées,
+                            temps total passé sur la plateforme.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="dash-feature">
+                    <div class="dash-feature-icone">📝</div>
+                    <div>
+                        <h4 class="dash-feature-titre">Quiz intelligents</h4>
+                        <p class="dash-feature-desc">
+                            Quiz générés par IA, score instantané,
+                            feedback personnalisé sur chaque réponse.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="dash-feature">
+                    <div class="dash-feature-icone">🏅</div>
+                    <div>
+                        <h4 class="dash-feature-titre">Badges & Classement</h4>
+                        <p class="dash-feature-desc">
+                            Gagne des badges en progressant, monte dans
+                            le classement et motive-toi avec la communauté.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="dash-feature">
+                    <div class="dash-feature-icone">🎓</div>
+                    <div>
+                        <h4 class="dash-feature-titre">Certificats PDF</h4>
+                        <p class="dash-feature-desc">
+                            Télécharge ton certificat officiel à la fin
+                            de chaque formation complétée.
+                        </p>
+                    </div>
+                </div>
+
+                <a href="{% url 'inscription_compte' %}" class="btn-dashboard-cta">
+                    Créer mon espace gratuit →
+                </a>
+
+            </div>
+
+            <!-- Mockup dashboard droite -->
+            <div class="dashboard-mockup-wrapper">
+                <div class="dashboard-mockup-card">
+
+                    <!-- Header -->
+                    <div class="dm-header">
+                        <div class="dm-avatar">JR</div>
+                        <div>
+                            <div class="dm-nom">Jean Ralph</div>
+                            <div class="dm-role">Étudiant BTA</div>
+                        </div>
+                        <div class="dm-notif">🔔</div>
+                    </div>
+
+                    <!-- KPIs -->
+                    <div class="dm-kpis">
+                        <div class="dm-kpi">
+                            <div class="dm-kpi-val" style="color:#00B4D8;">3</div>
+                            <div class="dm-kpi-label">Formations</div>
+                        </div>
+                        <div class="dm-kpi">
+                            <div class="dm-kpi-val" style="color:#22c55e;">75%</div>
+                            <div class="dm-kpi-label">Progression</div>
+                        </div>
+                        <div class="dm-kpi">
+                            <div class="dm-kpi-val" style="color:#FF6B35;">12</div>
+                            <div class="dm-kpi-label">Badges</div>
+                        </div>
+                        <div class="dm-kpi">
+                            <div class="dm-kpi-val" style="color:#a855f7;">2</div>
+                            <div class="dm-kpi-label">Certifs</div>
+                        </div>
+                    </div>
+
+                    <!-- Cours en cours -->
+                    <div class="dm-section-titre">📚 Mes formations en cours</div>
+
+                    <div class="dm-cours">
+                        <div class="dm-cours-info">
+                            <span>🐍 Python & Django</span>
+                            <span style="color:#00B4D8; font-weight:700;">75%</span>
+                        </div>
+                        <div class="dm-progress">
+                            <div class="dm-progress-fill" data-width="75"
+                                 style="background:#00B4D8;"></div>
+                        </div>
+                    </div>
+
+                    <div class="dm-cours">
+                        <div class="dm-cours-info">
+                            <span>🤖 Intelligence Artificielle</span>
+                            <span style="color:#FF6B35; font-weight:700;">40%</span>
+                        </div>
+                        <div class="dm-progress">
+                            <div class="dm-progress-fill" data-width="40"
+                                 style="background:#FF6B35;"></div>
+                        </div>
+                    </div>
+
+                    <div class="dm-cours">
+                        <div class="dm-cours-info">
+                            <span>🎨 Design Web</span>
+                            <span style="color:#22c55e; font-weight:700;">90%</span>
+                        </div>
+                        <div class="dm-progress">
+                            <div class="dm-progress-fill" data-width="90"
+                                 style="background:#22c55e;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Quiz récent -->
+                    <div class="dm-section-titre" style="margin-top:16px;">
+                        🏆 Dernier quiz
+                    </div>
+                    <div class="dm-quiz">
+                        <span>Bases de Python</span>
+                        <span class="dm-quiz-score">85% ✅</span>
+                    </div>
+
+                    <!-- Badge récent -->
+                    <div class="dm-badges">
+                        <span class="dm-badge">✍️ Premier Post</span>
+                        <span class="dm-badge">✅ Solution Acceptée</span>
+                        <span class="dm-badge">🔥 10 Réponses</span>
+                    </div>
+
+                </div>
+
+                <!-- Décoration -->
+                <div class="dashboard-deco-1"></div>
+                <div class="dashboard-deco-2"></div>
+            </div>
+
+        </div>
+    </div>
 </section>
+
+
+<!-- ================================================
+     CSS SECTIONS 7, 8, 9
+     ================================================ -->
+<style>
+
+/* ---- SECTION 7 : PARCOURS ---- */
+
+.section-parcours {
+    padding: 100px 40px;
+    background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+}
+
+.parcours-grille {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    align-items: start;
+}
+
+.carte-parcours {
+    background: white;
+    border-radius: 20px;
+    padding: 32px;
+    border: 2px solid #e2e8f0;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.carte-parcours:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 24px 60px rgba(11,36,71,0.12);
+    border-color: var(--bleu-electrique);
+}
+
+.carte-parcours-featured {
+    background: linear-gradient(135deg, #0B2447, #1a4a8a);
+    border-color: transparent;
+    color: white;
+    transform: scale(1.03);
+}
+
+.carte-parcours-featured:hover {
+    transform: scale(1.03) translateY(-6px);
+    box-shadow: 0 30px 80px rgba(11,36,71,0.3);
+}
+
+.parcours-badge-top {
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #FF6B35, #e85a2a);
+    color: white;
+    padding: 6px 20px;
+    border-radius: 0 0 12px 12px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.parcours-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+    margin-top: 12px;
+}
+
+.parcours-icone {
+    font-size: 44px;
+    flex-shrink: 0;
+}
+
+.parcours-titre {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--bleu-principal);
+    line-height: 1.3;
+    margin-bottom: 4px;
+}
+
+.carte-parcours-featured .parcours-titre {
+    color: white;
+}
+
+.parcours-duree {
+    font-size: 13px;
+    color: var(--gris-texte);
+}
+
+.carte-parcours-featured .parcours-duree {
+    color: rgba(255,255,255,0.7);
+}
+
+.parcours-desc {
+    font-size: 14px;
+    color: var(--gris-texte);
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.carte-parcours-featured .parcours-desc {
+    color: rgba(255,255,255,0.75);
+}
+
+.parcours-formations {
+    margin-bottom: 24px;
+}
+
+.parcours-formations-titre {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--gris-texte);
+    margin-bottom: 10px;
+}
+
+.carte-parcours-featured .parcours-formations-titre {
+    color: rgba(255,255,255,0.6);
+}
+
+.parcours-formation-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--gris-texte);
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.carte-parcours-featured .parcours-formation-item {
+    color: rgba(255,255,255,0.8);
+    border-bottom-color: rgba(255,255,255,0.08);
+}
+
+.parcours-check {
+    color: #22c55e;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.parcours-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 20px;
+    border-top: 1px solid rgba(0,0,0,0.08);
+    gap: 16px;
+}
+
+.carte-parcours-featured .parcours-footer {
+    border-top-color: rgba(255,255,255,0.1);
+}
+
+.parcours-prix-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.parcours-prix-label {
+    font-size: 11px;
+    color: var(--gris-texte);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.carte-parcours-featured .parcours-prix-label {
+    color: rgba(255,255,255,0.6);
+}
+
+.parcours-prix {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--orange-accent);
+    line-height: 1;
+}
+
+.btn-parcours {
+    background: var(--orange-accent);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 14px;
+    transition: all 0.3s;
+    white-space: nowrap;
+    box-shadow: 0 4px 14px rgba(255,107,53,0.35);
+}
+
+.btn-parcours:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255,107,53,0.45);
+}
+
+/* ---- SECTION 8 : POURQUOI BTA ---- */
+
+.section-pourquoi {
+    padding: 100px 40px;
+    background: white;
+}
+
+.pourquoi-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+}
+
+.pourquoi-chiffres {
+    display: flex;
+    gap: 32px;
+}
+
+.pourquoi-chiffre {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.pourquoi-chiffre-val {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--bleu-principal);
+    line-height: 1;
+}
+
+.pourquoi-chiffre-label {
+    font-size: 12px;
+    color: var(--gris-texte);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+.pourquoi-droite {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.avantage-card {
+    background: var(--gris-clair);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border: 1px solid transparent;
+    transition: all 0.3s;
+}
+
+.avantage-card:hover {
+    background: white;
+    border-color: var(--bleu-electrique);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0,180,216,0.1);
+}
+
+.avantage-card-icone {
+    font-size: 32px;
+}
+
+.avantage-card-titre {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--bleu-principal);
+    margin: 0;
+}
+
+.avantage-card-desc {
+    font-size: 13px;
+    color: var(--gris-texte);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* ---- SECTION 9 : DASHBOARD PREVIEW ---- */
+
+.section-dashboard {
+    padding: 100px 40px;
+    background: linear-gradient(135deg, #f0f9ff 0%, #f8fafc 100%);
+    overflow: hidden;
+}
+
+.dashboard-preview {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+}
+
+.dashboard-features {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.dash-feature {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 16px;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    transition: all 0.3s;
+    cursor: default;
+}
+
+.dash-feature:hover,
+.actif-feature {
+    background: white;
+    border-color: var(--bleu-electrique);
+    box-shadow: 0 8px 30px rgba(0,180,216,0.1);
+}
+
+.dash-feature-icone {
+    font-size: 28px;
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, rgba(0,180,216,0.1), rgba(11,36,71,0.05));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dash-feature-titre {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--bleu-principal);
+    margin: 0 0 4px;
+}
+
+.dash-feature-desc {
+    font-size: 13px;
+    color: var(--gris-texte);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.btn-dashboard-cta {
+    display: inline-block;
+    background: linear-gradient(135deg, #FF6B35, #e85a2a);
+    color: white;
+    padding: 16px 32px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 16px;
+    text-decoration: none;
+    margin-top: 8px;
+    box-shadow: 0 8px 30px rgba(255,107,53,0.35);
+    transition: all 0.3s;
+    align-self: flex-start;
+}
+
+.btn-dashboard-cta:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(255,107,53,0.45);
+}
+
+/* Mockup dashboard */
+.dashboard-mockup-wrapper {
+    position: relative;
+}
+
+.dashboard-mockup-card {
+    background: white;
+    border-radius: 24px;
+    padding: 28px;
+    box-shadow:
+        0 40px 80px rgba(11,36,71,0.15),
+        0 0 0 1px rgba(11,36,71,0.05);
+    position: relative;
+    z-index: 2;
+}
+
+.dashboard-deco-1 {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: linear-gradient(135deg, rgba(0,180,216,0.15), transparent);
+    border-radius: 50%;
+    top: -60px;
+    right: -60px;
+    z-index: 1;
+}
+
+.dashboard-deco-2 {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    background: linear-gradient(135deg, rgba(255,107,53,0.1), transparent);
+    border-radius: 50%;
+    bottom: -40px;
+    left: -40px;
+    z-index: 1;
+}
+
+.dm-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 16px;
+}
+
+.dm-avatar {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, #0B2447, #00B4D8);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 800;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.dm-nom {
+    font-weight: 700;
+    color: var(--bleu-principal);
+    font-size: 14px;
+}
+
+.dm-role {
+    font-size: 12px;
+    color: var(--gris-texte);
+}
+
+.dm-notif {
+    margin-left: auto;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.dm-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.dm-kpi {
+    background: var(--gris-clair);
+    border-radius: 10px;
+    padding: 10px 8px;
+    text-align: center;
+}
+
+.dm-kpi-val {
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.dm-kpi-label {
+    font-size: 10px;
+    color: var(--gris-texte);
+    margin-top: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.dm-section-titre {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gris-texte);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+}
+
+.dm-cours {
+    margin-bottom: 12px;
+}
+
+.dm-cours-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--bleu-principal);
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.dm-progress {
+    height: 6px;
+    background: #f0f0f0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.dm-progress-fill {
+    height: 100%;
+    border-radius: 10px;
+    width: 0;
+    transition: width 1.5s ease;
+}
+
+.dm-quiz {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--gris-clair);
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    color: var(--bleu-principal);
+    margin-bottom: 12px;
+}
+
+.dm-quiz-score {
+    font-weight: 700;
+    color: #22c55e;
+}
+
+.dm-badges {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.dm-badge {
+    font-size: 11px;
+    background: rgba(0,180,216,0.1);
+    color: var(--bleu-electrique);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+/* ---- RESPONSIVE 7-8-9 ---- */
+
+@media (max-width: 1024px) {
+    .pourquoi-layout {
+        grid-template-columns: 1fr;
+        gap: 48px;
+    }
+
+    .pourquoi-droite {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .dashboard-preview {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+
+    .dashboard-mockup-wrapper {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .section-parcours,
+    .section-pourquoi,
+    .section-dashboard {
+        padding: 60px 20px;
+    }
+
+    .parcours-grille {
+        grid-template-columns: 1fr;
+    }
+
+    .carte-parcours-featured {
+        transform: none;
+    }
+
+    .pourquoi-droite {
+        grid-template-columns: 1fr;
+    }
+
+    .dm-kpis {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .parcours-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .btn-parcours {
+        text-align: center;
+    }
+
+    .pourquoi-chiffres {
+        gap: 20px;
+    }
+}
+
+</style>
+
+<!-- ================================================
+     JS — Anime les barres du dashboard mockup
+     ================================================ -->
+<script>
+(function() {
+    const barres = document.querySelectorAll('.dm-progress-fill');
+    const observateur = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+                const barre = entry.target;
+                const largeur = barre.dataset.width || '0';
+                barre.style.width = largeur + '%';
+                observateur.unobserve(barre);
+            }
+        });
+    }, { threshold: 0.3 });
+
+    barres.forEach(function(b) { observateur.observe(b); });
+})();
+</script>
+
+
+<!-- ================================================
+     SECTION 10 : BLESSY AI
+     ================================================ -->
+<section class="section-blessy-ai">
+    <div class="ai-bg-grid"></div>
+    <div class="ai-glow"></div>
+
+    <div class="section-inner" style="position: relative; z-index: 2;">
+
+        <div class="ai-layout">
+
+            <!-- Gauche : Demo chat -->
+            <div class="ai-chat-demo">
+                <div class="ai-chat-header">
+                    <div class="ai-chat-avatar">🤖</div>
+                    <div>
+                        <div class="ai-chat-nom">Blessy AI</div>
+                        <div class="ai-chat-status">
+                            <span class="ai-status-dot"></span>
+                            En ligne — disponible 24h/24
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ai-chat-messages">
+                    <div class="ai-message ai-message-bot">
+                        <div class="ai-bubble">
+                            Bonjour ! Je suis Blessy AI, ton assistant
+                            personnel de Blessy Tech Academy. 👋
+                            <br><br>
+                            Comment puis-je t'aider aujourd'hui ?
+                        </div>
+                        <span class="ai-time">maintenant</span>
+                    </div>
+
+                    <div class="ai-message ai-message-user">
+                        <div class="ai-bubble ai-bubble-user">
+                            Quelle formation me conseilles-tu pour
+                            devenir développeur web ?
+                        </div>
+                        <span class="ai-time">maintenant</span>
+                    </div>
+
+                    <div class="ai-message ai-message-bot">
+                        <div class="ai-bubble ai-typing" id="ai-typing">
+                            <span class="typing-dot"></span>
+                            <span class="typing-dot"></span>
+                            <span class="typing-dot"></span>
+                        </div>
+                        <div class="ai-bubble ai-response" id="ai-response"
+                             style="display:none;">
+                            Excellente ambition ! 🚀 Pour devenir développeur
+                            web, je te recommande ce parcours :<br><br>
+                            1️⃣ <strong>Python & Django</strong> — 8 mois<br>
+                            2️⃣ <strong>Design Web</strong> — 3 mois<br>
+                            3️⃣ <strong>Bases de données</strong> — 2 mois<br><br>
+                            Tu seras opérationnel en moins d'un an ! 🎯
+                        </div>
+                        <span class="ai-time">maintenant</span>
+                    </div>
+                </div>
+
+                <div class="ai-chat-input">
+                    <input type="text" placeholder="Pose ta question à Blessy AI..."
+                           readonly>
+                    <a href="{% url 'chat_ia' %}" class="ai-chat-btn">
+                        ✈️
+                    </a>
+                </div>
+
+                <p class="ai-chat-cta-link">
+                    <a href="{% url 'chat_ia' %}">
+                        Essayer Blessy AI gratuitement →
+                    </a>
+                </p>
+            </div>
+
+            <!-- Droite : Présentation -->
+            <div class="ai-presentation">
+                <div class="section-tag ai-tag">🤖 Intelligence Artificielle</div>
+                <h2 class="section-titre ai-titre">
+                    Blessy AI —<br>
+                    Ton mentor<br>
+                    <span class="ai-titre-accent">disponible 24h/24</span>
+                </h2>
+                <p class="ai-desc">
+                    La première plateforme EdTech haïtienne avec un
+                    assistant IA intégré à chaque niveau de l'apprentissage.
+                    Blessy AI ne remplace pas les formateurs — il les amplifie.
+                </p>
+
+                <div class="ai-features">
+                    <div class="ai-feature-item">
+                        <span class="ai-feature-check">✓</span>
+                        <span>Répond à toutes tes questions sur les cours</span>
+                    </div>
+                    <div class="ai-feature-item">
+                        <span class="ai-feature-check">✓</span>
+                        <span>Analyse ton profil et recommande un parcours</span>
+                    </div>
+                    <div class="ai-feature-item">
+                        <span class="ai-feature-check">✓</span>
+                        <span>Génère des quiz personnalisés pour toi</span>
+                    </div>
+                    <div class="ai-feature-item">
+                        <span class="ai-feature-check">✓</span>
+                        <span>Disponible en français et en créole haïtien</span>
+                    </div>
+                    <div class="ai-feature-item">
+                        <span class="ai-feature-check">✓</span>
+                        <span>Explique les concepts difficiles simplement</span>
+                    </div>
+                </div>
+
+                <a href="{% url 'orientation_ia' %}" class="btn-ai-cta">
+                    🎯 Découvrir mon parcours IA
+                </a>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- ================================================
+     SECTION 11 : CENTRE DE RESSOURCES
+     ================================================ -->
+<section class="section-ressources">
+    <div class="section-inner">
+
+        <div class="section-header">
+            <div class="section-tag">📚 Accès gratuit</div>
+            <h2 class="section-titre">Centre de ressources BTA</h2>
+            <p class="section-sous-titre">
+                Des outils puissants à ta disposition dès ton inscription —
+                sans frais supplémentaires.
+            </p>
+        </div>
+
+        <div class="ressources-grille">
+
+            <div class="carte-ressource">
+                <div class="ressource-icone-wrapper" style="background: linear-gradient(135deg, #0B2447, #1a4a8a);">
+                    <span>🤖</span>
+                </div>
+                <h3 class="ressource-titre">Assistant Blessy AI</h3>
+                <p class="ressource-desc">
+                    Chat IA disponible 24h/24 pour répondre à toutes
+                    tes questions sur les cours et ta progression.
+                </p>
+                <a href="{% url 'chat_ia' %}" class="ressource-lien">
+                    Accéder au chat →
+                </a>
+            </div>
+
+            <div class="carte-ressource">
+                <div class="ressource-icone-wrapper" style="background: linear-gradient(135deg, #FF6B35, #e85a2a);">
+                    <span>🎯</span>
+                </div>
+                <h3 class="ressource-titre">Orientation IA</h3>
+                <p class="ressource-desc">
+                    Réponds à 4 questions simples et obtiens un parcours
+                    de formation personnalisé en moins de 30 secondes.
+                </p>
+                <a href="{% url 'orientation_ia' %}" class="ressource-lien">
+                    Trouver mon parcours →
+                </a>
+            </div>
+
+            <div class="carte-ressource">
+                <div class="ressource-icone-wrapper" style="background: linear-gradient(135deg, #22c55e, #16a34a);">
+                    <span>💬</span>
+                </div>
+                <h3 class="ressource-titre">Forum Communautaire</h3>
+                <p class="ressource-desc">
+                    Pose tes questions, partage tes projets et apprends
+                    avec une communauté d'étudiants actifs et motivés.
+                </p>
+                <a href="{% url 'forum_liste' %}" class="ressource-lien">
+                    Rejoindre le forum →
+                </a>
+            </div>
+
+            <div class="carte-ressource">
+                <div class="ressource-icone-wrapper" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">
+                    <span>📝</span>
+                </div>
+                <h3 class="ressource-titre">Quiz de validation</h3>
+                <p class="ressource-desc">
+                    Des quiz intelligents générés par IA pour tester
+                    tes connaissances après chaque module de cours.
+                </p>
+                <a href="{% url 'formations' %}" class="ressource-lien">
+                    Explorer les formations →
+                </a>
+            </div>
+
+            <div class="carte-ressource">
+                <div class="ressource-icone-wrapper" style="background: linear-gradient(135deg, #00B4D8, #0090b8);">
+                    <span>🎓</span>
+                </div>
+                <h3 class="ressource-titre">Certificats numériques</h3>
+                <p class="ressource-desc">
+                    Télécharge un certificat PDF officiel à la fin
+                    de chaque formation — vérifiable et partageable.
+                </p>
+                <a href="{% url 'inscription_compte' %}" class="ressource-lien">
+                    Créer mon compte →
+                </a>
+            </div>
+
+            <div class="carte-ressource">
+                <div class="ressource-icone-wrapper" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                    <span>🏆</span>
+                </div>
+                <h3 class="ressource-titre">Classement & Badges</h3>
+                <p class="ressource-desc">
+                    Un système de gamification pour rester motivé —
+                    badges, classement et récompenses pour les meilleurs.
+                </p>
+                <a href="{% url 'forum_membres' %}" class="ressource-lien">
+                    Voir le classement →
+                </a>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- ================================================
+     SECTION 12 : NOTRE ENGAGEMENT
+     ================================================ -->
+<section class="section-engagement">
+    <div class="section-inner">
+
+        <div class="engagement-layout">
+
+            <div class="engagement-gauche">
+                <div class="section-tag">🤝 Notre promesse</div>
+                <h2 class="section-titre" style="text-align: left;">
+                    Notre engagement<br>envers toi
+                </h2>
+                <p style="font-size: 16px; color: var(--gris-texte); line-height: 1.8; margin-top: 16px;">
+                    Blessy Tech Academy s'engage à fournir une formation
+                    de qualité internationale, adaptée au contexte haïtien,
+                    avec un accompagnement humain et technologique de haut niveau.
+                </p>
+
+                <div class="engagement-signature">
+                    <div class="signature-avatar">JRB</div>
+                    <div>
+                        <div class="signature-nom">Jean Raymond BELONY</div>
+                        <div class="signature-titre">Fondateur & PDG, Blessy Tech Academy</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="engagement-droite">
+
+                <div class="engagement-item">
+                    <div class="engagement-num">01</div>
+                    <div>
+                        <h4 class="engagement-titre">Qualité internationale</h4>
+                        <p class="engagement-desc">
+                            Chaque formation est conçue selon les standards
+                            internationaux, en lien avec les certifications
+                            Google, Microsoft, CompTIA et IBM.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="engagement-item">
+                    <div class="engagement-num">02</div>
+                    <div>
+                        <h4 class="engagement-titre">Contenu toujours à jour</h4>
+                        <p class="engagement-desc">
+                            Nos cours sont régulièrement mis à jour pour
+                            suivre l'évolution rapide du marché du travail
+                            numérique en 2026 et au-delà.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="engagement-item">
+                    <div class="engagement-num">03</div>
+                    <div>
+                        <h4 class="engagement-titre">Support réactif</h4>
+                        <p class="engagement-desc">
+                            Notre équipe répond dans les 24h — par email,
+                            via le forum communautaire ou directement
+                            via Blessy AI.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="engagement-item">
+                    <div class="engagement-num">04</div>
+                    <div>
+                        <h4 class="engagement-titre">Accessibilité financière</h4>
+                        <p class="engagement-desc">
+                            Des formations gratuites pour commencer,
+                            des tarifs adaptés au contexte haïtien
+                            et des facilités de paiement disponibles.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ================================================
+     SECTION 13 : FAQ
+     ================================================ -->
+<section class="section-faq">
+    <div class="section-inner">
+
+        <div class="section-header">
+            <div class="section-tag">❓ Questions fréquentes</div>
+            <h2 class="section-titre">Tout ce que tu veux savoir</h2>
+            <p class="section-sous-titre">
+                Les questions les plus posées par nos futurs étudiants —
+                des réponses claires et honnêtes.
+            </p>
+        </div>
+
+        <div class="faq-conteneur">
+
+            <div class="faq-item">
+                <button class="faq-question" onclick="toggleFaq(this)">
+                    <span>Dois-je avoir des connaissances en informatique pour m'inscrire ?</span>
+                    <span class="faq-icone">+</span>
+                </button>
+                <div class="faq-reponse">
+                    <p>
+                        Non, la plupart de nos formations commencent de zéro.
+                        Nos formations gratuites sont spécialement conçues pour
+                        les débutants complets. Tout ce dont tu as besoin : un
+                        ordinateur, une connexion internet et la volonté d'apprendre.
+                    </p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" onclick="toggleFaq(this)">
+                    <span>Les formations sont-elles accessibles depuis Haïti et la diaspora ?</span>
+                    <span class="faq-icone">+</span>
+                </button>
+                <div class="faq-reponse">
+                    <p>
+                        Oui, absolument. BTA est 100% en ligne — accessible
+                        depuis Haïti, les États-Unis, le Canada, la France,
+                        les Antilles ou n'importe où dans le monde.
+                        Tu apprends à ton rythme, 24h/24.
+                    </p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" onclick="toggleFaq(this)">
+                    <span>Les certificats BTA sont-ils reconnus ?</span>
+                    <span class="faq-icone">+</span>
+                </button>
+                <div class="faq-reponse">
+                    <p>
+                        Nos formations préparent aux certifications officielles
+                        de Google, Microsoft, CompTIA et IBM — reconnues
+                        mondialement. Le certificat BTA atteste ta formation
+                        et les compétences que tu as développées.
+                    </p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" onclick="toggleFaq(this)">
+                    <span>Combien de temps faut-il pour compléter une formation ?</span>
+                    <span class="faq-icone">+</span>
+                </button>
+                <div class="faq-reponse">
+                    <p>
+                        Cela dépend de la formation et de ton rythme.
+                        Nos formations varient de 1 mois (mini-formations gratuites)
+                        à 10 mois (parcours complets). Avec 1h à 3h de travail
+                        quotidien, tu progresses rapidement et concrètement.
+                    </p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" onclick="toggleFaq(this)">
+                    <span>Comment fonctionne le paiement ?</span>
+                    <span class="faq-icone">+</span>
+                </button>
+                <div class="faq-reponse">
+                    <p>
+                        Nous acceptons plusieurs modes de paiement adaptés
+                        au contexte haïtien et international. Contacte-nous
+                        via le formulaire pour discuter des options disponibles
+                        (MonCash, virement, carte bancaire internationale).
+                    </p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" onclick="toggleFaq(this)">
+                    <span>Puis-je essayer avant de m'inscrire ?</span>
+                    <span class="faq-icone">+</span>
+                </button>
+                <div class="faq-reponse">
+                    <p>
+                        Oui ! Nous proposons 3 formations gratuites pour
+                        que tu découvres notre méthode sans aucun engagement.
+                        Tu peux aussi utiliser Blessy AI gratuitement et
+                        consulter nos programmes en détail avant de décider.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <p style="color: var(--gris-texte); font-size: 15px;">
+                Tu as d'autres questions ?
+                <a href="{% url 'contact' %}"
+                   style="color: var(--bleu-electrique); font-weight: 700; text-decoration: none;">
+                    Contacte-nous →
+                </a>
+            </p>
+        </div>
+
+    </div>
+</section>
+
+<!-- ================================================
+     SECTION 14 : CTA FINAL
+     ================================================ -->
+<section class="section-cta-final">
+    <div class="cta-bg-grid"></div>
+    <div class="cta-glow-1"></div>
+    <div class="cta-glow-2"></div>
+
+    <div class="section-inner cta-final-inner">
+
+        <!-- Badge -->
+        <div class="cta-badge">
+            🚀 Rejoins la révolution numérique haïtienne
+        </div>
+
+        <!-- Titre -->
+        <h2 class="cta-titre">
+            Ton avenir numérique<br>
+            commence <span class="cta-titre-accent">aujourd'hui</span>
+        </h2>
+
+        <!-- Sous-titre -->
+        <p class="cta-sous-titre">
+            Que tu veuilles changer de carrière, lancer ton entreprise
+            ou maîtriser les outils du futur — BTA a le parcours qu'il
+            te faut. Commence par une formation gratuite, sans engagement.
+        </p>
+
+        <!-- CTAs -->
+        <div class="cta-final-boutons">
+            <a href="{% url 'orientation_ia' %}" class="cta-btn-principal">
+                🎯 Trouver ma formation avec l'IA
+                <span class="cta-btn-arrow">→</span>
+            </a>
+            <a href="{% url 'formations' %}" class="cta-btn-secondaire">
+                📚 Explorer toutes les formations
+            </a>
+        </div>
+
+        <!-- Social proof final -->
+        <div class="cta-proof">
+            <div class="cta-proof-item">
+                <span class="cta-proof-icone">✅</span>
+                <span>Formations gratuites disponibles</span>
+            </div>
+            <div class="cta-proof-sep">•</div>
+            <div class="cta-proof-item">
+                <span class="cta-proof-icone">✅</span>
+                <span>Sans carte bancaire requise</span>
+            </div>
+            <div class="cta-proof-sep">•</div>
+            <div class="cta-proof-item">
+                <span class="cta-proof-icone">✅</span>
+                <span>Accessible depuis partout dans le monde</span>
+            </div>
+        </div>
+
+        <!-- Logos certifications -->
+        <div class="cta-certifs">
+            <span class="cta-certif-label">Prépare aux certifications :</span>
+            <div class="cta-certif-logos">
+                <span>🎓 Google</span>
+                <span>💼 Microsoft</span>
+                <span>🏆 CompTIA</span>
+                <span>🤖 IBM</span>
+                <span>📊 Meta</span>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- ================================================
+     CSS SECTIONS 10 À 14
+     ================================================ -->
+<style>
+
+/* ---- SECTION 10 : BLESSY AI ---- */
+
+.section-blessy-ai {
+    padding: 100px 40px;
+    background: linear-gradient(135deg, #050d1a 0%, #0B2447 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.ai-bg-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(0,180,216,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,180,216,0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+}
+
+.ai-glow {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(0,180,216,0.1) 0%, transparent 70%);
+    top: -100px;
+    left: -100px;
+    pointer-events: none;
+}
+
+.ai-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+}
+
+/* Chat demo */
+.ai-chat-demo {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 24px;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+.ai-chat-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03);
+}
+
+.ai-chat-avatar {
+    font-size: 32px;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #00B4D8, #0090b8);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.ai-chat-nom {
+    font-weight: 700;
+    color: white;
+    font-size: 15px;
+}
+
+.ai-chat-status {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2px;
+}
+
+.ai-status-dot {
+    width: 8px;
+    height: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+    animation: pulse-dot 2s infinite;
+}
+
+.ai-chat-messages {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-height: 280px;
+}
+
+.ai-message {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ai-message-user {
+    align-items: flex-end;
+}
+
+.ai-bubble {
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.9);
+    padding: 12px 16px;
+    border-radius: 16px 16px 16px 4px;
+    font-size: 14px;
+    line-height: 1.6;
+    max-width: 85%;
+}
+
+.ai-bubble-user {
+    background: linear-gradient(135deg, #00B4D8, #0090b8);
+    color: white;
+    border-radius: 16px 16px 4px 16px;
+}
+
+.ai-time {
+    font-size: 11px;
+    color: rgba(255,255,255,0.3);
+    padding: 0 4px;
+}
+
+/* Animation typing */
+.ai-typing {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 14px 18px;
+}
+
+.typing-dot {
+    width: 8px;
+    height: 8px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 50%;
+    animation: typing-bounce 1.2s infinite;
+}
+
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing-bounce {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-8px); }
+}
+
+.ai-chat-input {
+    display: flex;
+    gap: 8px;
+    padding: 16px 24px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.ai-chat-input input {
+    flex: 1;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 10px 16px;
+    color: rgba(255,255,255,0.5);
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.ai-chat-btn {
+    background: #00B4D8;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s;
+}
+
+.ai-chat-btn:hover {
+    background: #0090b8;
+    transform: scale(1.05);
+}
+
+.ai-chat-cta-link {
+    text-align: center;
+    padding: 12px 24px;
+    font-size: 13px;
+}
+
+.ai-chat-cta-link a {
+    color: #00B4D8;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* Présentation IA */
+.ai-presentation {
+    color: white;
+}
+
+.ai-tag {
+    background: rgba(0,180,216,0.15);
+    border-color: rgba(0,180,216,0.3);
+}
+
+.ai-titre {
+    font-size: 44px;
+    font-weight: 800;
+    color: white;
+    text-align: left;
+    margin: 20px 0;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+}
+
+.ai-titre-accent {
+    color: #00B4D8;
+}
+
+.ai-desc {
+    font-size: 16px;
+    color: rgba(255,255,255,0.7);
+    line-height: 1.8;
+    margin-bottom: 28px;
+}
+
+.ai-features {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 32px;
+}
+
+.ai-feature-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 15px;
+    color: rgba(255,255,255,0.85);
+}
+
+.ai-feature-check {
+    width: 24px;
+    height: 24px;
+    background: rgba(34,197,94,0.2);
+    color: #22c55e;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.btn-ai-cta {
+    display: inline-block;
+    background: linear-gradient(135deg, #FF6B35, #e85a2a);
+    color: white;
+    padding: 16px 32px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 16px;
+    text-decoration: none;
+    box-shadow: 0 8px 30px rgba(255,107,53,0.4);
+    transition: all 0.3s;
+}
+
+.btn-ai-cta:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(255,107,53,0.5);
+}
+
+/* ---- SECTION 11 : RESSOURCES ---- */
+
+.section-ressources {
+    padding: 100px 40px;
+    background: white;
+}
+
+.ressources-grille {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.carte-ressource {
+    background: var(--gris-clair);
+    border-radius: 20px;
+    padding: 32px;
+    border: 2px solid transparent;
+    transition: all 0.3s;
+}
+
+.carte-ressource:hover {
+    border-color: var(--bleu-electrique);
+    background: white;
+    transform: translateY(-6px);
+    box-shadow: 0 20px 50px rgba(0,180,216,0.1);
+}
+
+.ressource-icone-wrapper {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    margin-bottom: 20px;
+    transition: transform 0.3s;
+}
+
+.carte-ressource:hover .ressource-icone-wrapper {
+    transform: scale(1.1) rotate(-5deg);
+}
+
+.ressource-titre {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--bleu-principal);
+    margin-bottom: 10px;
+}
+
+.ressource-desc {
+    font-size: 14px;
+    color: var(--gris-texte);
+    line-height: 1.7;
+    margin-bottom: 20px;
+    flex-grow: 1;
+}
+
+.ressource-lien {
+    font-size: 14px;
+    color: var(--bleu-electrique);
+    font-weight: 700;
+    text-decoration: none;
+    transition: gap 0.3s;
+}
+
+.ressource-lien:hover {
+    text-decoration: underline;
+}
+
+/* ---- SECTION 12 : ENGAGEMENT ---- */
+
+.section-engagement {
+    padding: 100px 40px;
+    background: var(--gris-clair);
+}
+
+.engagement-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 80px;
+    align-items: start;
+}
+
+.engagement-signature {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.signature-avatar {
+    width: 52px;
+    height: 52px;
+    background: linear-gradient(135deg, #0B2447, #00B4D8);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 800;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.signature-nom {
+    font-weight: 700;
+    color: var(--bleu-principal);
+    font-size: 15px;
+}
+
+.signature-titre {
+    font-size: 12px;
+    color: var(--gris-texte);
+    margin-top: 2px;
+}
+
+.engagement-droite {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.engagement-item {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    padding: 28px 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.engagement-item:last-child {
+    border-bottom: none;
+}
+
+.engagement-num {
+    font-size: 40px;
+    font-weight: 800;
+    color: rgba(0,180,216,0.2);
+    line-height: 1;
+    flex-shrink: 0;
+    width: 60px;
+    letter-spacing: -2px;
+}
+
+.engagement-titre {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--bleu-principal);
+    margin: 0 0 8px;
+}
+
+.engagement-desc {
+    font-size: 14px;
+    color: var(--gris-texte);
+    line-height: 1.7;
+    margin: 0;
+}
+
+/* ---- SECTION 13 : FAQ ---- */
+
+.section-faq {
+    padding: 100px 40px;
+    background: white;
+}
+
+.faq-conteneur {
+    max-width: 780px;
+    margin: 0 auto;
+}
+
+.faq-item {
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.faq-question {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--bleu-principal);
+    font-family: inherit;
+    gap: 16px;
+    transition: color 0.3s;
+}
+
+.faq-question:hover {
+    color: var(--bleu-electrique);
+}
+
+.faq-icone {
+    font-size: 24px;
+    font-weight: 300;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--gris-clair);
+    color: var(--bleu-principal);
+    transition: all 0.3s;
+}
+
+.faq-item.actif .faq-icone {
+    background: var(--bleu-principal);
+    color: white;
+    transform: rotate(45deg);
+}
+
+.faq-reponse {
+    display: none;
+    padding: 0 0 24px;
+}
+
+.faq-reponse.visible {
+    display: block;
+    animation: apparition 0.3s ease-out;
+}
+
+.faq-reponse p {
+    font-size: 15px;
+    color: var(--gris-texte);
+    line-height: 1.8;
+    margin: 0;
+}
+
+/* ---- SECTION 14 : CTA FINAL ---- */
+
+.section-cta-final {
+    padding: 120px 40px;
+    background: linear-gradient(135deg, #050d1a 0%, #0B2447 60%, #0d1f3c 100%);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.cta-bg-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(0,180,216,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,180,216,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+.cta-glow-1 {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(0,180,216,0.12) 0%, transparent 70%);
+    top: -100px;
+    left: -100px;
+}
+
+.cta-glow-2 {
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255,107,53,0.1) 0%, transparent 70%);
+    bottom: -80px;
+    right: -80px;
+}
+
+.cta-final-inner {
+    position: relative;
+    z-index: 2;
+}
+
+.cta-badge {
+    display: inline-block;
+    background: rgba(0,180,216,0.15);
+    border: 1px solid rgba(0,180,216,0.3);
+    color: #00B4D8;
+    padding: 8px 20px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 32px;
+    letter-spacing: 0.5px;
+}
+
+.cta-titre {
+    font-size: 60px;
+    font-weight: 800;
+    color: white;
+    line-height: 1.1;
+    letter-spacing: -2px;
+    margin-bottom: 24px;
+}
+
+.cta-titre-accent {
+    background: linear-gradient(135deg, #00B4D8, #7dd3fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.cta-sous-titre {
+    font-size: 18px;
+    color: rgba(255,255,255,0.7);
+    max-width: 600px;
+    margin: 0 auto 48px;
+    line-height: 1.8;
+}
+
+.cta-final-boutons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 48px;
+}
+
+.cta-btn-principal {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(135deg, #FF6B35, #e85a2a);
+    color: white;
+    padding: 20px 40px;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 17px;
+    text-decoration: none;
+    box-shadow: 0 8px 40px rgba(255,107,53,0.4);
+    transition: all 0.3s;
+}
+
+.cta-btn-principal:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 60px rgba(255,107,53,0.5);
+}
+
+.cta-btn-arrow {
+    transition: transform 0.3s;
+}
+
+.cta-btn-principal:hover .cta-btn-arrow {
+    transform: translateX(6px);
+}
+
+.cta-btn-secondaire {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.08);
+    color: white;
+    padding: 20px 40px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 17px;
+    text-decoration: none;
+    border: 1px solid rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s;
+}
+
+.cta-btn-secondaire:hover {
+    background: rgba(255,255,255,0.15);
+    transform: translateY(-3px);
+}
+
+.cta-proof {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 48px;
+}
+
+.cta-proof-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: rgba(255,255,255,0.75);
+    font-weight: 500;
+}
+
+.cta-proof-icone {
+    color: #22c55e;
+}
+
+.cta-proof-sep {
+    color: rgba(255,255,255,0.2);
+    font-size: 20px;
+}
+
+.cta-certifs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding-top: 32px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.cta-certif-label {
+    font-size: 13px;
+    color: rgba(255,255,255,0.4);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.cta-certif-logos {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.cta-certif-logos span {
+    font-size: 14px;
+    color: rgba(255,255,255,0.6);
+    font-weight: 600;
+    padding: 6px 16px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    transition: all 0.3s;
+}
+
+.cta-certif-logos span:hover {
+    color: white;
+    border-color: rgba(255,255,255,0.3);
+}
+
+/* ---- RESPONSIVE 10-14 ---- */
+
+@media (max-width: 1024px) {
+    .ai-layout {
+        grid-template-columns: 1fr;
+        gap: 48px;
+    }
+
+    .ai-titre {
+        font-size: 36px;
+    }
+
+    .engagement-layout {
+        grid-template-columns: 1fr;
+        gap: 48px;
+    }
+}
+
+@media (max-width: 768px) {
+    .section-blessy-ai,
+    .section-ressources,
+    .section-engagement,
+    .section-faq,
+    .section-cta-final {
+        padding: 60px 20px;
+    }
+
+    .cta-titre {
+        font-size: 36px;
+        letter-spacing: -1px;
+    }
+
+    .cta-sous-titre {
+        font-size: 16px;
+    }
+
+    .cta-final-boutons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .cta-btn-principal,
+    .cta-btn-secondaire {
+        justify-content: center;
+        padding: 16px 24px;
+    }
+
+    .cta-proof {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .cta-proof-sep {
+        display: none;
+    }
+
+    .ressources-grille {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .cta-titre {
+        font-size: 28px;
+    }
+
+    .ai-titre {
+        font-size: 28px;
+    }
+}
+
+</style>
+
+<!-- ================================================
+     JS — FAQ Accordéon + Animation chat IA
+     ================================================ -->
+<script>
+/* FAQ Accordéon */
+function toggleFaq(bouton) {
+    const item = bouton.parentElement;
+    const reponse = item.querySelector('.faq-reponse');
+    const estOuvert = item.classList.contains('actif');
+
+    // Ferme tous les items ouverts
+    document.querySelectorAll('.faq-item.actif').forEach(function(i) {
+        i.classList.remove('actif');
+        i.querySelector('.faq-reponse').classList.remove('visible');
+    });
+
+    // Ouvre celui-ci si était fermé
+    if (!estOuvert) {
+        item.classList.add('actif');
+        reponse.classList.add('visible');
+    }
+}
+
+/* Animation chat IA — affiche la réponse après délai */
+(function() {
+    const typing = document.getElementById('ai-typing');
+    const response = document.getElementById('ai-response');
+
+    if (!typing || !response) return;
+
+    const observateur = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+                setTimeout(function() {
+                    if (typing) typing.style.display = 'none';
+                    if (response) response.style.display = 'block';
+                }, 2500);
+                observateur.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.5 });
+
+    observateur.observe(typing);
+})();
+</script>
 
 {% endblock %}

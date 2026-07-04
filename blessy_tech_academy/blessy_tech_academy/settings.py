@@ -69,10 +69,10 @@ if DEBUG:
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'csp.middleware.CSPMiddleware',          # ← ici
+    'academie.middleware.SecurityHeadersMiddleware',   # ← Security Headers
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.locale.LocaleMiddleware',          # ← Multilingue
+    'django.middleware.locale.LocaleMiddleware',
     'allauth.account.middleware.AccountMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -300,19 +300,26 @@ SECURE_BROWSER_XSS_FILTER = True
 # ========== Anti-clickjacking ==========
 X_FRAME_OPTIONS = 'DENY'
 
-# ========== Content Security Policy ==========
-CSP_DEFAULT_SRC = ("'self'",)
+# ========== Content Security Policy (robuste) ==========
+CSP_DEFAULT_SRC = ("'none'",)
 CSP_SCRIPT_SRC = ("'self'",
+                "'unsafe-inline'",
                 "https://cdn.ckeditor.com",
-                "https://cdn.jsdelivr.net",
-                "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js")
+                "https://cdn.jsdelivr.net")
 CSP_STYLE_SRC = ("'self'",
+                "'unsafe-inline'",
                 "https://cdn.ckeditor.com",
                 "https://cdn.jsdelivr.net",
                 "'unsafe-inline'")
 CSP_IMG_SRC = ("'self'", "data:", "https://*")
-CSP_FONT_SRC = ("'self'",)
+CSP_FONT_SRC = ("'self'", "https://cdn.ckeditor.com")
 CSP_CONNECT_SRC = ("'self'",)
+CSP_FRAME_ANCESTORS = ("'none'",)
+CSP_BASE_URI = ("'self'",)
+CSP_FORM_ACTION = ("'self'",)
+CSP_FRAME_SRC = ("'none'",)
+CSP_OBJECT_SRC = ("'none'",)
+CSP_UPGRADE_INSECURE_REQUESTS = True
 
 # ========== Journalisation sécurité ==========
 LOGGING['loggers']['django.security'] = {

@@ -9,10 +9,16 @@ const observer = new IntersectionObserver((entries) => {
 
 document.querySelectorAll('.fade-in-section').forEach(el => observer.observe(el));
 
-// Compteurs animés
+// Compteurs animés – compatible avec .stat-nombre et .compteur
 function animateCounter(el) {
-    const target = parseInt(el.getAttribute('data-target'), 10);
+    // lit data-target puis data-cible
+    let target = parseInt(el.getAttribute('data-target'), 10);
+    if (isNaN(target)) {
+        target = parseInt(el.getAttribute('data-cible'), 10);
+    }
     if (isNaN(target)) return;
+
+    let suffix = el.getAttribute('data-suffix') || '';
     let current = 0;
     const increment = Math.ceil(target / 40);
     const timer = setInterval(() => {
@@ -21,7 +27,7 @@ function animateCounter(el) {
             current = target;
             clearInterval(timer);
         }
-        el.textContent = current + (el.getAttribute('data-suffix') || '');
+        el.textContent = current + suffix;
     }, 20);
 }
 
@@ -34,4 +40,5 @@ const counterObserver = new IntersectionObserver((entries) => {
     });
 }, { threshold: 0.5 });
 
-document.querySelectorAll('.stat-nombre').forEach(el => counterObserver.observe(el));
+// Cible les deux sélecteurs
+document.querySelectorAll('.stat-nombre, .compteur').forEach(el => counterObserver.observe(el));
