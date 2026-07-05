@@ -4,127 +4,1136 @@
 
 {% block contenu %}
 
-<section class="page-hero">
-    <h2>Nos Formations</h2>
-    <p>Des parcours concrets pour te rendre employable rapidement.</p>
-</section>
-
-{% if formations_gratuites %}
-<section class="fade-in-section" style="padding:50px 40px; background:#f8fbff;">    <h2 style="text-align:center; color:var(--bleu-principal); margin-bottom:10px;">
-        🎁 Formations Gratuites
-    </h2>
-    <p style="text-align:center; color:var(--gris-texte); margin-bottom:35px;">
-        Commence gratuitement puis évolue vers un parcours professionnel complet.
-    </p>
-
-    <div class="formations-grille">
-        {% for formation in formations_gratuites %}
-            {% include 'academie/includes/carte_formation.html' with formation=formation %}
-        {% endfor %}
-    </div>
-</section>
-{% endif %}
-
-<section class="apercu-formations fade-in-section">
-    {% for ecole in ecoles %}
-        {% if ecole.formations.all %}
-        <div style="margin-bottom: 56px;">
-            <h3 style="color: var(--bleu-principal); font-size: 24px;
-                    margin-bottom: 8px; border-bottom: 3px solid var(--bleu-electrique);
-                    padding-bottom: 8px; display: inline-block;">
-                {{ ecole.icone }} {{ ecole.nom }}
-            </h3>
-            <p style="color: var(--gris-texte); margin-bottom: 24px;">
-                {{ ecole.description }}
-            </p>
-
-            <div class="formations-grille">
-                {% for formation in ecole.formations.all %}
-                    {% if formation.actif %}
-                        {% include 'academie/includes/carte_formation.html' with formation=formation %}
-                    {% endif %}
-                {% endfor %}
-            </div>
+<!-- ================================================
+     HERO FORMATIONS
+     ================================================ -->
+<section class="formations-hero">
+    <div class="formations-hero-bg"></div>
+    <div class="formations-hero-inner">
+        <div class="section-tag" style="margin-bottom: 16px;">
+            📚 Catalogue complet
         </div>
-        {% endif %}
-    {% endfor %}
-</section>
-
-<!-- Parcours Professionnels -->
-{% if parcours_list %}
-<section class="fade-in-section" style="background: var(--bleu-principal); padding: 60px 40px;">    <div style="max-width: 1100px; margin: 0 auto;">
-        <h2 style="color: white; font-size: 32px; margin-bottom: 8px; text-align: center;">
-            🎓 Parcours Professionnels
-        </h2>
-        <p style="color: rgba(255,255,255,0.8); text-align: center; margin-bottom: 48px; font-size: 16px;">
-            Des programmes complets pour une reconversion ou une spécialisation professionnelle rapide.
+        <h1 class="formations-hero-titre">
+            Nos Formations
+        </h1>
+        <p class="formations-hero-sous">
+            {{ ecoles|length }} écoles spécialisées · Des parcours du débutant au professionnel
         </p>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
-            {% for parcours in parcours_list %}
-            <div style="background: rgba(255,255,255,0.08);
-                        border: 1px solid rgba(255,255,255,0.15);
-                        border-radius: 16px; padding: 32px;
-                        transition: transform 0.2s;">
-                <div style="font-size: 40px; margin-bottom: 12px;">
-                    {{ parcours.icone }}
+        <!-- Barre de recherche -->
+        <div class="formations-search-bar">
+            <input type="text" id="search-formations"
+                   placeholder="🔍 Rechercher une formation..."
+                   oninput="filtrerFormations()">
+        </div>
+    </div>
+</section>
+
+<!-- ================================================
+     FILTRES STICKY
+     ================================================ -->
+<div class="filtres-bar" id="filtres-bar">
+    <div class="filtres-inner">
+
+        <!-- Filtres gauche -->
+        <div class="filtres-groupe">
+
+            <!-- Filtre École -->
+            <div class="filtre-wrapper">
+                <select id="filtre-ecole" class="filtre-select"
+                        onchange="filtrerFormations()">
+                    <option value="">🏫 Toutes les écoles</option>
+                    {% for ecole in ecoles %}
+                    <option value="{{ ecole.nom|lower }}">
+                        {{ ecole.icone }} {{ ecole.nom }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Filtre Niveau -->
+            <div class="filtre-wrapper">
+                <select id="filtre-niveau" class="filtre-select"
+                        onchange="filtrerFormations()">
+                    <option value="">📊 Tous les niveaux</option>
+                    <option value="debutant">🟢 Débutant</option>
+                    <option value="intermediaire">🔵 Intermédiaire</option>
+                    <option value="avance">🟠 Avancé</option>
+                    <option value="professionnel">🔴 Professionnel</option>
+                </select>
+            </div>
+
+            <!-- Filtre Prix -->
+            <div class="filtre-wrapper">
+                <select id="filtre-prix" class="filtre-select"
+                        onchange="filtrerFormations()">
+                    <option value="">💰 Tous les prix</option>
+                    <option value="gratuit">🎁 Gratuit</option>
+                    <option value="payant">💳 Payant</option>
+                </select>
+            </div>
+
+            <!-- Reset -->
+            <button class="filtre-reset" onclick="resetFiltres()">
+                ✕ Réinitialiser
+            </button>
+        </div>
+
+        <!-- Droite : compteur + vue -->
+        <div class="filtres-droite">
+            <span class="formations-compteur" id="formations-compteur">
+                Toutes les formations
+            </span>
+
+            <div class="vue-toggle">
+                <button class="vue-btn actif" id="btn-grille"
+                        onclick="setVue('grille')">
+                    ⊞
+                </button>
+                <button class="vue-btn" id="btn-liste"
+                        onclick="setVue('liste')">
+                    ☰
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ================================================
+     FORMATIONS GRATUITES (Lead Magnets)
+     ================================================ -->
+{% with gratuites_count=0 %}
+{% for ecole in ecoles %}
+{% for formation in ecole.formations.all %}
+{% if formation.gratuit and formation.actif %}
+{% with gratuites_count=gratuites_count|add:1 %}{% endwith %}
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% endwith %}
+
+<section class="section-formations-gratuites" id="section-gratuites">
+    <div class="formations-page-inner">
+        <div class="section-gratuites-header">
+            <div>
+                <span class="section-tag">🎁 Accès immédiat · Gratuit</span>
+                <h2 class="section-titre" style="margin-top: 12px; font-size: 32px;">
+                    Commence gratuitement
+                </h2>
+            </div>
+            <p class="section-sous-titre" style="text-align: left; max-width: 400px;">
+                Découvre notre méthode sans engagement.
+                Passe ensuite à la formation complète.
+            </p>
+        </div>
+
+        <div class="gratuites-grille-page">
+            {% for ecole in ecoles %}
+            {% for formation in ecole.formations.all %}
+            {% if formation.gratuit and formation.actif %}
+            <div class="carte-gratuite-page">
+                <div class="gratuite-top-bar"></div>
+                <div class="gratuite-page-badge">🎁 GRATUIT</div>
+                <div class="gratuite-page-icone">{{ formation.icone }}</div>
+                <h3 class="gratuite-page-titre">{{ formation.nom }}</h3>
+                <p class="gratuite-page-desc">
+                    {{ formation.description|truncatewords:18 }}
+                </p>
+                <div class="gratuite-page-meta">
+                    <span>⏱ {{ formation.duree_mois }} mois</span>
+                    <span style="color: #22c55e; font-weight: 800;">GRATUIT</span>
                 </div>
-                <h3 style="color: white; font-size: 20px; margin-bottom: 12px;">
-                    {{ parcours.titre }}
-                </h3>
+                <a href="{% url 'detail_formation' formation.id %}"
+                   class="btn-gratuite-page">
+                    Commencer maintenant →
+                </a>
+                {% if formation.formation_upgrade %}
+                <div class="gratuite-page-upgrade">
+                    <span>🚀 Formation complète :</span>
+                    <a href="{% url 'detail_formation' formation.formation_upgrade.id %}">
+                        {{ formation.formation_upgrade.nom }} →
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            {% endfor %}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- ================================================
+     TOUTES LES FORMATIONS PAR ÉCOLE
+     ================================================ -->
+<section class="section-toutes-formations">
+    <div class="formations-page-inner">
+
+        <h2 class="section-titre" style="margin-bottom: 48px;">
+            Toutes nos formations
+        </h2>
+
+        <!-- Grille formations -->
+        <div class="formations-grille-page grille" id="formations-grille">
+
+            {% for ecole in ecoles %}
+            {% if ecole.formations.all %}
+
+            <!-- En-tête École -->
+            <div class="ecole-separateur" data-ecole="{{ ecole.nom|lower }}">
+                <div class="ecole-sep-ligne"></div>
+                <div class="ecole-sep-badge">
+                    {{ ecole.icone }} {{ ecole.nom }}
+                </div>
+                <div class="ecole-sep-ligne"></div>
+            </div>
+
+            {% for formation in ecole.formations.all %}
+            {% if formation.actif and not formation.gratuit %}
+
+            <article class="carte-formation-moderne"
+                     data-ecole="{{ ecole.nom|lower }}"
+                     data-niveau="{{ formation.niveau }}"
+                     data-prix="{% if formation.prix == 0 %}gratuit{% else %}payant{% endif %}"
+                     data-nom="{{ formation.nom|lower }}"
+                     data-desc="{{ formation.description|lower }}">
+
+                <!-- Header carte -->
+                <div class="carte-moderne-header">
+                    <div class="carte-moderne-icone">{{ formation.icone }}</div>
+                    <div class="carte-moderne-badges">
+                        {% if formation.niveau == 'debutant' %}
+                        <span class="badge-niveau badge-debutant">Débutant</span>
+                        {% elif formation.niveau == 'intermediaire' %}
+                        <span class="badge-niveau badge-intermediaire">Intermédiaire</span>
+                        {% elif formation.niveau == 'avance' %}
+                        <span class="badge-niveau badge-avance">Avancé</span>
+                        {% else %}
+                        <span class="badge-niveau badge-pro">Pro</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Contenu -->
+                <div class="carte-moderne-corps">
+                    <div class="carte-moderne-ecole">
+                        {{ ecole.icone }} {{ ecole.nom }}
+                    </div>
+                    <h3 class="carte-moderne-titre">{{ formation.nom }}</h3>
+                    <p class="carte-moderne-desc">
+                        {{ formation.description|truncatewords:20 }}
+                    </p>
+                </div>
+
+                <!-- Stats -->
+                <div class="carte-moderne-stats">
+                    <div class="carte-stat">
+                        <span class="carte-stat-val">{{ formation.duree_mois }}</span>
+                        <span class="carte-stat-label">mois</span>
+                    </div>
+                    <div class="carte-stat-sep"></div>
+                    <div class="carte-stat">
+                        <span class="carte-stat-val">{{ formation.modules.count }}</span>
+                        <span class="carte-stat-label">modules</span>
+                    </div>
+                    <div class="carte-stat-sep"></div>
+                    <div class="carte-stat">
+                        <span class="carte-stat-val" style="color:var(--orange-accent);">
+                            {{ formation.prix }}$
+                        </span>
+                        <span class="carte-stat-label">USD</span>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="carte-moderne-footer">
+                    <a href="{% url 'detail_formation' formation.id %}"
+                       class="btn-carte-programme">
+                        📋 Programme
+                    </a>
+                    <a href="{% url 'contact' %}"
+                       class="btn-carte-inscrire">
+                        S'inscrire
+                    </a>
+                </div>
+
+            </article>
+
+            {% endif %}
+            {% endfor %}
+            {% endif %}
+            {% endfor %}
+
+        </div>
+
+        <!-- Message aucun résultat -->
+        <div class="formations-aucun" id="formations-aucun" style="display: none;">
+            <span style="font-size: 48px;">🔍</span>
+            <h3>Aucune formation trouvée</h3>
+            <p>Essaie d'autres filtres ou <a href="#" onclick="resetFiltres()">
+                réinitialise la recherche</a>.</p>
+        </div>
+
+    </div>
+</section>
+
+<!-- ================================================
+     PARCOURS PROFESSIONNELS
+     ================================================ -->
+<section class="section-parcours-page">
+    <div class="formations-page-inner">
+
+        <div class="section-header">
+            <div class="section-tag">🚀 Programmes multi-formations</div>
+            <h2 class="section-titre">Parcours Professionnels</h2>
+            <p class="section-sous-titre">
+                Des combinaisons de formations soigneusement choisies
+                pour une reconversion rapide et efficace.
+            </p>
+        </div>
+
+        <div class="parcours-page-grille">
+            {% for parcours in parcours_list %}
+            <div class="carte-parcours-page
+                {% if forloop.counter == 2 %}carte-parcours-featured{% endif %}">
+
+                {% if forloop.counter == 2 %}
+                <div class="parcours-badge-top">⭐ POPULAIRE</div>
+                {% endif %}
+
+                <div class="parcours-page-header">
+                    <span class="parcours-page-icone">{{ parcours.icone }}</span>
+                    <div>
+                        <h3 class="parcours-page-titre">{{ parcours.titre }}</h3>
+                        <p class="parcours-page-meta">
+                            ⏱ {{ parcours.duree_mois }} mois
+                            · {{ parcours.formations.count }} formations
+                        </p>
+                    </div>
+                </div>
+
                 {% if parcours.description %}
-                <p style="color: rgba(255,255,255,0.7); font-size: 14px; margin-bottom: 20px; line-height: 1.6;">
-                    {{ parcours.description }}
+                <p class="parcours-page-desc">
+                    {{ parcours.description|truncatewords:18 }}
                 </p>
                 {% endif %}
 
-                {% if parcours.formations.all %}
-                <div style="margin-bottom: 20px;">
-                    <p style="color: var(--bleu-electrique); font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px;">
-                        Formations incluses
-                    </p>
+                <div class="parcours-page-formations">
                     {% for formation in parcours.formations.all %}
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                        <span style="color: var(--bleu-electrique);">✓</span>
-                        <span style="color: rgba(255,255,255,0.8); font-size: 13px;">
-                            {{ formation.icone }} {{ formation.nom }}
-                        </span>
+                    <div class="parcours-page-item">
+                        <span style="color: #22c55e;">✓</span>
+                        {{ formation.icone }} {{ formation.nom }}
                     </div>
                     {% endfor %}
                 </div>
-                {% endif %}
 
-                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.15);">
-                    <div>
-                        <p style="color: rgba(255,255,255,0.6); font-size: 12px;">Durée</p>
-                        <p style="color: white; font-weight: 700;">{{ parcours.duree_mois }} mois</p>
+                <div class="parcours-page-footer">
+                    <div class="parcours-page-prix">
+                        <span class="parcours-prix-label">Total</span>
+                        <span class="parcours-prix-val">{{ parcours.prix }} USD</span>
                     </div>
-                    <div style="text-align: right;">
-                        <p style="color: rgba(255,255,255,0.6); font-size: 12px;">Investissement</p>
-                        <p style="color: var(--orange-accent); font-weight: 800; font-size: 20px;">{{ parcours.prix }} USD</p>
-                    </div>
+                    <a href="{% url 'contact' %}" class="btn-parcours-page">
+                        S'inscrire →
+                    </a>
                 </div>
 
-                <a href="{% url 'contact' %}"
-                   style="display: block; text-align: center; margin-top: 20px;
-                        background: var(--orange-accent); color: white;
-                        padding: 12px 24px; border-radius: 8px;
-                        text-decoration: none; font-weight: 700; font-size: 14px;">
-                    S'inscrire à ce parcours →
-                </a>
             </div>
             {% endfor %}
         </div>
     </div>
 </section>
-{% endif %}
 
-<section class="cta fade-in-section">
-    <h2>Une question sur nos formations ?</h2>
-    <p>Notre équipe est disponible pour t'accompagner.</p>
-    <a href="{% url 'contact' %}" class="btn btn-principal">
-        Nous contacter
-    </a>
+<!-- ================================================
+     CTA ORIENTATION
+     ================================================ -->
+<section class="formations-cta-orientation">
+    <div class="formations-cta-inner">
+        <div class="formations-cta-icone">🎯</div>
+        <h2 class="formations-cta-titre">
+            Tu ne sais pas quelle formation choisir ?
+        </h2>
+        <p class="formations-cta-desc">
+            Blessy AI analyse ton profil en 30 secondes et
+            construit ton parcours idéal — gratuitement.
+        </p>
+        <div class="formations-cta-boutons">
+            <a href="{% url 'orientation_ia' %}" class="btn-cta-orientation">
+                🤖 Trouver mon parcours avec l'IA
+            </a>
+            <a href="{% url 'contact' %}" class="btn-cta-contact">
+                ✉️ Nous contacter
+            </a>
+        </div>
+    </div>
 </section>
+
+<!-- ================================================
+     CSS PAGE FORMATIONS
+     ================================================ -->
+<style>
+
+.formations-page-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* ---- HERO ---- */
+
+.formations-hero {
+    background: linear-gradient(135deg, #050d1a 0%, #0B2447 100%);
+    padding: 80px 40px 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.formations-hero-bg {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(0,180,216,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,180,216,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+.formations-hero-inner {
+    position: relative;
+    z-index: 2;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.formations-hero-titre {
+    font-size: 52px;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -2px;
+    margin-bottom: 12px;
+}
+
+.formations-hero-sous {
+    font-size: 16px;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 32px;
+}
+
+.formations-search-bar {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.formations-search-bar input {
+    width: 100%;
+    padding: 14px 24px;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 50px;
+    background: rgba(255,255,255,0.08);
+    color: white;
+    font-size: 15px;
+    font-family: inherit;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s;
+}
+
+.formations-search-bar input::placeholder {
+    color: rgba(255,255,255,0.4);
+}
+
+.formations-search-bar input:focus {
+    outline: none;
+    border-color: #00B4D8;
+    background: rgba(255,255,255,0.12);
+    box-shadow: 0 0 0 4px rgba(0,180,216,0.15);
+}
+
+/* ---- FILTRES STICKY ---- */
+
+.filtres-bar {
+    position: sticky;
+    top: 72px;
+    z-index: 100;
+    background: rgba(248,250,252,0.98);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid #e2e8f0;
+    padding: 12px 40px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+}
+
+.filtres-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.filtres-groupe {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.filtre-select {
+    padding: 8px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    background: white;
+    font-size: 13px;
+    color: var(--bleu-principal);
+    font-family: inherit;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    appearance: none;
+    padding-right: 32px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234A5568' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+}
+
+.filtre-select:focus {
+    outline: none;
+    border-color: #00B4D8;
+    box-shadow: 0 0 0 3px rgba(0,180,216,0.1);
+}
+
+.filtre-reset {
+    padding: 8px 14px;
+    background: none;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #718096;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.filtre-reset:hover {
+    border-color: #fc8181;
+    color: #e53e3e;
+    background: rgba(252,129,129,0.06);
+}
+
+.filtres-droite {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.formations-compteur {
+    font-size: 13px;
+    color: #718096;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.vue-toggle {
+    display: flex;
+    background: #f0f4f8;
+    border-radius: 8px;
+    padding: 3px;
+    gap: 2px;
+}
+
+.vue-btn {
+    padding: 6px 12px;
+    border: none;
+    background: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    color: #718096;
+    transition: all 0.2s;
+}
+
+.vue-btn.actif {
+    background: white;
+    color: var(--bleu-principal);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* ---- SECTION GRATUITES PAGE ---- */
+
+.section-formations-gratuites {
+    padding: 80px 40px;
+    background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%);
+}
+
+.section-gratuites-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.gratuites-grille-page {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+.carte-gratuite-page {
+    background: white;
+    border-radius: 20px;
+    padding: 28px;
+    border: 2px solid #e2e8f0;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+}
+
+.gratuite-top-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #00B4D8, #22c55e);
+}
+
+.carte-gratuite-page:hover {
+    transform: translateY(-6px);
+    border-color: #00B4D8;
+    box-shadow: 0 20px 50px rgba(0,180,216,0.12);
+}
+
+.gratuite-page-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: linear-gradient(135deg, #00B4D8, #0090b8);
+    color: white;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.gratuite-page-icone { font-size: 44px; margin-bottom: 12px; display: block; }
+.gratuite-page-titre {
+    font-size: 18px; font-weight: 700;
+    color: var(--bleu-principal); margin-bottom: 8px;
+}
+.gratuite-page-desc {
+    font-size: 13px; color: var(--gris-texte);
+    line-height: 1.6; margin-bottom: 16px;
+}
+.gratuite-page-meta {
+    display: flex; justify-content: space-between;
+    font-size: 13px; color: var(--gris-texte);
+    padding: 12px 0; border-top: 1px solid #f0f0f0;
+    border-bottom: 1px solid #f0f0f0; margin-bottom: 16px;
+}
+.btn-gratuite-page {
+    display: block; text-align: center;
+    background: var(--bleu-principal); color: white;
+    padding: 12px; border-radius: 8px;
+    text-decoration: none; font-weight: 700;
+    font-size: 14px; transition: all 0.3s;
+    margin-bottom: 12px;
+}
+.btn-gratuite-page:hover { background: #00B4D8; transform: translateY(-2px); }
+.gratuite-page-upgrade {
+    text-align: center; font-size: 12px;
+    color: var(--gris-texte); padding-top: 10px;
+    border-top: 1px dashed #e2e8f0;
+}
+.gratuite-page-upgrade a {
+    color: var(--orange-accent); font-weight: 700;
+    text-decoration: none; display: block; margin-top: 3px;
+}
+
+/* ---- SECTION TOUTES FORMATIONS ---- */
+
+.section-toutes-formations {
+    padding: 80px 40px;
+    background: white;
+}
+
+.formations-grille-page {
+    display: grid;
+    gap: 20px;
+}
+
+.formations-grille-page.grille {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+
+.formations-grille-page.liste {
+    grid-template-columns: 1fr;
+}
+
+/* Séparateur École */
+.ecole-separateur {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 16px 0 8px;
+}
+
+.ecole-sep-ligne {
+    flex: 1;
+    height: 1px;
+    background: #e2e8f0;
+}
+
+.ecole-sep-badge {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--bleu-principal);
+    background: var(--gris-clair);
+    padding: 6px 16px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+/* Cards formations modernes */
+.carte-formation-moderne {
+    background: white;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    animation: card-appear 0.4s ease-out both;
+}
+
+@keyframes card-appear {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.carte-formation-moderne:hover {
+    border-color: var(--bleu-electrique);
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px rgba(11,36,71,0.1);
+}
+
+/* Vue liste */
+.liste .carte-formation-moderne {
+    flex-direction: row;
+    align-items: center;
+}
+
+.liste .carte-moderne-header {
+    border-bottom: none;
+    border-right: 1px solid #f0f0f0;
+    min-width: 80px;
+    justify-content: center;
+}
+
+.liste .carte-moderne-corps {
+    flex: 1;
+    padding: 16px 20px;
+}
+
+.liste .carte-moderne-stats {
+    border-top: none;
+    border-left: 1px solid #f0f0f0;
+    padding: 0 20px;
+    min-width: 200px;
+}
+
+.liste .carte-moderne-footer {
+    border-top: none;
+    border-left: 1px solid #f0f0f0;
+    padding: 16px 20px;
+    flex-direction: column;
+    min-width: 140px;
+}
+
+.carte-moderne-header {
+    padding: 20px 20px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 1px solid #f8f8f8;
+}
+
+.carte-moderne-icone { font-size: 40px; line-height: 1; }
+
+.badge-niveau {
+    font-size: 11px; font-weight: 700;
+    padding: 4px 10px; border-radius: 20px;
+}
+.badge-debutant { background: rgba(34,197,94,0.1); color: #22c55e; }
+.badge-intermediaire { background: rgba(0,180,216,0.1); color: #00B4D8; }
+.badge-avance { background: rgba(255,107,53,0.1); color: #FF6B35; }
+.badge-pro { background: rgba(168,85,247,0.1); color: #a855f7; }
+
+.carte-moderne-corps { padding: 0 20px 16px; flex: 1; }
+
+.carte-moderne-ecole {
+    font-size: 11px; font-weight: 600;
+    color: var(--bleu-electrique); margin-bottom: 6px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+.carte-moderne-titre {
+    font-size: 16px; font-weight: 700;
+    color: var(--bleu-principal); margin-bottom: 8px; line-height: 1.3;
+}
+
+.carte-moderne-desc {
+    font-size: 13px; color: var(--gris-texte);
+    line-height: 1.6; margin: 0;
+}
+
+.carte-moderne-stats {
+    display: flex; align-items: center;
+    padding: 12px 20px;
+    border-top: 1px solid #f0f0f0;
+    gap: 0;
+}
+
+.carte-stat { flex: 1; text-align: center; }
+.carte-stat-val {
+    display: block; font-size: 18px; font-weight: 800;
+    color: var(--bleu-principal); line-height: 1;
+}
+.carte-stat-label {
+    display: block; font-size: 10px; color: #a0aec0;
+    text-transform: uppercase; margin-top: 2px;
+}
+.carte-stat-sep {
+    width: 1px; height: 28px; background: #e2e8f0;
+}
+
+.carte-moderne-footer {
+    display: flex; gap: 8px;
+    padding: 12px 20px 16px;
+}
+
+.btn-carte-programme {
+    flex: 1; text-align: center;
+    background: var(--bleu-principal); color: white;
+    padding: 10px 12px; border-radius: 8px;
+    text-decoration: none; font-weight: 700; font-size: 12px;
+    transition: all 0.2s;
+}
+.btn-carte-programme:hover { background: var(--bleu-electrique); }
+
+.btn-carte-inscrire {
+    flex: 1; text-align: center;
+    background: transparent; color: var(--bleu-principal);
+    padding: 10px 12px; border-radius: 8px;
+    text-decoration: none; font-weight: 700; font-size: 12px;
+    border: 1.5px solid #e2e8f0; transition: all 0.2s;
+}
+.btn-carte-inscrire:hover {
+    border-color: var(--bleu-principal);
+}
+
+/* Aucun résultat */
+.formations-aucun {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 80px 40px;
+    color: var(--gris-texte);
+}
+.formations-aucun h3 {
+    font-size: 24px; color: var(--bleu-principal); margin: 16px 0 8px;
+}
+.formations-aucun a { color: var(--bleu-electrique); font-weight: 700; }
+
+/* ---- PARCOURS PAGE ---- */
+
+.section-parcours-page {
+    padding: 80px 40px;
+    background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+}
+
+.parcours-page-grille {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    align-items: start;
+}
+
+.carte-parcours-page {
+    background: white;
+    border-radius: 20px;
+    padding: 28px;
+    border: 2px solid #e2e8f0;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.carte-parcours-page:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 24px 60px rgba(11,36,71,0.12);
+    border-color: var(--bleu-electrique);
+}
+
+.carte-parcours-featured {
+    background: linear-gradient(135deg, #0B2447, #1a4a8a);
+    border-color: transparent;
+    transform: scale(1.02);
+}
+
+.carte-parcours-featured:hover {
+    transform: scale(1.02) translateY(-6px);
+}
+
+.parcours-page-header {
+    display: flex; align-items: center;
+    gap: 14px; margin-bottom: 14px; margin-top: 10px;
+}
+
+.parcours-page-icone { font-size: 40px; flex-shrink: 0; }
+
+.parcours-page-titre {
+    font-size: 16px; font-weight: 700;
+    color: var(--bleu-principal); margin-bottom: 3px; line-height: 1.3;
+}
+.carte-parcours-featured .parcours-page-titre { color: white; }
+
+.parcours-page-meta {
+    font-size: 12px; color: var(--gris-texte);
+}
+.carte-parcours-featured .parcours-page-meta { color: rgba(255,255,255,0.6); }
+
+.parcours-page-desc {
+    font-size: 13px; color: var(--gris-texte);
+    line-height: 1.6; margin-bottom: 16px;
+}
+.carte-parcours-featured .parcours-page-desc { color: rgba(255,255,255,0.7); }
+
+.parcours-page-formations { margin-bottom: 20px; }
+
+.parcours-page-item {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--gris-texte);
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+.carte-parcours-featured .parcours-page-item {
+    color: rgba(255,255,255,0.8);
+    border-bottom-color: rgba(255,255,255,0.06);
+}
+
+.parcours-page-footer {
+    display: flex; justify-content: space-between;
+    align-items: center; padding-top: 16px;
+    border-top: 1px solid rgba(0,0,0,0.07);
+}
+.carte-parcours-featured .parcours-page-footer {
+    border-top-color: rgba(255,255,255,0.1);
+}
+
+.parcours-prix-label {
+    font-size: 10px; color: var(--gris-texte);
+    text-transform: uppercase; letter-spacing: 0.5px; display: block;
+}
+.carte-parcours-featured .parcours-prix-label { color: rgba(255,255,255,0.5); }
+
+.parcours-prix-val {
+    font-size: 24px; font-weight: 800; color: var(--orange-accent);
+}
+
+.btn-parcours-page {
+    background: var(--orange-accent); color: white;
+    padding: 10px 18px; border-radius: 8px;
+    text-decoration: none; font-weight: 700; font-size: 13px;
+    transition: all 0.3s;
+    box-shadow: 0 4px 14px rgba(255,107,53,0.3);
+}
+.btn-parcours-page:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255,107,53,0.4);
+}
+
+/* ---- CTA ORIENTATION ---- */
+
+.formations-cta-orientation {
+    padding: 80px 40px;
+    background: linear-gradient(135deg, #0B2447, #1a4a8a);
+    text-align: center;
+}
+
+.formations-cta-inner {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.formations-cta-icone { font-size: 56px; margin-bottom: 16px; }
+
+.formations-cta-titre {
+    font-size: 32px; font-weight: 800; color: white;
+    margin-bottom: 12px; letter-spacing: -0.5px;
+}
+
+.formations-cta-desc {
+    font-size: 16px; color: rgba(255,255,255,0.7);
+    line-height: 1.7; margin-bottom: 32px;
+}
+
+.formations-cta-boutons {
+    display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
+}
+
+.btn-cta-orientation {
+    background: linear-gradient(135deg, #FF6B35, #e85a2a);
+    color: white; padding: 16px 32px; border-radius: 10px;
+    text-decoration: none; font-weight: 700; font-size: 15px;
+    box-shadow: 0 8px 24px rgba(255,107,53,0.4); transition: all 0.3s;
+}
+.btn-cta-orientation:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 36px rgba(255,107,53,0.5);
+}
+
+.btn-cta-contact {
+    background: rgba(255,255,255,0.1);
+    color: white; padding: 16px 32px; border-radius: 10px;
+    text-decoration: none; font-weight: 700; font-size: 15px;
+    border: 1px solid rgba(255,255,255,0.2); transition: all 0.3s;
+}
+.btn-cta-contact:hover { background: rgba(255,255,255,0.18); }
+
+/* ---- RESPONSIVE PAGE FORMATIONS ---- */
+
+@media (max-width: 768px) {
+    .formations-hero { padding: 60px 20px 40px; }
+    .formations-hero-titre { font-size: 36px; }
+
+    .filtres-bar { top: 64px; padding: 10px 20px; }
+    .filtres-inner { flex-direction: column; align-items: stretch; gap: 10px; }
+    .filtres-groupe { flex-wrap: wrap; }
+    .filtres-droite { justify-content: space-between; }
+
+    .section-formations-gratuites,
+    .section-toutes-formations,
+    .section-parcours-page,
+    .formations-cta-orientation { padding: 60px 20px; }
+
+    .formations-grille-page.grille {
+        grid-template-columns: 1fr;
+    }
+
+    .section-gratuites-header { flex-direction: column; }
+
+    .liste .carte-formation-moderne { flex-direction: column; }
+    .liste .carte-moderne-header { border-right: none; border-bottom: 1px solid #f0f0f0; }
+    .liste .carte-moderne-stats { border-left: none; border-top: 1px solid #f0f0f0; }
+    .liste .carte-moderne-footer { border-left: none; border-top: 1px solid #f0f0f0; }
+
+    .formations-cta-titre { font-size: 24px; }
+    .formations-cta-boutons { flex-direction: column; }
+
+    .parcours-page-grille { grid-template-columns: 1fr; }
+    .carte-parcours-featured { transform: none; }
+}
+
+</style>
+
+<!-- ================================================
+     JS PAGE FORMATIONS — Filtrage instantané
+     ================================================ -->
+<script>
+(function() {
+
+    let vueActuelle = 'grille';
+
+    // ---- FILTRAGE ----
+    window.filtrerFormations = function() {
+        const recherche = (document.getElementById('search-formations')?.value || '').toLowerCase();
+        const ecole = (document.getElementById('filtre-ecole')?.value || '').toLowerCase();
+        const niveau = (document.getElementById('filtre-niveau')?.value || '').toLowerCase();
+        const prix = (document.getElementById('filtre-prix')?.value || '').toLowerCase();
+
+        const cartes = document.querySelectorAll('.carte-formation-moderne');
+        const separateurs = document.querySelectorAll('.ecole-separateur');
+        let visible = 0;
+
+        cartes.forEach(function(carte) {
+            const nomCarte = (carte.dataset.nom || '').toLowerCase();
+            const descCarte = (carte.dataset.desc || '').toLowerCase();
+            const ecoleCarte = (carte.dataset.ecole || '').toLowerCase();
+            const niveauCarte = (carte.dataset.niveau || '').toLowerCase();
+            const prixCarte = (carte.dataset.prix || '').toLowerCase();
+
+            const matchRecherche = !recherche ||
+                nomCarte.includes(recherche) || descCarte.includes(recherche);
+            const matchEcole = !ecole || ecoleCarte.includes(ecole);
+            const matchNiveau = !niveau || niveauCarte === niveau;
+            const matchPrix = !prix || prixCarte === prix;
+
+            if (matchRecherche && matchEcole && matchNiveau && matchPrix) {
+                carte.style.display = '';
+                visible++;
+            } else {
+                carte.style.display = 'none';
+            }
+        });
+
+        // Masque séparateurs d'école si toutes les formations de l'école sont cachées
+        separateurs.forEach(function(sep) {
+            const ecoleNom = sep.dataset.ecole;
+            const cartesEcole = document.querySelectorAll(
+                '.carte-formation-moderne[data-ecole="' + ecoleNom + '"]'
+            );
+            const visiblesEcole = Array.from(cartesEcole).some(c => c.style.display !== 'none');
+            sep.style.display = visiblesEcole ? '' : 'none';
+        });
+
+        // Compteur
+        const compteur = document.getElementById('formations-compteur');
+        if (compteur) {
+            compteur.textContent = visible === 0
+                ? 'Aucune formation'
+                : visible + ' formation' + (visible > 1 ? 's' : '') + ' trouvée' + (visible > 1 ? 's' : '');
+        }
+
+        // Message vide
+        const aucun = document.getElementById('formations-aucun');
+        if (aucun) {
+            aucun.style.display = visible === 0 ? 'block' : 'none';
+        }
+    };
+
+    // ---- RESET ----
+    window.resetFiltres = function() {
+        const fields = ['search-formations', 'filtre-ecole', 'filtre-niveau', 'filtre-prix'];
+        fields.forEach(function(id) {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        filtrerFormations();
+    };
+
+    // ---- VUE GRILLE / LISTE ----
+    window.setVue = function(vue) {
+        const grille = document.getElementById('formations-grille');
+        const btnGrille = document.getElementById('btn-grille');
+        const btnListe = document.getElementById('btn-liste');
+
+        if (!grille) return;
+
+        vueActuelle = vue;
+        grille.classList.remove('grille', 'liste');
+        grille.classList.add(vue);
+
+        if (btnGrille) btnGrille.classList.toggle('actif', vue === 'grille');
+        if (btnListe) btnListe.classList.toggle('actif', vue === 'liste');
+    };
+
+    // Initialisation compteur
+    window.addEventListener('DOMContentLoaded', function() {
+        filtrerFormations();
+    });
+
+})();
+</script>
 
 {% endblock %}
