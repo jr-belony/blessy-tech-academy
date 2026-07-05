@@ -1,23 +1,431 @@
 {% extends 'academie/base.html' %}
-{% load i18n %}
 
-{% block titre %}{{ article.titre }} — Blessy Tech Academy{% endblock %}
+{% block titre %}{{ article.titre }} — BTA Ressources{% endblock %}
 
 {% block contenu %}
 
-<section class="page-hero">
-    <h2>{{ article.titre }}</h2>
-    <p>{{ article.date_publication|date:"d F Y" }} · {{ article.auteur.first_name|default:article.auteur.username }}</p>
+<!-- En-tête article -->
+<section class="article-hero">
+    <div class="article-hero-inner">
+        <a href="{% url 'ressources' %}"
+           style="color: rgba(255,255,255,0.5); text-decoration: none;
+                  font-size: 14px; display: inline-flex; align-items: center;
+                  gap: 6px; margin-bottom: 20px;">
+            ← Retour aux ressources
+        </a>
+
+        <div class="article-hero-meta">
+            <span class="article-hero-cat">
+                {{ article.get_categorie_display }}
+            </span>
+            {% if article.formation_liee %}
+            <span class="article-hero-formation">
+                {{ article.formation_liee.icone }} {{ article.formation_liee.nom }}
+            </span>
+            {% endif %}
+        </div>
+
+        <h1 class="article-hero-titre">{{ article.titre }}</h1>
+
+        <p class="article-hero-resume">{{ article.resume }}</p>
+
+        <div class="article-hero-infos">
+            <span>✍️ {{ article.auteur.first_name|default:"Équipe BTA" }}</span>
+            <span>⏱ {{ article.temps_lecture }} min de lecture</span>
+            <span>📅 {{ article.date_publication|date:"d/m/Y" }}</span>
+        </div>
+    </div>
 </section>
 
-<section style="max-width: 800px; margin: 0 auto; padding: 40px 20px;">
-    {% if article.image %}
-    <img src="{{ article.image.url }}" alt="{{ article.titre }}" style="width:100%; max-height:400px; object-fit:cover; border-radius:12px; margin-bottom:24px;">
-    {% endif %}
-    <div style="line-height:1.8; color:#333;">
-        {{ article.contenu|safe }}
+<!-- Contenu -->
+<div class="article-layout">
+    <div class="article-contenu-wrapper">
+
+        <!-- Corps de l'article -->
+        <article class="article-corps ck-content">
+            {% if article.contenu %}
+                {{ article.contenu|safe }}
+            {% else %}
+                <p style="color: var(--gris-texte); font-style: italic;">
+                    Le contenu de cet article sera disponible prochainement.
+                </p>
+            {% endif %}
+        </article>
+
+        <!-- Navigation bas de page -->
+        <div class="article-nav-bas">
+            <a href="{% url 'ressources' %}" class="btn-retour-ressources">
+                ← Toutes les ressources
+            </a>
+            <a href="{% url 'contact' %}" class="btn-article-cta">
+                S'inscrire à BTA →
+            </a>
+        </div>
+
     </div>
-    <a href="{% url 'ressources' %}" style="display:inline-block; margin-top:32px; color: var(--bleu-electrique);">← {% trans "Retour aux ressources" %}</a>
-</section>
+
+    <!-- Sidebar -->
+    <aside class="article-sidebar">
+
+        <!-- À propos BTA -->
+        <div class="sidebar-card">
+            <h4 class="sidebar-card-titre">À propos de BTA</h4>
+            <p class="sidebar-card-texte">
+                Blessy Tech Academy est la première plateforme EdTech
+                haïtienne avec un assistant IA intégré.
+            </p>
+            <a href="{% url 'orientation_ia' %}" class="sidebar-card-btn">
+                🎯 Trouver ma formation
+            </a>
+        </div>
+
+        <!-- Blessy AI -->
+        <div class="sidebar-card sidebar-card-ai">
+            <div style="font-size: 32px; margin-bottom: 12px;">🤖</div>
+            <h4 class="sidebar-card-titre" style="color: white;">
+                Blessy AI
+            </h4>
+            <p class="sidebar-card-texte" style="color: rgba(255,255,255,0.7);">
+                Des questions sur cet article ?
+                Pose-les à Blessy AI !
+            </p>
+            <a href="{% url 'chat_ia' %}" class="sidebar-card-btn sidebar-card-btn-ai">
+                💬 Ouvrir le chat
+            </a>
+        </div>
+
+        <!-- Articles liés -->
+        {% if articles_lies %}
+        <div class="sidebar-card">
+            <h4 class="sidebar-card-titre">📚 Articles similaires</h4>
+            {% for lié in articles_lies %}
+            <a href="{% url 'detail_article' lié.slug %}"
+               class="sidebar-article-lien">
+                <span class="sidebar-article-cat">
+                    {{ lié.get_categorie_display }}
+                </span>
+                <span class="sidebar-article-titre">{{ lié.titre }}</span>
+                <span class="sidebar-article-meta">⏱ {{ lié.temps_lecture }} min</span>
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+    </aside>
+</div>
+
+<style>
+
+/* ---- HERO ARTICLE ---- */
+
+.article-hero {
+    background: linear-gradient(135deg, #050d1a, #0B2447);
+    padding: 60px 40px;
+    position: relative;
+    overflow: hidden;
+}
+
+.article-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(0,180,216,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,180,216,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+.article-hero-inner {
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+}
+
+.article-hero-meta {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.article-hero-cat {
+    background: rgba(0,180,216,0.15);
+    border: 1px solid rgba(0,180,216,0.3);
+    color: #00B4D8;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.article-hero-formation {
+    background: rgba(255,107,53,0.15);
+    border: 1px solid rgba(255,107,53,0.3);
+    color: #FF6B35;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.article-hero-titre {
+    font-size: 40px;
+    font-weight: 800;
+    color: white;
+    line-height: 1.15;
+    letter-spacing: -1px;
+    margin-bottom: 16px;
+}
+
+.article-hero-resume {
+    font-size: 17px;
+    color: rgba(255,255,255,0.7);
+    line-height: 1.7;
+    margin-bottom: 24px;
+}
+
+.article-hero-infos {
+    display: flex;
+    gap: 20px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.45);
+    flex-wrap: wrap;
+}
+
+/* ---- LAYOUT ARTICLE ---- */
+
+.article-layout {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 40px;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 60px;
+    align-items: start;
+}
+
+.article-corps {
+    font-size: 16px;
+    line-height: 1.9;
+    color: #2d3748;
+}
+
+.article-corps h2 {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--bleu-principal);
+    margin: 40px 0 16px;
+    letter-spacing: -0.5px;
+}
+
+.article-corps h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--bleu-principal);
+    margin: 32px 0 12px;
+}
+
+.article-corps p { margin-bottom: 20px; }
+
+.article-corps ul, .article-corps ol {
+    margin: 0 0 20px 20px;
+}
+
+.article-corps li { margin-bottom: 8px; }
+
+.article-corps pre {
+    background: #1a1a2e;
+    color: #00B4D8;
+    padding: 20px;
+    border-radius: 10px;
+    overflow-x: auto;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.article-corps code {
+    background: rgba(0,180,216,0.1);
+    color: #0090b8;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.article-corps blockquote {
+    border-left: 4px solid #00B4D8;
+    padding-left: 20px;
+    margin: 24px 0;
+    font-style: italic;
+    color: #718096;
+}
+
+.article-corps strong { color: var(--bleu-principal); }
+
+.article-corps img {
+    max-width: 100%;
+    border-radius: 12px;
+    margin: 16px 0;
+}
+
+/* Nav bas */
+.article-nav-bas {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 40px;
+    margin-top: 40px;
+    border-top: 1px solid #e2e8f0;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.btn-retour-ressources {
+    color: var(--bleu-electrique);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: gap 0.2s;
+}
+
+.btn-retour-ressources:hover {
+    text-decoration: underline;
+}
+
+.btn-article-cta {
+    background: var(--orange-accent);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.btn-article-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255,107,53,0.35);
+}
+
+/* ---- SIDEBAR ---- */
+
+.article-sidebar {
+    position: sticky;
+    top: 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.sidebar-card {
+    background: var(--gris-clair);
+    border-radius: 16px;
+    padding: 24px;
+    border: 1.5px solid #e2e8f0;
+}
+
+.sidebar-card-ai {
+    background: linear-gradient(135deg, #0B2447, #1a4a8a);
+    border-color: transparent;
+    text-align: center;
+}
+
+.sidebar-card-titre {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--bleu-principal);
+    margin: 0 0 8px;
+}
+
+.sidebar-card-texte {
+    font-size: 13px;
+    color: var(--gris-texte);
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+
+.sidebar-card-btn {
+    display: block;
+    text-align: center;
+    background: var(--bleu-principal);
+    color: white;
+    padding: 10px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+
+.sidebar-card-btn:hover {
+    background: var(--bleu-electrique);
+    transform: translateY(-2px);
+}
+
+.sidebar-card-btn-ai {
+    background: #FF6B35;
+}
+
+.sidebar-card-btn-ai:hover {
+    background: #e85a2a;
+}
+
+.sidebar-article-lien {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 10px 0;
+    border-bottom: 1px solid #e2e8f0;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.sidebar-article-lien:last-child { border-bottom: none; }
+
+.sidebar-article-lien:hover .sidebar-article-titre {
+    color: var(--bleu-electrique);
+}
+
+.sidebar-article-cat {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--bleu-electrique);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sidebar-article-titre {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--bleu-principal);
+    line-height: 1.4;
+    transition: color 0.2s;
+}
+
+.sidebar-article-meta {
+    font-size: 11px;
+    color: #a0aec0;
+}
+
+/* ---- RESPONSIVE ---- */
+
+@media (max-width: 1024px) {
+    .article-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .article-sidebar {
+        position: static;
+    }
+}
+
+@media (max-width: 768px) {
+    .article-hero { padding: 40px 20px; }
+    .article-hero-titre { font-size: 28px; }
+    .article-layout { padding: 40px 20px; }
+}
+
+</style>
 
 {% endblock %}

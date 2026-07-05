@@ -1,0 +1,1606 @@
+{% extends 'academie/base.html' %}
+
+{% block titre %}Parcours Professionnels — Blessy Tech Academy{% endblock %}
+
+{% block contenu %}
+
+<!-- ================================================
+     HERO PARCOURS
+     ================================================ -->
+<section class="parcours-hero">
+    <div class="parcours-hero-grid"></div>
+    <div class="parcours-hero-glow-1"></div>
+    <div class="parcours-hero-glow-2"></div>
+
+    <div class="parcours-hero-inner">
+        <div class="section-tag parcours-tag">
+            🚀 Parcours Professionnels
+        </div>
+
+        <h1 class="parcours-hero-titre">
+            Construis ta carrière<br>
+            <span class="parcours-titre-accent">étape par étape</span>
+        </h1>
+
+        <p class="parcours-hero-sous">
+            Chaque parcours BTA est conçu pour te transformer —
+            du débutant complet au professionnel certifié, avec
+            un plan clair, des projets réels et un accompagnement IA.
+        </p>
+
+        <div class="parcours-hero-stats">
+            <div class="p-hero-stat">
+                <span class="p-hero-stat-val">{{ parcours_list|length }}</span>
+                <span class="p-hero-stat-label">Parcours disponibles</span>
+            </div>
+            <div class="p-hero-stat-sep"></div>
+            <div class="p-hero-stat">
+                <span class="p-hero-stat-val">6</span>
+                <span class="p-hero-stat-label">à 12 mois</span>
+            </div>
+            <div class="p-hero-stat-sep"></div>
+            <div class="p-hero-stat">
+                <span class="p-hero-stat-val">100%</span>
+                <span class="p-hero-stat-label">En ligne</span>
+            </div>
+            <div class="p-hero-stat-sep"></div>
+            <div class="p-hero-stat">
+                <span class="p-hero-stat-val">🤖</span>
+                <span class="p-hero-stat-label">IA intégrée</span>
+            </div>
+        </div>
+
+        <div class="parcours-hero-ctas">
+            <a href="{% url 'simulateur' %}" class="btn-hero-principal">
+                🎯 Trouver mon parcours avec l'IA
+                <span class="btn-arrow">→</span>
+            </a>
+            <a href="#parcours-liste" class="btn-hero-secondaire">
+                📋 Voir tous les parcours
+            </a>
+        </div>
+    </div>
+
+    <!-- Illustration -->
+    <div class="parcours-hero-illustration">
+        <div class="p-illustration-card">
+            <div class="p-card-header">
+                <div class="p-card-dot rouge"></div>
+                <div class="p-card-dot orange"></div>
+                <div class="p-card-dot vert"></div>
+                <span class="p-card-titre-bar">Mon parcours BTA</span>
+            </div>
+            <div class="p-card-body">
+                <div class="p-timeline-mini">
+                    <div class="p-step-mini actif">
+                        <div class="p-step-mini-dot"></div>
+                        <div class="p-step-mini-content">
+                            <span class="p-step-mini-titre">Fondamentaux</span>
+                            <span class="p-step-mini-sous">Semaine 1-4</span>
+                        </div>
+                        <span class="p-step-mini-check">✓</span>
+                    </div>
+                    <div class="p-step-mini actif">
+                        <div class="p-step-mini-dot"></div>
+                        <div class="p-step-mini-content">
+                            <span class="p-step-mini-titre">Développement</span>
+                            <span class="p-step-mini-sous">Mois 2-5</span>
+                        </div>
+                        <span class="p-step-mini-check">✓</span>
+                    </div>
+                    <div class="p-step-mini en-cours">
+                        <div class="p-step-mini-dot"></div>
+                        <div class="p-step-mini-content">
+                            <span class="p-step-mini-titre">Projets réels</span>
+                            <span class="p-step-mini-sous">Mois 6-8</span>
+                        </div>
+                        <span class="p-step-mini-badge">En cours</span>
+                    </div>
+                    <div class="p-step-mini">
+                        <div class="p-step-mini-dot"></div>
+                        <div class="p-step-mini-content">
+                            <span class="p-step-mini-titre">Certification</span>
+                            <span class="p-step-mini-sous">Mois 9-10</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-card-progress">
+                    <div class="p-card-progress-label">
+                        <span>Progression globale</span>
+                        <span style="color: #00B4D8; font-weight: 700;">68%</span>
+                    </div>
+                    <div class="p-card-progress-bar">
+                        <div class="p-card-progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating badges -->
+        <div class="p-floating p-floating-1">
+            <span>🏆</span>
+            <div>
+                <div class="p-float-titre">Certifié !</div>
+                <div class="p-float-sous">Google Certificate</div>
+            </div>
+        </div>
+
+        <div class="p-floating p-floating-2">
+            <span>💼</span>
+            <div>
+                <div class="p-float-titre">Premier client</div>
+                <div class="p-float-sous">Freelance débloqué</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ================================================
+     PROMISE BAR
+     ================================================ -->
+<div class="parcours-promise-bar">
+    <div class="promise-inner">
+        <div class="promise-item">
+            <span class="promise-icone">🎯</span>
+            <span>Orientation IA personnalisée</span>
+        </div>
+        <div class="promise-sep">·</div>
+        <div class="promise-item">
+            <span class="promise-icone">📈</span>
+            <span>Progression mesurable</span>
+        </div>
+        <div class="promise-sep">·</div>
+        <div class="promise-item">
+            <span class="promise-icone">🏆</span>
+            <span>Certifications reconnues</span>
+        </div>
+        <div class="promise-sep">·</div>
+        <div class="promise-item">
+            <span class="promise-icone">💼</span>
+            <span>Employabilité garantie</span>
+        </div>
+        <div class="promise-sep">·</div>
+        <div class="promise-item">
+            <span class="promise-icone">🤖</span>
+            <span>Blessy AI 24h/24</span>
+        </div>
+    </div>
+</div>
+
+<!-- ================================================
+     COMMENT ÇA MARCHE
+     ================================================ -->
+<section class="parcours-comment">
+    <div class="parcours-section-inner">
+        <div class="section-header" style="text-align: center; margin-bottom: 64px;">
+            <div class="section-tag">📖 La méthode BTA</div>
+            <h2 class="section-titre">Du débutant au professionnel</h2>
+            <p class="section-sous-titre">
+                Une progression logique et éprouvée — chaque étape
+                prépare la suivante.
+            </p>
+        </div>
+
+        <div class="methode-timeline">
+
+            <div class="methode-step">
+                <div class="methode-step-num">01</div>
+                <div class="methode-step-icone">🎯</div>
+                <div class="methode-step-content">
+                    <h3>Orientation IA</h3>
+                    <p>Blessy AI analyse ton profil, tes objectifs et ton niveau pour construire ton parcours idéal en 30 secondes.</p>
+                </div>
+                <div class="methode-step-connector"></div>
+            </div>
+
+            <div class="methode-step">
+                <div class="methode-step-num">02</div>
+                <div class="methode-step-icone">📚</div>
+                <div class="methode-step-content">
+                    <h3>Fondamentaux</h3>
+                    <p>Tu maîtrises les bases indispensables avec des cours structurés, des quiz et un accompagnement pas à pas.</p>
+                </div>
+                <div class="methode-step-connector"></div>
+            </div>
+
+            <div class="methode-step">
+                <div class="methode-step-num">03</div>
+                <div class="methode-step-icone">⚡</div>
+                <div class="methode-step-content">
+                    <h3>Compétences métier</h3>
+                    <p>Tu acquiers les outils professionnels utilisés dans l'industrie — exactement ce que les employeurs recherchent.</p>
+                </div>
+                <div class="methode-step-connector"></div>
+            </div>
+
+            <div class="methode-step">
+                <div class="methode-step-num">04</div>
+                <div class="methode-step-icone">🛠️</div>
+                <div class="methode-step-content">
+                    <h3>Projets réels</h3>
+                    <p>Tu construis de vrais projets pour ton portfolio — des réalisations concrètes qui prouvent tes compétences.</p>
+                </div>
+                <div class="methode-step-connector"></div>
+            </div>
+
+            <div class="methode-step">
+                <div class="methode-step-num">05</div>
+                <div class="methode-step-icone">🏆</div>
+                <div class="methode-step-content">
+                    <h3>Certification</h3>
+                    <p>Tu obtiens un certificat BTA et tu te prépares aux certifications internationales Google, Microsoft, CompTIA.</p>
+                </div>
+                <div class="methode-step-connector"></div>
+            </div>
+
+            <div class="methode-step">
+                <div class="methode-step-num">06</div>
+                <div class="methode-step-icone">🚀</div>
+                <div class="methode-step-content">
+                    <h3>Carrière & Évolution</h3>
+                    <p>Tu intègres le marché du travail, tu crées ton activité freelance ou tu lances ton entreprise.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- ================================================
+     LISTE DES PARCOURS
+     ================================================ -->
+<section class="section-parcours-liste" id="parcours-liste">
+    <div class="parcours-section-inner">
+
+        <div class="section-header" style="text-align: center; margin-bottom: 64px;">
+            <div class="section-tag">🎓 Nos programmes</div>
+            <h2 class="section-titre">Choisis ton parcours</h2>
+            <p class="section-sous-titre">
+                4 parcours pensés pour différents objectifs professionnels.
+                Chacun raconte une histoire — la tienne.
+            </p>
+        </div>
+
+        <div class="parcours-cards-grille">
+            {% for parcours in parcours_list %}
+
+                {% if forloop.counter == 1 %}
+                    {% with metiers="Technicien IT · Support Informatique · Admin Systèmes" salaire="800-2500" couleur="#00B4D8" emoji="🖥️" secteurs="PME · ONG · Hôtels · Banques · Écoles" %}
+                    <div class="carte-parcours-premium">
+                        <!-- Top accent bar -->
+                        <div class="pp-accent-bar"></div>
+
+                        <!-- Header -->
+                        <div class="pp-header">
+                            <div class="pp-emoji-wrapper">{{ emoji }}</div>
+                            <div class="pp-header-info">
+                                <div class="pp-icone-grand">{{ parcours.icone }}</div>
+                                <h3 class="pp-titre">{{ parcours.titre }}</h3>
+                                <div class="pp-duree-badge">
+                                    ⏱ {{ parcours.duree_mois }} mois
+                                    · {{ parcours.formations.count }} formations
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        {% if parcours.description %}
+                        <p class="pp-description">{{ parcours.description|truncatewords:25 }}</p>
+                        {% endif %}
+
+                        <!-- Formations incluses -->
+                        <div class="pp-formations-section">
+                            <p class="pp-section-label">📚 Formations incluses</p>
+                            <div class="pp-formations-liste">
+                                {% for formation in parcours.formations.all %}
+                                <div class="pp-formation-item">
+                                    <div class="pp-formation-num">{{ forloop.counter }}</div>
+                                    <div class="pp-formation-info">
+                                        <span class="pp-formation-nom">
+                                            {{ formation.icone }} {{ formation.nom }}
+                                        </span>
+                                        <span class="pp-formation-duree">
+                                            {{ formation.duree_mois }} mois
+                                        </span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Métiers accessibles -->
+                        <div class="pp-metiers-section">
+                            <p class="pp-section-label">💼 Métiers accessibles</p>
+                            <div class="pp-metiers-tags">
+                                {% for metier in metiers.split|slice:":3" %}
+                                <span class="pp-metier-tag">{{ metier }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Salaire indicatif -->
+                        <div class="pp-salaire-section">
+                            <div class="pp-salaire-info">
+                                <span class="pp-salaire-label">💰 Salaire indicatif</span>
+                                <span class="pp-salaire-val">{{ salaire }} USD/mois</span>
+                            </div>
+                            <div class="pp-salaire-barre">
+                                <div class="pp-salaire-fill" data-width="40"></div>
+                            </div>
+                            <span class="pp-salaire-note">*Estimation marché international</span>
+                        </div>
+
+                        <!-- Secteurs -->
+                        <div class="pp-secteurs">
+                            <span class="pp-section-label">🌍 Secteurs</span>
+                            <span class="pp-secteurs-liste">{{ secteurs }}</span>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="pp-footer">
+                            <div class="pp-prix-bloc">
+                                <span class="pp-prix-label">Investissement</span>
+                                <span class="pp-prix-val">{{ parcours.prix }} USD</span>
+                            </div>
+                            <div class="pp-ctas">
+                                <a href="{% url 'contact' %}" class="pp-btn-principal">
+                                    S'inscrire →
+                                </a>
+                                <a href="{% url 'simulateur' %}" class="pp-btn-secondaire">
+                                    Tester l'IA
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endwith %}
+
+                {% elif forloop.counter == 2 %}
+                    {% with metiers="Développeur Web · Freelance · CTO Startup · Consultant" salaire="1500-5000" couleur="#FF6B35" emoji="💻" secteurs="Tech · Startups · Agences · Télétravail" %}
+                    <div class="carte-parcours-premium carte-pp-featured">
+                        <!-- Badge populaire -->
+                        <div class="pp-badge-populaire">⭐ LE PLUS POPULAIRE</div>
+                        <!-- Top accent bar -->
+                        <div class="pp-accent-bar"></div>
+
+                        <!-- Header -->
+                        <div class="pp-header">
+                            <div class="pp-emoji-wrapper">{{ emoji }}</div>
+                            <div class="pp-header-info">
+                                <div class="pp-icone-grand">{{ parcours.icone }}</div>
+                                <h3 class="pp-titre">{{ parcours.titre }}</h3>
+                                <div class="pp-duree-badge">
+                                    ⏱ {{ parcours.duree_mois }} mois
+                                    · {{ parcours.formations.count }} formations
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        {% if parcours.description %}
+                        <p class="pp-description">{{ parcours.description|truncatewords:25 }}</p>
+                        {% endif %}
+
+                        <!-- Formations incluses -->
+                        <div class="pp-formations-section">
+                            <p class="pp-section-label">📚 Formations incluses</p>
+                            <div class="pp-formations-liste">
+                                {% for formation in parcours.formations.all %}
+                                <div class="pp-formation-item">
+                                    <div class="pp-formation-num">{{ forloop.counter }}</div>
+                                    <div class="pp-formation-info">
+                                        <span class="pp-formation-nom">
+                                            {{ formation.icone }} {{ formation.nom }}
+                                        </span>
+                                        <span class="pp-formation-duree">
+                                            {{ formation.duree_mois }} mois
+                                        </span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Métiers accessibles -->
+                        <div class="pp-metiers-section">
+                            <p class="pp-section-label">💼 Métiers accessibles</p>
+                            <div class="pp-metiers-tags">
+                                {% for metier in metiers.split|slice:":3" %}
+                                <span class="pp-metier-tag">{{ metier }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Salaire indicatif -->
+                        <div class="pp-salaire-section">
+                            <div class="pp-salaire-info">
+                                <span class="pp-salaire-label">💰 Salaire indicatif</span>
+                                <span class="pp-salaire-val">{{ salaire }} USD/mois</span>
+                            </div>
+                            <div class="pp-salaire-barre">
+                                <div class="pp-salaire-fill" data-width="70"></div>
+                            </div>
+                            <span class="pp-salaire-note">*Estimation marché international</span>
+                        </div>
+
+                        <!-- Secteurs -->
+                        <div class="pp-secteurs">
+                            <span class="pp-section-label">🌍 Secteurs</span>
+                            <span class="pp-secteurs-liste">{{ secteurs }}</span>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="pp-footer">
+                            <div class="pp-prix-bloc">
+                                <span class="pp-prix-label">Investissement</span>
+                                <span class="pp-prix-val">{{ parcours.prix }} USD</span>
+                            </div>
+                            <div class="pp-ctas">
+                                <a href="{% url 'contact' %}" class="pp-btn-principal">
+                                    S'inscrire →
+                                </a>
+                                <a href="{% url 'simulateur' %}" class="pp-btn-secondaire">
+                                    Tester l'IA
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endwith %}
+
+                {% elif forloop.counter == 3 %}
+                    {% with metiers="Expert IA · Prompt Engineer · Data Analyst · Consultant" salaire="2000-8000" couleur="#a855f7" emoji="🤖" secteurs="IA · Finance · Santé · Éducation · Remote" %}
+                    <div class="carte-parcours-premium">
+                        <!-- Top accent bar -->
+                        <div class="pp-accent-bar"></div>
+
+<!-- Header -->
+                        <div class="pp-header">
+                            <div class="pp-emoji-wrapper">{{ emoji }}</div>
+                            <div class="pp-header-info">
+                                <div class="pp-icone-grand">{{ parcours.icone }}</div>
+                                <h3 class="pp-titre">{{ parcours.titre }}</h3>
+                                <div class="pp-duree-badge">
+                                    ⏱ {{ parcours.duree_mois }} mois
+                                    · {{ parcours.formations.count }} formations
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        {% if parcours.description %}
+                        <p class="pp-description">{{ parcours.description|truncatewords:25 }}</p>
+                        {% endif %}
+
+                        <!-- Formations incluses -->
+                        <div class="pp-formations-section">
+                            <p class="pp-section-label">📚 Formations incluses</p>
+                            <div class="pp-formations-liste">
+                                {% for formation in parcours.formations.all %}
+                                <div class="pp-formation-item">
+                                    <div class="pp-formation-num">{{ forloop.counter }}</div>
+                                    <div class="pp-formation-info">
+                                        <span class="pp-formation-nom">
+                                            {{ formation.icone }} {{ formation.nom }}
+                                        </span>
+                                        <span class="pp-formation-duree">
+                                            {{ formation.duree_mois }} mois
+                                        </span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Métiers accessibles -->
+                        <div class="pp-metiers-section">
+                            <p class="pp-section-label">💼 Métiers accessibles</p>
+                            <div class="pp-metiers-tags">
+                                {% for metier in metiers.split|slice:":3" %}
+                                <span class="pp-metier-tag">{{ metier }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Salaire indicatif -->
+                        <div class="pp-salaire-section">
+                            <div class="pp-salaire-info">
+                                <span class="pp-salaire-label">💰 Salaire indicatif</span>
+                                <span class="pp-salaire-val">{{ salaire }} USD/mois</span>
+                            </div>
+                            <div class="pp-salaire-barre">
+                                <div class="pp-salaire-fill" data-width="90"></div>
+                            </div>
+                            <span class="pp-salaire-note">*Estimation marché international</span>
+                        </div>
+
+                        <!-- Secteurs -->
+                        <div class="pp-secteurs">
+                            <span class="pp-section-label">🌍 Secteurs</span>
+                            <span class="pp-secteurs-liste">{{ secteurs }}</span>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="pp-footer">
+                            <div class="pp-prix-bloc">
+                                <span class="pp-prix-label">Investissement</span>
+                                <span class="pp-prix-val">{{ parcours.prix }} USD</span>
+                            </div>
+                            <div class="pp-ctas">
+                                <a href="{% url 'contact' %}" class="pp-btn-principal">
+                                    S'inscrire →
+                                </a>
+                                <a href="{% url 'simulateur' %}" class="pp-btn-secondaire">
+                                    Tester l'IA
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endwith %}
+
+                {% else %}
+                    {% with metiers="Entrepreneur Digital · Marketing Manager · Consultant" salaire="1200-4000" couleur="#22c55e" emoji="📊" secteurs="E-commerce · Agences · Startups · Médias" %}
+                    <div class="carte-parcours-premium">
+                        <!-- Top accent bar -->
+                        <div class="pp-accent-bar"></div>
+
+                        <!-- Header -->
+                        <div class="pp-header">
+                            <div class="pp-emoji-wrapper">{{ emoji }}</div>
+                            <div class="pp-header-info">
+                                <div class="pp-icone-grand">{{ parcours.icone }}</div>
+                                <h3 class="pp-titre">{{ parcours.titre }}</h3>
+                                <div class="pp-duree-badge">
+                                    ⏱ {{ parcours.duree_mois }} mois
+                                    · {{ parcours.formations.count }} formations
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        {% if parcours.description %}
+                        <p class="pp-description">{{ parcours.description|truncatewords:25 }}</p>
+                        {% endif %}
+
+                        <!-- Formations incluses -->
+                        <div class="pp-formations-section">
+                            <p class="pp-section-label">📚 Formations incluses</p>
+                            <div class="pp-formations-liste">
+                                {% for formation in parcours.formations.all %}
+                                <div class="pp-formation-item">
+                                    <div class="pp-formation-num">{{ forloop.counter }}</div>
+                                    <div class="pp-formation-info">
+                                        <span class="pp-formation-nom">
+                                            {{ formation.icone }} {{ formation.nom }}
+                                        </span>
+                                        <span class="pp-formation-duree">
+                                            {{ formation.duree_mois }} mois
+                                        </span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Métiers accessibles -->
+                        <div class="pp-metiers-section">
+                            <p class="pp-section-label">💼 Métiers accessibles</p>
+                            <div class="pp-metiers-tags">
+                                {% for metier in metiers.split|slice:":3" %}
+                                <span class="pp-metier-tag">{{ metier }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Salaire indicatif -->
+                        <div class="pp-salaire-section">
+                            <div class="pp-salaire-info">
+                                <span class="pp-salaire-label">💰 Salaire indicatif</span>
+                                <span class="pp-salaire-val">{{ salaire }} USD/mois</span>
+                            </div>
+                            <div class="pp-salaire-barre">
+                                <div class="pp-salaire-fill" data-width="55"></div>
+                            </div>
+                            <span class="pp-salaire-note">*Estimation marché international</span>
+                        </div>
+
+                        <!-- Secteurs -->
+                        <div class="pp-secteurs">
+                            <span class="pp-section-label">🌍 Secteurs</span>
+                            <span class="pp-secteurs-liste">{{ secteurs }}</span>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="pp-footer">
+                            <div class="pp-prix-bloc">
+                                <span class="pp-prix-label">Investissement</span>
+                                <span class="pp-prix-val">{{ parcours.prix }} USD</span>
+                            </div>
+                            <div class="pp-ctas">
+                                <a href="{% url 'contact' %}" class="pp-btn-principal">
+                                    S'inscrire →
+                                </a>
+                                <a href="{% url 'simulateur' %}" class="pp-btn-secondaire">
+                                    Tester l'IA
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endwith %}
+                {% endif %}
+
+            {% endfor %}
+        </div>
+
+    </div>
+</section>
+
+<!-- ================================================
+     SECTION TÉMOIGNAGE + CTA
+     ================================================ -->
+<section class="parcours-cta-final">
+    <div class="parcours-section-inner">
+        <div class="parcours-cta-layout">
+
+            <div class="parcours-cta-gauche">
+                <div class="section-tag" style="margin-bottom: 20px;">
+                    💬 Ce qu'ils disent
+                </div>
+                <h2 class="section-titre" style="text-align: left; color: white; font-size: 36px;">
+                    Ils ont transformé<br>leur carrière avec BTA
+                </h2>
+                <p style="color: rgba(255,255,255,0.7); font-size: 16px; line-height: 1.8; margin: 20px 0 32px;">
+                    Des étudiants de toute l'Haïti et de la diaspora
+                    ont déjà changé leur vie grâce aux parcours BTA.
+                    Tu peux être le prochain.
+                </p>
+                <div class="parcours-cta-boutons">
+                    <a href="{% url 'simulateur' %}" class="btn-hero-principal">
+                        🎯 Trouver mon parcours
+                    </a>
+                    <a href="{% url 'inscription_compte' %}"
+                       class="btn-hero-secondaire">
+                        Commencer gratuitement
+                    </a>
+                </div>
+            </div>
+
+            <div class="parcours-cta-droite">
+                <div class="p-temoignage-card">
+                    <div class="p-temoignage-etoiles">★★★★★</div>
+                    <p class="p-temoignage-texte">
+                        "En 8 mois avec BTA, je suis passé de débutant complet
+                        à développeur web freelance. Aujourd'hui je travaille
+                        depuis chez moi pour des clients en France et aux USA."
+                    </p>
+                    <div class="p-temoignage-auteur">
+                        <div class="p-temoignage-avatar">MB</div>
+                        <div>
+                            <div class="p-temoignage-nom">Marc B.</div>
+                            <div class="p-temoignage-role">
+                                Développeur Web Freelance — Parcours Développeur
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-temoignage-card" style="margin-top: 16px;">
+                    <div class="p-temoignage-etoiles">★★★★★</div>
+                    <p class="p-temoignage-texte">
+                        "Blessy AI m'a recommandé exactement le bon parcours
+                        pour moi. En 6 mois, j'ai eu ma première offre d'emploi
+                        comme technicienne informatique."
+                    </p>
+                    <div class="p-temoignage-auteur">
+                        <div class="p-temoignage-avatar">CL</div>
+                        <div>
+                            <div class="p-temoignage-nom">Carla L.</div>
+                            <div class="p-temoignage-role">
+                                Technicienne IT — Parcours Technicien
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ================================================
+     CSS PAGE PARCOURS
+     ================================================ -->
+<style>
+
+.parcours-section-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 40px;
+}
+
+/* ---- HERO ---- */
+
+.parcours-hero {
+    min-height: 85vh;
+    background: linear-gradient(135deg, #050d1a 0%, #0B2447 60%, #0a1f3d 100%);
+    display: flex;
+    align-items: center;
+    padding: 80px 6%;
+    position: relative;
+    overflow: hidden;
+    gap: 60px;
+}
+
+.parcours-hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(0,180,216,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,180,216,0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+.parcours-hero-glow-1 {
+    position: absolute;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(0,180,216,0.1) 0%, transparent 70%);
+    top: -100px; right: 10%;
+}
+
+.parcours-hero-glow-2 {
+    position: absolute;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(255,107,53,0.08) 0%, transparent 70%);
+    bottom: -60px; left: 5%;
+}
+
+.parcours-hero-inner {
+    position: relative;
+    z-index: 2;
+    max-width: 560px;
+    flex-shrink: 0;
+    animation: apparition 0.8s ease-out both;
+}
+
+.parcours-tag {
+    background: rgba(0,180,216,0.12);
+    border: 1px solid rgba(0,180,216,0.3);
+    color: #00B4D8;
+    margin-bottom: 24px;
+}
+
+.parcours-hero-titre {
+    font-size: 56px;
+    font-weight: 800;
+    color: white;
+    line-height: 1.1;
+    letter-spacing: -2px;
+    margin-bottom: 20px;
+}
+
+.parcours-titre-accent {
+    background: linear-gradient(135deg, #00B4D8, #7dd3fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.parcours-hero-sous {
+    font-size: 17px;
+    color: rgba(255,255,255,0.72);
+    line-height: 1.8;
+    margin-bottom: 36px;
+}
+
+.parcours-hero-stats {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 36px;
+    flex-wrap: wrap;
+}
+
+.p-hero-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.p-hero-stat-val {
+    font-size: 28px;
+    font-weight: 800;
+    color: white;
+    line-height: 1;
+}
+
+.p-hero-stat-label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.p-hero-stat-sep {
+    width: 1px;
+    height: 36px;
+    background: rgba(255,255,255,0.1);
+}
+
+.parcours-hero-ctas {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+/* ---- ILLUSTRATION HERO ---- */
+
+.parcours-hero-illustration {
+    position: relative;
+    z-index: 2;
+    flex-shrink: 0;
+    animation: apparition 0.8s ease-out 0.2s both;
+}
+
+.p-illustration-card {
+    width: 420px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    overflow: hidden;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 40px 80px rgba(0,0,0,0.4);
+}
+
+.p-card-header {
+    background: rgba(255,255,255,0.04);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.p-card-dot { width: 10px; height: 10px; border-radius: 50%; }
+.p-card-dot.rouge { background: #ff5f57; }
+.p-card-dot.orange { background: #ffbd2e; }
+.p-card-dot.vert { background: #28c840; }
+
+.p-card-titre-bar {
+    margin-left: 8px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.4);
+    font-weight: 600;
+}
+
+.p-card-body { padding: 24px; }
+
+.p-timeline-mini {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 20px;
+}
+
+.p-step-mini {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    position: relative;
+}
+
+.p-step-mini:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 28px;
+    width: 2px;
+    height: calc(100% - 8px);
+    background: rgba(255,255,255,0.08);
+}
+
+.p-step-mini.actif .p-step-mini-dot {
+    background: #00B4D8;
+    box-shadow: 0 0 0 4px rgba(0,180,216,0.2);
+}
+
+.p-step-mini.en-cours .p-step-mini-dot {
+    background: #FF6B35;
+    box-shadow: 0 0 0 4px rgba(255,107,53,0.2);
+    animation: pulse-dot 2s infinite;
+}
+
+.p-step-mini-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    flex-shrink: 0;
+    z-index: 1;
+}
+
+.p-step-mini-content { flex: 1; }
+
+.p-step-mini-titre {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.85);
+}
+
+.p-step-mini-sous {
+    display: block;
+    font-size: 11px;
+    color: rgba(255,255,255,0.35);
+}
+
+.p-step-mini-check {
+    font-size: 14px;
+    color: #00B4D8;
+    font-weight: 700;
+}
+
+.p-step-mini-badge {
+    font-size: 11px;
+    background: rgba(255,107,53,0.2);
+    color: #FF6B35;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 700;
+}
+
+.p-card-progress { margin-top: 4px; }
+
+.p-card-progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 6px;
+}
+
+.p-card-progress-bar {
+    height: 6px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.p-card-progress-fill {
+    height: 100%;
+    width: 68%;
+    background: linear-gradient(90deg, #00B4D8, #7dd3fc);
+    border-radius: 10px;
+    animation: progress-grow 1.5s ease-out 0.5s both;
+}
+
+@keyframes progress-grow {
+    from { width: 0; }
+    to { width: 68%; }
+}
+
+/* Floating badges */
+.p-floating {
+    position: absolute;
+    background: white;
+    border-radius: 12px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    font-size: 20px;
+    animation: float 3s ease-in-out infinite;
+}
+
+.p-floating-1 {
+    top: -20px; right: -24px;
+    animation-delay: 0s;
+}
+
+.p-floating-2 {
+    bottom: -20px; left: -24px;
+    animation-delay: 1.5s;
+}
+
+.p-float-titre {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--bleu-principal);
+}
+
+.p-float-sous {
+    font-size: 11px;
+    color: var(--gris-texte);
+}
+
+/* ---- PROMISE BAR ---- */
+
+.parcours-promise-bar {
+    background: white;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 16px 40px;
+    overflow: hidden;
+}
+
+.promise-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.promise-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--bleu-principal);
+    white-space: nowrap;
+}
+
+.promise-icone { font-size: 16px; }
+
+.promise-sep {
+    color: #e2e8f0;
+    font-size: 20px;
+}
+
+/* ---- MÉTHODE TIMELINE ---- */
+
+.parcours-comment {
+    padding: 100px 0;
+    background: var(--gris-clair);
+}
+
+.methode-timeline {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    position: relative;
+}
+
+.methode-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 32px 24px;
+    position: relative;
+}
+
+.methode-step:not(:last-child)::after {
+    content: '→';
+    position: absolute;
+    right: -12px;
+    top: 60px;
+    font-size: 24px;
+    color: rgba(0,180,216,0.3);
+    z-index: 2;
+}
+
+.methode-step:nth-child(3)::after { display: none; }
+
+.methode-step-num {
+    font-size: 48px;
+    font-weight: 800;
+    color: rgba(0,180,216,0.12);
+    line-height: 1;
+    margin-bottom: -8px;
+    letter-spacing: -2px;
+}
+
+.methode-step-icone {
+    width: 72px;
+    height: 72px;
+    background: white;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin-bottom: 16px;
+    box-shadow: 0 8px 30px rgba(11,36,71,0.1);
+    transition: transform 0.3s;
+}
+
+.methode-step:hover .methode-step-icone {
+    transform: scale(1.1) rotate(-5deg);
+}
+
+.methode-step-content h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--bleu-principal);
+    margin-bottom: 8px;
+}
+
+.methode-step-content p {
+    font-size: 13px;
+    color: var(--gris-texte);
+    line-height: 1.6;
+}
+
+/* ---- CARDS PARCOURS PREMIUM ---- */
+
+.section-parcours-liste {
+    padding: 100px 0;
+    background: white;
+}
+
+.parcours-cards-grille {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 28px;
+    align-items: start;
+}
+
+.carte-parcours-premium {
+    background: white;
+    border-radius: 24px;
+    border: 2px solid #e2e8f0;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.carte-parcours-premium:hover {
+    transform: translateY(-8px);
+    border-color: transparent;
+    box-shadow: 0 32px 80px rgba(11,36,71,0.15);
+}
+
+.carte-pp-featured {
+    background: linear-gradient(145deg, #0B2447 0%, #1a3a6a 100%);
+    border-color: transparent;
+    transform: scale(1.03);
+    box-shadow: 0 24px 60px rgba(11,36,71,0.25);
+}
+
+.carte-pp-featured:hover {
+    transform: scale(1.03) translateY(-8px);
+}
+
+.pp-accent-bar {
+    height: 4px;
+    background: linear-gradient(90deg, #00B4D8, #FF6B35);
+}
+
+.carte-pp-featured .pp-accent-bar {
+    background: linear-gradient(90deg, #FF6B35, #00B4D8);
+}
+
+.pp-badge-populaire {
+    position: absolute;
+    top: 20px; right: 20px;
+    background: linear-gradient(135deg, #FF6B35, #e85a2a);
+    color: white;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.pp-header {
+    padding: 28px 28px 20px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.pp-emoji-wrapper {
+    font-size: 36px;
+    width: 64px;
+    height: 64px;
+    background: rgba(0,180,216,0.08);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.carte-pp-featured .pp-emoji-wrapper {
+    background: rgba(255,255,255,0.08);
+}
+
+.pp-icone-grand { font-size: 24px; margin-bottom: 4px; }
+
+.pp-titre {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--bleu-principal);
+    line-height: 1.2;
+    margin-bottom: 6px;
+}
+
+.carte-pp-featured .pp-titre { color: white; }
+
+.pp-duree-badge {
+    font-size: 12px;
+    color: var(--gris-texte);
+    font-weight: 600;
+}
+
+.carte-pp-featured .pp-duree-badge { color: rgba(255,255,255,0.55); }
+
+.pp-description {
+    padding: 0 28px 20px;
+    font-size: 14px;
+    color: var(--gris-texte);
+    line-height: 1.7;
+}
+
+.carte-pp-featured .pp-description { color: rgba(255,255,255,0.7); }
+
+/* Sections internes */
+.pp-formations-section,
+.pp-metiers-section,
+.pp-salaire-section,
+.pp-secteurs {
+    padding: 16px 28px;
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+.carte-pp-featured .pp-formations-section,
+.carte-pp-featured .pp-metiers-section,
+.carte-pp-featured .pp-salaire-section,
+.carte-pp-featured .pp-secteurs {
+    border-top-color: rgba(255,255,255,0.06);
+}
+
+.pp-section-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(0,0,0,0.35);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.carte-pp-featured .pp-section-label {
+    color: rgba(255,255,255,0.4);
+}
+
+.pp-formations-liste {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.pp-formation-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pp-formation-num {
+    width: 22px;
+    height: 22px;
+    background: rgba(0,180,216,0.1);
+    color: #00B4D8;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.pp-formation-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex: 1;
+}
+
+.pp-formation-nom {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--bleu-principal);
+}
+
+.carte-pp-featured .pp-formation-nom { color: rgba(255,255,255,0.85); }
+
+.pp-formation-duree {
+    font-size: 11px;
+    color: #a0aec0;
+}
+
+.pp-metiers-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.pp-metier-tag {
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--gris-clair);
+    color: var(--bleu-principal);
+    padding: 4px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+.carte-pp-featured .pp-metier-tag {
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.8);
+}
+
+.pp-salaire-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.pp-salaire-label {
+    font-size: 12px;
+    color: var(--gris-texte);
+}
+
+.carte-pp-featured .pp-salaire-label { color: rgba(255,255,255,0.5); }
+
+.pp-salaire-val {
+    font-size: 15px;
+    font-weight: 800;
+    color: #22c55e;
+}
+
+.pp-salaire-barre {
+    height: 6px;
+    background: rgba(0,0,0,0.06);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+
+.carte-pp-featured .pp-salaire-barre {
+    background: rgba(255,255,255,0.08);
+}
+
+.pp-salaire-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #22c55e, #4ade80);
+    border-radius: 10px;
+    width: 0;
+    transition: width 1.5s ease;
+}
+
+.pp-salaire-note {
+    font-size: 10px;
+    color: #a0aec0;
+    font-style: italic;
+}
+
+.pp-secteurs-liste {
+    font-size: 12px;
+    color: var(--gris-texte);
+    display: block;
+}
+
+.carte-pp-featured .pp-secteurs-liste { color: rgba(255,255,255,0.55); }
+
+.pp-footer {
+    padding: 20px 28px 24px;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-top: auto;
+}
+
+.carte-pp-featured .pp-footer {
+    border-top-color: rgba(255,255,255,0.06);
+}
+
+.pp-prix-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: #a0aec0;
+    display: block;
+    letter-spacing: 0.5px;
+}
+
+.pp-prix-val {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--orange-accent);
+    line-height: 1;
+}
+
+.pp-ctas {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.pp-btn-principal {
+    background: var(--orange-accent);
+    color: white;
+    padding: 10px 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 13px;
+    text-align: center;
+    transition: all 0.3s;
+    box-shadow: 0 4px 14px rgba(255,107,53,0.3);
+    white-space: nowrap;
+}
+
+.pp-btn-principal:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255,107,53,0.4);
+}
+
+.pp-btn-secondaire {
+    background: transparent;
+    color: var(--bleu-electrique);
+    padding: 8px 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 12px;
+    text-align: center;
+    border: 1px solid rgba(0,180,216,0.3);
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.pp-btn-secondaire:hover {
+    background: rgba(0,180,216,0.08);
+}
+
+/* ---- CTA FINAL PARCOURS ---- */
+
+.parcours-cta-final {
+    background: linear-gradient(135deg, #050d1a, #0B2447);
+    padding: 100px 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.parcours-cta-final::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(0,180,216,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,180,216,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+.parcours-cta-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+}
+
+.parcours-cta-boutons {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.p-temoignage-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 24px;
+    transition: all 0.3s;
+}
+
+.p-temoignage-card:hover {
+    background: rgba(255,255,255,0.08);
+    transform: translateY(-3px);
+}
+
+.p-temoignage-etoiles {
+    color: #FFD700;
+    font-size: 16px;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+}
+
+.p-temoignage-texte {
+    font-size: 14px;
+    color: rgba(255,255,255,0.8);
+    line-height: 1.7;
+    font-style: italic;
+    margin-bottom: 16px;
+}
+
+.p-temoignage-auteur {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.p-temoignage-avatar {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, #00B4D8, #FF6B35);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 13px; color: white;
+    flex-shrink: 0;
+}
+
+.p-temoignage-nom {
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+}
+
+.p-temoignage-role {
+    font-size: 12px;
+    color: rgba(255,255,255,0.45);
+    margin-top: 2px;
+}
+
+/* ---- RESPONSIVE ---- */
+
+@media (max-width: 1100px) {
+    .parcours-hero { flex-direction: column; min-height: auto; text-align: center; }
+    .parcours-hero-illustration { display: none; }
+    .parcours-hero-ctas { justify-content: center; }
+    .parcours-hero-stats { justify-content: center; }
+    .parcours-cta-layout { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+    .parcours-hero { padding: 60px 24px; }
+    .parcours-hero-titre { font-size: 36px; }
+    .parcours-section-inner { padding: 0 20px; }
+    .methode-timeline { grid-template-columns: 1fr 1fr; }
+    .methode-step:nth-child(3)::after { display: none; }
+    .parcours-cards-grille { grid-template-columns: 1fr; }
+    .carte-pp-featured { transform: none; }
+    .parcours-cta-final { padding: 60px 0; }
+    .promise-bar { padding: 12px 20px; }
+}
+
+@media (max-width: 480px) {
+    .parcours-hero-titre { font-size: 28px; }
+    .methode-timeline { grid-template-columns: 1fr; }
+    .methode-step::after { display: none !important; }
+    .pp-footer { flex-direction: column; align-items: stretch; }
+    .pp-ctas { flex-direction: row; }
+}
+</style>
+
+<!-- ================================================
+     JS PAGE PARCOURS
+     ================================================ -->
+<script>
+(function() {
+    // Anime les barres de salaire au scroll
+    const barresSalaire = document.querySelectorAll('.pp-salaire-fill');
+    const obs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+                const barre = entry.target;
+                const largeur = barre.dataset.width || '50';
+                barre.style.width = largeur + '%';
+                obs.unobserve(barre);
+            }
+        });
+    }, { threshold: 0.3 });
+    barresSalaire.forEach(function(b) { obs.observe(b); });
+})();
+</script>
+
+{% endblock %}

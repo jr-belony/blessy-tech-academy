@@ -1,136 +1,1032 @@
 {% extends 'academie/base.html' %}
-{% load i18n %}
 
-{% block titre %}{% trans "Ressources" %} — Blessy Tech Academy{% endblock %}
+{% block titre %}Ressources — Blessy Tech Academy{% endblock %}
 
 {% block contenu %}
 
-<!-- HERO DE LA PAGE RESSOURCES -->
-<section class="page-hero">
-    <h2>📚 {% trans "Centre de Ressources" %}</h2>
-    <p>{% trans "Articles, tutoriels et ressources pour booster tes compétences." %}</p>
-</section>
-
-<!-- BARRE DE RECHERCHE + FILTRES -->
-<section style="background: white; padding: 32px 20px; border-bottom: 1px solid #f0f0f0;">
-    <div style="max-width: 1100px; margin: 0 auto;">
-
-        <!-- Barre de recherche -->
-        <form method="GET" style="display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;">
-            <input type="text" name="q" value="{{ recherche }}" placeholder="🔍 {% trans 'Rechercher un article...' %}"
-                   style="flex: 1; min-width: 200px; padding: 14px 20px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 15px; font-family: inherit;">
-            <button type="submit" class="btn-premium-outline" style="white-space: nowrap;">
-                {% trans "Rechercher" %}
-            </button>
-            {% if recherche %}
-            <a href="{% url 'ressources' %}" class="btn-premium-outline" style="white-space: nowrap;">
-                ✕ {% trans "Effacer" %}
-            </a>
-            {% endif %}
-        </form>
-
-        <!-- Filtres par tags -->
-        {% if tags_list %}
-        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-            <a href="{% url 'ressources' %}" class="filter-pill {% if not tag_filtre %}filter-pill-active{% endif %}">
-                {% trans "Tous" %}
-            </a>
-            {% for tag in tags_list %}
-            <a href="?tag={{ tag|urlencode }}{% if recherche %}&q={{ recherche|urlencode }}{% endif %}" 
-               class="filter-pill {% if tag_filtre == tag %}filter-pill-active{% endif %}">
-                {{ tag }}
-            </a>
-            {% endfor %}
+<!-- ================================================
+     HERO
+     ================================================ -->
+<section class="ressources-hero">
+    <div class="ressources-hero-bg"></div>
+    <div class="ressources-hero-inner">
+        <div class="section-tag" style="margin-bottom: 16px;">
+            📚 Ressources gratuites
         </div>
-        {% endif %}
-
-    </div>
-</section>
-
-<!-- SECTION ARTICLES -->
-<section style="background: #f8fafc; padding: 60px 20px;">
-    <div style="max-width: 1100px; margin: 0 auto;">
-
-        <!-- Article vedette -->
-        {% if article_vedette %}
-        <div style="margin-bottom: 56px;">
-            <p style="font-size: 13px; color: #00B4D8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;">
-                🔥 {% trans "Article vedette" %}
-            </p>
-            <a href="{% url 'article_detail' article_vedette.slug %}" class="article-hero-card">
-                {% if article_vedette.image %}
-                <div class="article-hero-image">
-                    <img src="{{ article_vedette.image.url }}" alt="{{ article_vedette.titre }}">
-                </div>
-                {% endif %}
-                <div class="article-hero-body">
-                    <span class="article-hero-tag">{{ article_vedette.tags|default:""|slice:":30" }}</span>
-                    <h2>{{ article_vedette.titre }}</h2>
-                    <p>{{ article_vedette.resume|truncatewords:25 }}</p>
-                    <div class="article-hero-meta">
-                        <span>{{ article_vedette.auteur.first_name|default:article_vedette.auteur.username }}</span>
-                        <span>{{ article_vedette.date_publication|date:"d/m/Y" }}</span>
-                        <span>{% trans "Lire l'article" %} →</span>
-                    </div>
-                </div>
-            </a>
-        </div>
-        {% endif %}
-
-        <!-- Derniers articles (grille) -->
-        {% if page_obj %}
-        <div class="articles-grid">
-            {% for article in page_obj %}
-            <a href="{% url 'article_detail' article.slug %}" class="article-card">
-                {% if article.image %}
-                <div class="article-card-image">
-                    <img src="{{ article.image.url }}" alt="{{ article.titre }}">
-                </div>
-                {% endif %}
-                <div class="article-card-body">
-                    <span class="article-card-tag">{{ article.tags|default:""|slice:":30" }}</span>
-                    <h3>{{ article.titre }}</h3>
-                    <p>{{ article.resume|truncatewords:15 }}</p>
-                    <div class="article-card-meta">
-                        <span>{{ article.date_publication|date:"d/m/Y" }}</span>
-                        <span>→ {% trans "Lire" %}</span>
-                    </div>
-                </div>
-            </a>
-            {% endfor %}
-        </div>
-        {% elif not article_vedette %}
-        <p style="text-align: center; color: #666; padding: 60px 0;">
-            {% trans "Aucun article pour le moment. Reviens bientôt !" %}
+        <h1 class="ressources-hero-titre">
+            Centre de Ressources BTA
+        </h1>
+        <p class="ressources-hero-sous">
+            Articles, guides, outils recommandés et témoignages —
+            tout ce dont tu as besoin pour progresser.
         </p>
-        {% endif %}
-
-        <!-- Pagination -->
-        {% if page_obj.has_other_pages %}
-        <div class="pagination-modern">
-            {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}{% if tag_filtre %}&tag={{ tag_filtre|urlencode }}{% endif %}{% if recherche %}&q={{ recherche|urlencode }}{% endif %}" class="pagination-btn">
-                ← {% trans "Précédent" %}
-            </a>
-            {% endif %}
-            <div class="pagination-numbers">
-                {% for num in page_obj.paginator.page_range %}
-                    {% if page_obj.number == num %}
-                    <span class="pagination-current">{{ num }}</span>
-                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                    <a href="?page={{ num }}{% if tag_filtre %}&tag={{ tag_filtre|urlencode }}{% endif %}{% if recherche %}&q={{ recherche|urlencode }}{% endif %}" class="pagination-link">{{ num }}</a>
-                    {% endif %}
-                {% endfor %}
-            </div>
-            {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}{% if tag_filtre %}&tag={{ tag_filtre|urlencode }}{% endif %}{% if recherche %}&q={{ recherche|urlencode }}{% endif %}" class="pagination-btn">
-                {% trans "Suivant" %} →
-            </a>
-            {% endif %}
-        </div>
-        {% endif %}
-
     </div>
 </section>
+
+<!-- ================================================
+     FILTRES CATÉGORIES
+     ================================================ -->
+<div class="ressources-filtres">
+    <div class="ressources-filtres-inner">
+        <a href="{% url 'ressources' %}"
+           class="ressource-filtre-btn {% if not categorie_active %}filtre-actif{% endif %}">
+            Tout voir
+        </a>
+        {% for code, label in categories %}
+        <a href="?categorie={{ code }}"
+           class="ressource-filtre-btn {% if categorie_active == code %}filtre-actif{% endif %}">
+            {{ label }}
+        </a>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="ressources-page-inner">
+
+    <!-- ================================================
+         ARTICLES EN VEDETTE
+         ================================================ -->
+    {% if articles_vedette and not categorie_active %}
+    <section class="ressources-section">
+        <div class="ressources-section-header">
+            <h2 class="ressources-section-titre">⭐ En vedette</h2>
+        </div>
+
+        <div class="articles-vedette-grille">
+            {% for article in articles_vedette %}
+
+            {% if forloop.first %}
+            <!-- Grande carte -->
+            <a href="{% url 'detail_article' article.slug %}"
+               class="article-vedette-grande">
+                <div class="article-vedette-overlay"></div>
+                <div class="article-vedette-contenu">
+                    <span class="article-badge-cat">
+                        {{ article.get_categorie_display }}
+                    </span>
+                    <h2 class="article-vedette-titre">{{ article.titre }}</h2>
+                    <p class="article-vedette-resume">
+                        {{ article.resume|truncatewords:20 }}
+                    </p>
+                    <div class="article-vedette-meta">
+                        <span>✍️ {{ article.auteur.first_name|default:"BTA" }}</span>
+                        <span>⏱ {{ article.temps_lecture }} min</span>
+                        <span>📅 {{ article.date_publication|date:"d/m/Y" }}</span>
+                    </div>
+                </div>
+            </a>
+
+            {% else %}
+            <!-- Petites cartes -->
+            <a href="{% url 'detail_article' article.slug %}"
+               class="article-vedette-petite">
+                <div class="article-petite-cat">
+                    {{ article.get_categorie_display }}
+                </div>
+                <h3 class="article-petite-titre">{{ article.titre }}</h3>
+                <p class="article-petite-resume">
+                    {{ article.resume|truncatewords:15 }}
+                </p>
+                <div class="article-petite-meta">
+                    <span>⏱ {{ article.temps_lecture }} min</span>
+                    <span>{{ article.date_publication|date:"d/m/Y" }}</span>
+                </div>
+            </a>
+            {% endif %}
+
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- ================================================
+         TOUS LES ARTICLES
+         ================================================ -->
+    <section class="ressources-section">
+        <div class="ressources-section-header">
+            <h2 class="ressources-section-titre">
+                📝 {% if categorie_active %}Articles filtrés{% else %}Tous les articles{% endif %}
+            </h2>
+            <span class="ressources-compteur">
+                {{ articles|length }} article{{ articles|length|pluralize }}
+            </span>
+        </div>
+
+        {% if articles %}
+        <div class="articles-grille">
+            {% for article in articles %}
+            <a href="{% url 'detail_article' article.slug %}"
+               class="carte-article">
+                <div class="carte-article-header">
+                    <span class="carte-article-cat">
+                        {{ article.get_categorie_display }}
+                    </span>
+                    {% if article.en_vedette %}
+                    <span class="carte-article-vedette">⭐</span>
+                    {% endif %}
+                </div>
+
+                <h3 class="carte-article-titre">{{ article.titre }}</h3>
+                <p class="carte-article-resume">
+                    {{ article.resume|truncatewords:18 }}
+                </p>
+
+                {% if article.formation_liee %}
+                <div class="carte-article-formation">
+                    {{ article.formation_liee.icone }} {{ article.formation_liee.nom }}
+                </div>
+                {% endif %}
+
+                <div class="carte-article-footer">
+                    <div class="carte-article-meta">
+                        <span>✍️ {{ article.auteur.first_name|default:"BTA" }}</span>
+                        <span>⏱ {{ article.temps_lecture }} min</span>
+                    </div>
+                    <span class="carte-article-date">
+                        {{ article.date_publication|date:"d/m/Y" }}
+                    </span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="ressources-vide">
+            <span style="font-size: 48px;">📝</span>
+            <h3>Aucun article pour le moment</h3>
+            <p>Les premiers articles seront publiés très prochainement.</p>
+        </div>
+        {% endif %}
+    </section>
+
+    <!-- ================================================
+         OUTILS RECOMMANDÉS
+         ================================================ -->
+    {% if outils and not categorie_active %}
+    <section class="ressources-section">
+        <div class="ressources-section-header">
+            <h2 class="ressources-section-titre">🛠️ Outils recommandés</h2>
+            <p class="ressources-section-sous">
+                Les outils que l'équipe BTA utilise et recommande
+            </p>
+        </div>
+
+        <!-- Filtres outils -->
+        <div class="outils-filtres" id="outils-filtres">
+            <button class="outil-filtre-btn actif" onclick="filtrerOutils('tous', this)">
+                Tous
+            </button>
+            {% for code, label in categories_outils %}
+            <button class="outil-filtre-btn"
+                    onclick="filtrerOutils('{{ code }}', this)">
+                {{ label }}
+            </button>
+            {% endfor %}
+        </div>
+
+        <div class="outils-grille" id="outils-grille">
+            {% for outil in outils %}
+            <a href="{{ outil.url }}" target="_blank" rel="noopener noreferrer"
+               class="carte-outil" data-cat="{{ outil.categorie }}">
+
+                <div class="outil-icone-wrapper">
+                    <span class="outil-icone">{{ outil.icone }}</span>
+                </div>
+
+                <div class="outil-contenu">
+                    <div class="outil-header">
+                        <h3 class="outil-nom">{{ outil.nom }}</h3>
+                        <div class="outil-badges">
+                            {% if outil.gratuit %}
+                            <span class="outil-badge-gratuit">Gratuit</span>
+                            {% endif %}
+                            {% if outil.recommande_par_bta %}
+                            <span class="outil-badge-bta">BTA ✓</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <p class="outil-desc">{{ outil.description }}</p>
+                    <span class="outil-lien">Découvrir →</span>
+                </div>
+
+            </a>
+            {% empty %}
+            <p style="color: var(--gris-texte); grid-column: 1/-1; text-align: center;">
+                Les outils seront bientôt disponibles.
+            </p>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- ================================================
+         TÉMOIGNAGES
+         ================================================ -->
+    {% if temoignages and not categorie_active %}
+    <section class="ressources-section ressources-section-dark">
+        <div class="ressources-section-header">
+            <h2 class="ressources-section-titre" style="color: white;">
+                💬 Ils ont changé leur vie avec BTA
+            </h2>
+            <p style="color: rgba(255,255,255,0.6); font-size: 15px;">
+                Des témoignages réels de nos étudiants
+            </p>
+        </div>
+
+        <div class="temoignages-grille">
+            {% for temoignage in temoignages %}
+            <div class="carte-temoignage
+                {% if temoignage.en_vedette %}temoignage-vedette{% endif %}">
+
+                <!-- Étoiles -->
+                <div class="temoignage-etoiles">
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= temoignage.note %}
+                        ★
+                        {% else %}
+                        ☆
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <!-- Texte -->
+                <p class="temoignage-texte">
+                    "{{ temoignage.texte }}"
+                </p>
+
+                <!-- Auteur -->
+                <div class="temoignage-auteur">
+                    <div class="temoignage-avatar">
+                        {{ temoignage.initiales }}
+                    </div>
+                    <div>
+                        <div class="temoignage-nom">{{ temoignage.prenom_nom }}</div>
+                        {% if temoignage.titre_professionnel %}
+                        <div class="temoignage-role">
+                            {{ temoignage.titre_professionnel }}
+                        </div>
+                        {% endif %}
+                        {% if temoignage.formation_suivie %}
+                        <div class="temoignage-formation">
+                            {{ temoignage.formation_suivie.icone }}
+                            {{ temoignage.formation_suivie.nom }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- ================================================
+         CTA NEWSLETTER / INSCRIPTION
+         ================================================ -->
+    <section class="ressources-cta">
+        <div class="ressources-cta-inner">
+            <div class="ressources-cta-icone">🚀</div>
+            <h2 class="ressources-cta-titre">
+                Prêt à passer à l'action ?
+            </h2>
+            <p class="ressources-cta-desc">
+                Rejoins BTA et accède à toutes les ressources,
+                formations et à Blessy AI — gratuitement pour commencer.
+            </p>
+            <div class="ressources-cta-boutons">
+                <a href="{% url 'inscription_compte' %}"
+                   class="btn-ressources-cta">
+                    🎓 Créer mon compte gratuit
+                </a>
+                <a href="{% url 'orientation_ia' %}"
+                   class="btn-ressources-secondaire">
+                    🎯 Trouver ma formation
+                </a>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<!-- ================================================
+     CSS PAGE RESSOURCES
+     ================================================ -->
+<style>
+
+.ressources-page-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 40px;
+}
+
+/* ---- HERO ---- */
+
+.ressources-hero {
+    background: linear-gradient(135deg, #050d1a 0%, #0B2447 100%);
+    padding: 80px 40px 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.ressources-hero-bg {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(0,180,216,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,180,216,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+.ressources-hero-inner {
+    position: relative;
+    z-index: 2;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.ressources-hero-titre {
+    font-size: 48px;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -2px;
+    margin-bottom: 16px;
+    line-height: 1.1;
+}
+
+.ressources-hero-sous {
+    font-size: 17px;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.7;
+}
+
+/* ---- FILTRES ---- */
+
+.ressources-filtres {
+    background: white;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 16px 40px;
+    position: sticky;
+    top: 72px;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+}
+
+.ressources-filtres-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.ressource-filtre-btn {
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--gris-texte);
+    background: var(--gris-clair);
+    border: 1.5px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.ressource-filtre-btn:hover {
+    color: var(--bleu-principal);
+    border-color: var(--bleu-electrique);
+    background: rgba(0,180,216,0.05);
+}
+
+.filtre-actif {
+    background: var(--bleu-principal);
+    color: white;
+    border-color: transparent;
+}
+
+.filtre-actif:hover {
+    background: var(--bleu-electrique);
+    color: white;
+}
+
+/* ---- SECTIONS ---- */
+
+.ressources-section {
+    padding: 60px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.ressources-section:last-child {
+    border-bottom: none;
+}
+
+.ressources-section-dark {
+    background: linear-gradient(135deg, #0B2447, #1a4a8a);
+    border-radius: 24px;
+    padding: 60px 48px;
+    margin: 40px 0;
+    border: none;
+}
+
+.ressources-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.ressources-section-titre {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--bleu-principal);
+    margin: 0;
+}
+
+.ressources-section-sous {
+    font-size: 15px;
+    color: var(--gris-texte);
+    margin: 6px 0 0;
+}
+
+.ressources-compteur {
+    font-size: 13px;
+    color: var(--gris-texte);
+    background: var(--gris-clair);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    align-self: center;
+}
+
+/* ---- ARTICLES VEDETTE ---- */
+
+.articles-vedette-grille {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 20px;
+}
+
+.article-vedette-grande {
+    grid-row: 1 / 3;
+    background: linear-gradient(135deg, #0B2447, #1a3a6a);
+    border-radius: 20px;
+    padding: 40px;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    min-height: 360px;
+    transition: transform 0.3s;
+}
+
+.article-vedette-grande:hover {
+    transform: translateY(-4px);
+}
+
+.article-vedette-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(5,13,26,0.95) 0%, transparent 60%);
+}
+
+.article-vedette-contenu {
+    position: relative;
+    z-index: 2;
+}
+
+.article-badge-cat {
+    display: inline-block;
+    background: rgba(0,180,216,0.2);
+    border: 1px solid rgba(0,180,216,0.3);
+    color: #00B4D8;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.article-vedette-titre {
+    font-size: 26px;
+    font-weight: 800;
+    color: white;
+    line-height: 1.2;
+    margin-bottom: 10px;
+}
+
+.article-vedette-resume {
+    font-size: 14px;
+    color: rgba(255,255,255,0.7);
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+
+.article-vedette-meta {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+}
+
+.article-vedette-petite {
+    background: white;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 24px;
+    text-decoration: none;
+    display: block;
+    transition: all 0.3s;
+}
+
+.article-vedette-petite:hover {
+    border-color: var(--bleu-electrique);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0,180,216,0.1);
+}
+
+.article-petite-cat {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--bleu-electrique);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.article-petite-titre {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--bleu-principal);
+    margin-bottom: 8px;
+    line-height: 1.3;
+}
+
+.article-petite-resume {
+    font-size: 13px;
+    color: var(--gris-texte);
+    line-height: 1.6;
+    margin-bottom: 12px;
+}
+
+.article-petite-meta {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    color: #a0aec0;
+}
+
+/* ---- GRILLE ARTICLES ---- */
+
+.articles-grille {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.carte-article {
+    background: white;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 24px;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.carte-article::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #00B4D8, #FF6B35);
+    transform: scaleX(0);
+    transition: transform 0.3s;
+    transform-origin: left;
+}
+
+.carte-article:hover {
+    border-color: transparent;
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px rgba(11,36,71,0.1);
+}
+
+.carte-article:hover::after {
+    transform: scaleX(1);
+}
+
+.carte-article-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.carte-article-cat {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--bleu-electrique);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.carte-article-vedette {
+    font-size: 14px;
+}
+
+.carte-article-titre {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--bleu-principal);
+    line-height: 1.3;
+    margin: 0;
+}
+
+.carte-article-resume {
+    font-size: 13px;
+    color: var(--gris-texte);
+    line-height: 1.6;
+    margin: 0;
+    flex-grow: 1;
+}
+
+.carte-article-formation {
+    font-size: 12px;
+    color: var(--bleu-electrique);
+    font-weight: 600;
+    background: rgba(0,180,216,0.08);
+    padding: 4px 10px;
+    border-radius: 6px;
+    align-self: flex-start;
+}
+
+.carte-article-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    border-top: 1px solid #f0f0f0;
+    margin-top: auto;
+}
+
+.carte-article-meta {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    color: #a0aec0;
+}
+
+.carte-article-date {
+    font-size: 12px;
+    color: #a0aec0;
+}
+
+/* ---- OUTILS ---- */
+
+.outils-filtres {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+}
+
+.outil-filtre-btn {
+    padding: 7px 16px;
+    border-radius: 20px;
+    border: 1.5px solid #e2e8f0;
+    background: white;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gris-texte);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.outil-filtre-btn:hover,
+.outil-filtre-btn.actif {
+    background: var(--bleu-principal);
+    color: white;
+    border-color: transparent;
+}
+
+.outils-grille {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.carte-outil {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    background: white;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 20px;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.carte-outil:hover {
+    border-color: var(--bleu-electrique);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 36px rgba(0,180,216,0.1);
+}
+
+.outil-icone-wrapper {
+    width: 52px;
+    height: 52px;
+    background: linear-gradient(135deg, var(--bleu-principal), #1a4a8a);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+    transition: transform 0.3s;
+}
+
+.carte-outil:hover .outil-icone-wrapper {
+    transform: scale(1.1) rotate(-5deg);
+}
+
+.outil-contenu { flex: 1; }
+
+.outil-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+}
+
+.outil-nom {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--bleu-principal);
+    margin: 0;
+}
+
+.outil-badges {
+    display: flex;
+    gap: 4px;
+}
+
+.outil-badge-gratuit {
+    font-size: 10px;
+    font-weight: 700;
+    background: rgba(34,197,94,0.1);
+    color: #22c55e;
+    padding: 2px 8px;
+    border-radius: 10px;
+    white-space: nowrap;
+}
+
+.outil-badge-bta {
+    font-size: 10px;
+    font-weight: 700;
+    background: rgba(0,180,216,0.1);
+    color: var(--bleu-electrique);
+    padding: 2px 8px;
+    border-radius: 10px;
+    white-space: nowrap;
+}
+
+.outil-desc {
+    font-size: 13px;
+    color: var(--gris-texte);
+    line-height: 1.5;
+    margin: 0 0 8px;
+}
+
+.outil-lien {
+    font-size: 13px;
+    color: var(--bleu-electrique);
+    font-weight: 700;
+}
+
+/* ---- TÉMOIGNAGES ---- */
+
+.temoignages-grille {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.carte-temoignage {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 28px;
+    transition: all 0.3s;
+}
+
+.carte-temoignage:hover {
+    background: rgba(255,255,255,0.1);
+    transform: translateY(-4px);
+}
+
+.temoignage-vedette {
+    background: rgba(255,107,53,0.08);
+    border-color: rgba(255,107,53,0.2);
+}
+
+.temoignage-etoiles {
+    color: #FFD700;
+    font-size: 18px;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+}
+
+.temoignage-texte {
+    font-size: 15px;
+    color: rgba(255,255,255,0.85);
+    line-height: 1.8;
+    font-style: italic;
+    margin-bottom: 20px;
+}
+
+.temoignage-auteur {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.temoignage-avatar {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, #00B4D8, #FF6B35);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 13px;
+    color: white;
+    flex-shrink: 0;
+}
+
+.temoignage-nom {
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+}
+
+.temoignage-role {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    margin-top: 2px;
+}
+
+.temoignage-formation {
+    font-size: 12px;
+    color: var(--bleu-electrique);
+    margin-top: 3px;
+    font-weight: 600;
+}
+
+/* ---- CTA FINAL ---- */
+
+.ressources-cta {
+    padding: 80px 0;
+}
+
+.ressources-cta-inner {
+    background: linear-gradient(135deg, #0B2447, #1a4a8a);
+    border-radius: 24px;
+    padding: 60px 48px;
+    text-align: center;
+}
+
+.ressources-cta-icone { font-size: 52px; margin-bottom: 16px; }
+
+.ressources-cta-titre {
+    font-size: 32px;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+}
+
+.ressources-cta-desc {
+    font-size: 16px;
+    color: rgba(255,255,255,0.7);
+    line-height: 1.7;
+    max-width: 500px;
+    margin: 0 auto 32px;
+}
+
+.ressources-cta-boutons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-ressources-cta {
+    background: linear-gradient(135deg, #FF6B35, #e85a2a);
+    color: white;
+    padding: 15px 32px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 15px;
+    box-shadow: 0 8px 24px rgba(255,107,53,0.4);
+    transition: all 0.3s;
+}
+
+.btn-ressources-cta:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 36px rgba(255,107,53,0.5);
+}
+
+.btn-ressources-secondaire {
+    background: rgba(255,255,255,0.1);
+    color: white;
+    padding: 15px 32px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 15px;
+    border: 1px solid rgba(255,255,255,0.2);
+    transition: all 0.3s;
+}
+
+.btn-ressources-secondaire:hover {
+    background: rgba(255,255,255,0.18);
+    transform: translateY(-2px);
+}
+
+.ressources-vide {
+    text-align: center;
+    padding: 60px;
+    color: var(--gris-texte);
+}
+
+.ressources-vide h3 {
+    font-size: 22px;
+    color: var(--bleu-principal);
+    margin: 16px 0 8px;
+}
+
+/* ---- RESPONSIVE ---- */
+
+@media (max-width: 768px) {
+    .ressources-page-inner { padding: 0 20px; }
+    .ressources-hero { padding: 60px 20px 40px; }
+    .ressources-hero-titre { font-size: 32px; letter-spacing: -1px; }
+    .ressources-filtres { padding: 12px 20px; top: 64px; }
+
+    .articles-vedette-grille {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+    }
+
+    .article-vedette-grande { grid-row: auto; min-height: 250px; }
+    .articles-grille { grid-template-columns: 1fr; }
+    .outils-grille { grid-template-columns: 1fr; }
+    .temoignages-grille { grid-template-columns: 1fr; }
+
+    .ressources-section-dark,
+    .ressources-cta-inner { padding: 40px 24px; }
+
+    .ressources-cta-titre { font-size: 24px; }
+    .ressources-cta-boutons { flex-direction: column; }
+}
+</style>
+
+<!-- ================================================
+     JS — Filtrage outils
+     ================================================ -->
+<script>
+function filtrerOutils(cat, bouton) {
+    // Met à jour les boutons
+    document.querySelectorAll('.outil-filtre-btn').forEach(function(b) {
+        b.classList.remove('actif');
+    });
+    bouton.classList.add('actif');
+
+    // Filtre les cartes
+    document.querySelectorAll('.carte-outil').forEach(function(carte) {
+        if (cat === 'tous' || carte.dataset.cat === cat) {
+            carte.style.display = '';
+        } else {
+            carte.style.display = 'none';
+        }
+    });
+}
+</script>
 
 {% endblock %}

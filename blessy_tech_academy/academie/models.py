@@ -646,27 +646,133 @@ class ProfilUtilisateur(models.Model):
     
 
 class Article(models.Model):
-    """Article de blog / Ressource pédagogique."""
-    STATUS = [
-        ('brouillon', 'Brouillon'),
-        ('publie', 'Publié'),
+    """Article ou guide publié dans la page Ressources."""
+
+    CATEGORIES = [
+        ('guide', '📖 Guide'),
+        ('tutoriel', '🎓 Tutoriel'),
+        ('actualite', '📰 Actualité'),
+        ('conseil', '💡 Conseil'),
+        ('outil', '🛠️ Outil'),
     ]
 
-    titre = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=200, unique=True)
-    contenu = CKEditor5Field(config_name='default')
-    resume = models.TextField(max_length=500, help_text="Résumé affiché dans la liste des articles")
-    image = models.ImageField(upload_to='blog/', blank=True, null=True)
-    auteur = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='articles')
-    statut = models.CharField(max_length=20, choices=STATUS, default='brouillon')
-    date_creation = models.DateTimeField(auto_now_add=True)
-    date_publication = models.DateTimeField(blank=True, null=True)
-    tags = models.CharField(max_length=300, blank=True, help_text="Mots-clés séparés par des virgules")
+    titre = models.CharField(max_length=300)
+    slug = models.SlugField(max_length=300, unique=True, blank=True)
+    resume = models.TextField(max_length=500)
+    contenu = CKEditor5Field(
+        config_name='default',
+        blank=True
+    )
+    categorie = models.CharField(
+        max_length=20,
+        choices=CATEGORIES,
+        default='guide'
+    )
+    formation_liee = models.ForeignKey(
+        Formation,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='articles'
+    )
+    auteur = models.ForeignKey(
+        'auth.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='articles'
+    )
+    en_vedette = models.BooleanField(default=False)
+    publie = models.BooleanField(default=False)
+    temps_lecture = models.IntegerField(
+        default=5,
+        help_text="Temps de lecture estimé en minutes"
+    )
+    date_publication = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-date_creation']
+        ordering = ['-en_vedette', '-date_publication']
         verbose_name = 'Article'
         verbose_name_plural = 'Articles'
 
     def __str__(self):
-        return self.titre   
+        return self.titre
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+            self.slug = slugify(self.titre)
+        super().save(*args, **kwargs)
+
+
+class OutilRecommande(models.Model):
+    """Outil numérique recommandé aux étudiants."""
+
+    CATEGORIES = [
+        ('developpement', '💻 Développement'),
+        ('design', '🎨 Design'),
+        ('ia', '🤖 Intelligence Artificielle'),
+        ('productivite', '⚡ Productivité'),
+        ('collaboration', '👥 Collaboration'),
+        ('securite', '🔐 Sécurité'),
+    ]
+
+    nom = models.CharField(max_length=200)
+    description = models.TextField(max_length=400)
+    url = models.URLField()
+    icone = models.CharField(max_length=10, default='🛠️')
+    categorie = models.CharField(
+        max_length=20,
+        choices=CATEGORIES,
+        default='developpement'
+    )
+    gratuit = models.BooleanField(default=True)
+    recommande_par_bta = models.BooleanField(default=True)
+    ordre = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['ordre', 'nom']
+        verbose_name = 'Outil recommandé'
+        verbose_name_plural = 'Outils recommandés'
+
+    def __str__(self):
+        return f"{self.icone} {self.nom}"
+
+
+class Temoignage(models.Model):
+    """Témoignage d'un étudiant BTA."""
+
+    prenom_nom = models.CharField(max_length=200)
+    formation_suivie = models.ForeignKey(
+        Formation,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='temoignages'
+    )
+    texte = models.TextField()
+    note = models.IntegerField(
+        default=5,
+        choices=[(i, f"{i} étoile{'s' if i > 1 else ''}") for i in range(1, 6)]
+    )
+    initiales = models.CharField(
+        max_length=3,
+        help_text="Ex: JRB pour Jean Raymond BELONY"
+    )
+    titre_professionnel = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Ex: Développeur Web Freelance"
+    )
+    en_vedette = models.BooleanField(default=False)
+    approuve = models.BooleanField(default=False)
+    date_creation = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-en_vedette', '-date_creation']
+        verbose_name = 'Témoignage'
+        verbose_name_plural = 'Témoignages'
+
+    def __str__(self):
+        return f"{self.prenom_nom} — {self.note}⭐"

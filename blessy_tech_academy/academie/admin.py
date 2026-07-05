@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import admin
 from .models import (Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz, Module, Lecon, ProgressionLecon,
-Parcours, Sujet, Reponse, Reaction, Article) 
+Parcours, Sujet, Reponse, Reaction,OutilRecommande, Article, Temoignage) 
 
 @admin.register(Ecole)
 class EcoleAdmin(admin.ModelAdmin):
@@ -196,50 +196,44 @@ class ReactionAdmin(admin.ModelAdmin):
 
 @admin.register(Article)
 class ArticleAdmin(admin.ModelAdmin):
-    list_display = ['titre', 'auteur', 'statut', 'date_creation', 'date_publication']
-    list_filter = ['statut', 'date_creation']
-    search_fields = ['titre', 'contenu', 'tags']
+    list_display = ['titre', 'categorie', 'auteur', 'en_vedette',
+                    'publie', 'temps_lecture', 'date_publication']
+    list_filter = ['categorie', 'publie', 'en_vedette', 'formation_liee']
+    search_fields = ['titre', 'resume', 'contenu']
+    list_editable = ['publie', 'en_vedette']
     prepopulated_fields = {'slug': ('titre',)}
-    readonly_fields = ['date_creation']
-    list_editable = ['statut']
+    readonly_fields = ['date_publication', 'date_modification']
 
     fieldsets = [
         ('Informations principales', {
-            'fields': ['titre', 'slug', 'auteur', 'statut']
+            'fields': ['titre', 'slug', 'categorie', 'resume',
+                       'temps_lecture', 'formation_liee', 'auteur']
         }),
         ('Contenu', {
-            'fields': ['resume', 'contenu', 'image']
+            'fields': ['contenu']
         }),
         ('Publication', {
-            'fields': ['tags', 'date_creation', 'date_publication']
+            'fields': ['publie', 'en_vedette', 'date_publication', 'date_modification']
         }),
     ]
 
-    actions = ['generer_article_ia']
 
-    @admin.action(description="🤖 Générer le contenu avec l'IA")
-    def generer_article_ia(self, request, queryset):
-        from .ia import generer_article
-        for article in queryset:
-            if not article.contenu:
-                resultat = generer_article(article.titre, article.tags)
-                if 'erreur' not in resultat or not resultat['erreur']:
-                    article.contenu = resultat.get('contenu', '')
-                    article.resume = resultat.get('resume', '')
-                    article.tags = resultat.get('tags', '')
-                    article.save()
-                    self.message_user(request, f"✅ Article '{article.titre}' généré avec succès.")
-                else:
-                    self.message_user(request, f"❌ Erreur pour '{article.titre}': {resultat['erreur']}", level='error')
-            else:
-                self.message_user(request, f"⚠️ '{article.titre}' a déjà du contenu.", level='warning')
+@admin.register(OutilRecommande)
+class OutilRecommandeAdmin(admin.ModelAdmin):
+    list_display = ['icone', 'nom', 'categorie', 'gratuit',
+                    'recommande_par_bta', 'ordre']
+    list_filter = ['categorie', 'gratuit', 'recommande_par_bta']
+    search_fields = ['nom', 'description']
+    list_editable = ['ordre', 'recommande_par_bta']
 
-    class Media:
-        css = {
-            'all': ['academie/admin/ckeditor_custom.css']
-        }
-        js = ['academie/admin/generer_article.js']
 
+@admin.register(Temoignage)
+class TemoignageAdmin(admin.ModelAdmin):
+    list_display = ['prenom_nom', 'formation_suivie', 'note',
+                    'en_vedette', 'approuve', 'date_creation']
+    list_filter = ['note', 'en_vedette', 'approuve', 'formation_suivie']
+    search_fields = ['prenom_nom', 'texte']
+    list_editable = ['en_vedette', 'approuve']
 
 # ================================================
 # Vue personnalisée — Gestion organisée par École

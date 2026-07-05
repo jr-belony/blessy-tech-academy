@@ -1,0 +1,1299 @@
+{% extends 'academie/base.html' %}
+
+{% block titre %}Simulateur de Carrière — Blessy Tech Academy{% endblock %}
+
+{% block contenu %}
+
+<!-- ================================================
+     HERO SIMULATEUR
+     ================================================ -->
+<section class="sim-hero">
+    <div class="sim-hero-grid"></div>
+    <div class="sim-glow-1"></div>
+    <div class="sim-glow-2"></div>
+
+    <div class="sim-hero-inner">
+        <div class="section-tag sim-tag">
+            🎯 Simulateur de Carrière IA
+        </div>
+        <h1 class="sim-hero-titre">
+            Découvre le métier<br>
+            <span class="sim-titre-accent">fait pour toi</span>
+        </h1>
+        <p class="sim-hero-sous">
+            Réponds à 4 questions. Blessy AI analyse ton profil
+            et te révèle le métier numérique qui te correspond —
+            avec le plan de formation complet.
+        </p>
+
+        <div class="sim-hero-badges">
+            <span class="sim-badge">⚡ Résultat en 30 secondes</span>
+            <span class="sim-badge">🤖 Analysé par IA</span>
+            <span class="sim-badge">🎯 100% personnalisé</span>
+            <span class="sim-badge">🆓 Gratuit</span>
+        </div>
+    </div>
+</section>
+
+{% if not resultat %}
+<!-- ================================================
+     FORMULAIRE SIMULATEUR
+     ================================================ -->
+<section class="sim-form-section">
+    <div class="sim-section-inner">
+
+        {% if erreur %}
+        <div class="sim-erreur">❌ {{ erreur }}</div>
+        {% endif %}
+
+        <form method="POST" id="sim-form">
+            {% csrf_token %}
+
+            <!-- Q1 : Profil -->
+            <div class="sim-question">
+                <div class="sim-question-header">
+                    <span class="sim-q-num">01</span>
+                    <div>
+                        <h3 class="sim-q-titre">Qui es-tu ?</h3>
+                        <p class="sim-q-sous">Choisis le profil qui te correspond le mieux</p>
+                    </div>
+                </div>
+                <div class="sim-choices">
+                    {% for code, label, emoji in profils %}
+                    <label class="sim-choice">
+                        <input type="radio" name="profil" value="{{ code }}"
+                               {% if form_data.profil == code %}checked{% endif %} required>
+                        <div class="sim-choice-card" data-groupe="profil">
+                            <span class="sim-choice-emoji">{{ emoji }}</span>
+                            <span class="sim-choice-label">{{ label }}</span>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Q2 : Intérêts -->
+            <div class="sim-question">
+                <div class="sim-question-header">
+                    <span class="sim-q-num">02</span>
+                    <div>
+                        <h3 class="sim-q-titre">Qu'est-ce qui te passionne ?</h3>
+                        <p class="sim-q-sous">Ce que tu préfères faire naturellement</p>
+                    </div>
+                </div>
+                <div class="sim-choices">
+                    {% for code, label, emoji in interets %}
+                    <label class="sim-choice">
+                        <input type="radio" name="interet" value="{{ code }}"
+                               {% if form_data.interet == code %}checked{% endif %} required>
+                        <div class="sim-choice-card" data-groupe="interet">
+                            <span class="sim-choice-emoji">{{ emoji }}</span>
+                            <span class="sim-choice-label">{{ label }}</span>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Q3 : Objectif -->
+            <div class="sim-question">
+                <div class="sim-question-header">
+                    <span class="sim-q-num">03</span>
+                    <div>
+                        <h3 class="sim-q-titre">Quel est ton objectif ?</h3>
+                        <p class="sim-q-sous">Comment tu veux travailler dans 1 an</p>
+                    </div>
+                </div>
+                <div class="sim-choices">
+                    {% for code, label, emoji in objectifs %}
+                    <label class="sim-choice">
+                        <input type="radio" name="objectif" value="{{ code }}"
+                               {% if form_data.objectif == code %}checked{% endif %} required>
+                        <div class="sim-choice-card" data-groupe="objectif">
+                            <span class="sim-choice-emoji">{{ emoji }}</span>
+                            <span class="sim-choice-label">{{ label }}</span>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Q4 : Niveau -->
+            <div class="sim-question">
+                <div class="sim-question-header">
+                    <span class="sim-q-num">04</span>
+                    <div>
+                        <h3 class="sim-q-titre">Quel est ton niveau actuel ?</h3>
+                        <p class="sim-q-sous">Sois honnête — ça aide à mieux calibrer</p>
+                    </div>
+                </div>
+                <div class="sim-choices">
+                    {% for code, label, emoji in niveaux %}
+                    <label class="sim-choice">
+                        <input type="radio" name="niveau" value="{{ code }}"
+                               {% if form_data.niveau == code %}checked{% endif %} required>
+                        <div class="sim-choice-card" data-groupe="niveau">
+                            <span class="sim-choice-emoji">{{ emoji }}</span>
+                            <span class="sim-choice-label">{{ label }}</span>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Q5 : Détails libres -->
+            <div class="sim-question">
+                <div class="sim-question-header">
+                    <span class="sim-q-num">05</span>
+                    <div>
+                        <h3 class="sim-q-titre">
+                            Dis-en plus sur toi
+                            <span class="sim-optionnel">(optionnel)</span>
+                        </h3>
+                        <p class="sim-q-sous">
+                            Tes rêves, contraintes, situation — plus tu partages,
+                            plus Blessy AI personnalise ta recommandation
+                        </p>
+                    </div>
+                </div>
+                <textarea name="details" class="sim-textarea"
+                          rows="4"
+                          placeholder="Ex: Je veux travailler à distance pour des clients aux USA. J'ai 3 enfants et je ne peux étudier que le soir. Mon rêve est de créer ma propre agence web en 2 ans...">{{ form_data.details|default:'' }}</textarea>
+            </div>
+
+            <!-- Submit -->
+            <div class="sim-submit-wrapper">
+                <button type="submit" class="sim-submit-btn" id="sim-submit">
+                    <span id="sim-submit-texte">
+                        🤖 Analyser mon profil et révéler mon métier idéal
+                    </span>
+                    <span class="sim-submit-arrow">→</span>
+                </button>
+                <p class="sim-submit-note">
+                    ⏳ L'analyse prend environ 15-20 secondes
+                </p>
+            </div>
+
+        </form>
+
+    </div>
+</section>
+
+{% else %}
+<!-- ================================================
+     RÉSULTAT DU SIMULATEUR
+     ================================================ -->
+<section class="sim-resultat-section">
+    <div class="sim-section-inner">
+
+        <!-- Annonce du métier -->
+        {% if metier_data %}
+        <div class="sim-metier-annonce">
+            <div class="sim-annonce-glow"></div>
+            <div class="sim-annonce-inner">
+                <div class="sim-annonce-label">🎯 Notre recommandation pour toi</div>
+                <div class="sim-annonce-emoji">{{ metier_data.emoji }}</div>
+                <h2 class="sim-annonce-titre">{{ metier_data.titre }}</h2>
+                <p class="sim-annonce-desc">{{ metier_data.description }}</p>
+
+                <div class="sim-annonce-pourquoi">
+                    <h4>✨ Pourquoi ce métier te correspond ?</h4>
+                    <div class="sim-raisons">
+                        <div class="sim-raison">
+                            <span class="sim-raison-check">✔</span>
+                            <span>Tu aimes créer et voir le résultat concret de ton travail</span>
+                        </div>
+                        <div class="sim-raison">
+                            <span class="sim-raison-check">✔</span>
+                            <span>Tu souhaites des opportunités internationales et en remote</span>
+                        </div>
+                        <div class="sim-raison">
+                            <span class="sim-raison-check">✔</span>
+                            <span>Ce métier correspond parfaitement à ton objectif déclaré</span>
+                        </div>
+                        <div class="sim-raison">
+                            <span class="sim-raison-check">✔</span>
+                            <span>La demande mondiale pour ce profil est en forte croissance</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grille de détails -->
+        <div class="sim-details-grille">
+
+            <!-- Compétences -->
+            <div class="sim-detail-card">
+                <h4 class="sim-detail-titre">⚡ Compétences que tu apprendras</h4>
+                <div class="sim-competences-liste">
+                    {% for comp in metier_data.competences %}
+                    <span class="sim-comp-tag">{{ comp }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Technologies -->
+            <div class="sim-detail-card">
+                <h4 class="sim-detail-titre">🛠️ Technologies utilisées</h4>
+                <div class="sim-competences-liste">
+                    {% for tech in metier_data.technologies %}
+                    <span class="sim-tech-tag">{{ tech }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Métiers accessibles -->
+            <div class="sim-detail-card">
+                <h4 class="sim-detail-titre">💼 Métiers accessibles</h4>
+                <div class="sim-metiers-liste">
+                    {% for metier in metier_data.metiers_accessibles %}
+                    <div class="sim-metier-item">
+                        <span class="sim-metier-bullet">→</span>
+                        <span>{{ metier }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Salaires -->
+            <div class="sim-detail-card sim-salaire-card">
+                <h4 class="sim-detail-titre">💰 Salaire indicatif</h4>
+                <div class="sim-salaires">
+                    <div class="sim-salaire-bloc">
+                        <span class="sim-salaire-zone">🇭🇹 Haïti</span>
+                        <span class="sim-salaire-montant">
+                            {{ metier_data.salaire_haiti }} USD/mois
+                        </span>
+                    </div>
+                    <div class="sim-salaire-sep"></div>
+                    <div class="sim-salaire-bloc">
+                        <span class="sim-salaire-zone">🌍 International</span>
+                        <span class="sim-salaire-montant" style="color: #22c55e;">
+                            {{ metier_data.salaire_international }} USD/mois
+                        </span>
+                    </div>
+                </div>
+                <p class="sim-salaire-note">
+                    *Estimations basées sur les données du marché 2025-2026
+                </p>
+            </div>
+
+            <!-- Secteurs -->
+            <div class="sim-detail-card">
+                <h4 class="sim-detail-titre">🌍 Secteurs qui recrutent</h4>
+                <div class="sim-competences-liste">
+                    {% for secteur in metier_data.secteurs %}
+                    <span class="sim-secteur-tag">{{ secteur }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Freelance -->
+            <div class="sim-detail-card">
+                <h4 class="sim-detail-titre">🚀 Potentiel Freelance</h4>
+                <p class="sim-detail-texte">{{ metier_data.freelance }}</p>
+            </div>
+
+            <!-- Demande -->
+            <div class="sim-detail-card sim-demande-card">
+                <h4 class="sim-detail-titre">📈 Pourquoi ce métier est recherché</h4>
+                <p class="sim-detail-texte">{{ metier_data.demande }}</p>
+            </div>
+
+            <!-- Compétences futur -->
+            <div class="sim-detail-card">
+                <h4 class="sim-detail-titre">🔮 Compétences du futur associées</h4>
+                <div class="sim-competences-liste">
+                    {% for comp in metier_data.competences_futur %}
+                    <span class="sim-futur-tag">{{ comp }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Perspectives -->
+        <div class="sim-perspectives">
+            <h4 class="sim-perspectives-titre">🌟 Perspectives d'évolution</h4>
+            <p class="sim-perspectives-texte">{{ metier_data.perspectives }}</p>
+        </div>
+
+        {% endif %}
+
+        <!-- Parcours IA recommandé -->
+        {% if resultat %}
+        <div class="sim-parcours-recommande">
+            <div class="sim-parcours-header">
+                <div class="sim-parcours-icone">🎓</div>
+                <div>
+                    <h3 class="sim-parcours-titre">Ton parcours BTA recommandé</h3>
+                    <p class="sim-parcours-sous">
+                        {{ resultat.message_personnel }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="sim-parcours-duree-budget">
+                <div class="sim-pb-item">
+                    <span class="sim-pb-label">Durée estimée</span>
+                    <span class="sim-pb-val">{{ resultat.duree_totale }} mois</span>
+                </div>
+                <div class="sim-pb-sep"></div>
+                <div class="sim-pb-item">
+                    <span class="sim-pb-label">Budget</span>
+                    <span class="sim-pb-val" style="color: var(--orange-accent);">
+                        {{ resultat.budget_total }} USD
+                    </span>
+                </div>
+                <div class="sim-pb-sep"></div>
+                <div class="sim-pb-item">
+                    <span class="sim-pb-label">Formations</span>
+                    <span class="sim-pb-val">{{ resultat.etapes|length }} formations</span>
+                </div>
+            </div>
+
+            <div class="sim-etapes">
+                {% for etape in resultat.etapes %}
+                <div class="sim-etape">
+                    <div class="sim-etape-num">{{ etape.ordre }}</div>
+                    <div class="sim-etape-content">
+                        <div class="sim-etape-header">
+                            <h4 class="sim-etape-titre">
+                                {{ etape.formation_icone }} {{ etape.formation_nom }}
+                            </h4>
+                            <div class="sim-etape-meta">
+                                <span>⏱ {{ etape.duree_mois }} mois</span>
+                                <span>{{ etape.prix }} USD</span>
+                            </div>
+                        </div>
+                        <p class="sim-etape-raison">💡 {{ etape.raison }}</p>
+                        <a href="{% url 'detail_formation' etape.formation_id %}"
+                           class="sim-etape-lien">
+                            Voir la formation →
+                        </a>
+                    </div>
+                </div>
+                {% if not forloop.last %}
+                <div class="sim-etape-fleche">↓</div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- CTAs finaux -->
+        <div class="sim-cta-final">
+            <h3 class="sim-cta-titre">
+                🚀 Prêt à commencer ton transformation ?
+            </h3>
+            <p class="sim-cta-desc">
+                {% if metier_data %}
+                En {{ metier_data.duree_formation }}, tu pourrais être
+                {{ metier_data.titre }} avec BTA.
+                {% endif %}
+                Commence dès aujourd'hui — la première formation est gratuite.
+            </p>
+            <div class="sim-cta-boutons">
+                <a href="{% url 'inscription_compte' %}" class="sim-btn-principal">
+                    🎓 Commencer gratuitement
+                </a>
+                <a href="{% url 'parcours' %}" class="sim-btn-secondaire">
+                    📋 Voir les parcours
+                </a>
+                <a href="{% url 'simulateur' %}" class="sim-btn-retry">
+                    🔄 Refaire le test
+                </a>
+            </div>
+        </div>
+
+    </div>
+</section>
+{% endif %}
+
+<!-- ================================================
+     CSS SIMULATEUR
+     ================================================ -->
+<style>
+
+.sim-section-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 40px;
+}
+
+/* ---- HERO ---- */
+
+.sim-hero {
+    background: linear-gradient(135deg, #050d1a 0%, #0B2447 100%);
+    padding: 80px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    min-height: 50vh;
+    display: flex;
+    align-items: center;
+}
+
+.sim-hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(0,180,216,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,180,216,0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+.sim-glow-1 {
+    position: absolute;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(0,180,216,0.12) 0%, transparent 70%);
+    top: -100px; right: 10%;
+}
+
+.sim-glow-2 {
+    position: absolute;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(255,107,53,0.08) 0%, transparent 70%);
+    bottom: -80px; left: 10%;
+}
+
+.sim-hero-inner {
+    position: relative;
+    z-index: 2;
+    max-width: 700px;
+    margin: 0 auto;
+    animation: apparition 0.8s ease-out both;
+}
+
+.sim-tag {
+    background: rgba(255,107,53,0.12);
+    border: 1px solid rgba(255,107,53,0.3);
+    color: #FF6B35;
+    margin-bottom: 24px;
+}
+
+.sim-hero-titre {
+    font-size: 56px;
+    font-weight: 800;
+    color: white;
+    line-height: 1.1;
+    letter-spacing: -2px;
+    margin-bottom: 20px;
+}
+
+.sim-titre-accent {
+    background: linear-gradient(135deg, #FF6B35, #ffa07a);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.sim-hero-sous {
+    font-size: 17px;
+    color: rgba(255,255,255,0.7);
+    line-height: 1.8;
+    margin-bottom: 32px;
+}
+
+.sim-hero-badges {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.sim-badge {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.8);
+    padding: 7px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* ---- FORMULAIRE ---- */
+
+.sim-form-section {
+    padding: 80px 0;
+    background: var(--gris-clair);
+}
+
+.sim-erreur {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 14px 20px;
+    border-radius: 10px;
+    margin-bottom: 24px;
+    font-weight: 500;
+}
+
+.sim-question {
+    background: white;
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(11,36,71,0.06);
+    border: 1.5px solid #e2e8f0;
+    animation: card-appear 0.4s ease-out both;
+}
+
+.sim-question-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.sim-q-num {
+    font-size: 40px;
+    font-weight: 800;
+    color: rgba(0,180,216,0.15);
+    line-height: 1;
+    flex-shrink: 0;
+    letter-spacing: -2px;
+}
+
+.sim-q-titre {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--bleu-principal);
+    margin-bottom: 4px;
+}
+
+.sim-optionnel {
+    font-size: 14px;
+    font-weight: 400;
+    color: #a0aec0;
+}
+
+.sim-q-sous {
+    font-size: 14px;
+    color: var(--gris-texte);
+    margin: 0;
+}
+
+.sim-choices {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.sim-choice {
+    cursor: pointer;
+}
+
+.sim-choice input {
+    display: none;
+}
+
+.sim-choice-card {
+    padding: 18px 16px;
+    border-radius: 14px;
+    border: 2px solid #e2e8f0;
+    background: var(--gris-clair);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.sim-choice-card:hover {
+    border-color: #00B4D8;
+    background: rgba(0,180,216,0.04);
+    transform: translateY(-2px);
+}
+
+.sim-choice input:checked + .sim-choice-card {
+    border-color: var(--bleu-principal);
+    background: rgba(11,36,71,0.05);
+    box-shadow: 0 0 0 3px rgba(11,36,71,0.08);
+    transform: translateY(-2px);
+}
+
+.sim-choice-emoji {
+    font-size: 32px;
+}
+
+.sim-choice-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--bleu-principal);
+    line-height: 1.3;
+}
+
+.sim-textarea {
+    width: 100%;
+    padding: 16px 20px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--gris-texte);
+    resize: vertical;
+    min-height: 120px;
+    transition: all 0.3s;
+    background: white;
+}
+
+.sim-textarea:focus {
+    outline: none;
+    border-color: #00B4D8;
+    box-shadow: 0 0 0 4px rgba(0,180,216,0.1);
+}
+
+.sim-submit-wrapper {
+    text-align: center;
+    margin-top: 32px;
+}
+
+.sim-submit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(135deg, #FF6B35, #e85a2a);
+    color: white;
+    border: none;
+    padding: 20px 48px;
+    border-radius: 12px;
+    font-size: 17px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: inherit;
+    box-shadow: 0 8px 30px rgba(255,107,53,0.4);
+    transition: all 0.3s;
+}
+
+.sim-submit-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(255,107,53,0.5);
+}
+
+.sim-submit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.sim-submit-arrow {
+    font-size: 20px;
+    transition: transform 0.3s;
+}
+
+.sim-submit-btn:hover .sim-submit-arrow {
+    transform: translateX(4px);
+}
+
+.sim-submit-note {
+    margin-top: 12px;
+    font-size: 13px;
+    color: #a0aec0;
+}
+
+/* ---- RÉSULTAT ---- */
+
+.sim-resultat-section {
+    padding: 80px 0;
+    background: white;
+}
+
+/* Annonce métier */
+.sim-metier-annonce {
+    background: linear-gradient(135deg, #050d1a, #0B2447);
+    border-radius: 24px;
+    padding: 4px;
+    margin-bottom: 40px;
+    position: relative;
+    overflow: hidden;
+}
+
+.sim-annonce-glow {
+    position: absolute;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(255,107,53,0.15) 0%, transparent 70%);
+    top: -100px; right: -50px;
+}
+
+.sim-annonce-inner {
+    background: linear-gradient(135deg, #0B2447, #1a3a6a);
+    border-radius: 22px;
+    padding: 48px;
+    position: relative;
+    z-index: 2;
+    text-align: center;
+}
+
+.sim-annonce-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+}
+
+.sim-annonce-emoji {
+    font-size: 72px;
+    margin-bottom: 16px;
+    display: block;
+    animation: float 3s ease-in-out infinite;
+}
+
+.sim-annonce-titre {
+    font-size: 40px;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -1px;
+    margin-bottom: 16px;
+}
+
+.sim-annonce-desc {
+    font-size: 17px;
+    color: rgba(255,255,255,0.7);
+    line-height: 1.8;
+    max-width: 600px;
+    margin: 0 auto 32px;
+}
+
+.sim-annonce-pourquoi {
+    background: rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: left;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.sim-annonce-pourquoi h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 16px;
+}
+
+.sim-raisons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sim-raison {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 14px;
+    color: rgba(255,255,255,0.8);
+}
+
+.sim-raison-check {
+    color: #22c55e;
+    font-weight: 800;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+/* Détails grille */
+.sim-details-grille {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.sim-detail-card {
+    background: var(--gris-clair);
+    border-radius: 16px;
+    padding: 24px;
+    border: 1.5px solid #e2e8f0;
+    transition: all 0.3s;
+}
+
+.sim-detail-card:hover {
+    border-color: var(--bleu-electrique);
+    background: white;
+    box-shadow: 0 8px 30px rgba(0,180,216,0.08);
+    transform: translateY(-2px);
+}
+
+.sim-salaire-card {
+    background: linear-gradient(135deg, rgba(34,197,94,0.06), rgba(34,197,94,0.02));
+    border-color: rgba(34,197,94,0.2);
+}
+
+.sim-demande-card {
+    background: linear-gradient(135deg, rgba(0,180,216,0.06), rgba(0,180,216,0.02));
+    border-color: rgba(0,180,216,0.2);
+}
+
+.sim-detail-titre {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--bleu-principal);
+    margin-bottom: 14px;
+}
+
+.sim-detail-texte {
+    font-size: 14px;
+    color: var(--gris-texte);
+    line-height: 1.7;
+    margin: 0;
+}
+
+.sim-competences-liste {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.sim-comp-tag {
+    background: rgba(11,36,71,0.08);
+    color: var(--bleu-principal);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.sim-tech-tag {
+    background: rgba(0,180,216,0.1);
+    color: #0090b8;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.sim-futur-tag {
+    background: rgba(168,85,247,0.1);
+    color: #a855f7;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.sim-secteur-tag {
+    background: rgba(34,197,94,0.1);
+    color: #16a34a;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.sim-metiers-liste {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sim-metier-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--gris-texte);
+}
+
+.sim-metier-bullet {
+    color: var(--bleu-electrique);
+    font-weight: 700;
+}
+
+/* Salaires */
+.sim-salaires {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 8px;
+}
+
+.sim-salaire-bloc {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.sim-salaire-zone {
+    font-size: 12px;
+    color: var(--gris-texte);
+}
+
+.sim-salaire-montant {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--bleu-principal);
+}
+
+.sim-salaire-sep {
+    width: 1px;
+    height: 40px;
+    background: #e2e8f0;
+}
+
+.sim-salaire-note {
+    font-size: 11px;
+    color: #a0aec0;
+    font-style: italic;
+    margin: 0;
+}
+
+/* Perspectives */
+.sim-perspectives {
+    background: linear-gradient(135deg, rgba(0,180,216,0.06), rgba(11,36,71,0.04));
+    border: 1.5px solid rgba(0,180,216,0.2);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 40px;
+}
+
+.sim-perspectives-titre {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--bleu-principal);
+    margin-bottom: 12px;
+}
+
+.sim-perspectives-texte {
+    font-size: 15px;
+    color: var(--gris-texte);
+    line-height: 1.8;
+    margin: 0;
+}
+
+/* Parcours recommandé */
+.sim-parcours-recommande {
+    background: var(--gris-clair);
+    border-radius: 24px;
+    padding: 40px;
+    margin-bottom: 40px;
+    border: 1.5px solid #e2e8f0;
+}
+
+.sim-parcours-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 28px;
+}
+
+.sim-parcours-icone {
+    font-size: 44px;
+    width: 72px;
+    height: 72px;
+    background: white;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(11,36,71,0.1);
+    flex-shrink: 0;
+}
+
+.sim-parcours-titre {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--bleu-principal);
+    margin-bottom: 8px;
+}
+
+.sim-parcours-sous {
+    font-size: 15px;
+    color: var(--gris-texte);
+    line-height: 1.7;
+    margin: 0;
+}
+
+.sim-parcours-duree-budget {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 20px 24px;
+    background: white;
+    border-radius: 14px;
+    margin-bottom: 28px;
+    box-shadow: 0 2px 12px rgba(11,36,71,0.05);
+}
+
+.sim-pb-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+    text-align: center;
+}
+
+.sim-pb-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #a0aec0;
+    font-weight: 700;
+}
+
+.sim-pb-val {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--bleu-principal);
+}
+
+.sim-pb-sep {
+    width: 1px;
+    height: 40px;
+    background: #e2e8f0;
+}
+
+/* Étapes */
+.sim-etapes {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.sim-etape {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    background: white;
+    border-radius: 14px;
+    padding: 20px 24px;
+    border: 1.5px solid #e2e8f0;
+    transition: all 0.3s;
+}
+
+.sim-etape:hover {
+    border-color: var(--bleu-electrique);
+    transform: translateX(4px);
+    box-shadow: 0 8px 24px rgba(0,180,216,0.08);
+}
+
+.sim-etape-num {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--bleu-principal), #00B4D8);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.sim-etape-content { flex: 1; }
+
+.sim-etape-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.sim-etape-titre {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--bleu-principal);
+    margin: 0;
+}
+
+.sim-etape-meta {
+    display: flex;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--gris-texte);
+    font-weight: 600;
+}
+
+.sim-etape-raison {
+    font-size: 13px;
+    color: var(--gris-texte);
+    line-height: 1.6;
+    margin: 0 0 10px;
+}
+
+.sim-etape-lien {
+    font-size: 13px;
+    color: var(--bleu-electrique);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.sim-etape-lien:hover { text-decoration: underline; }
+
+.sim-etape-fleche {
+    text-align: left;
+    padding: 4px 0 4px 28px;
+    font-size: 24px;
+    color: rgba(0,180,216,0.3);
+    font-weight: 700;
+}
+
+/* CTA final */
+.sim-cta-final {
+    background: linear-gradient(135deg, #0B2447, #1a4a8a);
+    border-radius: 24px;
+    padding: 48px;
+    text-align: center;
+}
+
+.sim-cta-titre {
+    font-size: 28px;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+}
+
+.sim-cta-desc {
+    font-size: 16px;
+    color: rgba(255,255,255,0.7);
+    line-height: 1.7;
+    margin-bottom: 28px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.sim-cta-boutons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.sim-btn-principal {
+    background: linear-gradient(135deg, #FF6B35, #e85a2a);
+    color: white;
+    padding: 14px 28px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 15px;
+    box-shadow: 0 8px 24px rgba(255,107,53,0.4);
+    transition: all 0.3s;
+}
+
+.sim-btn-principal:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 36px rgba(255,107,53,0.5);
+}
+
+.sim-btn-secondaire {
+    background: rgba(255,255,255,0.1);
+    color: white;
+    padding: 14px 28px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 15px;
+    border: 1px solid rgba(255,255,255,0.2);
+    transition: all 0.3s;
+}
+
+.sim-btn-secondaire:hover {
+    background: rgba(255,255,255,0.18);
+}
+
+.sim-btn-retry {
+    background: transparent;
+    color: rgba(255,255,255,0.6);
+    padding: 14px 20px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: color 0.2s;
+}
+
+.sim-btn-retry:hover { color: white; }
+
+/* ---- RESPONSIVE ---- */
+
+@media (max-width: 768px) {
+    .sim-hero { padding: 60px 20px; }
+    .sim-hero-titre { font-size: 36px; }
+    .sim-section-inner { padding: 0 20px; }
+    .sim-form-section, .sim-resultat-section { padding: 60px 0; }
+    .sim-question { padding: 24px 20px; }
+    .sim-choices { grid-template-columns: repeat(2, 1fr); }
+    .sim-details-grille { grid-template-columns: 1fr; }
+    .sim-annonce-inner { padding: 32px 24px; }
+    .sim-annonce-titre { font-size: 28px; }
+    .sim-parcours-recommande { padding: 28px 20px; }
+    .sim-cta-final { padding: 36px 24px; }
+    .sim-cta-boutons { flex-direction: column; align-items: stretch; }
+    .sim-salaires { flex-direction: column; gap: 12px; }
+    .sim-salaire-sep { width: 100%; height: 1px; }
+    .sim-parcours-duree-budget { flex-direction: column; gap: 16px; }
+    .sim-pb-sep { width: 100%; height: 1px; }
+}
+
+@media (max-width: 480px) {
+    .sim-hero-titre { font-size: 28px; }
+    .sim-choices { grid-template-columns: 1fr; }
+    .sim-submit-btn { padding: 16px 24px; font-size: 15px; }
+    .sim-hero-badges { flex-direction: column; align-items: center; }
+}
+</style>
+
+<!-- ================================================
+     JS SIMULATEUR
+     ================================================ -->
+<script>
+(function() {
+    // Highlight des choix radio
+    document.querySelectorAll('.sim-choice input').forEach(function(radio) {
+        // Restaure les sélections si erreur de formulaire
+        if (radio.checked) {
+            radio.nextElementSibling.style.borderColor = 'var(--bleu-principal)';
+            radio.nextElementSibling.style.background = 'rgba(11,36,71,0.05)';
+        }
+    });
+
+    // Indicateur de chargement
+    const form = document.getElementById('sim-form');
+    const submitBtn = document.getElementById('sim-submit');
+    const submitTexte = document.getElementById('sim-submit-texte');
+
+    if (form && submitBtn) {
+        form.addEventListener('submit', function() {
+            submitTexte.textContent = '⏳ Blessy AI analyse ton profil...';
+            submitBtn.disabled = true;
+
+            // Animation compteur
+            let dots = 0;
+            setInterval(function() {
+                dots = (dots + 1) % 4;
+                submitTexte.textContent = '⏳ Blessy AI analyse ton profil' +
+                    '.'.repeat(dots);
+            }, 500);
+        });
+    }
+
+    // Animation résultats au scroll
+    const cards = document.querySelectorAll('.sim-detail-card, .sim-etape');
+    if (cards.length > 0) {
+        const obs = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry, i) {
+                if (entry.isIntersecting) {
+                    setTimeout(function() {
+                        entry.target.style.animation = 'card-appear 0.4s ease-out both';
+                    }, i * 80);
+                    obs.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+        cards.forEach(function(c) { obs.observe(c); });
+    }
+})();
+</script>
+
+{% endblock %}

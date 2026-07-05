@@ -23,7 +23,7 @@ from django_ratelimit.decorators import ratelimit
 from .models import (
     Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz,
     Module, Lecon, ProgressionLecon, Parcours, Sujet, Reponse, Reaction, 
-    ProjetEtudiant, Certificat, Article
+    ProjetEtudiant, Certificat, Article, OutilRecommande, Temoignage
 )
 from .forms import InscriptionForm, InscriptionCompteForm, ConnexionForm, SujetForm, ReponseForm 
 from . import notifications
@@ -88,7 +88,7 @@ def accueil(request):
     ]
     print("DEBUG STATS:", stats)
 
-    articles_recents = Article.objects.filter(statut='publie').order_by('-date_publication')[:3]
+    articles_recents = Article.objects.filter(publie=True).order_by('-date_publication')[:3]
 
     return render(request, 'academie/accueil.html', {
         'formations': formations,
@@ -1368,37 +1368,204 @@ def api_chatbot_tuteur(request):
 # Simulateur de carrière
 # ================================================
 
-@csrf_exempt
-@require_POST
-def api_simuler_carriere(request):
-    """API pour le simulateur de carrière."""
-    try:
-        data = json.loads(request.body)
-        metier = data.get('metier', '').strip()
-
-        if not metier:
-            return JsonResponse({'erreur': 'Le champ "metier" est requis.'}, status=400)
-
-        reponse = simuler_carriere(metier=metier)
-        return JsonResponse({'reponse': reponse, 'metier': metier})
-    except json.JSONDecodeError:
-        return JsonResponse({'erreur': 'JSON invalide'}, status=400)
-    except Exception as e:
-        return JsonResponse({'erreur': str(e)}, status=500)
-
-
 def simulateur_carriere(request):
-    """Page du simulateur de carrière."""
-    metiers = [
-        {'id': 'developpeur-web', 'nom': 'Développeur Web', 'icone': '💻'},
-        {'id': 'analyste-donnees', 'nom': 'Analyste de Données', 'icone': '📊'},
-        {'id': 'expert-cybersecurite', 'nom': 'Expert Cybersécurité', 'icone': '🔒'},
-        {'id': 'designer-graphique', 'nom': 'Designer Graphique', 'icone': '🎨'},
-        {'id': 'ia-machine-learning', 'nom': 'IA & Machine Learning', 'icone': '🤖'},
-        {'id': 'administrateur-reseaux', 'nom': 'Administrateur Réseaux', 'icone': '🌐'},
-    ]
-    return render(request, 'academie/simulateur_carriere.html', {'metiers': metiers})
+    """Simulateur de carrière — orientation IA ultra-détaillée."""
 
+    METIERS_BTA = {
+        'developpeur_web': {
+            'titre': 'Développeur Web Full Stack',
+            'emoji': '💻',
+            'description': 'Tu crées des sites et applications web de A à Z — du design à la base de données.',
+            'competences': ['HTML/CSS', 'JavaScript', 'Python', 'Django', 'PostgreSQL', 'Git'],
+            'technologies': ['VS Code', 'GitHub', 'Figma', 'Postman', 'Docker'],
+            'metiers_accessibles': ['Développeur Front-end', 'Développeur Back-end', 'Full Stack Developer', 'CTO Startup', 'Freelance', 'Consultant Web'],
+            'salaire_haiti': '800-2500',
+            'salaire_international': '3000-8000',
+            'duree_formation': '10 mois',
+            'parcours_bta': 'Développeur Web Python',
+            'secteurs': ['Startups Tech', 'Agences Web', 'ONG', 'Banques', 'Télétravail'],
+            'perspectives': 'Évolution vers Lead Developer, Architecte logiciel, CTO ou fondateur de startup.',
+            'demande': 'Le développement web est l\'une des compétences les plus recherchées au monde avec +25% de croissance annuelle.',
+            'freelance': 'Excellent — plateforme Upwork, Fiverr, Toptal. Revenus freelance dès le 6e mois.',
+            'competences_futur': ['IA générative', 'Web3', 'Cloud Computing', 'DevOps'],
+        },
+        'expert_ia': {
+            'titre': 'Expert en Intelligence Artificielle',
+            'emoji': '🤖',
+            'description': 'Tu maîtrises les outils IA les plus puissants et tu les appliques dans des contextes professionnels concrets.',
+            'competences': ['Prompt Engineering', 'ChatGPT', 'Claude', 'Gemini', 'Python IA', 'Data Analysis'],
+            'technologies': ['OpenAI API', 'LangChain', 'Hugging Face', 'Google Colab'],
+            'metiers_accessibles': ['Prompt Engineer', 'AI Product Manager', 'Data Analyst', 'Consultant IA', 'Formateur IA'],
+            'salaire_haiti': '1500-4000',
+            'salaire_international': '4000-12000',
+            'duree_formation': '6 mois',
+            'parcours_bta': 'Spécialiste IA et Productivité',
+            'secteurs': ['Finance', 'Santé', 'Éducation', 'Marketing', 'Consulting', 'Remote'],
+            'perspectives': 'Secteur en explosion — les experts IA sont parmi les professionnels les mieux payés au monde.',
+            'demande': 'La demande en expertise IA croît de +40% par an. Les entreprises cherchent désespérément ces profils.',
+            'freelance': 'Excellent — services de consultation IA très demandés. Tarifs: 50-200 USD/heure.',
+            'competences_futur': ['AGI', 'IA multimodale', 'IA embarquée', 'Éthique IA'],
+        },
+        'technicien_informatique': {
+            'titre': 'Technicien Informatique',
+            'emoji': '🖥️',
+            'description': 'Tu répares, configures et maintiens les équipements informatiques et réseaux des entreprises.',
+            'competences': ['Hardware', 'Windows Server', 'Réseaux', 'Dépannage', 'Sécurité de base'],
+            'technologies': ['Active Directory', 'VMware', 'Cisco', 'TeamViewer', 'SCCM'],
+            'metiers_accessibles': ['Technicien IT', 'Support N1/N2', 'Admin Réseau Junior', 'Technicien Télécoms'],
+            'salaire_haiti': '600-1800',
+            'salaire_international': '2500-5000',
+            'duree_formation': '9 mois',
+            'parcours_bta': 'Technicien Informatique Professionnel',
+            'secteurs': ['PME', 'Hôtels', 'Banques', 'Hôpitaux', 'Écoles', 'ONG'],
+            'perspectives': 'Évolution vers Admin Systèmes, Ingénieur Réseau, Cybersécurité.',
+            'demande': 'Besoin constant dans toutes les organisations. Pénurie de techniciens qualifiés en Haïti.',
+            'freelance': 'Possible — maintenance informatique à domicile, support IT aux PME.',
+            'competences_futur': ['Cloud hybride', 'IoT', 'Cybersécurité', 'IA pour IT'],
+        },
+        'designer_graphique': {
+            'titre': 'Designer Graphique & Content Creator',
+            'emoji': '🎨',
+            'description': 'Tu crées des identités visuelles, des contenus pour les réseaux sociaux et du matériel marketing professionnel.',
+            'competences': ['Canva Pro', 'Adobe Express', 'Photoshop', 'Illustrator', 'Branding', 'Vidéo'],
+            'technologies': ['Adobe Suite', 'Figma', 'CapCut', 'DaVinci Resolve', 'Midjourney'],
+            'metiers_accessibles': ['Graphiste Freelance', 'Community Manager', 'Social Media Manager', 'Brand Designer'],
+            'salaire_haiti': '500-1500',
+            'salaire_international': '2000-6000',
+            'duree_formation': '5 mois',
+            'parcours_bta': 'Entrepreneur Numérique',
+            'secteurs': ['Agences', 'Marques', 'Médias', 'E-commerce', 'Politique', 'ONG'],
+            'perspectives': 'Évolution vers Directeur Artistique, UX Designer, Brand Manager.',
+            'demande': 'Explosion du contenu numérique — chaque entreprise a besoin de contenu quotidien.',
+            'freelance': 'Excellent — fiverr, 99designs, réseaux sociaux. Revenus très rapides.',
+            'competences_futur': ['Design IA', 'Motion Design', 'AR/VR Design', '3D'],
+        },
+        'marketeur_digital': {
+            'titre': 'Marketeur Digital & Growth Hacker',
+            'emoji': '📊',
+            'description': 'Tu développes la présence en ligne des entreprises, gères les publicités et augmentes leurs revenus.',
+            'competences': ['Meta Ads', 'Google Ads', 'SEO', 'Email Marketing', 'Analytics', 'Copywriting'],
+            'technologies': ['Google Analytics', 'Facebook Business', 'HubSpot', 'Mailchimp', 'Semrush'],
+            'metiers_accessibles': ['Traffic Manager', 'Community Manager', 'Growth Hacker', 'CMO Startup'],
+            'salaire_haiti': '700-2000',
+            'salaire_international': '2500-7000',
+            'duree_formation': '8 mois',
+            'parcours_bta': 'Entrepreneur Numérique',
+            'secteurs': ['E-commerce', 'Startups', 'Agences', 'Médias', 'Mode', 'Tourisme'],
+            'perspectives': 'Évolution vers CMO, Growth Lead, fondateur d\'agence digitale.',
+            'demande': 'Le marketing digital est indispensable pour toutes les entreprises modernes.',
+            'freelance': 'Excellent — gestion des réseaux sociaux et publicités pour les PME locales.',
+            'competences_futur': ['Marketing IA', 'Automatisation', 'Créateurs de contenu IA'],
+        },
+        'cybersecurite': {
+            'titre': 'Spécialiste en Cybersécurité',
+            'emoji': '🔐',
+            'description': 'Tu protèges les systèmes informatiques contre les cyberattaques et sécurises les données sensibles.',
+            'competences': ['Sécurité réseau', 'Pentest', 'SIEM', 'Cryptographie', 'Forensique'],
+            'technologies': ['Wireshark', 'Metasploit', 'Nmap', 'Kali Linux', 'Splunk'],
+            'metiers_accessibles': ['Analyste SOC', 'Pentester', 'RSSI Junior', 'Consultant Sécurité'],
+            'salaire_haiti': '1000-3000',
+            'salaire_international': '4000-12000',
+            'duree_formation': '8 mois',
+            'parcours_bta': 'Technicien Informatique Professionnel',
+            'secteurs': ['Banques', 'Gouvernement', 'Défense', 'Santé', 'Remote'],
+            'perspectives': 'L\'un des métiers les mieux payés du numérique avec pénurie mondiale de talents.',
+            'demande': '+35% de croissance annuelle. Les cyberattaques coûtent des milliards aux organisations.',
+            'freelance': 'Possible — audits de sécurité, tests de pénétration pour les PME.',
+            'competences_futur': ['IA en cybersécurité', 'Zero Trust', 'Cloud Security'],
+        },
+    }
+
+    profils = [
+        ('lyceen_etudiant', 'Lycéen / Étudiant', '🎓'),
+        ('professionnel', 'Professionnel en reconversion', '💼'),
+        ('entrepreneur', 'Entrepreneur', '🚀'),
+        ('sans_emploi', 'En recherche d\'emploi', '🔍'),
+    ]
+
+    interets = [
+        ('creer', 'Créer des choses (sites, apps, designs)', '🎨'),
+        ('analyser', 'Analyser et comprendre les données', '📊'),
+        ('reparer', 'Réparer et configurer des systèmes', '🔧'),
+        ('vendre', 'Vendre et convaincre', '📢'),
+        ('proteger', 'Sécuriser et protéger', '🔐'),
+        ('automatiser', 'Automatiser avec l\'IA', '🤖'),
+    ]
+
+    objectifs = [
+        ('entreprise', 'Travailler en entreprise', '🏢'),
+        ('freelance', 'Travailler en freelance', '💻'),
+        ('remote', 'Travailler à distance (remote)', '🌍'),
+        ('startup', 'Créer mon entreprise', '🚀'),
+    ]
+
+    niveaux = [
+        ('debutant', 'Débutant complet', '🌱'),
+        ('quelques_bases', 'J\'ai quelques bases', '📖'),
+        ('intermediaire', 'Niveau intermédiaire', '⚡'),
+    ]
+
+    resultat = None
+    metier_data = None
+    erreur = None
+    form_data = {}
+
+    if request.method == 'POST':
+        profil = request.POST.get('profil', '')
+        interet = request.POST.get('interet', '')
+        objectif = request.POST.get('objectif', '')
+        niveau = request.POST.get('niveau', '')
+        details = request.POST.get('details', '').strip()
+        form_data = request.POST
+
+        if profil and interet and objectif and niveau:
+            formations = Formation.objects.filter(actif=True).select_related('ecole')
+
+            from .ia import generer_parcours_oriente
+            resultat_ia = generer_parcours_oriente(
+                profil=profil,
+                objectif=f"interet:{interet}, objectif:{objectif}",
+                disponibilite=niveau,
+                details=details,
+                formations_disponibles=formations
+            )
+
+            # Associe le métier correspondant
+            mapping_metier = {
+                'creer': 'developpeur_web',
+                'analyser': 'expert_ia',
+                'reparer': 'technicien_informatique',
+                'vendre': 'marketeur_digital',
+                'proteger': 'cybersecurite',
+                'automatiser': 'expert_ia',
+            }
+
+            metier_key = mapping_metier.get(interet, 'developpeur_web')
+
+            if objectif == 'freelance':
+                if interet == 'creer':
+                    metier_key = 'designer_graphique'
+
+            metier_data = METIERS_BTA.get(metier_key, METIERS_BTA['developpeur_web'])
+
+            if 'erreur' in resultat_ia:
+                erreur = resultat_ia.get('erreur')
+            else:
+                resultat = resultat_ia
+
+        else:
+            erreur = "Réponds à toutes les questions pour obtenir ta recommandation."
+
+    return render(request, 'academie/simulateur.html', {
+        'profils': profils,
+        'interets': interets,
+        'objectifs': objectifs,
+        'niveaux': niveaux,
+        'resultat': resultat,
+        'metier_data': metier_data,
+        'erreur': erreur,
+        'form_data': form_data,
+    })
 
 # ================================================
 # Espace Recrutement / Portfolio
@@ -1535,62 +1702,46 @@ def set_lang_ht(request):
     return response
 
 
+# ================================================
+# Page Ressources
+# ================================================
+
 def ressources(request):
-    """Page listant tous les articles de blog publiés avec recherche et filtres."""
-    from .models import Article
+    """Page principale des ressources — Articles, Outils, Témoignages."""
+    categorie = request.GET.get('categorie', '')
 
-    # Récupérer les paramètres de recherche et de filtre
-    recherche = request.GET.get('q', '').strip()
-    tag_filtre = request.GET.get('tag', '').strip()
+    articles = Article.objects.filter(publie=True)
+    if categorie:
+        articles = articles.filter(categorie=categorie)
 
-    articles = Article.objects.filter(statut='publie').order_by('-date_publication')
-
-    if recherche:
-        articles = articles.filter(
-            Q(titre__icontains=recherche) | Q(contenu__icontains=recherche)
-        )
-
-    if tag_filtre:
-        articles = articles.filter(tags__icontains=tag_filtre)
-
-    # Article vedette (le plus récent)
-    article_vedette = articles.first()
-
-    # Derniers articles (sans le vedette)
-    derniers_articles = articles[1:] if article_vedette else articles
-
-    # Pagination
-    paginator = Paginator(derniers_articles, 6)
-    page_number = request.GET.get('page', 1)
-    page_obj = paginator.get_page(page_number)
-
-    # Récupérer tous les tags distincts pour les filtres
-    tous_articles = Article.objects.filter(statut='publie')
-    tags_set = set()
-    for article in tous_articles:
-        if article.tags:
-            for tag in article.tags.split(','):
-                tag_clean = tag.strip()
-                if tag_clean:
-                    tags_set.add(tag_clean)
-    tags_list = sorted(tags_set)
+    articles_vedette = Article.objects.filter(publie=True, en_vedette=True)[:3]
+    outils = OutilRecommande.objects.all()
+    temoignages = Temoignage.objects.filter(approuve=True)
 
     return render(request, 'academie/ressources.html', {
-        'article_vedette': article_vedette,
-        'page_obj': page_obj,
-        'recherche': recherche,
-        'tag_filtre': tag_filtre,
-        'tags_list': tags_list,
+        'articles': articles,
+        'articles_vedette': articles_vedette,
+        'outils': outils,
+        'temoignages': temoignages,
+        'categorie_active': categorie,
+        'categories': Article.CATEGORIES,
+        'categories_outils': OutilRecommande.CATEGORIES,
     })
 
-def article_detail(request, slug):
+
+def detail_article(request, slug):
     """Page de détail d'un article."""
-    from .models import Article
-    article = Article.objects.get(slug=slug, statut='publie')
-    return render(request, 'academie/article_detail.html', {
-        'article': article,
-    })
+    article = Article.objects.get(slug=slug, publie=True)
 
+    articles_lies = Article.objects.filter(
+        publie=True,
+        categorie=article.categorie
+    ).exclude(id=article.id)[:3]
+
+    return render(request, 'academie/detail_article.html', {
+        'article': article,
+        'articles_lies': articles_lies,
+    })
 
 @staff_member_required
 @csrf_exempt
@@ -1611,3 +1762,16 @@ def api_generer_article(request):
         except Exception as e:
             return JsonResponse({'erreur': str(e)}, status=500)
     return JsonResponse({'erreur': 'Méthode non autorisée'}, status=405)
+
+
+
+# Pacours Professionnels
+def parcours_professionnels(request):
+    """Page dédiée aux parcours professionnels — storytelling premium."""
+    parcours_list = Parcours.objects.prefetch_related(
+        'formations__modules'
+    ).filter(actif=True).order_by('ordre')
+
+    return render(request, 'academie/parcours.html', {
+        'parcours_list': parcours_list,
+    })

@@ -37,12 +37,18 @@
                 <a href="{% url 'classement' %}">{% trans "Classement" %}</a>
             {% else %}
                 <!-- Avant connexion -->
-                <a href="{% url 'orientation_ia' %}">{% trans "Parcours" %}</a>
+                <a href="{% url 'parcours' %}">{% trans "Parcours" %}</a>
+                <a href="{% url 'simulateur' %}"
+            class="nav-lien nav-lien-ai {% if request.resolver_match.url_name == 'simulateur' %}nav-actif{% endif %}">
+            <span>🎯</span> Simulateur
+            </a>
                 <a href="{% url 'forum_liste' %}">{% trans "Forum" %}</a>
             {% endif %}
 
-            <a href="{% url 'ressources' %}">{% trans "Ressources" %}</a>
-            <a href="{% url 'apropos' %}">{% trans "À propos" %}</a>
+                <a href="{% url 'ressources' %}"
+                class="nav-lien {% if request.resolver_match.url_name == 'ressources' %}nav-actif{% endif %}">
+                                    Ressources
+</a>            <a href="{% url 'apropos' %}">{% trans "À propos" %}</a>
             <a href="{% url 'contact' %}">{% trans "Contact" %}</a>
 
             <!-- Recherche -->

@@ -44,7 +44,7 @@ urlpatterns = [
     
     # Simulateur de carrière
     path('simulateur-carriere/', views.simulateur_carriere, name='simulateur_carriere'),
-    path('api/ia/simuler-carriere/', views.api_simuler_carriere, name='api-simuler-carriere'),
+    path('simulateur/', views.simulateur_carriere, name='simulateur'),
     
     # Espace recrutement / Portfolio
     path('recrutement/', views.espace_recrutement, name='espace_recrutement'),
@@ -65,5 +65,5 @@ urlpatterns = [
     path('setlang/fr/', views.set_lang_fr, name='set_lang_fr'),
     path('setlang/ht/', views.set_lang_ht, name='set_lang_ht'),
     path('ressources/', views.ressources, name='ressources'),
-    path('ressources/<slug:slug>/', views.article_detail, name='article_detail'),
-]
+    path('ressources/<slug:slug>/', views.detail_article, name='detail_article'),
+    path('parcours/', views.parcours_professionnels, name='parcours'),]
