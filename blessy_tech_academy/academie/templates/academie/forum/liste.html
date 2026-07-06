@@ -1,282 +1,611 @@
 {% extends 'academie/base.html' %}
 
-{% block titre %}Forum — Blessy Tech Academy{% endblock %}
+{% block titre %}Forum Communautaire — Blessy Tech Academy{% endblock %}
 
 {% block contenu %}
 
-<section class="page-hero">
-    <h2>💬 Forum Communautaire</h2>
-    <p>Pose tes questions, partage tes projets, aide les autres.</p>
-</section>
+<!-- ================================================
+     HERO FORUM
+     ================================================ -->
+<section class="forum-hero">
+    <div class="forum-hero-grid"></div>
+    <div class="forum-glow-1"></div>
+    <div class="forum-glow-2"></div>
 
-<section style="max-width: 1100px; margin: 0 auto; padding: 40px 20px;">
+    <div class="forum-hero-inner">
+        <div class="section-tag forum-tag">💬 Communauté BTA</div>
+        <h1 class="forum-hero-titre">
+            Là où les étudiants<br>
+            <span class="forum-titre-accent">s'entraident et progressent</span>
+        </h1>
+        <p class="forum-hero-sous">
+            Pose tes questions, partage tes projets, aide les autres —
+            et grandis avec une vraie communauté tech haïtienne.
+        </p>
 
-    <!-- Barre de recherche -->
-    <form method="GET" style="margin-bottom: 24px;">
-        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <!-- Stats forum -->
+        <div class="forum-stats-bar">
+            <div class="fstat-item">
+                <span class="fstat-val">{{ sujets.paginator.count|default:0 }}</span>
+                <span class="fstat-label">Discussions</span>
+            </div>
+            <div class="fstat-sep"></div>
+            <div class="fstat-item">
+                <span class="fstat-val" id="stat-membres">—</span>
+                <span class="fstat-label">Membres actifs</span>
+            </div>
+            <div class="fstat-sep"></div>
+            <div class="fstat-item">
+                <span class="fstat-val">24/7</span>
+                <span class="fstat-label">Entraide</span>
+            </div>
+        </div>
+
+        <!-- Barre de recherche premium -->
+        <form method="GET" class="forum-search-hero">
+            <span class="forum-search-icone">🔍</span>
             <input type="text" name="q" value="{{ recherche }}"
-                   placeholder="🔍 Rechercher dans le forum..."
-                   style="flex: 1; min-width: 200px; padding: 12px 20px;
-                          border: 2px solid var(--gris-border);
-                          border-radius: 10px; font-size: 15px; font-family: inherit;">
+                   placeholder="Rechercher une discussion, un sujet, un mot-clé...">
             {% if categorie_active %}
             <input type="hidden" name="categorie" value="{{ categorie_active }}">
             {% endif %}
-            {% if formation_active %}
-            <input type="hidden" name="formation" value="{{ formation_active }}">
-            {% endif %}
-            <button type="submit" class="btn btn-principal"
-                    style="white-space: nowrap;">Rechercher</button>
-        </div>
-    </form>
+            <button type="submit" class="forum-search-btn">Rechercher</button>
+        </form>
 
-    <!-- Barre d'actions -->
-    <div style="display: flex; justify-content: space-between; align-items: center;
-                margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+        {% if user.is_authenticated %}
+        <a href="{% url 'forum_creer' %}" class="btn-forum-nouveau">
+            ✏️ Démarrer une discussion
+        </a>
+        {% else %}
+        <a href="{% url 'connexion' %}" class="btn-forum-nouveau">
+            🔐 Connecte-toi pour participer
+        </a>
+        {% endif %}
+    </div>
+</section>
 
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+<div class="forum-page-inner">
 
-            {% if not categorie_active %}
+    <!-- ================================================
+         NAVIGATION CATÉGORIES + CLASSEMENT
+         ================================================ -->
+    <div class="forum-toolbar">
+        <div class="forum-cats-scroll">
             <a href="{% url 'forum_liste' %}"
-               style="padding: 8px 16px; border-radius: 20px; font-size: 13px;
-                      font-weight: 600; text-decoration: none;
-                      background: var(--bleu-principal); color: white;">
-                Tous
+               class="fcat-pill {% if not categorie_active %}fcat-actif{% endif %}">
+                🌐 Tout
             </a>
-            {% else %}
-            <a href="{% url 'forum_liste' %}"
-               style="padding: 8px 16px; border-radius: 20px; font-size: 13px;
-                      font-weight: 600; text-decoration: none;
-                      background: var(--gris-clair); color: var(--gris-texte);">
-                Tous
-            </a>
-            {% endif %}
-
             {% for code, label in categories %}
-                {% if categorie_active == code %}
-                <a href="?categorie={{ code }}{% if recherche %}&q={{ recherche }}{% endif %}"
-                   style="padding: 8px 16px; border-radius: 20px; font-size: 13px;
-                          font-weight: 600; text-decoration: none;
-                          background: var(--bleu-principal); color: white;">
-                    {{ label }}
-                </a>
-                {% else %}
-                <a href="?categorie={{ code }}{% if recherche %}&q={{ recherche }}{% endif %}"
-                   style="padding: 8px 16px; border-radius: 20px; font-size: 13px;
-                          font-weight: 600; text-decoration: none;
-                          background: var(--gris-clair); color: var(--gris-texte);">
-                    {{ label }}
-                </a>
-                {% endif %}
+            <a href="?categorie={{ code }}"
+               class="fcat-pill {% if categorie_active == code %}fcat-actif{% endif %}">
+                {{ label }}
+            </a>
             {% endfor %}
         </div>
 
-        <div style="display: flex; gap: 12px; align-items: center;">
-            <a href="{% url 'forum_membres' %}"
-               style="color: var(--bleu-electrique); text-decoration: none;
-                      font-weight: 600; font-size: 14px;">
-                🏆 Classement
-            </a>
-            {% if user.is_authenticated %}
-            <a href="{% url 'forum_creer' %}" class="btn btn-principal">
-                ✏️ Nouveau sujet
-            </a>
-            {% else %}
-            <a href="{% url 'connexion' %}" class="btn btn-principal">
-                🔐 Connecte-toi pour poster
-            </a>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Résultat de recherche -->
-    {% if recherche %}
-    <p style="color: var(--gris-texte); margin-bottom: 16px; font-size: 14px;">
-        {% if sujets %}
-            {{ sujets.paginator.count }} résultat(s) pour
-            <strong>"{{ recherche }}"</strong>
-        {% else %}
-            Aucun résultat pour <strong>"{{ recherche }}"</strong>
-        {% endif %}
-    </p>
-    {% endif %}
-
-    <!-- Filtre par formation -->
-    <div style="background: white; padding: 16px 20px; border-radius: 10px;
-                box-shadow: var(--ombre-legere); margin-bottom: 24px;
-                display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-        <span style="font-weight: 600; color: var(--bleu-principal); font-size: 14px;">
-            Formation :
-        </span>
-        <a href="{% url 'forum_liste' %}{% if categorie_active %}?categorie={{ categorie_active }}{% endif %}"
-           style="font-size: 13px; color: var(--bleu-electrique);
-                  text-decoration: none; font-weight: 600;">
-            Toutes
+        <a href="{% url 'forum_membres' %}" class="btn-classement">
+            🏆 Classement
         </a>
-        {% for formation in formations %}
-            {% if formation_active == formation.id|stringformat:'s' %}
-            <a href="?formation={{ formation.id }}{% if categorie_active %}&categorie={{ categorie_active }}{% endif %}"
-               style="font-size: 13px; text-decoration: none; padding: 4px 10px;
-                      border-radius: 6px; background: var(--bleu-electrique); color: white;">
-                {{ formation.icone }} {{ formation.nom }}
-            </a>
-            {% else %}
-            <a href="?formation={{ formation.id }}{% if categorie_active %}&categorie={{ categorie_active }}{% endif %}"
-               style="font-size: 13px; text-decoration: none; padding: 4px 10px;
-                      border-radius: 6px; background: var(--gris-clair); color: var(--gris-texte);">
-                {{ formation.icone }} {{ formation.nom }}
-            </a>
-            {% endif %}
-        {% endfor %}
     </div>
 
-    <!-- Liste des sujets -->
-    {% for sujet in sujets %}
+    <div class="forum-layout">
 
-    {% if sujet.resolu %}
-    <div style="background: white; border-radius: 12px; box-shadow: var(--ombre-legere);
-                margin-bottom: 12px; padding: 20px 24px;
-                border-left: 4px solid #22c55e;">
-    {% elif sujet.epingle %}
-    <div style="background: white; border-radius: 12px; box-shadow: var(--ombre-legere);
-                margin-bottom: 12px; padding: 20px 24px;
-                border-left: 4px solid var(--orange-accent);">
-    {% else %}
-    <div style="background: white; border-radius: 12px; box-shadow: var(--ombre-legere);
-                margin-bottom: 12px; padding: 20px 24px;
-                border-left: 4px solid var(--bleu-electrique);">
-    {% endif %}
+        <!-- ================================================
+             COLONNE PRINCIPALE — SUJETS
+             ================================================ -->
+        <div class="forum-main">
 
-        <div style="display: flex; justify-content: space-between;
-                    align-items: flex-start; gap: 16px;">
-            <div style="flex: 1;">
-                <div style="display: flex; align-items: center; gap: 8px;
-                            margin-bottom: 8px; flex-wrap: wrap;">
-                    {% if sujet.epingle %}
-                    <span style="background: var(--orange-accent); color: white;
-                                 padding: 2px 8px; border-radius: 4px;
-                                 font-size: 11px; font-weight: 700;">
-                        📌 ÉPINGLÉ
-                    </span>
-                    {% endif %}
-                    {% if sujet.resolu %}
-                    <span style="background: #22c55e; color: white;
-                                 padding: 2px 8px; border-radius: 4px;
-                                 font-size: 11px; font-weight: 700;">
-                        ✅ RÉSOLU
-                    </span>
-                    {% endif %}
-                    <span style="background: var(--gris-clair); color: var(--gris-texte);
-                                 padding: 2px 8px; border-radius: 4px;
-                                 font-size: 11px; font-weight: 600;">
-                        {{ sujet.get_categorie_display }}
-                    </span>
-                    {% if sujet.formation %}
-                    <span style="background: rgba(0,180,216,0.1);
-                                 color: var(--bleu-electrique);
-                                 padding: 2px 8px; border-radius: 4px;
-                                 font-size: 11px; font-weight: 600;">
-                        {{ sujet.formation.icone }} {{ sujet.formation.nom }}
-                    </span>
-                    {% endif %}
-                </div>
-
-                <a href="{% url 'forum_detail' sujet.id %}"
-                   style="font-size: 17px; font-weight: 700;
-                          color: var(--bleu-principal); text-decoration: none;
-                          line-height: 1.3; display: block; margin-bottom: 8px;">
-                    {{ sujet.titre }}
-                </a>
-
-                <p style="font-size: 13px; color: var(--gris-texte);">
-                    Par <strong>{{ sujet.auteur.first_name|default:sujet.auteur.username }}</strong>
-                    · {{ sujet.date_creation|timesince }} ago
-                </p>
-            </div>
-
-            <div style="display: flex; flex-direction: column; align-items: center;
-                        gap: 12px; min-width: 80px; text-align: center;">
-                <div>
-                    <p style="font-size: 20px; font-weight: 800;
-                               color: var(--bleu-principal); margin: 0;">
-                        {{ sujet.nombre_reponses }}
-                    </p>
-                    <p style="font-size: 11px; color: var(--gris-texte); margin: 0;">
-                        réponses
-                    </p>
-                </div>
-                <div>
-                    <p style="font-size: 14px; font-weight: 600;
-                               color: var(--gris-texte); margin: 0;">
-                        👁 {{ sujet.vues }}
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% empty %}
-    <div style="text-align: center; padding: 60px; background: white;
-                border-radius: 12px; box-shadow: var(--ombre-legere);">
-        <span style="font-size: 48px;">💬</span>
-        <h3 style="color: var(--bleu-principal); margin: 16px 0 8px;">
             {% if recherche %}
-                Aucun résultat pour "{{ recherche }}"
-            {% else %}
-                Aucun sujet pour le moment
+            <p class="forum-resultat-info">
+                {% if sujets %}
+                {{ sujets.paginator.count }} résultat{{ sujets.paginator.count|pluralize }}
+                pour <strong>"{{ recherche }}"</strong>
+                {% else %}
+                Aucun résultat pour <strong>"{{ recherche }}"</strong>
+                {% endif %}
+            </p>
             {% endif %}
-        </h3>
-        {% if user.is_authenticated %}
-        <a href="{% url 'forum_creer' %}" class="btn btn-principal"
-           style="display: inline-block; margin-top: 16px;">
-            ✏️ Créer le premier sujet
-        </a>
-        {% endif %}
-    </div>
-    {% endfor %}
 
-    <!-- Pagination -->
-    {% if page_obj.has_other_pages %}
-    <div style="display: flex; justify-content: center; gap: 8px;
-                margin-top: 32px; flex-wrap: wrap;">
+            <div class="forum-sujets-liste">
+                {% for sujet in sujets %}
+                <a href="{% url 'forum_detail' sujet.id %}" class="carte-sujet-premium">
 
-        {% if page_obj.has_previous %}
-        <a href="?page={{ page_obj.previous_page_number }}{% if categorie_active %}&categorie={{ categorie_active }}{% endif %}{% if recherche %}&q={{ recherche }}{% endif %}"
-           style="padding: 10px 18px; border-radius: 8px; text-decoration: none;
-                  background: white; color: var(--bleu-principal); font-weight: 600;
-                  box-shadow: var(--ombre-legere);">
-            ← Précédent
-        </a>
-        {% endif %}
+                    <!-- Avatar auteur -->
+                    <div class="cs-avatar">
+                        {{ sujet.auteur.first_name|first|upper|default:sujet.auteur.username|first|upper }}
+                    </div>
 
-        {% for num in page_obj.paginator.page_range %}
-            {% if page_obj.number == num %}
-            <span style="padding: 10px 18px; border-radius: 8px;
-                         background: var(--bleu-principal); color: white;
-                         font-weight: 700;">
-                {{ num }}
-            </span>
-            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-            <a href="?page={{ num }}{% if categorie_active %}&categorie={{ categorie_active }}{% endif %}{% if recherche %}&q={{ recherche }}{% endif %}"
-               style="padding: 10px 18px; border-radius: 8px; text-decoration: none;
-                      background: white; color: var(--bleu-principal); font-weight: 600;
-                      box-shadow: var(--ombre-legere);">
-                {{ num }}
-            </a>
+                    <div class="cs-contenu">
+                        <!-- Badges -->
+                        <div class="cs-badges">
+                            {% if sujet.epingle %}
+                            <span class="cs-badge cs-badge-epingle">📌 Épinglé</span>
+                            {% endif %}
+                            {% if sujet.resolu %}
+                            <span class="cs-badge cs-badge-resolu">✅ Résolu</span>
+                            {% endif %}
+                            <span class="cs-badge cs-badge-cat">
+                                {{ sujet.get_categorie_display }}
+                            </span>
+                            {% if sujet.formation %}
+                            <span class="cs-badge cs-badge-formation">
+                                {{ sujet.formation.icone }} {{ sujet.formation.nom }}
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Titre -->
+                        <h3 class="cs-titre">{{ sujet.titre }}</h3>
+
+                        <!-- Meta -->
+                        <div class="cs-meta">
+                            <span class="cs-auteur">
+                                {{ sujet.auteur.first_name|default:sujet.auteur.username }}
+                            </span>
+                            <span class="cs-sep">·</span>
+                            <span>{{ sujet.date_creation|timesince }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Stats à droite -->
+                    <div class="cs-stats">
+                        <div class="cs-stat">
+                            <span class="cs-stat-val">{{ sujet.nombre_reponses }}</span>
+                            <span class="cs-stat-label">réponses</span>
+                        </div>
+                        <div class="cs-stat">
+                            <span class="cs-stat-val">{{ sujet.nombre_likes }}</span>
+                            <span class="cs-stat-label">likes</span>
+                        </div>
+                        <div class="cs-stat">
+                            <span class="cs-stat-val">{{ sujet.vues }}</span>
+                            <span class="cs-stat-label">vues</span>
+                        </div>
+                    </div>
+
+                    <span class="cs-fleche">→</span>
+
+                </a>
+                {% empty %}
+                <div class="forum-vide">
+                    <span style="font-size: 56px;">💬</span>
+                    <h3>Aucune discussion pour le moment</h3>
+                    <p>Sois le premier à lancer une conversation !</p>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'forum_creer' %}" class="btn-forum-nouveau"
+                       style="margin-top: 16px;">
+                        ✏️ Créer le premier sujet
+                    </a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <div class="forum-pagination">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if categorie_active %}&categorie={{ categorie_active }}{% endif %}{% if recherche %}&q={{ recherche }}{% endif %}"
+                   class="fp-btn">← Précédent</a>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <span class="fp-btn fp-actif">{{ num }}</span>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <a href="?page={{ num }}{% if categorie_active %}&categorie={{ categorie_active }}{% endif %}{% if recherche %}&q={{ recherche }}{% endif %}"
+                       class="fp-btn">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if categorie_active %}&categorie={{ categorie_active }}{% endif %}{% if recherche %}&q={{ recherche }}{% endif %}"
+                   class="fp-btn">Suivant →</a>
+                {% endif %}
+            </div>
             {% endif %}
-        {% endfor %}
 
-        {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}{% if categorie_active %}&categorie={{ categorie_active }}{% endif %}{% if recherche %}&q={{ recherche }}{% endif %}"
-           style="padding: 10px 18px; border-radius: 8px; text-decoration: none;
-                  background: white; color: var(--bleu-principal); font-weight: 600;
-                  box-shadow: var(--ombre-legere);">
-            Suivant →
-        </a>
-        {% endif %}
+        </div>
+
+        <!-- ================================================
+             SIDEBAR
+             ================================================ -->
+        <aside class="forum-sidebar">
+
+            <!-- Filtre formations -->
+            <div class="fs-card">
+                <h4 class="fs-card-titre">🎓 Par formation</h4>
+                <div class="fs-formations-liste">
+                    <a href="{% url 'forum_liste' %}{% if categorie_active %}?categorie={{ categorie_active }}{% endif %}"
+                       class="fs-formation-lien">Toutes les formations</a>
+                    {% for formation in formations %}
+                    <a href="?formation={{ formation.id }}{% if categorie_active %}&categorie={{ categorie_active }}{% endif %}"
+                       class="fs-formation-lien">
+                        {{ formation.icone }} {{ formation.nom }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- CTA Rejoindre -->
+            {% if not user.is_authenticated %}
+            <div class="fs-card fs-card-cta">
+                <div style="font-size: 32px; margin-bottom: 12px;">🚀</div>
+                <h4 class="fs-card-titre" style="color: white;">
+                    Rejoins la communauté
+                </h4>
+                <p style="color: rgba(255,255,255,0.7); font-size: 13px; margin-bottom: 16px;">
+                    Crée ton compte gratuit et commence à participer
+                    dès aujourd'hui.
+                </p>
+                <a href="{% url 'inscription_compte' %}" class="fs-cta-btn">
+                    Créer mon compte →
+                </a>
+            </div>
+            {% endif %}
+
+            <!-- Règles rapides -->
+            <div class="fs-card">
+                <h4 class="fs-card-titre">📋 Bon à savoir</h4>
+                <div class="fs-regle">
+                    <span>✅</span>
+                    <span>Sois respectueux et bienveillant</span>
+                </div>
+                <div class="fs-regle">
+                    <span>🎯</span>
+                    <span>Marque les meilleures réponses comme solution</span>
+                </div>
+                <div class="fs-regle">
+                    <span>🏆</span>
+                    <span>Gagne des badges en participant</span>
+                </div>
+            </div>
+
+        </aside>
 
     </div>
-    {% endif %}
+</div>
 
-</section>
+<!-- ================================================
+     CSS FORUM
+     ================================================ -->
+<style>
+
+.forum-page-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 40px;
+}
+
+/* ---- HERO ---- */
+
+.forum-hero {
+    background: linear-gradient(135deg, #050d1a 0%, #0B2447 100%);
+    padding: 80px 40px 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.forum-hero-grid {
+    position: absolute; inset: 0;
+    background-image:
+        linear-gradient(rgba(0,180,216,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,180,216,0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+.forum-glow-1 {
+    position: absolute; width: 450px; height: 450px;
+    background: radial-gradient(circle, rgba(0,180,216,0.12) 0%, transparent 70%);
+    top: -100px; left: 10%;
+}
+
+.forum-glow-2 {
+    position: absolute; width: 350px; height: 350px;
+    background: radial-gradient(circle, rgba(255,107,53,0.08) 0%, transparent 70%);
+    bottom: -80px; right: 10%;
+}
+
+.forum-hero-inner {
+    position: relative; z-index: 2;
+    max-width: 720px; margin: 0 auto;
+}
+
+.forum-tag {
+    background: rgba(0,180,216,0.12);
+    border: 1px solid rgba(0,180,216,0.3);
+    color: #00B4D8;
+    margin-bottom: 24px;
+}
+
+.forum-hero-titre {
+    font-size: 46px; font-weight: 800; color: white;
+    line-height: 1.15; letter-spacing: -1.5px; margin-bottom: 18px;
+}
+
+.forum-titre-accent {
+    background: linear-gradient(135deg, #00B4D8, #7dd3fc);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.forum-hero-sous {
+    font-size: 16px; color: rgba(255,255,255,0.7);
+    line-height: 1.8; margin-bottom: 32px;
+}
+
+.forum-stats-bar {
+    display: flex; align-items: center; justify-content: center;
+    gap: 24px; margin-bottom: 32px; flex-wrap: wrap;
+}
+
+.fstat-item { display: flex; flex-direction: column; gap: 2px; }
+.fstat-val { font-size: 26px; font-weight: 800; color: white; line-height: 1; }
+.fstat-label { font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; }
+.fstat-sep { width: 1px; height: 32px; background: rgba(255,255,255,0.1); }
+
+.forum-search-hero {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 50px; padding: 6px 6px 6px 20px;
+    max-width: 560px; margin: 0 auto 24px;
+    backdrop-filter: blur(10px);
+}
+
+.forum-search-icone { font-size: 16px; opacity: 0.5; }
+
+.forum-search-hero input {
+    flex: 1; background: none; border: none; outline: none;
+    color: white; font-size: 14px; font-family: inherit;
+}
+
+.forum-search-hero input::placeholder { color: rgba(255,255,255,0.4); }
+
+.forum-search-btn {
+    background: #00B4D8; color: white; border: none;
+    padding: 10px 20px; border-radius: 50px;
+    font-weight: 700; font-size: 13px; cursor: pointer;
+    font-family: inherit; transition: all 0.2s;
+}
+
+.forum-search-btn:hover { background: #0090b8; }
+
+.btn-forum-nouveau {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: linear-gradient(135deg, #FF6B35, #e85a2a);
+    color: white; padding: 14px 28px; border-radius: 10px;
+    text-decoration: none; font-weight: 700; font-size: 15px;
+    box-shadow: 0 8px 24px rgba(255,107,53,0.4);
+    transition: all 0.3s;
+}
+
+.btn-forum-nouveau:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(255,107,53,0.5);
+}
+
+/* ---- TOOLBAR ---- */
+
+.forum-toolbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 24px 0; gap: 16px; flex-wrap: wrap;
+}
+
+.forum-cats-scroll {
+    display: flex; gap: 8px; flex-wrap: wrap;
+}
+
+.fcat-pill {
+    padding: 8px 16px; border-radius: 20px; font-size: 13px;
+    font-weight: 600; text-decoration: none;
+    background: var(--gris-clair); color: var(--gris-texte);
+    transition: all 0.2s; white-space: nowrap;
+}
+
+.fcat-pill:hover { background: rgba(0,180,216,0.1); color: var(--bleu-electrique); }
+
+.fcat-actif { background: var(--bleu-principal); color: white; }
+.fcat-actif:hover { background: var(--bleu-electrique); color: white; }
+
+.btn-classement {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: white; border: 1.5px solid #e2e8f0;
+    color: var(--bleu-principal); padding: 8px 18px;
+    border-radius: 20px; text-decoration: none;
+    font-weight: 700; font-size: 13px; transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.btn-classement:hover { border-color: var(--bleu-electrique); background: rgba(0,180,216,0.05); }
+
+/* ---- LAYOUT ---- */
+
+.forum-layout {
+    display: grid; grid-template-columns: 1fr 300px;
+    gap: 32px; padding-bottom: 80px;
+}
+
+.forum-resultat-info {
+    font-size: 14px; color: var(--gris-texte); margin-bottom: 16px;
+}
+
+/* ---- CARTE SUJET PREMIUM ---- */
+
+.forum-sujets-liste {
+    display: flex; flex-direction: column; gap: 12px;
+}
+
+.carte-sujet-premium {
+    display: flex; align-items: center; gap: 16px;
+    background: white; border: 1.5px solid #e2e8f0;
+    border-radius: 16px; padding: 20px 24px;
+    text-decoration: none; transition: all 0.3s;
+    position: relative; overflow: hidden;
+}
+
+.carte-sujet-premium::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; background: var(--bleu-electrique);
+    transform: scaleY(0); transition: transform 0.3s;
+    transform-origin: top;
+}
+
+.carte-sujet-premium:hover {
+    border-color: transparent;
+    box-shadow: 0 16px 48px rgba(11,36,71,0.1);
+    transform: translateX(4px);
+}
+
+.carte-sujet-premium:hover::before { transform: scaleY(1); }
+
+.cs-avatar {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--bleu-principal), #00B4D8);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 800; font-size: 16px;
+    flex-shrink: 0;
+}
+
+.cs-contenu { flex: 1; min-width: 0; }
+
+.cs-badges {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;
+}
+
+.cs-badge {
+    font-size: 10px; font-weight: 700; padding: 3px 10px;
+    border-radius: 12px; white-space: nowrap;
+}
+
+.cs-badge-epingle { background: rgba(255,107,53,0.12); color: #FF6B35; }
+.cs-badge-resolu { background: rgba(34,197,94,0.12); color: #22c55e; }
+.cs-badge-cat { background: var(--gris-clair); color: var(--gris-texte); }
+.cs-badge-formation { background: rgba(0,180,216,0.1); color: var(--bleu-electrique); }
+
+.cs-titre {
+    font-size: 16px; font-weight: 700; color: var(--bleu-principal);
+    margin: 0 0 6px; line-height: 1.3;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.cs-meta {
+    font-size: 12px; color: #a0aec0; display: flex; align-items: center; gap: 6px;
+}
+
+.cs-auteur { font-weight: 600; color: var(--gris-texte); }
+.cs-sep { color: #cbd5e0; }
+
+.cs-stats {
+    display: flex; gap: 16px; flex-shrink: 0;
+}
+
+.cs-stat { text-align: center; }
+.cs-stat-val { display: block; font-size: 16px; font-weight: 800; color: var(--bleu-principal); }
+.cs-stat-label { display: block; font-size: 10px; color: #a0aec0; text-transform: uppercase; }
+
+.cs-fleche {
+    font-size: 18px; color: #cbd5e0; flex-shrink: 0;
+    transition: transform 0.3s, color 0.3s;
+}
+
+.carte-sujet-premium:hover .cs-fleche {
+    transform: translateX(4px); color: var(--bleu-electrique);
+}
+
+.forum-vide {
+    text-align: center; padding: 80px 20px; color: var(--gris-texte);
+}
+
+.forum-vide h3 { color: var(--bleu-principal); margin: 16px 0 8px; font-size: 22px; }
+
+/* ---- PAGINATION ---- */
+
+.forum-pagination {
+    display: flex; justify-content: center; gap: 8px;
+    margin-top: 32px; flex-wrap: wrap;
+}
+
+.fp-btn {
+    padding: 8px 16px; border-radius: 8px; text-decoration: none;
+    background: white; color: var(--bleu-principal);
+    font-weight: 600; font-size: 13px; border: 1.5px solid #e2e8f0;
+    transition: all 0.2s;
+}
+
+.fp-btn:hover { border-color: var(--bleu-electrique); }
+
+.fp-actif { background: var(--bleu-principal); color: white; border-color: transparent; }
+
+/* ---- SIDEBAR ---- */
+
+.forum-sidebar {
+    display: flex; flex-direction: column; gap: 16px;
+}
+
+.fs-card {
+    background: white; border: 1.5px solid #e2e8f0;
+    border-radius: 16px; padding: 20px;
+    position: sticky; top: 100px;
+}
+
+.fs-card-titre {
+    font-size: 14px; font-weight: 700; color: var(--bleu-principal);
+    margin-bottom: 14px;
+}
+
+.fs-formations-liste {
+    display: flex; flex-direction: column; gap: 2px;
+}
+
+.fs-formation-lien {
+    font-size: 13px; color: var(--gris-texte); text-decoration: none;
+    padding: 8px 10px; border-radius: 8px; transition: all 0.2s;
+}
+
+.fs-formation-lien:hover { background: var(--gris-clair); color: var(--bleu-principal); }
+
+.fs-card-cta {
+    background: linear-gradient(135deg, #0B2447, #1a4a8a);
+    border-color: transparent; text-align: center;
+}
+
+.fs-cta-btn {
+    display: block; background: #FF6B35; color: white;
+    padding: 10px 16px; border-radius: 8px; text-decoration: none;
+    font-weight: 700; font-size: 13px; transition: all 0.2s;
+}
+
+.fs-cta-btn:hover { background: #e85a2a; }
+
+.fs-regle {
+    display: flex; align-items: flex-start; gap: 8px;
+    font-size: 12px; color: var(--gris-texte); line-height: 1.5;
+    padding: 8px 0; border-bottom: 1px solid #f0f0f0;
+}
+
+.fs-regle:last-child { border-bottom: none; }
+
+/* ---- RESPONSIVE ---- */
+
+@media (max-width: 1024px) {
+    .forum-layout { grid-template-columns: 1fr; }
+    .forum-sidebar { flex-direction: row; overflow-x: auto; }
+    .fs-card { min-width: 260px; position: static; }
+}
+
+@media (max-width: 768px) {
+    .forum-page-inner { padding: 0 20px; }
+    .forum-hero { padding: 60px 20px 40px; }
+    .forum-hero-titre { font-size: 30px; }
+    .forum-stats-bar { gap: 16px; }
+    .carte-sujet-premium { flex-wrap: wrap; }
+    .cs-stats { width: 100%; justify-content: space-around; padding-top: 12px; border-top: 1px solid #f0f0f0; margin-top: 8px; }
+    .cs-fleche { display: none; }
+    .forum-sidebar { flex-direction: column; }
+    .fs-card { min-width: auto; }
+}
+</style>
 
 {% endblock %}

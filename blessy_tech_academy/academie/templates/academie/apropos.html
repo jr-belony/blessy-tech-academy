@@ -4,66 +4,521 @@
 
 {% block contenu %}
 
-<section class="page-hero">
-    <h2>À propos de Blessy Tech Academy</h2>
-    <p>Notre mission : démocratiser l'accès à la technologie moderne en Haïti.</p>
-</section>
+<!-- ================================================
+     HERO INSPIRANT
+     ================================================ -->
+<section class="apropos-hero">
+    <div class="apropos-hero-grid"></div>
+    <div class="apropos-glow"></div>
 
-<section style="background: var(--blanc); padding: 80px 40px;">
-    <div style="max-width: 800px; margin: 0 auto;">
-        <h2 style="color: var(--bleu-principal); margin-bottom: 20px;">
-            Notre histoire
-        </h2>
-        <p style="margin-bottom: 16px; line-height: 1.8;">
-            Blessy Tech Academy a été fondée par
-            <strong>Jean Raymond BELONY</strong>,
-            entrepreneur et passionné de technologie,
-            avec la conviction que chaque Haïtien mérite
-            accès à une formation numérique de qualité internationale.
-        </p>
-        <p style="line-height: 1.8;">
-            Notre objectif : former des milliers de professionnels
-            du numérique capables de contribuer à l'économie
-            locale et mondiale depuis Haïti.
+    <div class="apropos-hero-inner">
+        <div class="section-tag apropos-tag">🇭🇹 Notre histoire</div>
+        <h1 class="apropos-hero-titre">
+            Nous ne formons pas<br>
+            <span class="apropos-titre-accent">seulement des étudiants.</span><br>
+            Nous construisons des carrières.
+        </h1>
+        <p class="apropos-hero-sous">
+            Blessy Tech Academy est née d'une conviction simple :
+            chaque Haïtien mérite un accès à une formation technologique
+            de niveau international — peu importe où il se trouve.
         </p>
     </div>
 </section>
 
-<section style="background: var(--gris-clair); padding: 80px 40px;">
-    <h2 style="text-align:center; color:var(--bleu-principal);
-               margin-bottom: 48px;">
-        Nos valeurs
-    </h2>
-    <div class="avantages-grille">
-        <div class="avantage">
-            <span class="avantage-icone">💡</span>
-            <h3>Innovation</h3>
-            <p>Les dernières technologies dans chaque programme.</p>
-        </div>
-        <div class="avantage">
-            <span class="avantage-icone">🤝</span>
-            <h3>Accessibilité</h3>
-            <p>Des formations abordables pour tous.</p>
-        </div>
-        <div class="avantage">
-            <span class="avantage-icone">⭐</span>
-            <h3>Excellence</h3>
-            <p>Des standards professionnels internationaux.</p>
-        </div>
-        <div class="avantage">
-            <span class="avantage-icone">🌱</span>
-            <h3>Impact</h3>
-            <p>Former un développeur, c'est transformer une famille.</p>
-        </div>
-    </div>
-</section>
+<div class="apropos-page-inner">
 
-<section class="cta">
-    <h2>Rejoins la communauté BTA</h2>
-    <p>Des centaines d'étudiants transforment déjà leur carrière.</p>
-    <a href="{% url 'formations' %}" class="btn btn-principal">
-        Voir les formations
-    </a>
-</section>
+    <!-- ================================================
+         NOTRE HISTOIRE
+         ================================================ -->
+    <section class="apropos-section">
+        <div class="histoire-layout">
+            <div class="histoire-texte">
+                <div class="section-tag">📖 Le commencement</div>
+                <h2 class="section-titre" style="text-align: left;">Notre histoire</h2>
+                <p class="apropos-paragraphe">
+                    Blessy Tech Academy a été fondée par
+                    <strong>Jean Raymond BELONY</strong>, entrepreneur et
+                    passionné de technologie, avec une conviction profonde :
+                    la technologie ne devrait jamais être un privilège
+                    réservé à quelques-uns.
+                </p>
+                <p class="apropos-paragraphe">
+                    En Haïti, le talent ne manque pas — c'est l'accès à
+                    une formation de qualité, moderne et pratique qui
+                    fait souvent défaut. BTA a été créée pour combler
+                    ce fossé, en combinant pédagogie rigoureuse et
+                    intelligence artificielle de pointe.
+                </p>
+                <p class="apropos-paragraphe">
+                    Aujourd'hui, BTA est la première plateforme EdTech
+                    haïtienne à intégrer un assistant IA à chaque étape
+                    de l'apprentissage — de l'orientation jusqu'au
+                    certificat final.
+                </p>
+            </div>
+            <div class="histoire-timeline">
+                <div class="ht-item">
+                    <div class="ht-dot"></div>
+                    <div class="ht-content">
+                        <span class="ht-annee">2026</span>
+                        <span class="ht-texte">Fondation de Blessy Tech Academy</span>
+                    </div>
+                </div>
+                <div class="ht-item">
+                    <div class="ht-dot"></div>
+                    <div class="ht-content">
+                        <span class="ht-annee">2026</span>
+                        <span class="ht-texte">Lancement de Blessy AI — assistant IA intégré</span>
+                    </div>
+                </div>
+                <div class="ht-item">
+                    <div class="ht-dot"></div>
+                    <div class="ht-content">
+                        <span class="ht-annee">2026</span>
+                        <span class="ht-texte">6 écoles, 13+ formations certifiantes</span>
+                    </div>
+                </div>
+                <div class="ht-item ht-futur">
+                    <div class="ht-dot ht-dot-futur"></div>
+                    <div class="ht-content">
+                        <span class="ht-annee">Demain</span>
+                        <span class="ht-texte">La référence EdTech en Haïti et dans la diaspora</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================
+         MISSION & VISION
+         ================================================ -->
+    <section class="apropos-section apropos-mv">
+        <div class="mv-grille">
+            <div class="mv-card mv-mission">
+                <div class="mv-icone">🎯</div>
+                <h3 class="mv-titre">Notre Mission</h3>
+                <p class="mv-texte">
+                    Démocratiser l'accès à une formation technologique
+                    de niveau international pour chaque Haïtien, en Haïti
+                    comme dans la diaspora — grâce à l'intelligence
+                    artificielle et à une pédagogie 100% pratique.
+                </p>
+            </div>
+            <div class="mv-card mv-vision">
+                <div class="mv-icone">🔭</div>
+                <h3 class="mv-titre">Notre Vision</h3>
+                <p class="mv-texte">
+                    Devenir la référence EdTech en Haïti d'ici 2030,
+                    en formant des milliers de professionnels du
+                    numérique capables de contribuer à l'économie
+                    locale et de rayonner à l'international.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================
+         NOS VALEURS
+         ================================================ -->
+    <section class="apropos-section">
+        <div class="section-header" style="text-align: center; margin-bottom: 56px;">
+            <div class="section-tag">💎 Ce qui nous définit</div>
+            <h2 class="section-titre">Nos valeurs</h2>
+        </div>
+
+        <div class="valeurs-grille">
+            <div class="valeur-card">
+                <div class="valeur-icone">💡</div>
+                <h4>Innovation</h4>
+                <p>Nous intégrons les technologies les plus avancées — IA, automatisation — dans chaque formation.</p>
+            </div>
+            <div class="valeur-card">
+                <div class="valeur-icone">🤝</div>
+                <h4>Accessibilité</h4>
+                <p>Des formations gratuites pour commencer, des tarifs justes, accessibles à tous les budgets.</p>
+            </div>
+            <div class="valeur-card">
+                <div class="valeur-icone">⭐</div>
+                <h4>Excellence</h4>
+                <p>Des standards professionnels internationaux, sans compromis sur la qualité pédagogique.</p>
+            </div>
+            <div class="valeur-card">
+                <div class="valeur-icone">🌱</div>
+                <h4>Impact</h4>
+                <p>Former un développeur, c'est transformer une famille — et parfois une communauté entière.</p>
+            </div>
+            <div class="valeur-card">
+                <div class="valeur-icone">🎯</div>
+                <h4>Pragmatisme</h4>
+                <p>100% pratique — nos étudiants codent, créent et construisent dès le premier jour.</p>
+            </div>
+            <div class="valeur-card">
+                <div class="valeur-icone">🇭🇹</div>
+                <h4>Fierté haïtienne</h4>
+                <p>Nous croyons au potentiel haïtien et nous voulons le prouver au monde entier.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================
+         POURQUOI NOUS SOMMES DIFFÉRENTS
+         ================================================ -->
+    <section class="apropos-section apropos-diff">
+        <div class="diff-layout">
+            <div class="diff-gauche">
+                <div class="section-tag">⚡ Notre différence</div>
+                <h2 class="section-titre" style="text-align: left; color: white;">
+                    Pourquoi BTA<br>et pas une autre école ?
+                </h2>
+                <p style="color: rgba(255,255,255,0.7); font-size: 16px; line-height: 1.8; margin-top: 16px;">
+                    Beaucoup d'écoles enseignent Word, Excel et la
+                    maintenance basique. BTA va plus loin — nous
+                    combinons les fondamentaux avec les compétences
+                    numériques d'avenir.
+                </p>
+            </div>
+            <div class="diff-droite">
+                <div class="diff-item">
+                    <span class="diff-check">✓</span>
+                    <div>
+                        <h4>Assistant IA à chaque étape</h4>
+                        <p>Aucune autre école haïtienne n'offre un accompagnement IA aussi complet.</p>
+                    </div>
+                </div>
+                <div class="diff-item">
+                    <span class="diff-check">✓</span>
+                    <div>
+                        <h4>Orientation personnalisée</h4>
+                        <p>Un vrai conseiller IA, pas juste une liste de formations à choisir au hasard.</p>
+                    </div>
+                </div>
+                <div class="diff-item">
+                    <span class="diff-check">✓</span>
+                    <div>
+                        <h4>Certifications internationales</h4>
+                        <p>Préparation aux certificats Google, Microsoft, CompTIA, IBM.</p>
+                    </div>
+                </div>
+                <div class="diff-item">
+                    <span class="diff-check">✓</span>
+                    <div>
+                        <h4>Communauté active</h4>
+                        <p>Un forum vivant où les étudiants s'entraident réellement.</p>
+                    </div>
+                </div>
+                <div class="diff-item">
+                    <span class="diff-check">✓</span>
+                    <div>
+                        <h4>Formations gratuites disponibles</h4>
+                        <p>Tu peux commencer sans engagement financier.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================
+         MÉTHODE PÉDAGOGIQUE
+         ================================================ -->
+    <section class="apropos-section">
+        <div class="section-header" style="text-align: center; margin-bottom: 56px;">
+            <div class="section-tag">📐 Notre approche</div>
+            <h2 class="section-titre">Une méthode pédagogique éprouvée</h2>
+        </div>
+
+        <div class="methode-grille">
+            <div class="methode-card">
+                <span class="methode-num">01</span>
+                <h4>100% pratique</h4>
+                <p>Chaque concept est immédiatement appliqué à un vrai projet — pas de théorie sans mise en pratique.</p>
+            </div>
+            <div class="methode-card">
+                <span class="methode-num">02</span>
+                <h4>IA intégrée</h4>
+                <p>Blessy AI génère des exercices personnalisés et répond à tes questions 24h/24.</p>
+            </div>
+            <div class="methode-card">
+                <span class="methode-num">03</span>
+                <h4>Progression mesurée</h4>
+                <p>Tu suis ta progression en temps réel — leçons, quiz, badges, certificats.</p>
+            </div>
+            <div class="methode-card">
+                <span class="methode-num">04</span>
+                <h4>Communauté d'entraide</h4>
+                <p>Un forum actif où formateurs et étudiants avancés répondent à tes questions.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================
+         NOTRE IMPACT
+         ================================================ -->
+    <section class="apropos-section apropos-impact">
+        <div class="section-header" style="text-align: center; margin-bottom: 48px;">
+            <div class="section-tag">📊 Notre impact</div>
+            <h2 class="section-titre">Des chiffres qui comptent</h2>
+        </div>
+
+        <div class="impact-grille">
+            <div class="impact-card">
+                <span class="impact-val">500+</span>
+                <span class="impact-label">Étudiants formés</span>
+            </div>
+            <div class="impact-card">
+                <span class="impact-val">6</span>
+                <span class="impact-label">Écoles spécialisées</span>
+            </div>
+            <div class="impact-card">
+                <span class="impact-val">13+</span>
+                <span class="impact-label">Formations certifiantes</span>
+            </div>
+            <div class="impact-card">
+                <span class="impact-val">24/7</span>
+                <span class="impact-label">Assistant IA disponible</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================
+         NOTRE ENGAGEMENT
+         ================================================ -->
+    <section class="apropos-section apropos-engagement">
+        <div class="engagement-layout">
+            <div>
+                <div class="section-tag">🤝 Notre promesse</div>
+                <h2 class="section-titre" style="text-align: left;">
+                    Notre engagement envers toi
+                </h2>
+                <p style="font-size: 16px; color: var(--gris-texte); line-height: 1.8; margin: 20px 0 32px;">
+                    Nous nous engageons à t'accompagner avec sérieux,
+                    honnêteté et exigence — parce que ta réussite est
+                    littéralement notre mission.
+                </p>
+                <div class="engagement-signature">
+                    <div class="signature-avatar">JRB</div>
+                    <div>
+                        <div class="signature-nom">Jean Raymond BELONY</div>
+                        <div class="signature-titre">Fondateur, Blessy Tech Academy</div>
+                    </div>
+                </div>
+            </div>
+            <div class="engagement-liste">
+                <div class="eng-item">
+                    <span class="eng-num">01</span>
+                    <div><h4>Qualité internationale</h4><p>Standards alignés sur Google, Microsoft, IBM.</p></div>
+                </div>
+                <div class="eng-item">
+                    <span class="eng-num">02</span>
+                    <div><h4>Contenu toujours à jour</h4><p>Mis à jour selon l'évolution du marché tech.</p></div>
+                </div>
+                <div class="eng-item">
+                    <span class="eng-num">03</span>
+                    <div><h4>Support réactif</h4><p>Réponse sous 24h — forum, email, Blessy AI.</p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================
+         CTA FINAL
+         ================================================ -->
+    <section class="apropos-cta">
+        <div class="apropos-cta-inner">
+            <div style="font-size: 52px; margin-bottom: 16px;">🚀</div>
+            <h2 class="apropos-cta-titre">
+                Rejoins l'aventure BTA
+            </h2>
+            <p class="apropos-cta-desc">
+                Ta carrière numérique commence par une simple décision.
+                Fais le premier pas aujourd'hui.
+            </p>
+            <div class="apropos-cta-boutons">
+                <a href="{% url 'orientation_ia' %}" class="btn-hero-principal">
+                    🎯 Trouver mon parcours
+                </a>
+                <a href="{% url 'formations' %}" class="btn-hero-secondaire">
+                    📚 Voir les formations
+                </a>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<style>
+
+.apropos-page-inner { max-width: 1200px; margin: 0 auto; padding: 0 40px; }
+
+/* HERO */
+.apropos-hero {
+    background: linear-gradient(135deg, #050d1a, #0B2447);
+    padding: 100px 40px 80px; text-align: center; position: relative; overflow: hidden;
+}
+
+.apropos-hero-grid {
+    position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(0,180,216,0.05) 1px, transparent 1px),
+                       linear-gradient(90deg, rgba(0,180,216,0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+.apropos-glow {
+    position: absolute; width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(0,180,216,0.1) 0%, transparent 70%);
+    top: -100px; left: 50%; transform: translateX(-50%);
+}
+
+.apropos-hero-inner { max-width: 750px; margin: 0 auto; position: relative; z-index: 2; }
+
+.apropos-tag { background: rgba(0,180,216,0.12); border-color: rgba(0,180,216,0.3); color: #00B4D8; margin-bottom: 24px; }
+
+.apropos-hero-titre {
+    font-size: 46px; font-weight: 800; color: white;
+    line-height: 1.25; letter-spacing: -1.5px; margin-bottom: 20px;
+}
+
+.apropos-titre-accent {
+    background: linear-gradient(135deg, #00B4D8, #7dd3fc);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+.apropos-hero-sous { font-size: 17px; color: rgba(255,255,255,0.7); line-height: 1.8; }
+
+.apropos-section { padding: 90px 0; }
+.apropos-paragraphe { font-size: 15px; color: var(--gris-texte); line-height: 1.9; margin-bottom: 18px; }
+
+/* HISTOIRE */
+.histoire-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; }
+
+.histoire-timeline { padding-top: 20px; }
+
+.ht-item { display: flex; gap: 20px; padding-bottom: 32px; position: relative; }
+.ht-item:not(:last-child)::after {
+    content: ''; position: absolute; left: 7px; top: 24px; width: 2px; height: calc(100% - 8px);
+    background: #e2e8f0;
+}
+
+.ht-dot { width: 16px; height: 16px; background: var(--bleu-electrique); border-radius: 50%; flex-shrink: 0; z-index: 1; }
+.ht-dot-futur { background: var(--orange-accent); animation: pulse-dot 2s infinite; }
+
+.ht-annee { display: block; font-size: 13px; font-weight: 800; color: var(--bleu-electrique); margin-bottom: 4px; }
+.ht-texte { display: block; font-size: 14px; color: var(--gris-texte); line-height: 1.6; }
+.ht-futur .ht-texte { font-weight: 600; color: var(--bleu-principal); }
+
+/* MISSION VISION */
+.mv-grille { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+.mv-card {
+    padding: 40px; border-radius: 20px; transition: transform 0.3s;
+}
+
+.mv-card:hover { transform: translateY(-4px); }
+
+.mv-mission { background: linear-gradient(135deg, rgba(0,180,216,0.06), rgba(0,180,216,0.02)); border: 1.5px solid rgba(0,180,216,0.2); }
+.mv-vision { background: linear-gradient(135deg, rgba(255,107,53,0.06), rgba(255,107,53,0.02)); border: 1.5px solid rgba(255,107,53,0.2); }
+
+.mv-icone { font-size: 40px; margin-bottom: 16px; }
+.mv-titre { font-size: 20px; font-weight: 700; color: var(--bleu-principal); margin-bottom: 12px; }
+.mv-texte { font-size: 14px; color: var(--gris-texte); line-height: 1.8; }
+
+/* VALEURS */
+.valeurs-grille { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
+
+.valeur-card {
+    background: var(--gris-clair); border-radius: 16px; padding: 28px;
+    transition: all 0.3s; border: 1.5px solid transparent;
+}
+
+.valeur-card:hover { background: white; border-color: var(--bleu-electrique); transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,180,216,0.1); }
+
+.valeur-icone { font-size: 36px; margin-bottom: 12px; }
+.valeur-card h4 { font-size: 16px; font-weight: 700; color: var(--bleu-principal); margin-bottom: 8px; }
+.valeur-card p { font-size: 13px; color: var(--gris-texte); line-height: 1.6; margin: 0; }
+
+/* DIFFÉRENCE */
+.apropos-diff { background: linear-gradient(135deg, #0B2447, #1a3a6a); border-radius: 32px; padding: 70px 60px; }
+
+.diff-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 60px; }
+
+.diff-item { display: flex; gap: 14px; padding: 18px 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.diff-item:last-child { border-bottom: none; }
+
+.diff-check { color: #22c55e; font-size: 18px; font-weight: 800; flex-shrink: 0; }
+
+.diff-item h4 { font-size: 15px; font-weight: 700; color: white; margin-bottom: 4px; }
+.diff-item p { font-size: 13px; color: rgba(255,255,255,0.6); margin: 0; line-height: 1.6; }
+
+/* MÉTHODE */
+.methode-grille { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
+
+.methode-card {
+    background: white; border: 1.5px solid #e2e8f0; border-radius: 16px;
+    padding: 28px; transition: all 0.3s;
+}
+
+.methode-card:hover { border-color: var(--bleu-electrique); transform: translateY(-4px); box-shadow: 0 12px 36px rgba(0,180,216,0.1); }
+
+.methode-num { font-size: 32px; font-weight: 800; color: rgba(0,180,216,0.2); letter-spacing: -1px; }
+.methode-card h4 { font-size: 16px; font-weight: 700; color: var(--bleu-principal); margin: 8px 0; }
+.methode-card p { font-size: 13px; color: var(--gris-texte); line-height: 1.6; margin: 0; }
+
+/* IMPACT */
+.apropos-impact { background: var(--gris-clair); border-radius: 32px; padding: 60px; }
+
+.impact-grille { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+
+.impact-card { text-align: center; }
+.impact-val { display: block; font-size: 42px; font-weight: 800; color: var(--bleu-principal); }
+.impact-label { display: block; font-size: 13px; color: var(--gris-texte); margin-top: 6px; }
+
+/* ENGAGEMENT */
+.engagement-layout { display: grid; grid-template-columns: 1fr 1.3fr; gap: 60px; }
+
+.engagement-signature { display: flex; align-items: center; gap: 14px; padding-top: 24px; border-top: 1px solid #e2e8f0; }
+
+.signature-avatar {
+    width: 48px; height: 48px; background: linear-gradient(135deg, var(--bleu-principal), #00B4D8);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 800; font-size: 13px; flex-shrink: 0;
+}
+
+.signature-nom { font-weight: 700; color: var(--bleu-principal); font-size: 14px; }
+.signature-titre { font-size: 12px; color: var(--gris-texte); }
+
+.eng-item { display: flex; gap: 20px; padding: 20px 0; border-bottom: 1px solid #e2e8f0; }
+.eng-item:last-child { border-bottom: none; }
+.eng-num { font-size: 32px; font-weight: 800; color: rgba(0,180,216,0.2); width: 50px; flex-shrink: 0; }
+.eng-item h4 { font-size: 15px; font-weight: 700; color: var(--bleu-principal); margin-bottom: 4px; }
+.eng-item p { font-size: 13px; color: var(--gris-texte); margin: 0; }
+
+/* CTA FINAL */
+.apropos-cta {
+    background: linear-gradient(135deg, #050d1a, #0B2447); border-radius: 32px;
+    padding: 80px 40px; text-align: center; margin-bottom: 60px;
+}
+
+.apropos-cta-titre { font-size: 34px; font-weight: 800; color: white; margin-bottom: 12px; }
+.apropos-cta-desc { font-size: 16px; color: rgba(255,255,255,0.7); margin-bottom: 32px; }
+.apropos-cta-boutons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+    .histoire-layout, .diff-layout, .engagement-layout { grid-template-columns: 1fr; gap: 40px; }
+    .mv-grille { grid-template-columns: 1fr; }
+    .impact-grille { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+    .apropos-page-inner { padding: 0 20px; }
+    .apropos-hero { padding: 60px 20px; }
+    .apropos-hero-titre { font-size: 30px; }
+    .apropos-section { padding: 60px 0; }
+    .apropos-diff, .apropos-impact { padding: 40px 24px; }
+    .apropos-cta { padding: 50px 24px; }
+    .apropos-cta-titre { font-size: 26px; }
+    .apropos-cta-boutons { flex-direction: column; }
+}
+</style>
 
 {% endblock %}

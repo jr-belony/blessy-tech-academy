@@ -4,155 +4,287 @@
 
 {% block contenu %}
 
-<section class="page-hero">
-    <h2>🏆 Classement des membres</h2>
-    <p>Les contributeurs les plus actifs de la communauté BTA.</p>
-</section>
-
-<section style="max-width: 900px; margin: 0 auto; padding: 40px 20px;">
-
-    <div style="text-align: right; margin-bottom: 24px;">
-        <a href="{% url 'forum_liste' %}"
-           style="color: var(--bleu-electrique); text-decoration: none;
-                  font-weight: 600; font-size: 14px;">
+<section class="classement-hero">
+    <div class="classement-hero-inner">
+        <div class="section-tag" style="background: rgba(255,215,0,0.12); border-color: rgba(255,215,0,0.3); color: #FFD700;">
+            🏆 Classement
+        </div>
+        <h1 class="classement-titre">
+            Les héros de la communauté
+        </h1>
+        <p class="classement-sous">
+            Les membres les plus actifs et les plus utiles de Blessy Tech Academy
+        </p>
+        <a href="{% url 'forum_liste' %}" class="classement-retour">
             ← Retour au forum
         </a>
     </div>
+</section>
 
-    {% for membre in membres %}
+<div class="classement-page-inner">
 
-    {% if forloop.counter == 1 %}
-    <div style="background: white; border-radius: 12px; box-shadow: var(--ombre-legere);
-                padding: 24px; margin-bottom: 12px; display: flex;
-                align-items: center; gap: 20px; border-left: 4px solid #FFD700;">
-        <div style="min-width: 48px; height: 48px; border-radius: 50%; background: #FFD700;
-                    display: flex; align-items: center; justify-content: center;
-                    font-size: 24px; flex-shrink: 0;">🥇</div>
-    {% elif forloop.counter == 2 %}
-    <div style="background: white; border-radius: 12px; box-shadow: var(--ombre-legere);
-                padding: 24px; margin-bottom: 12px; display: flex;
-                align-items: center; gap: 20px; border-left: 4px solid #C0C0C0;">
-        <div style="min-width: 48px; height: 48px; border-radius: 50%; background: #C0C0C0;
-                    display: flex; align-items: center; justify-content: center;
-                    font-size: 24px; flex-shrink: 0;">🥈</div>
-    {% elif forloop.counter == 3 %}
-    <div style="background: white; border-radius: 12px; box-shadow: var(--ombre-legere);
-                padding: 24px; margin-bottom: 12px; display: flex;
-                align-items: center; gap: 20px; border-left: 4px solid #CD7F32;">
-        <div style="min-width: 48px; height: 48px; border-radius: 50%; background: #CD7F32;
-                    display: flex; align-items: center; justify-content: center;
-                    font-size: 24px; flex-shrink: 0;">🥉</div>
-    {% else %}
-    <div style="background: white; border-radius: 12px; box-shadow: var(--ombre-legere);
-                padding: 24px; margin-bottom: 12px; display: flex;
-                align-items: center; gap: 20px;">
-        <div style="min-width: 48px; height: 48px; border-radius: 50%;
-                    background: var(--gris-clair); display: flex; align-items: center;
-                    justify-content: center; font-weight: 800; font-size: 18px;
-                    color: var(--gris-texte); flex-shrink: 0;">
-            {{ forloop.counter }}
-        </div>
-    {% endif %}
-
-        <!-- Infos membre -->
-        <div style="flex: 1;">
-            <p style="font-weight: 700; color: var(--bleu-principal);
-                       font-size: 16px; margin-bottom: 4px;">
-                {{ membre.first_name|default:membre.username }}
-                {% if membre.last_name %}{{ membre.last_name }}{% endif %}
-            </p>
-
+    {% if membres %}
+    <!-- Podium top 3 -->
+    <div class="podium">
+        {% for membre in membres|slice:":3" %}
+        <div class="podium-place podium-{{ forloop.counter }}">
+            <div class="podium-avatar">
+                {{ membre.first_name|first|upper|default:membre.username|first|upper }}
+            </div>
+            <div class="podium-medaille">
+                {% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% else %}🥉{% endif %}
+            </div>
+            <h3 class="podium-nom">{{ membre.first_name|default:membre.username }}</h3>
+            <div class="podium-stats">
+                <span>{{ membre.nb_reponses }} réponses</span>
+                <span>·</span>
+                <span>{{ membre.nb_solutions }} solutions</span>
+            </div>
             {% with badges=membre.badges_forum.all %}
             {% if badges %}
-            <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px;">
-                {% for badge in badges %}
-                <span style="font-size: 11px; background: rgba(0,180,216,0.1);
-                             color: var(--bleu-electrique); padding: 2px 8px;
-                             border-radius: 10px; font-weight: 600;">
-                    {{ badge.get_type_badge_display }}
-                </span>
+            <div class="podium-badges">
+                {% for badge in badges|slice:":2" %}
+                <span class="podium-badge">{{ badge.get_type_badge_display }}</span>
                 {% endfor %}
             </div>
             {% endif %}
             {% endwith %}
         </div>
+        {% endfor %}
+    </div>
 
-        <!-- Stats -->
-        <div style="display: flex; gap: 24px; text-align: center;">
-            <div>
-                <p style="font-size: 22px; font-weight: 800;
-                           color: var(--bleu-principal); margin: 0;">
-                    {{ membre.nb_reponses }}
-                </p>
-                <p style="font-size: 11px; color: var(--gris-texte);
-                           margin: 0; text-transform: uppercase;">Réponses</p>
+    <!-- Reste du classement -->
+    <div class="classement-liste">
+        {% for membre in membres|slice:"3:" %}
+        <div class="classement-item">
+            <div class="ci-rang">{{ forloop.counter|add:"3" }}</div>
+            <div class="ci-avatar">
+                {{ membre.first_name|first|upper|default:membre.username|first|upper }}
             </div>
-            <div>
-                <p style="font-size: 22px; font-weight: 800;
-                           color: #22c55e; margin: 0;">
-                    {{ membre.nb_solutions }}
-                </p>
-                <p style="font-size: 11px; color: var(--gris-texte);
-                           margin: 0; text-transform: uppercase;">Solutions</p>
+            <div class="ci-info">
+                <div class="ci-nom">
+                    {{ membre.first_name|default:membre.username }}
+                    {% if membre.last_name %}{{ membre.last_name }}{% endif %}
+                </div>
+                {% with badges=membre.badges_forum.all %}
+                {% if badges %}
+                <div class="ci-badges">
+                    {% for badge in badges %}
+                    <span class="ci-badge">{{ badge.get_type_badge_display }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% endwith %}
             </div>
-            <div>
-                <p style="font-size: 22px; font-weight: 800;
-                           color: var(--orange-accent); margin: 0;">
-                    {{ membre.nb_sujets }}
-                </p>
-                <p style="font-size: 11px; color: var(--gris-texte);
-                           margin: 0; text-transform: uppercase;">Sujets</p>
+            <div class="ci-stats">
+                <div class="ci-stat">
+                    <span class="ci-stat-val">{{ membre.nb_reponses }}</span>
+                    <span class="ci-stat-label">Réponses</span>
+                </div>
+                <div class="ci-stat">
+                    <span class="ci-stat-val" style="color: #22c55e;">{{ membre.nb_solutions }}</span>
+                    <span class="ci-stat-label">Solutions</span>
+                </div>
+                <div class="ci-stat">
+                    <span class="ci-stat-val" style="color: var(--orange-accent);">{{ membre.nb_sujets }}</span>
+                    <span class="ci-stat-label">Sujets</span>
+                </div>
             </div>
         </div>
-
+        {% endfor %}
     </div>
-    {% empty %}
-    <div style="text-align: center; padding: 60px; background: white;
-                border-radius: 12px; box-shadow: var(--ombre-legere);">
-        <span style="font-size: 48px;">🏆</span>
-        <h3 style="color: var(--bleu-principal); margin: 16px 0 8px;">
-            Aucun membre actif pour le moment
-        </h3>
-        <p style="color: var(--gris-texte);">
-            Sois le premier à contribuer au forum !
-        </p>
-        <a href="{% url 'forum_creer' %}" class="btn btn-principal"
-           style="display: inline-block; margin-top: 16px;">
+
+    {% else %}
+    <div class="classement-vide">
+        <span style="font-size: 56px;">🏆</span>
+        <h3>Aucun membre actif pour le moment</h3>
+        <p>Sois le premier à contribuer et à apparaître ici !</p>
+        <a href="{% url 'forum_creer' %}" class="btn-forum-nouveau" style="margin-top: 16px;">
             ✏️ Créer un sujet
         </a>
     </div>
-    {% endfor %}
+    {% endif %}
 
-    <!-- Légende badges -->
-    <div style="background: white; border-radius: 12px; box-shadow: var(--ombre-legere);
-                padding: 24px; margin-top: 32px;">
-        <h3 style="color: var(--bleu-principal); margin-bottom: 16px; font-size: 16px;">
-            🏅 Comment obtenir des badges ?
-        </h3>
-        <div style="display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                    gap: 12px;">
-            <div style="font-size: 13px; color: var(--gris-texte);">
-                ✍️ <strong>Premier Post</strong> — Crée ton premier sujet
+    <!-- Comment gagner des badges -->
+    <div class="badges-legende">
+        <h3 class="badges-legende-titre">🏅 Comment gagner des badges ?</h3>
+        <div class="badges-grille">
+            <div class="badge-explication">
+                <span class="badge-emoji">✍️</span>
+                <div><strong>Premier Post</strong><p>Crée ton premier sujet</p></div>
             </div>
-            <div style="font-size: 13px; color: var(--gris-texte);">
-                💬 <strong>Première Réponse</strong> — Réponds à un sujet
+            <div class="badge-explication">
+                <span class="badge-emoji">💬</span>
+                <div><strong>Première Réponse</strong><p>Réponds à un sujet</p></div>
             </div>
-            <div style="font-size: 13px; color: var(--gris-texte);">
-                ✅ <strong>Solution Acceptée</strong> — Ta réponse aide quelqu'un
+            <div class="badge-explication">
+                <span class="badge-emoji">✅</span>
+                <div><strong>Solution Acceptée</strong><p>Ta réponse aide quelqu'un</p></div>
             </div>
-            <div style="font-size: 13px; color: var(--gris-texte);">
-                🔥 <strong>10 Réponses</strong> — Atteins 10 réponses publiées
+            <div class="badge-explication">
+                <span class="badge-emoji">🔥</span>
+                <div><strong>10 Réponses</strong><p>Deviens actif</p></div>
             </div>
-            <div style="font-size: 13px; color: var(--gris-texte);">
-                ⭐ <strong>50 Réponses</strong> — Atteins 50 réponses publiées
+            <div class="badge-explication">
+                <span class="badge-emoji">⭐</span>
+                <div><strong>50 Réponses</strong><p>Deviens expert</p></div>
             </div>
-            <div style="font-size: 13px; color: var(--gris-texte);">
-                ❤️ <strong>100 Likes</strong> — Reçois 100 likes sur tes contributions
+            <div class="badge-explication">
+                <span class="badge-emoji">❤️</span>
+                <div><strong>100 Likes</strong><p>Sois apprécié</p></div>
             </div>
         </div>
     </div>
 
-</section>
+</div>
+
+<style>
+
+.classement-hero {
+    background: linear-gradient(135deg, #050d1a, #0B2447);
+    padding: 80px 40px 60px; text-align: center;
+}
+
+.classement-hero-inner { max-width: 600px; margin: 0 auto; }
+
+.classement-titre {
+    font-size: 42px; font-weight: 800; color: white;
+    letter-spacing: -1.5px; margin: 20px 0 12px;
+}
+
+.classement-sous {
+    font-size: 16px; color: rgba(255,255,255,0.65); margin-bottom: 20px;
+}
+
+.classement-retour {
+    color: rgba(255,255,255,0.6); text-decoration: none; font-size: 14px;
+}
+
+.classement-retour:hover { color: white; }
+
+.classement-page-inner {
+    max-width: 900px; margin: 0 auto; padding: 60px 40px;
+}
+
+/* Podium */
+.podium {
+    display: grid; grid-template-columns: 1fr 1.15fr 1fr;
+    gap: 16px; margin-bottom: 48px; align-items: end;
+}
+
+.podium-place {
+    background: white; border-radius: 20px; padding: 28px 20px;
+    text-align: center; border: 2px solid #e2e8f0;
+    transition: transform 0.3s;
+}
+
+.podium-place:hover { transform: translateY(-6px); }
+
+.podium-2 { border-color: #C0C0C0; }
+.podium-1 { border-color: #FFD700; padding-top: 40px; box-shadow: 0 20px 50px rgba(255,215,0,0.15); }
+.podium-3 { border-color: #CD7F32; }
+
+.podium-avatar {
+    width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 8px;
+    background: linear-gradient(135deg, var(--bleu-principal), #00B4D8);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 800; font-size: 20px;
+}
+
+.podium-medaille { font-size: 32px; margin-bottom: 8px; }
+
+.podium-nom {
+    font-size: 15px; font-weight: 700; color: var(--bleu-principal);
+    margin-bottom: 6px;
+}
+
+.podium-stats {
+    font-size: 12px; color: var(--gris-texte); margin-bottom: 10px;
+}
+
+.podium-badges { display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; }
+
+.podium-badge {
+    font-size: 10px; background: rgba(0,180,216,0.1); color: var(--bleu-electrique);
+    padding: 2px 8px; border-radius: 10px; font-weight: 600;
+}
+
+/* Liste classement */
+.classement-liste { display: flex; flex-direction: column; gap: 10px; margin-bottom: 60px; }
+
+.classement-item {
+    display: flex; align-items: center; gap: 16px;
+    background: white; border: 1.5px solid #e2e8f0;
+    border-radius: 14px; padding: 16px 20px;
+    transition: all 0.3s;
+}
+
+.classement-item:hover { border-color: var(--bleu-electrique); transform: translateX(4px); }
+
+.ci-rang {
+    width: 32px; height: 32px; background: var(--gris-clair);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-weight: 800; color: var(--gris-texte); font-size: 13px; flex-shrink: 0;
+}
+
+.ci-avatar {
+    width: 44px; height: 44px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--bleu-principal), #00B4D8);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 800; font-size: 14px; flex-shrink: 0;
+}
+
+.ci-info { flex: 1; }
+
+.ci-nom { font-size: 14px; font-weight: 700; color: var(--bleu-principal); margin-bottom: 4px; }
+
+.ci-badges { display: flex; gap: 4px; flex-wrap: wrap; }
+
+.ci-badge {
+    font-size: 10px; background: rgba(0,180,216,0.08); color: var(--bleu-electrique);
+    padding: 2px 8px; border-radius: 10px; font-weight: 600;
+}
+
+.ci-stats { display: flex; gap: 20px; }
+
+.ci-stat { text-align: center; }
+.ci-stat-val { display: block; font-size: 16px; font-weight: 800; color: var(--bleu-principal); }
+.ci-stat-label { display: block; font-size: 10px; color: #a0aec0; text-transform: uppercase; }
+
+.classement-vide { text-align: center; padding: 80px 20px; color: var(--gris-texte); }
+.classement-vide h3 { color: var(--bleu-principal); margin: 16px 0 8px; font-size: 22px; }
+
+/* Légende badges */
+.badges-legende {
+    background: var(--gris-clair); border-radius: 20px; padding: 32px;
+}
+
+.badges-legende-titre {
+    font-size: 18px; font-weight: 700; color: var(--bleu-principal); margin-bottom: 20px;
+}
+
+.badges-grille {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;
+}
+
+.badge-explication {
+    display: flex; align-items: flex-start; gap: 12px;
+}
+
+.badge-emoji { font-size: 24px; }
+
+.badge-explication strong { font-size: 13px; color: var(--bleu-principal); display: block; margin-bottom: 2px; }
+.badge-explication p { font-size: 12px; color: var(--gris-texte); margin: 0; }
+
+@media (max-width: 768px) {
+    .classement-hero { padding: 60px 20px 40px; }
+    .classement-titre { font-size: 28px; }
+    .classement-page-inner { padding: 40px 20px; }
+    .podium { grid-template-columns: 1fr; gap: 12px; }
+    .podium-1 { order: -1; padding-top: 28px; }
+    .ci-stats { gap: 12px; }
+    .classement-item { flex-wrap: wrap; }
+}
+</style>
 
 {% endblock %}
