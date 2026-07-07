@@ -1,0 +1,78 @@
+/* ================================================
+   BLESSY TECH ACADEMY — Admin Premium Theme
+   ================================================ */
+
+:root {
+    --bta-bleu: #0B2447;
+    --bta-cyan: #00B4D8;
+    --bta-orange: #FF6B35;
+}
+
+/* Header admin */
+#header {
+    background: linear-gradient(135deg, #050d1a, var(--bta-bleu)) !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+#branding h1 { font-weight: 800; letter-spacing: -0.5px; }
+#branding h1 a:link, #branding h1 a:visited { color: white !important; }
+
+/* Module boxes */
+.module h2, .module caption, .inline-group h2 {
+    background: linear-gradient(135deg, var(--bta-bleu), #1a3a6a) !important;
+    border-radius: 8px 8px 0 0;
+}
+
+/* Boutons */
+.button, input[type=submit], input[type=button], .submit-row input, a.button {
+    background: linear-gradient(135deg, var(--bta-orange), #e85a2a) !important;
+    border-radius: 8px !important;
+    border: none !important;
+    font-weight: 700 !important;
+    transition: all 0.2s;
+}
+
+.button:hover, input[type=submit]:hover { transform: translateY(-1px); }
+
+.button.default, input[type=submit].default {
+    background: linear-gradient(135deg, var(--bta-cyan), #0090b8) !important;
+}
+
+/* Tableaux modernes */
+#changelist table thead th {
+    background: var(--bta-bleu) !important;
+    color: white !important;
+    border-radius: 0;
+}
+
+#changelist table tbody tr:hover { background: rgba(0,180,216,0.05) !important; }
+
+/* Liens */
+a:link, a:visited { color: var(--bta-cyan); }
+
+/* Cards fieldsets */
+fieldset.module {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(11,36,71,0.06);
+    margin-bottom: 20px;
+}
+
+/* Badge statut personnalisés */
+.badge-actif { background: #22c55e; color: white; padding: 3px 10px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+.badge-inactif { background: #94a3b8; color: white; padding: 3px 10px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+.badge-gratuit { background: var(--bta-cyan); color: white; padding: 3px 10px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+
+/* Sidebar nav moderne */
+#nav-sidebar { background: #f8fafc !important; border-right: 1px solid #e2e8f0; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    #changelist-filter { position: static !important; }
+}
+
+/* Dashboard cards (utilisé dans notre dashboard custom) */
+.bta-dash-card {
+    background: white; border-radius: 16px; padding: 24px;
+    box-shadow: 0 4px 20px rgba(11,36,71,0.06); border: 1px solid #e2e8f0;
+}

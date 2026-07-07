@@ -2,11 +2,25 @@ from django.urls import path
 from django.shortcuts import render
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import admin
+from django.db.models import Count, Sum, Avg, Q
+from django.utils import timezone
+from datetime import timedelta
 from .models import (Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz, Module, Lecon, ProgressionLecon,
-Parcours, Sujet, Reponse, Reaction,OutilRecommande, Article, Temoignage) 
+Parcours, Sujet, Reponse, Reaction, OutilRecommande, Article, Temoignage)
+
+# ================================================
+# Thème CSS global pour tout l'admin
+# ================================================
+class AdminThemeMixin:
+    """Mixin qui injecte le CSS premium dans toutes les pages admin."""
+    class Media:
+        css = {
+            'all': ['academie/admin/theme_premium.css']
+        }
+
 
 @admin.register(Ecole)
-class EcoleAdmin(admin.ModelAdmin):
+class EcoleAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_display = ['icone', 'nom', 'ordre']
     list_editable = ['ordre']
     search_fields = ['nom']
@@ -16,10 +30,11 @@ class ModuleInline(admin.TabularInline):
     model = Module
     extra = 1
     fields = ['ordre', 'titre', 'description']
-    show_change_link = True  # permet de cliquer pour gérer les leçons du module
+    show_change_link = True
+
 
 @admin.register(Formation)
-class FormationAdmin(admin.ModelAdmin):
+class FormationAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_display = [
         'icone', 'nom', 'ecole', 'niveau',
         'duree_mois', 'prix', 'actif'
@@ -58,8 +73,9 @@ class FormationAdmin(admin.ModelAdmin):
     class Media:
         js = ['academie/admin/generer_ia.js', 'academie/admin/generer_programme.js']
 
+
 @admin.register(Inscription)
-class InscriptionAdmin(admin.ModelAdmin):
+class InscriptionAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_display = [
         'prenom', 'nom', 'email', 'formation',
         'sujet', 'date_inscription', 'traite'
@@ -69,6 +85,7 @@ class InscriptionAdmin(admin.ModelAdmin):
     list_editable = ['traite']
     readonly_fields = ['date_inscription']
 
+
 class QuestionInline(admin.TabularInline):
     model = Question
     extra = 5
@@ -76,11 +93,11 @@ class QuestionInline(admin.TabularInline):
 
 
 @admin.register(Quiz)
-class QuizAdmin(admin.ModelAdmin):
-    list_display = ['titre', 'formation', 'nombre_questions', 'actif', 'date_creation']
+class QuizAdmin(AdminThemeMixin, admin.ModelAdmin):
+    list_display = ['titre', 'formation', 'nombre_questions', 'limite_temps_minutes', 'actif', 'date_creation']
     list_filter = ['actif', 'formation']
     search_fields = ['titre']
-    list_editable = ['actif']
+    list_editable = ['actif', 'limite_temps_minutes']
     inlines = [QuestionInline]
 
     class Media:
@@ -88,11 +105,12 @@ class QuizAdmin(admin.ModelAdmin):
 
 
 @admin.register(ResultatQuiz)
-class ResultatQuizAdmin(admin.ModelAdmin):
+class ResultatQuizAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_display = ['utilisateur', 'quiz', 'score', 'total_questions', 'pourcentage', 'date_passage']
     list_filter = ['quiz']
     search_fields = ['utilisateur__username']
     readonly_fields = ['date_passage']
+
 
 class LeconInline(admin.TabularInline):
     model = Lecon
@@ -101,7 +119,7 @@ class LeconInline(admin.TabularInline):
 
 
 @admin.register(Module)
-class ModuleAdmin(admin.ModelAdmin):
+class ModuleAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_display = ['titre', 'get_ecole', 'formation', 'ordre', 'nombre_lecons']
     list_filter = ['formation__ecole', 'formation']
     search_fields = ['titre', 'formation__nom']
@@ -116,8 +134,9 @@ class ModuleAdmin(admin.ModelAdmin):
     class Media:
         js = ['academie/admin/generer_programme.js', 'academie/admin/generer_contenu_module.js']
 
+
 @admin.register(Lecon)
-class LeconAdmin(admin.ModelAdmin):
+class LeconAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_display = ['titre', 'get_ecole', 'get_formation', 'module', 'duree_minutes', 'ordre']
     list_filter = ['module__formation__ecole', 'module__formation']
     search_fields = ['titre', 'contenu', 'module__formation__nom']
@@ -136,13 +155,14 @@ class LeconAdmin(admin.ModelAdmin):
     class Media:
         js = ['academie/admin/generer_contenu_lecon.js']
 
+
 @admin.register(Parcours)
-class ParcoursAdmin(admin.ModelAdmin):
+class ParcoursAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_display = ['icone', 'titre', 'duree_mois', 'prix', 'nombre_formations', 'actif', 'ordre']
     list_filter = ['actif']
     search_fields = ['titre', 'description']
     list_editable = ['actif', 'ordre']
-    filter_horizontal = ['formations']  # sélecteur intuitif pour ManyToMany
+    filter_horizontal = ['formations']
 
     fieldsets = [
         ('Informations principales', {
@@ -163,7 +183,7 @@ class ReponseInline(admin.TabularInline):
 
 
 @admin.register(Sujet)
-class SujetAdmin(admin.ModelAdmin):
+class SujetAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_display = [
         'titre', 'auteur', 'formation', 'categorie',
         'nombre_reponses', 'vues', 'epingle', 'resolu',
@@ -177,7 +197,7 @@ class SujetAdmin(admin.ModelAdmin):
 
 
 @admin.register(Reponse)
-class ReponseAdmin(admin.ModelAdmin):
+class ReponseAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_display = ['auteur', 'sujet', 'acceptee', 'date_creation']
     list_filter = ['acceptee']
     search_fields = ['contenu', 'auteur__username']
@@ -185,9 +205,9 @@ class ReponseAdmin(admin.ModelAdmin):
 
 
 @admin.register(Reaction)
-class ReactionAdmin(admin.ModelAdmin):
+class ReactionAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_display = ['utilisateur', 'sujet', 'reponse', 'date_creation']
-    readonly_fields = ['date_creation']    
+    readonly_fields = ['date_creation']
 
 
 # ================================================
@@ -195,31 +215,52 @@ class ReactionAdmin(admin.ModelAdmin):
 # ================================================
 
 @admin.register(Article)
-class ArticleAdmin(admin.ModelAdmin):
+class ArticleAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_display = ['titre', 'categorie', 'auteur', 'en_vedette',
-                    'publie', 'temps_lecture', 'date_publication']
+                    'badge_publie', 'temps_lecture', 'date_publication']
     list_filter = ['categorie', 'publie', 'en_vedette', 'formation_liee']
-    search_fields = ['titre', 'resume', 'contenu']
-    list_editable = ['publie', 'en_vedette']
+    search_fields = ['titre', 'resume', 'contenu', 'mots_cles']
+    list_editable = ['en_vedette']
     prepopulated_fields = {'slug': ('titre',)}
-    readonly_fields = ['date_publication', 'date_modification']
+    readonly_fields = ['date_publication', 'date_modification', 'apercu_seo']
 
     fieldsets = [
         ('Informations principales', {
             'fields': ['titre', 'slug', 'categorie', 'resume',
                        'temps_lecture', 'formation_liee', 'auteur']
         }),
-        ('Contenu', {
-            'fields': ['contenu']
+        ('Contenu', {'fields': ['contenu']}),
+        ('🔍 Référencement SEO', {
+            'fields': ['meta_titre', 'meta_description', 'mots_cles', 'noindex', 'apercu_seo'],
+            'classes': ['collapse'],
         }),
         ('Publication', {
             'fields': ['publie', 'en_vedette', 'date_publication', 'date_modification']
         }),
     ]
 
+    def badge_publie(self, obj):
+        from django.utils.html import format_html
+        if obj.publie:
+            return format_html('<span style="background:#22c55e;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">Publié</span>')
+        return format_html('<span style="background:#a0aec0;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">Brouillon</span>')
+    badge_publie.short_description = 'Statut'
 
+    def apercu_seo(self, obj):
+        from django.utils.html import format_html
+        titre = obj.meta_titre or obj.titre
+        desc = obj.meta_description or obj.resume[:160]
+        return format_html(
+            '<div style="border:1px solid #e2e8f0; border-radius:8px; padding:12px; max-width:500px;">'
+            '<div style="color:#1a0dab; font-size:16px;">{}</div>'
+            '<div style="color:#006621; font-size:12px;">blessytechacademy.com/ressources/{}</div>'
+            '<div style="color:#4d5156; font-size:13px;">{}</div></div>',
+            titre, obj.slug, desc
+        )
+    apercu_seo.short_description = "Aperçu Google"
+    
 @admin.register(OutilRecommande)
-class OutilRecommandeAdmin(admin.ModelAdmin):
+class OutilRecommandeAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_display = ['icone', 'nom', 'categorie', 'gratuit',
                     'recommande_par_bta', 'ordre']
     list_filter = ['categorie', 'gratuit', 'recommande_par_bta']
@@ -228,44 +269,93 @@ class OutilRecommandeAdmin(admin.ModelAdmin):
 
 
 @admin.register(Temoignage)
-class TemoignageAdmin(admin.ModelAdmin):
+class TemoignageAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_display = ['prenom_nom', 'formation_suivie', 'note',
                     'en_vedette', 'approuve', 'date_creation']
     list_filter = ['note', 'en_vedette', 'approuve', 'formation_suivie']
     search_fields = ['prenom_nom', 'texte']
     list_editable = ['en_vedette', 'approuve']
 
+
 # ================================================
 # Vue personnalisée — Gestion organisée par École
 # ================================================
 
-class GestionCoursAdminSite:
-    """Ajoute une page personnalisée de gestion des cours par école."""
+class GestionCoursAdminSite(AdminThemeMixin):
 
     def get_urls(self, original_urls):
         custom_urls = [
-            path('gestion-cours/', admin.site.admin_view(self.vue_gestion_cours),
-                name='gestion_cours'),
+            path('gestion-cours/', admin.site.admin_view(self.vue_gestion_cours), name='gestion_cours'),
+            path('dashboard-editorial/', admin.site.admin_view(self.vue_dashboard_editorial), name='dashboard_editorial'),
+            path('dashboard-business/', admin.site.admin_view(self.vue_dashboard_business), name='dashboard_business'),
         ]
         return custom_urls + original_urls
 
     def vue_gestion_cours(self, request):
-        from django.db.models import Prefetch
-        ecoles = Ecole.objects.prefetch_related(
-            Prefetch(
-                'formations',
-                queryset=Formation.objects.prefetch_related(
-                    Prefetch('modules', queryset=Module.objects.prefetch_related('lecons').order_by('ordre')),
-                    Prefetch('quiz_set', queryset=Quiz.objects.prefetch_related('questions'))
-                ).order_by('nom')
-            )
-        ).all()
-
+        ecoles = Ecole.objects.prefetch_related('formations__modules__lecons').all()
         return render(request, 'admin/gestion_cours.html', {
-            'ecoles': ecoles,
-            'title': 'Gestion des cours par école',
+            'ecoles': ecoles, 'title': 'Gestion des cours par école',
             'site_header': admin.site.site_header,
         })
+
+    def vue_dashboard_editorial(self, request):
+        articles_total = Article.objects.count()
+        articles_publies = Article.objects.filter(publie=True).count()
+        articles_brouillon = articles_total - articles_publies
+
+        formations_sans_programme = Formation.objects.filter(
+            actif=True, modules__isnull=True
+        ).distinct()
+
+        lecons_sans_contenu = Lecon.objects.filter(
+            Q(contenu__isnull=True) | Q(contenu='')
+        ).select_related('module__formation')[:15]
+
+        derniers_articles = Article.objects.order_by('-date_publication')[:8]
+
+        return render(request, 'admin/dashboard_editorial.html', {
+            'title': '📝 Dashboard Éditorial',
+            'site_header': admin.site.site_header,
+            'articles_total': articles_total,
+            'articles_publies': articles_publies,
+            'articles_brouillon': articles_brouillon,
+            'formations_sans_programme': formations_sans_programme,
+            'lecons_sans_contenu': lecons_sans_contenu,
+            'derniers_articles': derniers_articles,
+        })
+
+    def vue_dashboard_business(self, request):
+        total_inscriptions = Inscription.objects.count()
+        inscriptions_non_traitees = Inscription.objects.filter(traite=False).count()
+
+        il_y_a_30j = timezone.now() - timedelta(days=30)
+        inscriptions_recentes = Inscription.objects.filter(
+            date_inscription__gte=il_y_a_30j
+        ).count()
+
+        revenus_potentiels = Formation.objects.filter(
+            actif=True
+        ).aggregate(total=Sum('prix'))['total'] or 0
+
+        formations_populaires = Formation.objects.annotate(
+            nb_inscrits=Count('inscriptions')
+        ).order_by('-nb_inscrits')[:8]
+
+        total_etudiants = User.objects.filter(is_staff=False).count()
+
+        return render(request, 'admin/dashboard_business.html', {
+            'title': '💼 Dashboard Business',
+            'site_header': admin.site.site_header,
+            'total_inscriptions': total_inscriptions,
+            'inscriptions_non_traitees': inscriptions_non_traitees,
+            'inscriptions_recentes': inscriptions_recentes,
+            'revenus_potentiels': revenus_potentiels,
+            'formations_populaires': formations_populaires,
+            'total_etudiants': total_etudiants,
+        })
+
+
+from django.contrib.auth.models import User
 
 # Injecte les nouvelles URLs dans l'admin
 _original_get_urls = admin.site.get_urls
@@ -275,3 +365,8 @@ def get_urls_avec_gestion():
     return _gestion.get_urls(_original_get_urls())
 
 admin.site.get_urls = get_urls_avec_gestion
+
+# Personnalisation de l'interface d'administration
+admin.site.site_header = "Blessy Tech Academy — Back Office"
+admin.site.site_title = "BTA Admin"
+admin.site.index_title = "Tableau de bord"

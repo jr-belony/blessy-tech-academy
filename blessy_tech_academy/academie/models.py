@@ -155,6 +155,10 @@ class Quiz(models.Model):
     titre = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     actif = models.BooleanField(default=True)
+    limite_temps_minutes = models.IntegerField(default=0, help_text="0 = pas de limite")
+    tentatives_max = models.IntegerField(default=0, help_text="0 = illimité")
+    melanger_questions = models.BooleanField(default=True)
+    melanger_reponses = models.BooleanField(default=True)
     date_creation = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -167,7 +171,6 @@ class Quiz(models.Model):
 
     def nombre_questions(self):
         return self.questions.count()
-
 
 class Question(models.Model):
     """Représente une question à choix multiples dans un quiz."""
@@ -695,6 +698,18 @@ class Article(models.Model):
     date_publication = models.DateTimeField(auto_now_add=True)
     date_modification = models.DateTimeField(auto_now=True)
 
+    # Champs SEO
+    meta_titre = models.CharField(
+        max_length=70, blank=True,
+        help_text="Titre SEO (60-70 caractères recommandés)"
+    )
+    meta_description = models.CharField(
+        max_length=160, blank=True,
+        help_text="Description SEO (150-160 caractères recommandés)"
+    )
+    mots_cles = models.CharField(max_length=255, blank=True, help_text="Mots-clés séparés par des virgules")
+    noindex = models.BooleanField(default=False, help_text="Empêcher l'indexation Google")
+
     class Meta:
         ordering = ['-en_vedette', '-date_publication']
         verbose_name = 'Article'
@@ -709,7 +724,12 @@ class Article(models.Model):
             self.slug = slugify(self.titre)
         super().save(*args, **kwargs)
 
-
+    def temps_lecture_estime(self):
+        """Calcule le temps de lecture basé sur le nombre de mots (200 mots/min)."""
+        import re
+        texte_brut = re.sub('<[^<]+?>', '', self.contenu or '')
+        nb_mots = len(texte_brut.split())
+        return max(1, round(nb_mots / 200))
 class OutilRecommande(models.Model):
     """Outil numérique recommandé aux étudiants."""
 
