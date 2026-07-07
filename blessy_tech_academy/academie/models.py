@@ -530,6 +530,12 @@ class ProjetEtudiant(models.Model):
     image = models.ImageField(upload_to='projets/', blank=True, null=True)
     lien = models.URLField(blank=True, null=True)
     technologies = models.CharField(max_length=300, blank=True, help_text="Ex: Python, Django, React")
+    niveau_difficulte = models.CharField(
+        max_length=20,
+        choices=[('debutant','Débutant'),('intermediaire','Intermédiaire'),('avance','Avancé')],
+        default='debutant', blank=True
+    )
+    competences_developpees = models.CharField(max_length=300, blank=True)
     date_creation = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -539,8 +545,6 @@ class ProjetEtudiant(models.Model):
 
     def __str__(self):
         return f"{self.titre} par {self.auteur.username}"
-    
-
 class Certificat(models.Model):
     """Certificat émis à un étudiant après complétion d'une formation."""
     utilisateur = models.ForeignKey(

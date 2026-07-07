@@ -1,70 +1,352 @@
 {% extends 'academie/base.html' %}
 
-{% block titre %}Mon Portfolio — {{ user.first_name }}{% endblock %}
+{% block titre %}Mon Portfolio — Blessy Tech Academy{% endblock %}
 
 {% block contenu %}
 
-<section class="page-hero">
-    <h2>📂 Mon Portfolio</h2>
-    <p>Ajoute et gère tes projets pour attirer les recruteurs.</p>
-</section>
+<!-- ================================================
+     HERO PORTFOLIO
+     ================================================ -->
+<section class="pf-hero">
+    <div class="pf-hero-grid"></div>
+    <div class="pf-glow"></div>
 
-<section style="background: var(--gris-clair); padding: 60px 40px;">
-    <div style="max-width: 800px; margin: 0 auto;">
+    <div class="pf-hero-inner">
+        <div class="section-tag pf-tag">🎨 Mon Espace Portfolio</div>
+        <h1 class="pf-hero-titre">
+            Ta vitrine professionnelle
+        </h1>
+        <p class="pf-hero-sous">
+            Chaque projet que tu ajoutes ici renforce ton profil
+            visible dans l'Espace Recrutement.
+        </p>
 
-        <!-- Formulaire d'ajout -->
-        <div style="background: white; padding: 32px; border-radius: 12px; box-shadow: var(--ombre-legere); margin-bottom: 32px;">
-            <h3 style="color: var(--bleu-principal); margin-bottom: 20px;">➕ Ajouter un projet</h3>
-            <form method="POST" enctype="multipart/form-data">
-                {% csrf_token %}
-                <input type="text" name="titre" placeholder="Titre du projet *" required
-                       style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 10px;">
-                <textarea name="description" rows="3" placeholder="Description *" required
-                          style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 10px;"></textarea>
-                <input type="text" name="technologies" placeholder="Technologies (ex: Python, Django)"
-                       style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 10px;">
-                <input type="url" name="lien" placeholder="Lien du projet (optionnel)"
-                       style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 10px;">
-                <input type="file" name="image" accept="image/*"
-                       style="margin-bottom: 10px;">
-                <button type="submit" class="btn btn-principal">📤 Publier le projet</button>
-            </form>
-        </div>
-
-        <!-- Projets existants -->
-        <h3 style="color: var(--bleu-principal); margin-bottom: 20px;">🌟 Mes projets ({{ projets.count }})</h3>
-        {% if projets %}
-            <div style="display: grid; gap: 16px;">
-                {% for projet in projets %}
-                <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: var(--ombre-legere);">
-                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                        <h4 style="margin: 0; color: var(--bleu-principal);">{{ projet.titre }}</h4>
-                        <span style="font-size: 12px; color: var(--gris-texte);">{{ projet.date_creation|date:"d/m/Y" }}</span>
-                    </div>
-                    <p style="margin: 8px 0;">{{ projet.description }}</p>
-                    {% if projet.technologies %}
-                        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
-                            {% for tech in projet.technologies.split %}
-                                <span style="background: #e0e7ff; color: #3730a3; padding: 2px 8px; border-radius: 10px; font-size: 12px;">{{ tech }}</span>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                    {% if projet.lien %}
-                        <a href="{{ projet.lien }}" target="_blank" style="font-size: 14px; color: var(--bleu-electrique);">🔗 Voir le projet</a>
-                    {% endif %}
-                </div>
-                {% endfor %}
+        <div class="pf-stats-bar">
+            <div class="pfstat">
+                <span class="pfstat-val">{{ projets|length }}</span>
+                <span class="pfstat-label">Projets</span>
             </div>
-        {% else %}
-            <p style="color: var(--gris-texte); text-align: center; padding: 20px;">Aucun projet pour le moment.</p>
-        {% endif %}
-
-        <div style="margin-top: 32px; text-align: center;">
-            <a href="{% url 'espace_recrutement' %}" class="btn btn-principal">
-                👀 Voir l'espace recrutement
+            <a href="{% url 'espace_recrutement' %}" class="pf-lien-recrutement">
+                👀 Voir mon profil public →
             </a>
         </div>
-
     </div>
 </section>
+
+<div class="pf-page-inner">
+
+    <!-- ================================================
+         BOUTON AJOUTER PROJET
+         ================================================ -->
+    <div class="pf-actions-bar">
+        <h2 class="pf-section-titre">Mes projets</h2>
+        <button class="btn-ajouter-projet" onclick="ouvrirFormulaire()">
+            ➕ Ajouter un projet
+        </button>
+    </div>
+
+    <!-- ================================================
+         FORMULAIRE AJOUT (modal)
+         ================================================ -->
+    <div class="pf-form-overlay" id="pf-form-overlay" onclick="fermerFormulaire()">
+        <div class="pf-form-modal" onclick="event.stopPropagation()">
+            <button class="pf-form-fermer" onclick="fermerFormulaire()">✕</button>
+
+            <h3 class="pf-form-titre">✨ Nouveau projet</h3>
+            <p class="pf-form-sous">Présente ton travail comme un vrai professionnel</p>
+
+            <form method="POST" enctype="multipart/form-data" id="pf-form">
+                {% csrf_token %}
+
+                <div class="pf-field">
+                    <label>Titre du projet *</label>
+                    <input type="text" name="titre" required
+                           placeholder="Ex: Site e-commerce en Django"
+                           class="pf-input">
+                </div>
+
+                <div class="pf-field">
+                    <label>Description *</label>
+                    <textarea name="description" rows="4" required
+                              placeholder="Décris ton projet, les défis rencontrés, ce que tu as appris..."
+                              class="pf-input"></textarea>
+                </div>
+
+                <div class="pf-field">
+                    <label>Technologies utilisées</label>
+                    <input type="text" name="technologies"
+                           placeholder="Ex: Django, PostgreSQL, JavaScript"
+                           class="pf-input">
+                </div>
+
+                <div class="pf-field">
+                    <label>Lien du projet <span class="pf-optionnel">(optionnel)</span></label>
+                    <input type="url" name="lien"
+                           placeholder="https://github.com/... ou https://mon-projet.com"
+                           class="pf-input">
+                </div>
+
+                <div class="pf-field">
+                    <label>Image / Capture d'écran</label>
+                    <div class="pf-upload-zone" id="pf-upload-zone">
+                        <input type="file" name="image" id="pf-image-input"
+                               accept="image/*" onchange="previsualiserImage(this)">
+                        <div class="pf-upload-contenu" id="pf-upload-contenu">
+                            <span style="font-size: 32px;">📷</span>
+                            <p>Clique ou glisse une image ici</p>
+                        </div>
+                        <img id="pf-preview-img" style="display:none;">
+                    </div>
+                </div>
+
+                <button type="submit" class="pf-submit-btn">
+                    🚀 Publier mon projet
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================================================
+         GRILLE PROJETS
+         ================================================ -->
+    <div class="pf-projets-grille">
+        {% for projet in projets %}
+        <div class="carte-projet-portfolio">
+
+            <!-- Image -->
+            <div class="cp-image-wrapper">
+                {% if projet.image %}
+                <img src="{{ projet.image.url }}" alt="{{ projet.titre }}" class="cp-image">
+                {% else %}
+                <div class="cp-image-placeholder">💻</div>
+                {% endif %}
+                <div class="cp-overlay">
+                    {% if projet.lien %}
+                    <a href="{{ projet.lien }}" target="_blank" rel="noopener" class="cp-overlay-btn">
+                        Voir le projet →
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Contenu -->
+            <div class="cp-contenu">
+                <h3 class="cp-titre">{{ projet.titre }}</h3>
+                <p class="cp-desc">{{ projet.description|truncatewords:20 }}</p>
+
+                {% if projet.technologies %}
+                <div class="cp-technologies">
+                    {% for tech in projet.technologies.split|default:projet.technologies|slice:":4" %}
+                    <span class="cp-tech-tag">{{ tech }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="cp-footer">
+                    <span class="cp-date">
+                        📅 {{ projet.date_creation|date:"d M Y" }}
+                    </span>
+                    {% if projet.lien %}
+                    <a href="{{ projet.lien }}" target="_blank" rel="noopener" class="cp-lien-btn">
+                        Voir →
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+        {% empty %}
+        <div class="pf-vide">
+            <span style="font-size: 56px;">🎨</span>
+            <h3>Ton portfolio est vide</h3>
+            <p>Ajoute ton premier projet pour commencer à construire
+               ta vitrine professionnelle.</p>
+            <button class="btn-ajouter-projet" onclick="ouvrirFormulaire()" style="margin-top:16px;">
+                ➕ Ajouter mon premier projet
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+<!-- Indicateur caché pour réouvrir le formulaire après erreur -->
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'error' %}
+            <input type="hidden" id="pf-show-form" value="1">
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+<!-- ================================================
+     CSS PORTFOLIO
+     ================================================ -->
+<style>
+
+.pf-page-inner { max-width: 1100px; margin: 0 auto; padding: 0 40px 80px; }
+
+/* HERO */
+.pf-hero { background: linear-gradient(135deg, #050d1a, #0B2447); padding: 70px 40px 50px; text-align: center; position: relative; overflow: hidden; }
+.pf-hero-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(0,180,216,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,180,216,0.05) 1px, transparent 1px); background-size: 40px 40px; }
+.pf-glow { position: absolute; width: 400px; height: 400px; background: radial-gradient(circle, rgba(255,107,53,0.1) 0%, transparent 70%); top: -80px; right: 15%; }
+
+.pf-hero-inner { max-width: 600px; margin: 0 auto; position: relative; z-index: 2; }
+.pf-tag { background: rgba(255,107,53,0.12); border-color: rgba(255,107,53,0.3); color: #FF6B35; margin-bottom: 20px; }
+.pf-hero-titre { font-size: 36px; font-weight: 800; color: white; margin-bottom: 14px; letter-spacing: -1px; }
+.pf-hero-sous { font-size: 15px; color: rgba(255,255,255,0.65); margin-bottom: 24px; }
+
+.pf-stats-bar { display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; }
+.pfstat { display: flex; flex-direction: column; }
+.pfstat-val { font-size: 28px; font-weight: 800; color: white; }
+.pfstat-label { font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; }
+
+.pf-lien-recrutement {
+    color: #00B4D8; text-decoration: none; font-weight: 700; font-size: 14px;
+    background: rgba(0,180,216,0.1); padding: 8px 18px; border-radius: 20px;
+    border: 1px solid rgba(0,180,216,0.2); transition: all 0.2s;
+}
+.pf-lien-recrutement:hover { background: rgba(0,180,216,0.18); }
+
+/* Actions bar */
+.pf-actions-bar { display: flex; justify-content: space-between; align-items: center; padding: 40px 0 24px; flex-wrap: wrap; gap: 16px; }
+.pf-section-titre { font-size: 24px; font-weight: 800; color: var(--bleu-principal); margin: 0; }
+
+.btn-ajouter-projet {
+    background: linear-gradient(135deg, #FF6B35, #e85a2a); color: white; border: none;
+    padding: 12px 24px; border-radius: 10px; font-weight: 700; font-size: 14px;
+    cursor: pointer; box-shadow: 0 8px 24px rgba(255,107,53,0.35); transition: all 0.3s;
+}
+.btn-ajouter-projet:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(255,107,53,0.45); }
+
+/* Modal formulaire */
+.pf-form-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(5,13,26,0.7);
+    backdrop-filter: blur(6px); z-index: 2000; align-items: center; justify-content: center; padding: 20px;
+}
+.pf-form-overlay.actif { display: flex; }
+
+.pf-form-modal {
+    background: white; border-radius: 24px; max-width: 560px; width: 100%;
+    max-height: 90vh; overflow-y: auto; padding: 40px; position: relative;
+    animation: apparition 0.3s ease-out;
+}
+
+.pf-form-fermer {
+    position: absolute; top: 20px; right: 20px; background: var(--gris-clair);
+    border: none; width: 36px; height: 36px; border-radius: 10px; cursor: pointer; font-size: 16px;
+}
+
+.pf-form-titre { font-size: 22px; font-weight: 800; color: var(--bleu-principal); margin-bottom: 4px; }
+.pf-form-sous { font-size: 13px; color: var(--gris-texte); margin-bottom: 24px; }
+
+.pf-field { margin-bottom: 18px; }
+.pf-field label { display: block; font-size: 13px; font-weight: 700; color: var(--bleu-principal); margin-bottom: 6px; }
+.pf-optionnel { font-weight: 400; color: #a0aec0; }
+
+.pf-input {
+    width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px;
+    font-size: 14px; font-family: inherit; transition: all 0.2s;
+}
+.pf-input:focus { outline: none; border-color: #00B4D8; box-shadow: 0 0 0 4px rgba(0,180,216,0.1); }
+
+.pf-upload-zone {
+    position: relative; border: 2px dashed #e2e8f0; border-radius: 14px;
+    padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s;
+}
+.pf-upload-zone:hover { border-color: #00B4D8; background: rgba(0,180,216,0.03); }
+
+.pf-upload-zone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer;
+}
+
+.pf-upload-contenu p { font-size: 13px; color: var(--gris-texte); margin-top: 8px; }
+
+#pf-preview-img { max-width: 100%; max-height: 160px; border-radius: 10px; margin: 0 auto; }
+
+.pf-submit-btn {
+    width: 100%; background: linear-gradient(135deg, #FF6B35, #e85a2a); color: white;
+    border: none; padding: 15px; border-radius: 12px; font-weight: 800; font-size: 15px;
+    cursor: pointer; box-shadow: 0 8px 24px rgba(255,107,53,0.35); transition: all 0.3s; margin-top: 8px;
+}
+.pf-submit-btn:hover { transform: translateY(-2px); }
+
+/* Grille projets */
+.pf-projets-grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
+
+.carte-projet-portfolio {
+    background: white; border: 1.5px solid #e2e8f0; border-radius: 18px; overflow: hidden;
+    transition: all 0.3s; display: flex; flex-direction: column;
+}
+.carte-projet-portfolio:hover { border-color: transparent; transform: translateY(-6px); box-shadow: 0 20px 50px rgba(11,36,71,0.1); }
+
+.cp-image-wrapper { position: relative; height: 180px; overflow: hidden; background: var(--gris-clair); }
+.cp-image { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s; }
+.carte-projet-portfolio:hover .cp-image { transform: scale(1.06); }
+.cp-image-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 44px; }
+
+.cp-overlay {
+    position: absolute; inset: 0; background: linear-gradient(to top, rgba(5,13,26,0.85), transparent 50%);
+    display: flex; align-items: flex-end; padding: 16px; opacity: 0; transition: opacity 0.3s;
+}
+.carte-projet-portfolio:hover .cp-overlay { opacity: 1; }
+
+.cp-overlay-btn { color: white; font-weight: 700; font-size: 13px; text-decoration: none; }
+
+.cp-contenu { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+.cp-titre { font-size: 16px; font-weight: 700; color: var(--bleu-principal); margin-bottom: 8px; }
+.cp-desc { font-size: 13px; color: var(--gris-texte); line-height: 1.6; margin-bottom: 14px; flex-grow: 1; }
+
+.cp-technologies { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.cp-tech-tag { font-size: 11px; font-weight: 600; background: rgba(0,180,216,0.08); color: var(--bleu-electrique); padding: 3px 10px; border-radius: 10px; }
+
+.cp-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid #f0f0f0; }
+.cp-date { font-size: 11px; color: #a0aec0; }
+.cp-lien-btn { font-size: 12px; color: var(--bleu-electrique); font-weight: 700; text-decoration: none; }
+
+.pf-vide { grid-column: 1/-1; text-align: center; padding: 80px 20px; color: var(--gris-texte); }
+.pf-vide h3 { color: var(--bleu-principal); margin: 16px 0 8px; font-size: 22px; }
+
+@media (max-width: 768px) {
+    .pf-page-inner { padding: 0 20px 60px; }
+    .pf-hero { padding: 50px 20px 40px; }
+    .pf-hero-titre { font-size: 28px; }
+    .pf-actions-bar { flex-direction: column; align-items: stretch; }
+    .pf-projets-grille { grid-template-columns: 1fr; }
+    .pf-form-modal { padding: 28px 20px; }
+}
+</style>
+
+<!-- ================================================
+     JS PORTFOLIO
+     ================================================ -->
+<script>
+function ouvrirFormulaire() {
+    document.getElementById('pf-form-overlay').classList.add('actif');
+}
+function fermerFormulaire() {
+    document.getElementById('pf-form-overlay').classList.remove('actif');
+}
+function previsualiserImage(input) {
+    var preview = document.getElementById('pf-preview-img');
+    var contenu = document.getElementById('pf-upload-contenu');
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            contenu.style.display = 'none';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var showForm = document.getElementById('pf-show-form');
+    if (showForm && showForm.value === '1') {
+        ouvrirFormulaire();
+    }
+});
+</script>
+
 {% endblock %}

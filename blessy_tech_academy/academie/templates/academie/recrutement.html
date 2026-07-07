@@ -4,87 +4,453 @@
 
 {% block contenu %}
 
-<section class="page-hero">
-    <h2>💼 Espace Recrutement</h2>
-    <p>Découvrez les talents formés chez Blessy Tech Academy.</p>
-</section>
+<!-- ================================================
+     HERO RECRUTEMENT
+     ================================================ -->
+<section class="rec-hero">
+    <div class="rec-hero-grid"></div>
+    <div class="rec-glow-1"></div>
+    <div class="rec-glow-2"></div>
 
-<section style="background: var(--gris-clair); padding: 60px 40px;">
-    <div style="max-width: 1100px; margin: 0 auto;">
+    <div class="rec-hero-inner">
+        <div class="section-tag rec-tag">💼 Espace Recrutement</div>
+        <h1 class="rec-hero-titre">
+            Découvrez les meilleurs talents<br>
+            <span class="rec-titre-accent">formés par Blessy Tech Academy</span>
+        </h1>
+        <p class="rec-hero-sous">
+            Des étudiants formés, certifiés et prêts à contribuer —
+            en entreprise, en freelance ou en remote.
+        </p>
 
-        {% if etudiants_data %}
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
-                {% for item in etudiants_data %}
-                <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: var(--ombre-legere);">
-                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-                        <span style="font-size: 40px;">👤</span>
-                        <div>
-                            <h3 style="margin: 0; color: var(--bleu-principal);">
-                                {{ item.user.first_name }} {{ item.user.last_name }}
-                            </h3>
-                            <p style="margin: 0; color: var(--gris-texte); font-size: 14px;">
-                                @{{ item.user.username }}
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Stats -->
-                    <div style="display: flex; gap: 16px; margin-bottom: 16px; font-size: 14px;">
-                        <span>🎓 {{ item.nb_formations }} certif.</span>
-                        <span>📝 {{ item.nb_quiz }} quiz</span>
-                        <span>🏆 {{ item.nb_badges }} badges</span>
-                        <span>🚀 {{ item.nb_projets }} projets</span>
-                    </div>
-
-                    <!-- Certifications -->
-                    {% if item.certifications %}
-                        <h4 style="font-size: 16px; margin-bottom: 8px;">🎓 Certifications</h4>
-                        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;">
-                            {% for cert in item.certifications %}
-                                <span style="background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 12px; font-size: 12px;">
-                                    {{ cert.nom }}
-                                </span>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-
-                    <!-- Badges -->
-                    {% if item.badges %}
-                        <h4 style="font-size: 16px; margin-bottom: 8px;">🏅 Badges</h4>
-                        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;">
-                            {% for badge in item.badges|slice:":5" %}
-                                <span style="background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 12px; font-size: 12px;">
-                                    {{ badge.type_badge }}
-                                </span>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-
-                    <!-- Projets -->
-                    {% if item.projets %}
-                        <h4 style="font-size: 16px; margin-bottom: 8px;">💻 Projets récents</h4>
-                        {% for projet in item.projets %}
-                            <div style="background: #f9fafb; padding: 10px; border-radius: 8px; margin-bottom: 8px;">
-                                <strong style="color: var(--bleu-principal);">{{ projet.titre }}</strong>
-                                <p style="font-size: 13px; margin: 4px 0;">{{ projet.description|truncatewords:20 }}</p>
-                                {% if projet.lien %}
-                                    <a href="{{ projet.lien }}" target="_blank" style="font-size: 12px; color: var(--bleu-electrique);">Voir le projet →</a>
-                                {% endif %}
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-
-                </div>
-                {% endfor %}
+        <div class="rec-stats-bar">
+            <div class="rstat-item">
+                <span class="rstat-val">{{ etudiants_data|length }}</span>
+                <span class="rstat-label">Talents actifs</span>
             </div>
-        {% else %}
-            <div style="text-align: center; padding: 40px;">
-                <span style="font-size: 48px;">🔍</span>
-                <h3 style="color: var(--bleu-principal);">Aucun étudiant pour le moment</h3>
-                <p style="color: var(--gris-texte);">Les étudiants qui complètent des formations et ajoutent des projets apparaîtront ici.</p>
+            <div class="rstat-sep"></div>
+            <div class="rstat-item">
+                <span class="rstat-val">6</span>
+                <span class="rstat-label">Domaines d'expertise</span>
             </div>
-        {% endif %}
+            <div class="rstat-sep"></div>
+            <div class="rstat-item">
+                <span class="rstat-val">🤖</span>
+                <span class="rstat-label">IA vérifiée</span>
+            </div>
+        </div>
 
+        <div class="rec-search-hero">
+            <span class="rec-search-icone">🔍</span>
+            <input type="text" id="rec-search-input"
+                   placeholder="Rechercher par nom, compétence, technologie...">
+        </div>
     </div>
 </section>
+
+<div class="rec-page-inner">
+
+    <!-- ================================================
+         FILTRES
+         ================================================ -->
+    <div class="rec-filtres-bar">
+        <button class="rec-filtre-pill actif" data-filtre="tous" onclick="filtrerTalents('tous', this)">
+            🌐 Tous les talents
+        </button>
+        <button class="rec-filtre-pill" data-filtre="projets" onclick="filtrerTalents('projets', this)">
+            🛠️ Avec projets
+        </button>
+        <button class="rec-filtre-pill" data-filtre="certifies" onclick="filtrerTalents('certifies', this)">
+            🏆 Certifiés
+        </button>
+        <button class="rec-filtre-pill" data-filtre="badges" onclick="filtrerTalents('badges', this)">
+            🎖️ Top badges
+        </button>
+
+        <div class="rec-tri-wrapper">
+            <select id="rec-tri" class="rec-tri-select" onchange="trierTalents()">
+                <option value="pertinence">Trier par pertinence</option>
+                <option value="badges">Plus de badges</option>
+                <option value="formations">Plus de formations</option>
+                <option value="projets">Plus de projets</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- ================================================
+         GRILLE CARTES TALENTS
+         ================================================ -->
+    <div class="rec-talents-grille" id="rec-talents-grille">
+        {% for data in etudiants_data %}
+        <div class="carte-talent"
+             data-nom="{{ data.user.first_name|default:data.user.username }} {{ data.user.last_name }}"
+             data-projets="{{ data.nb_projets }}"
+             data-certifs="{{ data.certifications|length }}"
+             data-badges="{{ data.nb_badges }}"
+             data-formations="{{ data.nb_formations }}">
+
+            <!-- Header carte -->
+            <div class="ct-header">
+                <div class="ct-avatar">
+                    {{ data.user.first_name|first|upper|default:data.user.username|first|upper }}
+                </div>
+                {% if data.nb_badges >= 5 %}
+                <span class="ct-badge-top">⭐ Top Talent</span>
+                {% endif %}
+            </div>
+
+            <!-- Nom + titre -->
+            <h3 class="ct-nom">
+                {{ data.user.first_name|default:data.user.username }}
+                {{ data.user.last_name }}
+            </h3>
+            <p class="ct-titre-pro">
+                {% if data.certifications %}
+                    {{ data.certifications.0.nom }}
+                {% else %}
+                    Étudiant Blessy Tech Academy
+                {% endif %}
+            </p>
+
+            <!-- Stats -->
+            <div class="ct-stats">
+                <div class="ct-stat">
+                    <span class="ct-stat-val">{{ data.nb_formations }}</span>
+                    <span class="ct-stat-label">Formations</span>
+                </div>
+                <div class="ct-stat">
+                    <span class="ct-stat-val">{{ data.nb_projets }}</span>
+                    <span class="ct-stat-label">Projets</span>
+                </div>
+                <div class="ct-stat">
+                    <span class="ct-stat-val">{{ data.nb_badges }}</span>
+                    <span class="ct-stat-label">Badges</span>
+                </div>
+            </div>
+
+            <!-- Certifications -->
+            {% if data.certifications %}
+            <div class="ct-section">
+                <p class="ct-section-label">🏆 Certifications</p>
+                <div class="ct-tags">
+                    {% for cert in data.certifications|slice:":3" %}
+                    <span class="ct-tag ct-tag-cert">
+                        {{ cert.icone }} {{ cert.nom }}
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Badges -->
+            {% if data.badges %}
+            <div class="ct-section">
+                <p class="ct-section-label">🎖️ Badges</p>
+                <div class="ct-tags">
+                    {% for badge in data.badges|slice:":3" %}
+                    <span class="ct-tag ct-tag-badge">
+                        {{ badge.get_type_badge_display }}
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Projets récents -->
+            {% if data.projets %}
+            <div class="ct-section">
+                <p class="ct-section-label">🛠️ Projets récents</p>
+                <div class="ct-projets-mini">
+                    {% for projet in data.projets %}
+                    <div class="ct-projet-item">
+                        {% if projet.image %}
+                        <img src="{{ projet.image.url }}" alt="{{ projet.titre }}" class="ct-projet-img">
+                        {% else %}
+                        <div class="ct-projet-img ct-projet-placeholder">💻</div>
+                        {% endif %}
+                        <span class="ct-projet-titre">{{ projet.titre|truncatechars:20 }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- CTA -->
+            <div class="ct-footer">
+                <button class="btn-ct-profil" onclick="ouvrirProfil(this)"
+                        data-nom="{{ data.user.first_name|default:data.user.username }} {{ data.user.last_name }}"
+                        data-formations="{{ data.nb_formations }}"
+                        data-projets="{{ data.nb_projets }}"
+                        data-badges="{{ data.nb_badges }}">
+                    Voir le profil complet →
+                </button>
+            </div>
+
+        </div>
+        {% empty %}
+        <div class="rec-vide">
+            <span style="font-size: 56px;">💼</span>
+            <h3>Aucun talent disponible pour le moment</h3>
+            <p>Les étudiants apparaîtront ici dès qu'ils auront complété
+               une formation ou ajouté un projet à leur portfolio.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+<!-- ================================================
+     MODAL PROFIL DÉTAILLÉ
+     ================================================ -->
+<div class="rec-modal-overlay" id="rec-modal-overlay" onclick="fermerModal()">
+    <div class="rec-modal" onclick="event.stopPropagation()">
+        <button class="rec-modal-fermer" onclick="fermerModal()">✕</button>
+        <div id="rec-modal-contenu"></div>
+    </div>
+</div>
+
+<!-- ================================================
+     CSS RECRUTEMENT
+     ================================================ -->
+<style>
+
+.rec-page-inner { max-width: 1200px; margin: 0 auto; padding: 0 40px 80px; }
+
+/* HERO */
+.rec-hero {
+    background: linear-gradient(135deg, #050d1a, #0B2447);
+    padding: 80px 40px 60px; text-align: center; position: relative; overflow: hidden;
+}
+
+.rec-hero-grid {
+    position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(0,180,216,0.05) 1px, transparent 1px),
+                       linear-gradient(90deg, rgba(0,180,216,0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+.rec-glow-1 { position: absolute; width: 450px; height: 450px; background: radial-gradient(circle, rgba(0,180,216,0.12) 0%, transparent 70%); top: -100px; left: 10%; }
+.rec-glow-2 { position: absolute; width: 350px; height: 350px; background: radial-gradient(circle, rgba(255,107,53,0.08) 0%, transparent 70%); bottom: -80px; right: 10%; }
+
+.rec-hero-inner { max-width: 700px; margin: 0 auto; position: relative; z-index: 2; }
+
+.rec-tag { background: rgba(255,107,53,0.12); border-color: rgba(255,107,53,0.3); color: #FF6B35; margin-bottom: 24px; }
+
+.rec-hero-titre { font-size: 42px; font-weight: 800; color: white; line-height: 1.2; letter-spacing: -1px; margin-bottom: 18px; }
+.rec-titre-accent { background: linear-gradient(135deg, #00B4D8, #7dd3fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+.rec-hero-sous { font-size: 16px; color: rgba(255,255,255,0.68); line-height: 1.8; margin-bottom: 28px; }
+
+.rec-stats-bar { display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 28px; flex-wrap: wrap; }
+.rstat-item { display: flex; flex-direction: column; gap: 2px; }
+.rstat-val { font-size: 24px; font-weight: 800; color: white; }
+.rstat-label { font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; }
+.rstat-sep { width: 1px; height: 30px; background: rgba(255,255,255,0.1); }
+
+.rec-search-hero {
+    display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 50px; padding: 14px 24px;
+    max-width: 500px; margin: 0 auto; backdrop-filter: blur(10px);
+}
+.rec-search-icone { opacity: 0.5; }
+.rec-search-hero input { flex: 1; background: none; border: none; outline: none; color: white; font-size: 14px; font-family: inherit; }
+.rec-search-hero input::placeholder { color: rgba(255,255,255,0.4); }
+
+/* FILTRES */
+.rec-filtres-bar { display: flex; align-items: center; gap: 10px; padding: 32px 0; flex-wrap: wrap; }
+
+.rec-filtre-pill {
+    padding: 9px 18px; border-radius: 20px; border: 1.5px solid #e2e8f0; background: white;
+    font-size: 13px; font-weight: 600; color: var(--gris-texte); cursor: pointer;
+    font-family: inherit; transition: all 0.2s;
+}
+.rec-filtre-pill:hover { border-color: var(--bleu-electrique); }
+.rec-filtre-pill.actif { background: var(--bleu-principal); color: white; border-color: transparent; }
+
+.rec-tri-wrapper { margin-left: auto; }
+.rec-tri-select {
+    padding: 9px 16px; border-radius: 20px; border: 1.5px solid #e2e8f0; background: white;
+    font-size: 13px; color: var(--gris-texte); font-family: inherit; cursor: pointer;
+}
+
+/* GRILLE TALENTS */
+.rec-talents-grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
+
+.carte-talent {
+    background: white; border: 1.5px solid #e2e8f0; border-radius: 20px; padding: 24px;
+    transition: all 0.3s; display: flex; flex-direction: column; position: relative; overflow: hidden;
+}
+
+.carte-talent::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, #00B4D8, #FF6B35); transform: scaleX(0);
+    transition: transform 0.3s; transform-origin: left;
+}
+
+.carte-talent:hover { border-color: transparent; transform: translateY(-6px); box-shadow: 0 24px 60px rgba(11,36,71,0.12); }
+.carte-talent:hover::before { transform: scaleX(1); }
+
+.ct-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+
+.ct-avatar {
+    width: 56px; height: 56px; border-radius: 16px;
+    background: linear-gradient(135deg, var(--bleu-principal), #00B4D8);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 800; font-size: 22px;
+}
+
+.ct-badge-top {
+    background: linear-gradient(135deg, #FFD700, #f5c400); color: #7a5c00;
+    font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 12px;
+    align-self: flex-start;
+}
+
+.ct-nom { font-size: 17px; font-weight: 700; color: var(--bleu-principal); margin: 0 0 4px; }
+.ct-titre-pro { font-size: 13px; color: var(--bleu-electrique); font-weight: 600; margin: 0 0 16px; }
+
+.ct-stats { display: flex; gap: 0; padding: 12px 0; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0; margin-bottom: 16px; }
+.ct-stat { flex: 1; text-align: center; }
+.ct-stat-val { display: block; font-size: 18px; font-weight: 800; color: var(--bleu-principal); }
+.ct-stat-label { display: block; font-size: 10px; color: #a0aec0; text-transform: uppercase; }
+
+.ct-section { margin-bottom: 14px; }
+.ct-section-label { font-size: 11px; font-weight: 700; color: #a0aec0; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+
+.ct-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.ct-tag { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 12px; white-space: nowrap; }
+.ct-tag-cert { background: rgba(34,197,94,0.1); color: #22c55e; }
+.ct-tag-badge { background: rgba(0,180,216,0.1); color: var(--bleu-electrique); }
+
+.ct-projets-mini { display: flex; gap: 8px; }
+.ct-projet-item { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.ct-projet-img { width: 100%; height: 50px; border-radius: 8px; object-fit: cover; background: var(--gris-clair); }
+.ct-projet-placeholder { display: flex; align-items: center; justify-content: center; font-size: 20px; }
+.ct-projet-titre { font-size: 10px; color: var(--gris-texte); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.ct-footer { margin-top: auto; padding-top: 16px; }
+
+.btn-ct-profil {
+    width: 100%; background: var(--bleu-principal); color: white; border: none;
+    padding: 12px; border-radius: 10px; font-weight: 700; font-size: 13px;
+    cursor: pointer; font-family: inherit; transition: all 0.2s;
+}
+.btn-ct-profil:hover { background: var(--bleu-electrique); transform: translateY(-1px); }
+
+.rec-vide { grid-column: 1/-1; text-align: center; padding: 80px 20px; color: var(--gris-texte); }
+.rec-vide h3 { color: var(--bleu-principal); margin: 16px 0 8px; font-size: 22px; }
+
+/* MODAL */
+.rec-modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(5,13,26,0.7);
+    backdrop-filter: blur(6px); z-index: 2000; align-items: center; justify-content: center; padding: 20px;
+}
+.rec-modal-overlay.actif { display: flex; }
+
+.rec-modal {
+    background: white; border-radius: 24px; max-width: 500px; width: 100%;
+    max-height: 85vh; overflow-y: auto; padding: 40px; position: relative;
+    animation: apparition 0.3s ease-out;
+}
+
+.rec-modal-fermer {
+    position: absolute; top: 20px; right: 20px; background: var(--gris-clair);
+    border: none; width: 36px; height: 36px; border-radius: 10px; cursor: pointer;
+    font-size: 16px; color: var(--gris-texte);
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .rec-page-inner { padding: 0 20px 60px; }
+    .rec-hero { padding: 60px 20px 40px; }
+    .rec-hero-titre { font-size: 28px; }
+    .rec-filtres-bar { flex-direction: column; align-items: stretch; }
+    .rec-tri-wrapper { margin-left: 0; }
+    .rec-talents-grille { grid-template-columns: 1fr; }
+}
+</style>
+
+<!-- ================================================
+     JS RECRUTEMENT
+     ================================================ -->
+<script>
+(function() {
+    // Recherche live
+    document.getElementById('rec-search-input').addEventListener('input', function() {
+        const terme = this.value.toLowerCase();
+        document.querySelectorAll('.carte-talent').forEach(function(carte) {
+            const nom = (carte.dataset.nom || '').toLowerCase();
+            carte.style.display = nom.includes(terme) ? '' : 'none';
+        });
+    });
+
+    window.filtrerTalents = function(type, bouton) {
+        document.querySelectorAll('.rec-filtre-pill').forEach(b => b.classList.remove('actif'));
+        bouton.classList.add('actif');
+
+        document.querySelectorAll('.carte-talent').forEach(function(carte) {
+            let visible = true;
+            if (type === 'projets') visible = parseInt(carte.dataset.projets) > 0;
+            if (type === 'certifies') visible = parseInt(carte.dataset.certifs) > 0;
+            if (type === 'badges') visible = parseInt(carte.dataset.badges) >= 3;
+            carte.style.display = visible ? '' : 'none';
+        });
+    };
+
+    window.trierTalents = function() {
+        const critere = document.getElementById('rec-tri').value;
+        const grille = document.getElementById('rec-talents-grille');
+        const cartes = Array.from(grille.querySelectorAll('.carte-talent'));
+
+        const attribut = { badges: 'badges', formations: 'formations', projets: 'projets', pertinence: 'badges' }[critere];
+
+        cartes.sort(function(a, b) {
+            return parseInt(b.dataset[attribut]) - parseInt(a.dataset[attribut]);
+        });
+
+        cartes.forEach(function(c) { grille.appendChild(c); });
+    };
+
+    window.ouvrirProfil = function(bouton) {
+        const nom = bouton.dataset.nom;
+        const formations = bouton.dataset.formations;
+        const projets = bouton.dataset.projets;
+        const badges = bouton.dataset.badges;
+
+        document.getElementById('rec-modal-contenu').innerHTML = `
+            <div style="text-align:center; margin-bottom:24px;">
+                <div style="width:80px; height:80px; border-radius:20px; background:linear-gradient(135deg, var(--bleu-principal), #00B4D8); display:flex; align-items:center; justify-content:center; color:white; font-weight:800; font-size:32px; margin:0 auto 16px;">
+                    ${nom.charAt(0).toUpperCase()}
+                </div>
+                <h2 style="color: var(--bleu-principal); font-size:22px; margin-bottom:4px;">${nom}</h2>
+                <p style="color: var(--bleu-electrique); font-weight:600; font-size:14px;">Étudiant Blessy Tech Academy</p>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:24px;">
+                <div style="background:var(--gris-clair); border-radius:12px; padding:16px; text-align:center;">
+                    <div style="font-size:22px; font-weight:800; color:var(--bleu-principal);">${formations}</div>
+                    <div style="font-size:11px; color:#a0aec0; text-transform:uppercase;">Formations</div>
+                </div>
+                <div style="background:var(--gris-clair); border-radius:12px; padding:16px; text-align:center;">
+                    <div style="font-size:22px; font-weight:800; color:var(--bleu-principal);">${projets}</div>
+                    <div style="font-size:11px; color:#a0aec0; text-transform:uppercase;">Projets</div>
+                </div>
+                <div style="background:var(--gris-clair); border-radius:12px; padding:16px; text-align:center;">
+                    <div style="font-size:22px; font-weight:800; color:var(--bleu-principal);">${badges}</div>
+                    <div style="font-size:11px; color:#a0aec0; text-transform:uppercase;">Badges</div>
+                </div>
+            </div>
+            <p style="color:var(--gris-texte); font-size:14px; text-align:center; line-height:1.7;">
+                Ce profil est vérifié par Blessy Tech Academy sur la base de la
+                progression réelle de l'étudiant sur la plateforme.
+            </p>
+        `;
+
+        document.getElementById('rec-modal-overlay').classList.add('actif');
+    };
+
+    window.fermerModal = function() {
+        document.getElementById('rec-modal-overlay').classList.remove('actif');
+    };
+})();
+</script>
+
 {% endblock %}

@@ -269,14 +269,18 @@
                 </div>
 
             </div>
-
             <div class="mes-infos-boutons" style="margin-top: 24px; padding-top: 24px;
                         border-top: 1px solid #eee; display: flex; align-items: center; flex-wrap: wrap;">
-                <a href="{% url 'formations' %}" class="btn btn-principal">
-                    📚 Voir les formations
+                <a href="{% url 'mon_portfolio' %}" class="btn btn-principal"
+                   style="background: linear-gradient(135deg, #FF6B35, #e85a2a);">
+                    🎨 Mon Portfolio
                 </a>
-                <a href="{% url 'mon_portfolio' %}" class="btn btn-principal" style="margin-left: 10px;">
-                    📂 Mon Portfolio
+                <a href="{% url 'espace_recrutement' %}" class="btn btn-principal"
+                   style="background: var(--bleu-electrique); margin-left: 10px;">
+                    💼 Espace Recrutement
+                </a>
+                <a href="{% url 'formations' %}" class="btn btn-principal" style="margin-left: 10px;">
+                    📚 Voir les formations
                 </a>
                 <a href="{% url 'deconnexion' %}"
                 style="margin-left: 16px; color: #e53e3e;
