@@ -112,3 +112,45 @@ def rechercher_reponse_locale(question):
     if meilleur_score > 0:
         return meilleure_reponse
     return None
+
+
+def rechercher_reponse_locale_avancee(question, seuil_minimum=1):
+    """
+    Version améliorée avec score pondéré et retour de plusieurs candidats.
+    Conserve la fonction originale intacte — celle-ci est un complément.
+    """
+    question_normalisee = question.lower().strip()
+    resultats = []
+
+    for item in QUESTIONS_FREQUENTES:
+        score = 0
+        for mot in item["mots_cles"]:
+            if mot in question_normalisee:
+                score += 2 if len(mot) > 5 else 1
+
+        if score >= seuil_minimum:
+            resultats.append((score, item["reponse"]))
+
+    if not resultats:
+        return None
+
+    resultats.sort(key=lambda x: x[0], reverse=True)
+    return resultats[0][1]
+
+
+CATEGORIES_KB = {
+    "formations": ["parcours", "formations", "prix", "durée", "prérequis"],
+    "compte": ["compte", "inscription", "connecter"],
+    "communaute": ["forum", "communauté", "badge", "badges"],
+    "evaluation": ["quiz", "évaluation", "test", "certificat"],
+    "carriere": ["carrière", "métier", "simulateur", "projet", "portfolio"],
+}
+
+
+def categoriser_question(question):
+    """Identifie la catégorie probable d'une question — utile pour analytics."""
+    question = question.lower()
+    for categorie, mots in CATEGORIES_KB.items():
+        if any(mot in question for mot in mots):
+            return categorie
+    return "general"

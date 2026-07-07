@@ -307,7 +307,7 @@ CSP_SCRIPT_SRC = ("'self'",
                 "https://cdn.ckeditor.com",
                 "https://cdn.jsdelivr.net")
 CSP_STYLE_SRC = ("'self'",
-                "'unsafe-inline'",
+                "https://fonts.googleapis.com",
                 "https://cdn.ckeditor.com",
                 "https://cdn.jsdelivr.net",
                 "'unsafe-inline'")

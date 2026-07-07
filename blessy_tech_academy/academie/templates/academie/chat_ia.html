@@ -1,335 +1,1348 @@
 {% extends 'academie/base.html' %}
 
-{% block titre %}Blessy AI — Assistant Intelligent{% endblock %}
+{% block titre %}Blessy AI — Assistant Pédagogique Intelligent{% endblock %}
 
 {% block contenu %}
-<!-- Conteneur global avec marge intérieure en bas pour éviter le footer -->
-<div style="padding-bottom: 100px;">
 
-<section class="page-hero">
-    <h2>🤖 Blessy AI</h2>
-    <p>Ton assistant intelligent pour choisir ta formation et progresser.</p>
+<!-- ================================================
+     HERO BLESSY AI
+     ================================================ -->
+<section class="bai-hero">
+    <div class="bai-hero-grid"></div>
+    <div class="bai-glow-1"></div>
+    <div class="bai-glow-2"></div>
+
+    <div class="bai-hero-inner">
+        <div class="section-tag bai-tag">
+            <span class="bai-pulse-dot"></span>
+            Blessy AI — Propulsé par Gemini
+        </div>
+        <h1 class="bai-hero-titre">
+            Ton mentor IA<br>
+            <span class="bai-titre-accent">disponible 24h/24</span>
+        </h1>
+        <p class="bai-hero-sous">
+            Assistant code, générateur d'exercices, correcteur automatique,
+            conseiller de parcours — tout ce qu'il te faut pour progresser,
+            réuni en un seul endroit.
+        </p>
+    </div>
 </section>
 
-<section style="max-width: 800px; margin: 0 auto; padding: 40px 20px;">
-
-    <!-- Suggestions rapides -->
-    <div style="margin-bottom: 16px; display: flex; gap: 10px; flex-wrap: wrap;">
-        <button type="button" onclick="ajouterSuggestion('Quel parcours me conseillez-vous ?')"
-                style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border: none; border-radius: 999px; padding: 10px 14px; font-weight: 600; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2); cursor: pointer; white-space: nowrap;">
-            💡 Quel parcours ?
+<!-- ================================================
+     NAVIGATION OUTILS (TABS)
+     ================================================ -->
+<div class="bai-tools-nav">
+    <div class="bai-tools-nav-inner" id="bai-tools-nav">
+        <button class="bai-tool-tab actif" data-tool="chatbot">
+            <span class="bai-tool-icone">💬</span>
+            <span>Tuteur IA</span>
         </button>
-        <button type="button" onclick="ajouterSuggestion('Quelles formations sont les plus demandées ?')"
-                style="background: linear-gradient(135deg, #0f766e, #115e59); color: #fff; border: none; border-radius: 999px; padding: 10px 14px; font-weight: 600; box-shadow: 0 4px 10px rgba(15, 118, 110, 0.2); cursor: pointer; white-space: nowrap;">
-            📚 Formations demandées
+        <button class="bai-tool-tab" data-tool="code">
+            <span class="bai-tool-icone">💻</span>
+            <span>Assistant Code</span>
         </button>
-        <button type="button" onclick="ajouterSuggestion('Aidez-moi à choisir une formation')"
-                style="background: linear-gradient(135deg, #7c3aed, #6d28d9); color: #fff; border: none; border-radius: 999px; padding: 10px 14px; font-weight: 600; box-shadow: 0 4px 10px rgba(124, 58, 237, 0.2); cursor: pointer; white-space: nowrap;">
-            🎯 Choisir une formation
+        <button class="bai-tool-tab" data-tool="exercices">
+            <span class="bai-tool-icone">📝</span>
+            <span>Exercices</span>
+        </button>
+        <button class="bai-tool-tab" data-tool="explication">
+            <span class="bai-tool-icone">📖</span>
+            <span>Explication</span>
+        </button>
+        <button class="bai-tool-tab" data-tool="correction">
+            <span class="bai-tool-icone">✅</span>
+            <span>Correction</span>
+        </button>
+        <button class="bai-tool-tab" data-tool="parcours">
+            <span class="bai-tool-icone">🎯</span>
+            <span>Parcours Adaptatif</span>
+        </button>
+        <button class="bai-tool-tab" data-tool="carriere">
+            <span class="bai-tool-icone">🚀</span>
+            <span>Simulateur Carrière</span>
         </button>
     </div>
+</div>
 
-    <!-- Bouton nouvelle conversation -->
-    <div style="text-align: right; margin-bottom: 8px;">
-        <button onclick="nouvelleConversation()" style="background: none; border: 1px solid #ccc; border-radius: 6px; padding: 6px 12px; font-size: 13px; cursor: pointer;">
-            🆕 Nouvelle conversation
-        </button>
-    </div>
+<div class="bai-page-inner">
 
-    <!-- Fenêtre de chat -->
-    <div id="chat-fenetre" style="
-        background: white;
-        border-radius: 16px;
-        box-shadow: var(--ombre-legere);
-        height: 450px;
-        overflow-y: auto;
-        padding: 24px;
-        margin-bottom: 20px;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;">
+    <!-- ================================================
+         PANEL 1 : CHATBOT TUTEUR
+         ================================================ -->
+    <div class="bai-panel actif" id="panel-chatbot">
 
-        <div class="message-ia">
-            <span style="font-size: 24px;">🤖</span>
-            <div style="background: var(--gris-clair);
-                        padding: 12px 16px;
-                        border-radius: 12px;
-                        max-width: 80%;">
-                Bonjour ! Je suis <strong>Blessy AI</strong>,
-                ton assistant de Blessy Tech Academy.
-                Comment puis-je t'aider aujourd'hui ?
+        <div class="bai-chat-container">
+
+            <div class="bai-chat-header">
+                <div class="bai-chat-avatar-header">🤖</div>
+                <div class="bai-chat-header-info">
+                    <h3>Blessy AI — Ton tuteur personnel</h3>
+                    <span class="bai-status">
+                        <span class="bai-status-dot"></span>
+                        En ligne — prêt à t'aider
+                    </span>
+                </div>
+                <button class="bai-clear-btn" onclick="viderChat()" title="Nouvelle conversation">
+                    🔄
+                </button>
             </div>
+
+            <div class="bai-messages" id="bai-messages">
+                <div class="bai-message bai-message-bot">
+                    <div class="bai-avatar-msg">🤖</div>
+                    <div class="bai-bulle">
+                        <p>Salut ! Je suis <strong>Blessy AI</strong> 👋</p>
+                        <p>Je peux t'aider à comprendre un concept, débugger ton code,
+                        générer des exercices ou simplement répondre à tes questions
+                        sur ta formation. Comment puis-je t'aider aujourd'hui ?</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Suggestions rapides -->
+            <div class="bai-suggestions" id="bai-suggestions">
+                <button class="bai-suggestion-chip" onclick="envoyerSuggestion(this)">
+                    💡 Explique-moi les boucles for en Python
+                </button>
+                <button class="bai-suggestion-chip" onclick="envoyerSuggestion(this)">
+                    🎯 Quelle formation me recommandes-tu ?
+                </button>
+                <button class="bai-suggestion-chip" onclick="envoyerSuggestion(this)">
+                    🐛 Aide-moi à comprendre une erreur Python
+                </button>
+            </div>
+
+            <div class="bai-input-zone">
+                <textarea id="bai-input" class="bai-textarea"
+                          placeholder="Pose ta question à Blessy AI..."
+                          rows="1" maxlength="800"
+                          onkeydown="gererEnvoiTouche(event)"></textarea>
+                <button class="bai-send-btn" id="bai-send-btn" onclick="envoyerMessageChat()">
+                    <span class="bai-send-icone">➤</span>
+                </button>
+            </div>
+            <p class="bai-input-hint">
+                Entrée pour envoyer · Maj+Entrée pour nouvelle ligne
+            </p>
+
         </div>
     </div>
 
-    <!-- Saisie et bouton Envoyer -->
-    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-        <input type="text"
-               id="question-input"
-               placeholder="Pose ta question à Blessy AI..."
-               style="flex: 1 1 200px; padding: 14px 18px;
-                      border: 2px solid #e2e8f0;
-                      border-radius: 10px; font-size: 15px;
-                      font-family: inherit;"
-               maxlength="500">
-        <button onclick="envoyerQuestion()"
-                class="btn btn-principal"
-                id="btn-envoyer"
-                style="padding: 14px 24px; white-space: nowrap; flex: 0 0 auto;">
-            Envoyer ✈️
-        </button>
+    <!-- ================================================
+         PANEL 2 : ASSISTANT CODE
+         ================================================ -->
+    <div class="bai-panel" id="panel-code">
+
+        <div class="bai-tool-header">
+            <div class="bai-tool-header-icone">💻</div>
+            <div>
+                <h2>Assistant Code</h2>
+                <p>Colle ton code, Blessy AI l'analyse, corrige et t'explique — comme un vrai pair-programmer.</p>
+            </div>
+        </div>
+
+        <div class="bai-form-card">
+            <div class="bai-form-row">
+                <div class="bai-field">
+                    <label>Langage</label>
+                    <select id="code-langage" class="bai-select">
+                        <option value="python">🐍 Python</option>
+                        <option value="html">🌐 HTML</option>
+                        <option value="css">🎨 CSS</option>
+                        <option value="javascript">⚡ JavaScript</option>
+                        <option value="sql">🗄️ SQL</option>
+                        <option value="django">🎯 Django</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="bai-field">
+                <label>Ton code</label>
+                <textarea id="code-input" class="bai-code-input"
+                          placeholder="def ma_fonction():&#10;    print('Colle ton code ici')"
+                          rows="10" spellcheck="false"></textarea>
+            </div>
+
+            <div class="bai-field">
+                <label>Question complémentaire <span class="bai-optionnel">(optionnel)</span></label>
+                <input type="text" id="code-question" class="bai-input-text"
+                       placeholder="Ex: Pourquoi j'ai une erreur IndentationError ?">
+            </div>
+
+            <button class="bai-submit-btn" onclick="analyserCode()">
+                <span id="code-btn-texte">🔍 Analyser mon code</span>
+            </button>
+        </div>
+
+        <div class="bai-resultat-zone" id="code-resultat"></div>
     </div>
 
-    <p style="text-align: center; color: var(--gris-texte);
-               font-size: 13px; margin-top: 12px;">
-        Appuie sur <strong>Entrée</strong> pour envoyer •
-        <a href="{% url 'recommandations_ia' %}"
-           style="color: var(--bleu-electrique);">
-            Obtenir des recommandations personnalisées →
-        </a>
-    </p>
+    <!-- ================================================
+         PANEL 3 : GÉNÉRATEUR D'EXERCICES
+         ================================================ -->
+    <div class="bai-panel" id="panel-exercices">
 
-</section>
+        <div class="bai-tool-header">
+            <div class="bai-tool-header-icone">📝</div>
+            <div>
+                <h2>Générateur d'Exercices</h2>
+                <p>Blessy AI crée un exercice sur-mesure adapté à ton niveau.</p>
+            </div>
+        </div>
 
-<hr style="margin: 40px 0;">
+        <div class="bai-form-card">
+            <div class="bai-field">
+                <label>Sujet de l'exercice</label>
+                <input type="text" id="exo-sujet" class="bai-input-text"
+                       placeholder="Ex: Les listes en Python, Les formulaires Django...">
+            </div>
 
-<h3 style="text-align:center; margin-bottom:20px;">⚡ Fonctions IA avancées</h3>
+            <div class="bai-form-row">
+                <div class="bai-field">
+                    <label>Niveau</label>
+                    <select id="exo-niveau" class="bai-select">
+                        <option value="debutant">🌱 Débutant</option>
+                        <option value="intermediaire">⚡ Intermédiaire</option>
+                        <option value="avance">🔥 Avancé</option>
+                    </select>
+                </div>
+                <div class="bai-field">
+                    <label>Format</label>
+                    <select id="exo-format" class="bai-select">
+                        <option value="code">💻 Exercice de code</option>
+                        <option value="qcm">☑️ QCM</option>
+                    </select>
+                </div>
+            </div>
 
-<!-- Grille de boutons responsive -->
-<div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 20px; padding: 0 20px;">
-    <button onclick="afficherFormulaire('assistant-code')"
-            style="background:#2563eb; color:white; border:none; border-radius:8px; padding:12px 16px; cursor:pointer; flex: 1 1 calc(50% - 10px); min-width: 140px; max-width: 200px;">
-        💻 Assistant Code
-    </button>
-    <button onclick="afficherFormulaire('generateur-exercices')"
-            style="background:#0f766e; color:white; border:none; border-radius:8px; padding:12px 16px; cursor:pointer; flex: 1 1 calc(50% - 10px); min-width: 140px; max-width: 200px;">
-        📝 Générateur
-    </button>
-    <button onclick="afficherFormulaire('explication-concept')"
-            style="background:#0891b2; color:white; border:none; border-radius:8px; padding:12px 16px; cursor:pointer; flex: 1 1 calc(50% - 10px); min-width: 140px; max-width: 200px;">
-        📖 Explication
-    </button>
-    <button onclick="afficherFormulaire('correction')"
-            style="background:#d97706; color:white; border:none; border-radius:8px; padding:12px 16px; cursor:pointer; flex: 1 1 calc(50% - 10px); min-width: 140px; max-width: 200px;">
-        ✅ Correction
-    </button>
-    <button onclick="afficherFormulaire('parcours-adaptatif')"
-            style="background:#dc2626; color:white; border:none; border-radius:8px; padding:12px 16px; cursor:pointer; flex: 1 1 calc(50% - 10px); min-width: 140px; max-width: 200px;">
-        🎯 Conseil AI
-    </button>
-    <button onclick="afficherFormulaire('chatbot')"
-            style="background:#4b5563; color:white; border:none; border-radius:8px; padding:12px 16px; cursor:pointer; flex: 1 1 calc(50% - 10px); min-width: 140px; max-width: 200px;">
-        💬 Tuteur
-    </button>
+            <button class="bai-submit-btn" onclick="genererExercice()">
+                <span id="exo-btn-texte">✨ Générer l'exercice</span>
+            </button>
+        </div>
+
+        <div class="bai-resultat-zone" id="exo-resultat"></div>
+    </div>
+
+    <!-- ================================================
+         PANEL 4 : EXPLICATION DE CONCEPT
+         ================================================ -->
+    <div class="bai-panel" id="panel-explication">
+
+        <div class="bai-tool-header">
+            <div class="bai-tool-header-icone">📖</div>
+            <div>
+                <h2>Explication de Concept</h2>
+                <p>Comme un professeur particulier — clair, structuré, avec exemples concrets.</p>
+            </div>
+        </div>
+
+        <div class="bai-form-card">
+            <div class="bai-field">
+                <label>Ta question</label>
+                <textarea id="explic-question" class="bai-input-text"
+                          rows="3"
+                          placeholder="Ex: Qu'est-ce qu'une API REST ? Comment fonctionne une boucle while ?"></textarea>
+            </div>
+
+            <div class="bai-field">
+                <label>Ton niveau</label>
+                <select id="explic-niveau" class="bai-select">
+                    <option value="debutant">🌱 Débutant</option>
+                    <option value="intermediaire">⚡ Intermédiaire</option>
+                    <option value="avance">🔥 Avancé</option>
+                </select>
+            </div>
+
+            <button class="bai-submit-btn" onclick="expliquerConcept()">
+                <span id="explic-btn-texte">📚 Expliquer ce concept</span>
+            </button>
+        </div>
+
+        <div class="bai-resultat-zone" id="explic-resultat"></div>
+    </div>
+
+    <!-- ================================================
+         PANEL 5 : CORRECTION AUTOMATIQUE
+         ================================================ -->
+    <div class="bai-panel" id="panel-correction">
+
+        <div class="bai-tool-header">
+            <div class="bai-tool-header-icone">✅</div>
+            <div>
+                <h2>Correction Automatique</h2>
+                <p>Soumets ta réponse à un exercice — reçois une vraie copie corrigée.</p>
+            </div>
+        </div>
+
+        <div class="bai-form-card">
+            <div class="bai-field">
+                <label>Énoncé de l'exercice</label>
+                <textarea id="correc-enonce" class="bai-input-text" rows="3"
+                          placeholder="Ex: Écris une fonction qui calcule la somme de deux nombres"></textarea>
+            </div>
+
+            <div class="bai-field">
+                <label>Ta réponse</label>
+                <textarea id="correc-reponse" class="bai-code-input" rows="8" spellcheck="false"
+                          placeholder="Colle ta réponse ici..."></textarea>
+            </div>
+
+            <div class="bai-field">
+                <label>Barème <span class="bai-optionnel">(optionnel)</span></label>
+                <input type="text" id="correc-bareme" class="bai-input-text"
+                       placeholder="Ex: 10 pts syntaxe, 10 pts logique">
+            </div>
+
+            <button class="bai-submit-btn" onclick="corrigerReponse()">
+                <span id="correc-btn-texte">📝 Corriger ma réponse</span>
+            </button>
+        </div>
+
+        <div class="bai-resultat-zone" id="correc-resultat"></div>
+    </div>
+
+    <!-- ================================================
+         PANEL 6 : PARCOURS ADAPTATIF (VISUALISATION MODERNE)
+         ================================================ -->
+    <div class="bai-panel" id="panel-parcours">
+
+        <div class="bai-tool-header">
+            <div class="bai-tool-header-icone">🎯</div>
+            <div>
+                <h2>Parcours Adaptatif</h2>
+                <p>Le cerveau pédagogique de Blessy AI — ta stratégie d'apprentissage personnalisée.</p>
+            </div>
+        </div>
+
+        <div class="bai-form-card">
+            <p class="bai-form-intro">
+                Évalue ton niveau (0 à 100%) sur chaque sujet — Blessy AI construit
+                ensuite ta feuille de route.
+            </p>
+
+            <div id="parcours-scores-liste" class="bai-scores-liste">
+                <div class="bai-score-item">
+                    <label>HTML / CSS</label>
+                    <input type="range" min="0" max="100" value="50"
+                           class="bai-slider" data-sujet="HTML/CSS"
+                           oninput="updateSliderValue(this)">
+                    <span class="bai-slider-val">50%</span>
+                </div>
+                <div class="bai-score-item">
+                    <label>JavaScript</label>
+                    <input type="range" min="0" max="100" value="30"
+                           class="bai-slider" data-sujet="JavaScript"
+                           oninput="updateSliderValue(this)">
+                    <span class="bai-slider-val">30%</span>
+                </div>
+                <div class="bai-score-item">
+                    <label>Python</label>
+                    <input type="range" min="0" max="100" value="40"
+                           class="bai-slider" data-sujet="Python"
+                           oninput="updateSliderValue(this)">
+                    <span class="bai-slider-val">40%</span>
+                </div>
+                <div class="bai-score-item">
+                    <label>Django</label>
+                    <input type="range" min="0" max="100" value="10"
+                           class="bai-slider" data-sujet="Django"
+                           oninput="updateSliderValue(this)">
+                    <span class="bai-slider-val">10%</span>
+                </div>
+                <div class="bai-score-item">
+                    <label>Bases de données</label>
+                    <input type="range" min="0" max="100" value="20"
+                           class="bai-slider" data-sujet="Bases de données"
+                           oninput="updateSliderValue(this)">
+                    <span class="bai-slider-val">20%</span>
+                </div>
+            </div>
+
+            <div class="bai-form-row">
+                <div class="bai-field">
+                    <label>Parcours actuel <span class="bai-optionnel">(optionnel)</span></label>
+                    <input type="text" id="parcours-actuel" class="bai-input-text"
+                           placeholder="Ex: Développeur Web Python">
+                </div>
+                <div class="bai-field">
+                    <label>Objectif <span class="bai-optionnel">(optionnel)</span></label>
+                    <input type="text" id="parcours-objectif" class="bai-input-text"
+                           placeholder="Ex: Devenir Développeur Full Stack">
+                </div>
+            </div>
+
+            <button class="bai-submit-btn" onclick="genererParcoursAdaptatif()">
+                <span id="parcours-btn-texte">🧠 Construire ma stratégie</span>
+            </button>
+        </div>
+
+        <!-- Visualisation moderne du profil (avant résultat IA) -->
+        <div class="bai-profil-visuel" id="profil-visuel-preview">
+            <h4 class="bai-profil-titre">📊 Ton profil actuel</h4>
+            <div class="bai-radar-bars" id="radar-bars"></div>
+        </div>
+
+        <div class="bai-resultat-zone" id="parcours-resultat"></div>
+    </div>
+
+    <!-- ================================================
+         PANEL 7 : SIMULATEUR DE CARRIÈRE
+         ================================================ -->
+    <div class="bai-panel" id="panel-carriere">
+
+        <div class="bai-tool-header">
+            <div class="bai-tool-header-icone">🚀</div>
+            <div>
+                <h2>Simulateur de Carrière</h2>
+                <p>Découvre le salaire, les compétences et le parcours pour un métier précis.</p>
+            </div>
+        </div>
+
+        <div class="bai-form-card">
+            <div class="bai-field">
+                <label>Quel métier t'intéresse ?</label>
+                <input type="text" id="carriere-metier" class="bai-input-text"
+                       placeholder="Ex: Développeur Web, Expert IA, Cybersécurité...">
+            </div>
+
+            <div class="bai-metiers-suggestions">
+                <button class="bai-metier-chip" onclick="remplirMetier('Développeur Web')">💻 Développeur Web</button>
+                <button class="bai-metier-chip" onclick="remplirMetier('Expert en Intelligence Artificielle')">🤖 Expert IA</button>
+                <button class="bai-metier-chip" onclick="remplirMetier('Spécialiste Cybersécurité')">🔐 Cybersécurité</button>
+                <button class="bai-metier-chip" onclick="remplirMetier('Analyste de Données')">📊 Data Analyst</button>
+                <button class="bai-metier-chip" onclick="remplirMetier('Designer Graphique')">🎨 Designer</button>
+            </div>
+
+            <button class="bai-submit-btn" onclick="simulerCarriere()">
+                <span id="carriere-btn-texte">🔮 Simuler cette carrière</span>
+            </button>
+        </div>
+
+        <div class="bai-resultat-zone" id="carriere-resultat"></div>
+    </div>
+
 </div>
 
-<div id="zone-formulaire-ia" style="max-width:700px; margin:0 auto; display:none; padding: 0 20px;"></div>
-<div id="resultat-ia" style="max-width:700px; margin:20px auto; display:none; padding: 0 20px;"></div>
+<!-- ================================================
+     TEMPLATE LOADER PREMIUM (réutilisé partout)
+     ================================================ -->
+<template id="template-loader">
+    <div class="bai-loader">
+        <div class="bai-loader-anim">
+            <span></span><span></span><span></span>
+        </div>
+        <p class="bai-loader-texte">Blessy AI réfléchit...</p>
+    </div>
+</template>
 
+<!-- ================================================
+     CSS BLESSY AI — VERSION PREMIUM
+     ================================================ -->
 <style>
-    @media (max-width: 576px) {
-        #zone-formulaire-ia button {
-            width: 100%;
-            display: block;
-            margin-top: 10px;
-        }
-    }
+
+.bai-page-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 40px 100px;
+}
+
+/* ---- HERO ---- */
+
+.bai-hero {
+    background: linear-gradient(135deg, #050d1a 0%, #0B2447 100%);
+    padding: 70px 40px 50px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.bai-hero-grid {
+    position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(0,180,216,0.05) 1px, transparent 1px),
+                       linear-gradient(90deg, rgba(0,180,216,0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+.bai-glow-1 {
+    position: absolute; width: 450px; height: 450px;
+    background: radial-gradient(circle, rgba(0,180,216,0.12) 0%, transparent 70%);
+    top: -100px; left: 15%;
+}
+
+.bai-glow-2 {
+    position: absolute; width: 350px; height: 350px;
+    background: radial-gradient(circle, rgba(255,107,53,0.08) 0%, transparent 70%);
+    bottom: -80px; right: 15%;
+}
+
+.bai-hero-inner { position: relative; z-index: 2; max-width: 650px; margin: 0 auto; }
+
+.bai-tag {
+    background: rgba(0,180,216,0.12); border-color: rgba(0,180,216,0.3);
+    color: #00B4D8; display: inline-flex; align-items: center; gap: 8px;
+    margin-bottom: 20px;
+}
+
+.bai-pulse-dot {
+    width: 7px; height: 7px; background: #22c55e; border-radius: 50%;
+    animation: pulse-dot 2s infinite;
+}
+
+.bai-hero-titre {
+    font-size: 42px; font-weight: 800; color: white;
+    line-height: 1.15; letter-spacing: -1.5px; margin-bottom: 16px;
+}
+
+.bai-titre-accent {
+    background: linear-gradient(135deg, #00B4D8, #7dd3fc);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+.bai-hero-sous { font-size: 15px; color: rgba(255,255,255,0.65); line-height: 1.7; }
+
+/* ---- TOOLS NAV (TABS) ---- */
+
+.bai-tools-nav {
+    background: white; border-bottom: 1px solid #e2e8f0;
+    position: sticky; top: 72px; z-index: 100;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    overflow-x: auto;
+}
+
+.bai-tools-nav-inner {
+    max-width: 1100px; margin: 0 auto; padding: 12px 20px;
+    display: flex; gap: 8px; min-width: max-content;
+}
+
+.bai-tool-tab {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 18px; border-radius: 10px; border: none;
+    background: var(--gris-clair); color: var(--gris-texte);
+    font-family: inherit; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+}
+
+.bai-tool-tab:hover { background: rgba(0,180,216,0.08); color: var(--bleu-electrique); }
+
+.bai-tool-tab.actif {
+    background: var(--bleu-principal); color: white;
+    box-shadow: 0 4px 14px rgba(11,36,71,0.25);
+}
+
+.bai-tool-icone { font-size: 16px; }
+
+/* ---- PANELS ---- */
+
+.bai-panel { display: none; animation: apparition 0.3s ease-out; }
+.bai-panel.actif { display: block; }
+
+.bai-tool-header {
+    display: flex; align-items: flex-start; gap: 16px;
+    margin: 32px 0 24px;
+}
+
+.bai-tool-header-icone {
+    width: 56px; height: 56px; background: linear-gradient(135deg, var(--bleu-principal), #00B4D8);
+    border-radius: 14px; display: flex; align-items: center; justify-content: center;
+    font-size: 26px; flex-shrink: 0;
+}
+
+.bai-tool-header h2 { font-size: 22px; font-weight: 800; color: var(--bleu-principal); margin: 0 0 4px; }
+.bai-tool-header p { font-size: 14px; color: var(--gris-texte); margin: 0; }
+
+/* ---- FORM CARD ---- */
+
+.bai-form-card {
+    background: white; border: 1.5px solid #e2e8f0; border-radius: 20px;
+    padding: 28px; box-shadow: 0 4px 20px rgba(11,36,71,0.05);
+}
+
+.bai-form-intro { font-size: 13px; color: var(--gris-texte); margin-bottom: 20px; }
+
+.bai-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+
+.bai-field { margin-bottom: 16px; }
+.bai-field label {
+    display: block; font-size: 13px; font-weight: 700; color: var(--bleu-principal);
+    margin-bottom: 6px;
+}
+
+.bai-optionnel { font-weight: 400; color: #a0aec0; font-size: 12px; }
+
+.bai-select, .bai-input-text {
+    width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px;
+    font-size: 14px; font-family: inherit; color: var(--gris-texte);
+    transition: all 0.2s; background: white;
+}
+
+.bai-select:focus, .bai-input-text:focus, .bai-code-input:focus, .bai-textarea:focus {
+    outline: none; border-color: #00B4D8; box-shadow: 0 0 0 4px rgba(0,180,216,0.1);
+}
+
+textarea.bai-input-text { resize: vertical; }
+
+.bai-code-input {
+    width: 100%; padding: 16px; border: 2px solid #1a1a2e; border-radius: 12px;
+    background: #1a1a2e; color: #00B4D8; font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 13px; resize: vertical; transition: all 0.2s; line-height: 1.6;
+}
+
+.bai-submit-btn {
+    width: 100%; background: linear-gradient(135deg, #FF6B35, #e85a2a); color: white;
+    border: none; padding: 16px; border-radius: 12px; font-size: 15px; font-weight: 800;
+    cursor: pointer; font-family: inherit; box-shadow: 0 8px 24px rgba(255,107,53,0.35);
+    transition: all 0.3s; margin-top: 8px;
+}
+
+.bai-submit-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(255,107,53,0.45); }
+.bai-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+/* ---- RÉSULTAT ZONE ---- */
+
+.bai-resultat-zone { margin-top: 24px; }
+
+.bai-resultat-card {
+    background: white; border: 1.5px solid #e2e8f0; border-radius: 20px;
+    padding: 32px; animation: apparition 0.4s ease-out;
+    box-shadow: 0 8px 30px rgba(11,36,71,0.06);
+}
+
+.bai-resultat-card h2 {
+    font-size: 20px; font-weight: 800; color: var(--bleu-principal);
+    margin: 24px 0 12px; padding-top: 16px; border-top: 1px solid #f0f0f0;
+}
+
+.bai-resultat-card h2:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+
+.bai-resultat-card p { font-size: 14px; color: var(--gris-texte); line-height: 1.8; margin-bottom: 12px; }
+
+.bai-resultat-card ul, .bai-resultat-card ol { margin: 0 0 16px 20px; }
+.bai-resultat-card li { font-size: 14px; color: var(--gris-texte); margin-bottom: 8px; line-height: 1.7; }
+
+.bai-resultat-card strong { color: var(--bleu-principal); }
+
+.bai-resultat-card pre {
+    background: #1a1a2e; color: #00B4D8; padding: 20px; border-radius: 12px;
+    overflow-x: auto; margin-bottom: 16px; font-size: 13px; line-height: 1.6;
+}
+
+.bai-resultat-card code {
+    background: rgba(0,180,216,0.1); color: #0090b8; padding: 2px 6px;
+    border-radius: 4px; font-size: 13px;
+}
+
+.bai-resultat-card pre code { background: none; padding: 0; color: inherit; }
+
+/* Erreur */
+.bai-erreur-card {
+    background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 16px;
+    padding: 20px 24px; color: #991b1b; font-size: 14px; font-weight: 500;
+}
+
+/* ---- LOADER ---- */
+
+.bai-loader {
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    padding: 40px; background: white; border-radius: 20px;
+    border: 1.5px solid #e2e8f0;
+}
+
+.bai-loader-anim { display: flex; gap: 6px; }
+
+.bai-loader-anim span {
+    width: 10px; height: 10px; background: var(--bleu-electrique); border-radius: 50%;
+    animation: typing-bounce 1.2s infinite;
+}
+
+.bai-loader-anim span:nth-child(2) { animation-delay: 0.2s; }
+.bai-loader-anim span:nth-child(3) { animation-delay: 0.4s; }
+
+.bai-loader-texte { font-size: 13px; color: var(--gris-texte); font-weight: 600; }
+
+/* ================================================
+   CHATBOT SPÉCIFIQUE
+   ================================================ */
+
+.bai-chat-container {
+    background: white; border: 1.5px solid #e2e8f0; border-radius: 24px;
+    overflow: hidden; box-shadow: 0 8px 40px rgba(11,36,71,0.08);
+    display: flex; flex-direction: column; height: 640px; margin-top: 24px;
+}
+
+.bai-chat-header {
+    display: flex; align-items: center; gap: 12px; padding: 18px 24px;
+    background: linear-gradient(135deg, #0B2447, #1a3a6a); flex-shrink: 0;
+}
+
+.bai-chat-avatar-header {
+    width: 44px; height: 44px; background: rgba(0,180,216,0.2);
+    border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+}
+
+.bai-chat-header-info { flex: 1; }
+.bai-chat-header-info h3 { font-size: 15px; color: white; margin: 0; }
+
+.bai-status {
+    display: flex; align-items: center; gap: 6px; font-size: 12px;
+    color: rgba(255,255,255,0.6); margin-top: 2px;
+}
+
+.bai-status-dot {
+    width: 7px; height: 7px; background: #22c55e; border-radius: 50%;
+    animation: pulse-dot 2s infinite;
+}
+
+.bai-clear-btn {
+    background: rgba(255,255,255,0.1); border: none; color: white;
+    width: 34px; height: 34px; border-radius: 8px; cursor: pointer;
+    font-size: 15px; transition: background 0.2s;
+}
+
+.bai-clear-btn:hover { background: rgba(255,255,255,0.2); }
+
+.bai-messages {
+    flex: 1; overflow-y: auto; padding: 24px;
+    display: flex; flex-direction: column; gap: 16px;
+    background: #fafbfc;
+}
+
+.bai-message { display: flex; gap: 10px; max-width: 85%; }
+.bai-message-user { align-self: flex-end; flex-direction: row-reverse; }
+.bai-message-bot { align-self: flex-start; }
+
+.bai-avatar-msg {
+    width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+}
+
+.bai-message-bot .bai-avatar-msg { background: linear-gradient(135deg, var(--bleu-principal), #00B4D8); }
+.bai-message-user .bai-avatar-msg { background: var(--orange-accent); }
+
+.bai-bulle {
+    background: white; padding: 14px 18px; border-radius: 16px 16px 16px 4px;
+    font-size: 14px; line-height: 1.7; color: var(--gris-texte);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04); border: 1px solid #f0f0f0;
+}
+
+.bai-message-user .bai-bulle {
+    background: var(--bleu-principal); color: white;
+    border-radius: 16px 16px 4px 16px; border: none;
+}
+
+.bai-bulle p { margin: 0 0 8px; }
+.bai-bulle p:last-child { margin-bottom: 0; }
+.bai-bulle strong { color: var(--bleu-principal); }
+.bai-message-user .bai-bulle strong { color: white; }
+
+.bai-bulle pre {
+    background: #1a1a2e; color: #00B4D8; padding: 14px; border-radius: 10px;
+    overflow-x: auto; font-size: 12px; margin: 8px 0;
+}
+
+.bai-suggestions {
+    display: flex; gap: 8px; padding: 12px 24px; flex-wrap: wrap;
+    border-top: 1px solid #f0f0f0; flex-shrink: 0;
+}
+
+.bai-suggestion-chip {
+    background: rgba(0,180,216,0.06); border: 1px solid rgba(0,180,216,0.2);
+    color: var(--bleu-electrique); padding: 7px 14px; border-radius: 20px;
+    font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+    font-family: inherit;
+}
+
+.bai-suggestion-chip:hover { background: rgba(0,180,216,0.12); }
+
+.bai-input-zone {
+    display: flex; align-items: flex-end; gap: 10px; padding: 16px 24px;
+    border-top: 1px solid #f0f0f0; flex-shrink: 0;
+}
+
+.bai-textarea {
+    flex: 1; border: 2px solid #e2e8f0; border-radius: 14px; padding: 12px 16px;
+    font-size: 14px; font-family: inherit; resize: none; max-height: 120px;
+    transition: all 0.2s;
+}
+
+.bai-send-btn {
+    width: 44px; height: 44px; background: linear-gradient(135deg, #FF6B35, #e85a2a);
+    color: white; border: none; border-radius: 12px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0; transition: all 0.2s;
+    box-shadow: 0 4px 14px rgba(255,107,53,0.35);
+}
+
+.bai-send-btn:hover { transform: scale(1.05); }
+.bai-send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.bai-input-hint { text-align: center; font-size: 11px; color: #a0aec0; padding: 0 24px 12px; }
+
+/* ---- PARCOURS ADAPTATIF — SLIDERS + VISUALISATION ---- */
+
+.bai-scores-liste { display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px; }
+
+.bai-score-item {
+    display: grid; grid-template-columns: 130px 1fr 50px; align-items: center; gap: 12px;
+}
+
+.bai-score-item label { font-size: 13px; font-weight: 600; color: var(--bleu-principal); }
+
+.bai-slider {
+    -webkit-appearance: none; appearance: none; height: 6px; border-radius: 10px;
+    background: #e2e8f0; outline: none;
+}
+
+.bai-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+    background: var(--bleu-electrique); cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,180,216,0.4);
+}
+
+.bai-slider-val {
+    font-size: 13px; font-weight: 800; color: var(--bleu-electrique); text-align: right;
+}
+
+.bai-profil-visuel {
+    background: var(--gris-clair); border-radius: 16px; padding: 24px; margin-top: 20px;
+}
+
+.bai-profil-titre { font-size: 14px; font-weight: 700; color: var(--bleu-principal); margin-bottom: 16px; }
+
+.bai-radar-bars { display: flex; flex-direction: column; gap: 10px; }
+
+.bai-radar-item { display: flex; align-items: center; gap: 12px; }
+
+.bai-radar-label { font-size: 12px; color: var(--gris-texte); width: 120px; flex-shrink: 0; }
+
+.bai-radar-track {
+    flex: 1; height: 10px; background: white; border-radius: 10px; overflow: hidden;
+    border: 1px solid #e2e8f0;
+}
+
+.bai-radar-fill {
+    height: 100%; border-radius: 10px; transition: width 0.6s ease;
+}
+
+.bai-radar-pct { font-size: 12px; font-weight: 700; width: 36px; text-align: right; }
+
+/* Visualisation parcours résultat (timeline ✔ ⚠ ➡) */
+.bai-parcours-timeline {
+    display: flex; flex-direction: column; gap: 0; margin-top: 20px;
+}
+
+.bai-pt-item {
+    display: flex; align-items: center; gap: 16px; padding: 16px 0; position: relative;
+}
+
+.bai-pt-item:not(:last-child)::after {
+    content: ''; position: absolute; left: 19px; top: 52px; width: 2px;
+    height: calc(100% - 20px); background: #e2e8f0;
+}
+
+.bai-pt-icone {
+    width: 40px; height: 40px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; font-size: 18px;
+    flex-shrink: 0; z-index: 1;
+}
+
+.bai-pt-acquis .bai-pt-icone { background: rgba(34,197,94,0.15); color: #22c55e; }
+.bai-pt-renforcer .bai-pt-icone { background: rgba(255,193,7,0.15); color: #f59e0b; }
+.bai-pt-prochain .bai-pt-icone { background: rgba(0,180,216,0.15); color: #00B4D8; }
+
+.bai-pt-texte { font-size: 14px; color: var(--gris-texte); font-weight: 500; }
+.bai-pt-texte strong { color: var(--bleu-principal); }
+
+/* Métiers suggestions */
+.bai-metiers-suggestions {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;
+}
+
+.bai-metier-chip {
+    background: var(--gris-clair); border: 1.5px solid #e2e8f0; color: var(--bleu-principal);
+    padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; font-family: inherit;
+}
+
+.bai-metier-chip:hover { border-color: var(--bleu-electrique); background: rgba(0,180,216,0.05); }
+
+/* ---- RESPONSIVE ---- */
+
+@media (max-width: 768px) {
+    .bai-page-inner { padding: 24px 20px 80px; }
+    .bai-hero { padding: 50px 20px 40px; }
+    .bai-hero-titre { font-size: 30px; }
+    .bai-form-row { grid-template-columns: 1fr; }
+    .bai-chat-container { height: 520px; }
+    .bai-score-item { grid-template-columns: 1fr; gap: 4px; }
+    .bai-suggestions { display: none; }
+    .bai-tools-nav { top: 64px; }
+}
+
 </style>
 
-</div><!-- fin du conteneur global avec padding-bottom -->
-{{ historique_chat|json_script:"historique-data" }}
-
+<!-- ================================================
+     JS BLESSY AI — LOGIQUE COMPLÈTE
+     ================================================ -->
 <script>
-    const chatFenetre = document.getElementById('chat-fenetre');
-    const questionInput = document.getElementById('question-input');
-    const btnEnvoyer = document.getElementById('btn-envoyer');
+(function() {
 
-    questionInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') envoyerQuestion();
-    });
+// ==================== UTILITAIRES ====================
 
-    function ajouterSuggestion(texte) {
-        questionInput.value = texte;
-        questionInput.focus();
-    }
-
-    function ajouterMessage(texte, estUtilisateur) {
-        const div = document.createElement('div');
-        div.style.cssText = `
-            display: flex;
-            gap: 10px;
-            align-items: flex-start;
-            ${estUtilisateur ? 'flex-direction: row-reverse;' : ''}
-        `;
-
-        const icone = document.createElement('span');
-        icone.style.fontSize = '24px';
-        icone.textContent = estUtilisateur ? '👤' : '🤖';
-
-        const bulle = document.createElement('div');
-        bulle.style.cssText = `
-            padding: 12px 16px;
-            border-radius: 12px;
-            max-width: 75%;
-            line-height: 1.6;
-            ${estUtilisateur
-                ? 'background: var(--bleu-principal); color: white;'
-                : 'background: var(--gris-clair); color: var(--gris-texte);'}
-        `;
-
-        // CORRECTION : si le texte commence par '<' (HTML), on l'injecte tel quel
-        if (texte.trim().startsWith('<')) {
-            bulle.innerHTML = texte;
-        } else {
-            bulle.innerHTML = texte.replace(/\n/g, '<br>');
-        }
-
-        div.appendChild(icone);
-        div.appendChild(bulle);
-        chatFenetre.appendChild(div);
-        chatFenetre.scrollTop = chatFenetre.scrollHeight;
-    }
-
-    function afficherChargement() {
-        const div = document.createElement('div');
-        div.id = 'chargement';
-        div.style.cssText = 'display: flex; gap: 10px; align-items: flex-start;';
-        div.innerHTML = `
-            <span style="font-size: 24px;">🤖</span>
-            <div style="background: var(--gris-clair); padding: 16px; border-radius: 12px; width: 70%;">
-                <div class="skeleton-line" style="width: 80%;"></div>
-                <div class="skeleton-line" style="width: 60%;"></div>
-                <div class="skeleton-line" style="width: 40%;"></div>
-            </div>
-        `;
-        chatFenetre.appendChild(div);
-        chatFenetre.scrollTop = chatFenetre.scrollHeight;
-    }
-
-    function supprimerChargement() {
-        const chargement = document.getElementById('chargement');
-        if (chargement) chargement.remove();
-    }
-
-    async function envoyerQuestion() {
-        const question = questionInput.value.trim();
-        if (!question) return;
-
-        ajouterMessage(question, true);
-        questionInput.value = '';
-        btnEnvoyer.disabled = true;
-        afficherChargement();
-
-        try {
-            const reponse = await fetch("{% url 'api_chat_ia' %}", {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({question: question})
-            });
-
-            const data = await reponse.json();
-            supprimerChargement();
-
-            if (data.reponse) {
-                ajouterMessage(data.reponse, false);
-            } else {
-                ajouterMessage('❌ ' + (data.erreur || 'Une erreur est survenue.'), false);
-            }
-
-        } catch (erreur) {
-            supprimerChargement();
-            ajouterMessage('❌ Connexion impossible. Vérifie ta connexion internet.', false);
-        }
-
-        btnEnvoyer.disabled = false;
-        questionInput.focus();
-    }
-
-    // --- Gestion de l'historique ---
-    window.addEventListener('DOMContentLoaded', function() {
-        const historiqueData = document.getElementById('historique-data');
-        if (historiqueData) {
-            try {
-                const historique = JSON.parse(historiqueData.textContent);
-                if (historique && historique.length > 0) {
-                    historique.forEach(function(msg) {
-                        if (msg.role === 'user') {
-                            ajouterMessage(msg.content, true);
-                        } else if (msg.role === 'assistant') {
-                            ajouterMessage(msg.content, false);
-                        }
-                    });
-                }
-            } catch(e) {
-                console.error('Erreur parsing historique:', e);
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
             }
         }
+    }
+    return cookieValue;
+}
+
+/* Convertit le Markdown renvoyé par Gemini en HTML simple et sûr */
+function markdownVersHtml(texte) {
+    if (!texte) return '';
+    let html = texte;
+
+    // Échapper les balises HTML dangereuses d'abord
+    html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    // Blocs de code ```lang\n...\n```
+    html = html.replace(/```(\w*)\n([\s\S]*?)```/g, function(match, lang, code) {
+        return '<pre><code class="language-' + (lang || 'plaintext') + '">' + code.trim() + '</code></pre>';
     });
 
-    function nouvelleConversation() {
-        if (confirm('Veux-tu vraiment effacer toute la conversation ?')) {
-            fetch("{% url 'api_chat_ia' %}", {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({question: '__clear__'})
-            }).then(() => {
-                location.reload();
-            });
-        }
-    }
-</script>
+    // Titres ## et ###
+    html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+    html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
 
-<script>
-const formIA = {
-    'assistant-code': '<h4>💻 Assistant Code</h4><textarea id="ia-code" rows="6" placeholder="Collez votre code ici..." style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"></textarea><br><select id="ia-langage" style="padding:8px;border-radius:8px;margin:5px 0;"><option value="python">Python</option><option value="javascript">JavaScript</option><option value="html">HTML/CSS</option><option value="java">Java</option><option value="php">PHP</option><option value="sql">SQL</option></select><input id="ia-question" placeholder="Question (optionnel)" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;margin:5px 0;"><button onclick="envoyerIA(\'assistant-code\')" style="background:#2563eb;color:white;border:none;padding:12px 20px;border-radius:8px;margin-top:5px;">🔍 Analyser</button>',
-    'generateur-exercices': '<h4>📝 Générateur d\'Exercices</h4><input id="ia-sujet" placeholder="Sujet (ex: Boucles for)" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;margin:5px 0;"><select id="ia-niveau" style="padding:8px;border-radius:8px;"><option value="debutant">Débutant</option><option value="intermediaire">Intermédiaire</option><option value="avance">Avancé</option></select><select id="ia-format" style="padding:8px;border-radius:8px;margin-left:5px;"><option value="code">Code</option><option value="qcm">QCM</option><option value="texte_libre">Question ouverte</option></select><br><button onclick="envoyerIA(\'generateur-exercices\')" style="background:#0f766e;color:white;border:none;padding:12px 20px;border-radius:8px;margin-top:10px;">📝 Générer</button>',
-    'explication-concept': '<h4>📖 Explication de Concept</h4><textarea id="ia-question-concept" rows="3" placeholder="Votre question..." style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"></textarea><select id="ia-niveau-eleve" style="padding:8px;border-radius:8px;margin:5px 0;"><option value="debutant">Débutant</option><option value="intermediaire">Intermédiaire</option><option value="avance">Avancé</option></select><br><button onclick="envoyerIA(\'explication-concept\')" style="background:#0891b2;color:white;border:none;padding:12px 20px;border-radius:8px;margin-top:5px;">📖 Expliquer</button>',
-    'correction': '<h4>✅ Correction Automatique</h4><textarea id="ia-enonce" rows="3" placeholder="Énoncé..." style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"></textarea><textarea id="ia-reponse-eleve" rows="4" placeholder="Votre réponse..." style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;margin:5px 0;"></textarea><input id="ia-bareme" placeholder="Barème (optionnel)" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"><br><button onclick="envoyerIA(\'correction\')" style="background:#d97706;color:white;border:none;padding:12px 20px;border-radius:8px;margin-top:10px;">✅ Corriger</button>',
-    'parcours-adaptatif': '<h4>🎯 Parcours Adaptatif</h4><textarea id="ia-profil" rows="3" placeholder=\'{"Python": 85, "JavaScript": 60}\' style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"></textarea><input id="ia-parcours" placeholder="Parcours actuel (optionnel)" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;margin:5px 0;"><input id="ia-objectif" placeholder="Objectif (optionnel)" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"><br><button onclick="envoyerIA(\'parcours-adaptatif\')" style="background:#dc2626;color:white;border:none;padding:12px 20px;border-radius:8px;margin-top:10px;">🎯 Recommander</button>',
-    'chatbot': '<h4>💬 Chatbot Tuteur</h4><textarea id="ia-message" rows="3" placeholder="Posez votre question..." style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"></textarea><br><button onclick="envoyerIA(\'chatbot\')" style="background:#4b5563;color:white;border:none;padding:12px 20px;border-radius:8px;margin-top:10px;">💬 Envoyer</button>'
+    // Gras **texte**
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+    // Code inline `texte`
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+    // Listes à puces
+    html = html.replace(/^- (.*$)/gim, '<li>$1</li>');
+    html = html.replace(/(<li>.*<\/li>\n?)+/g, function(match) {
+        return '<ul>' + match + '</ul>';
+    });
+
+    // Paragraphes (double saut de ligne)
+    html = html.split('\n\n').map(function(bloc) {
+        bloc = bloc.trim();
+        if (!bloc) return '';
+        if (bloc.startsWith('<h2') || bloc.startsWith('<h3') ||
+            bloc.startsWith('<ul') || bloc.startsWith('<pre')) {
+            return bloc;
+        }
+        return '<p>' + bloc.replace(/\n/g, '<br>') + '</p>';
+    }).join('\n');
+
+    return html;
+}
+
+/* Extrait le texte de la réponse quel que soit le nom de la clé JSON */
+function extraireTexteReponse(data) {
+    if (typeof data === 'string') return data;
+    return data.reponse || data.resultat || data.texte || data.contenu ||
+           data.message || data.response || data.erreur ||
+           'Réponse reçue mais format inattendu.';
+}
+
+async function appelerAPI(url, payload) {
+    const reponse = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify(payload)
+    });
+    return await reponse.json();
+}
+
+function afficherLoader(conteneurId) {
+    const conteneur = document.getElementById(conteneurId);
+    const template = document.getElementById('template-loader');
+    conteneur.innerHTML = '';
+    conteneur.appendChild(template.content.cloneNode(true));
+}
+
+function afficherResultat(conteneurId, texte, estErreur) {
+    const conteneur = document.getElementById(conteneurId);
+    if (estErreur) {
+        conteneur.innerHTML = '<div class="bai-erreur-card">⚠️ ' + texte + '</div>';
+    } else {
+        conteneur.innerHTML = '<div class="bai-resultat-card">' + markdownVersHtml(texte) + '</div>';
+    }
+}
+
+// ==================== NAVIGATION TABS ====================
+
+document.querySelectorAll('.bai-tool-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+        document.querySelectorAll('.bai-tool-tab').forEach(t => t.classList.remove('actif'));
+        document.querySelectorAll('.bai-panel').forEach(p => p.classList.remove('actif'));
+
+        tab.classList.add('actif');
+        const panelId = 'panel-' + tab.dataset.tool;
+        document.getElementById(panelId).classList.add('actif');
+
+        if (tab.dataset.tool === 'parcours') {
+            mettreAJourVisualisationProfil();
+        }
+    });
+});
+
+// ==================== 1. CHATBOT TUTEUR ====================
+
+let historiqueChat = [];
+
+window.gererEnvoiTouche = function(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        envoyerMessageChat();
+    }
 };
 
-function afficherFormulaire(fonction) {
-    document.getElementById('zone-formulaire-ia').style.display = 'block';
-    document.getElementById('zone-formulaire-ia').innerHTML = formIA[fonction];
-    document.getElementById('resultat-ia').style.display = 'none';
+window.envoyerSuggestion = function(bouton) {
+    document.getElementById('bai-input').value = bouton.textContent.trim();
+    envoyerMessageChat();
+};
+
+window.viderChat = function() {
+    historiqueChat = [];
+    document.getElementById('bai-messages').innerHTML = `
+        <div class="bai-message bai-message-bot">
+            <div class="bai-avatar-msg">🤖</div>
+            <div class="bai-bulle">
+                <p>Nouvelle conversation démarrée ! Comment puis-je t'aider ?</p>
+            </div>
+        </div>
+    `;
+};
+
+function ajouterMessageChat(texte, estUtilisateur) {
+    const messagesDiv = document.getElementById('bai-messages');
+    const div = document.createElement('div');
+    div.className = 'bai-message ' + (estUtilisateur ? 'bai-message-user' : 'bai-message-bot');
+
+    const avatar = document.createElement('div');
+    avatar.className = 'bai-avatar-msg';
+    avatar.textContent = estUtilisateur ? '👤' : '🤖';
+
+    const bulle = document.createElement('div');
+    bulle.className = 'bai-bulle';
+    bulle.innerHTML = estUtilisateur
+        ? '<p>' + texte.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</p>'
+        : markdownVersHtml(texte);
+
+    div.appendChild(avatar);
+    div.appendChild(bulle);
+    messagesDiv.appendChild(div);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+    return div;
 }
 
-async function envoyerIA(fonction) {
-    let data = {};
-    if (fonction === 'assistant-code') {
-        data = {code: document.getElementById('ia-code').value, langage: document.getElementById('ia-langage').value, question: document.getElementById('ia-question').value};
-    } else if (fonction === 'generateur-exercices') {
-        data = {sujet: document.getElementById('ia-sujet').value, niveau: document.getElementById('ia-niveau').value, format_exercice: document.getElementById('ia-format').value};
-    } else if (fonction === 'explication-concept') {
-        data = {question: document.getElementById('ia-question-concept').value, niveau_eleve: document.getElementById('ia-niveau-eleve').value};
-    } else if (fonction === 'correction') {
-        data = {enonce: document.getElementById('ia-enonce').value, reponse_eleve: document.getElementById('ia-reponse-eleve').value, bareme: document.getElementById('ia-bareme').value};
-    } else if (fonction === 'parcours-adaptatif') {
-        try { data = {profil_scores: JSON.parse(document.getElementById('ia-profil').value), parcours_actuel: document.getElementById('ia-parcours').value, objectif: document.getElementById('ia-objectif').value}; }
-        catch(e) { alert('JSON invalide pour les scores.'); return; }
-    } else if (fonction === 'chatbot') {
-        data = {message: document.getElementById('ia-message').value, niveau_eleve: 'debutant'};
-    }
+window.envoyerMessageChat = async function() {
+    const input = document.getElementById('bai-input');
+    const message = input.value.trim();
+    if (!message) return;
 
-    document.getElementById('resultat-ia').style.display = 'block';
-    document.getElementById('resultat-ia').innerHTML = '<p>⏳ Blessy AI réfléchit...</p>';
+    const sendBtn = document.getElementById('bai-send-btn');
+    const suggestions = document.getElementById('bai-suggestions');
+    if (suggestions) suggestions.style.display = 'none';
+
+    ajouterMessageChat(message, true);
+    historiqueChat.push({ role: 'user', content: message });
+    input.value = '';
+    input.style.height = 'auto';
+    sendBtn.disabled = true;
+
+    const loaderDiv = ajouterMessageChat('', false);
+    loaderDiv.querySelector('.bai-bulle').innerHTML =
+        '<div class="bai-loader-anim" style="padding:4px 0;"><span></span><span></span><span></span></div>';
 
     try {
-        const response = await fetch('/api/ia/' + fonction + '/', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(data)
+        const data = await appelerAPI('/api/ia/chatbot/', {
+            message: message,
+            historique: historiqueChat,
+            niveau_eleve: 'debutant'
         });
-        const result = await response.json();
-        if (result.reponse) {
-            document.getElementById('resultat-ia').innerHTML = '<div style="background:white;padding:20px;border-radius:12px;">' + result.reponse.replace(/\n/g, '<br>').replace(/## (.+)/g, '<h4>$1</h4>').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') + '</div>';
-        } else {
-            document.getElementById('resultat-ia').innerHTML = '<div style="color:red;">❌ ' + (result.erreur || 'Erreur') + '</div>';
-        }
-    } catch(e) {
-        document.getElementById('resultat-ia').innerHTML = '<div style="color:red;">❌ Erreur de connexion.</div>';
+
+        const texteReponse = extraireTexteReponse(data);
+        loaderDiv.querySelector('.bai-bulle').innerHTML = markdownVersHtml(texteReponse);
+        historiqueChat.push({ role: 'assistant', content: texteReponse });
+
+    } catch (erreur) {
+        loaderDiv.querySelector('.bai-bulle').innerHTML =
+            '<p>❌ Connexion impossible. Réessaie dans un instant.</p>';
     }
+
+    sendBtn.disabled = false;
+    document.getElementById('bai-messages').scrollTop = 999999;
+};
+
+// Auto-resize textarea
+const baiInput = document.getElementById('bai-input');
+if (baiInput) {
+    baiInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
 }
+
+// ==================== 2. ASSISTANT CODE ====================
+
+window.analyserCode = async function() {
+    const code = document.getElementById('code-input').value.trim();
+    const langage = document.getElementById('code-langage').value;
+    const question = document.getElementById('code-question').value.trim();
+
+    if (!code) {
+        alert('Colle d\'abord ton code à analyser.');
+        return;
+    }
+
+    const btnTexte = document.getElementById('code-btn-texte');
+    btnTexte.textContent = '⏳ Analyse en cours...';
+
+    afficherLoader('code-resultat');
+
+    try {
+        const data = await appelerAPI('/api/ia/assistant-code/', {
+            code: code, langage: langage, question: question
+        });
+        afficherResultat('code-resultat', extraireTexteReponse(data), !!data.erreur);
+    } catch (e) {
+        afficherResultat('code-resultat', 'Impossible de contacter le serveur.', true);
+    }
+
+    btnTexte.textContent = '🔍 Analyser mon code';
+};
+
+// ==================== 3. GÉNÉRATEUR D'EXERCICES ====================
+
+window.genererExercice = async function() {
+    const sujet = document.getElementById('exo-sujet').value.trim();
+    const niveau = document.getElementById('exo-niveau').value;
+    const format = document.getElementById('exo-format').value;
+
+    if (!sujet) {
+        alert('Indique le sujet de l\'exercice.');
+        return;
+    }
+
+    const btnTexte = document.getElementById('exo-btn-texte');
+    btnTexte.textContent = '⏳ Génération en cours...';
+
+    afficherLoader('exo-resultat');
+
+    try {
+        const data = await appelerAPI('/api/ia/generateur-exercices/', {
+            sujet: sujet, niveau: niveau, format_exercice: format
+        });
+        afficherResultat('exo-resultat', extraireTexteReponse(data), !!data.erreur);
+    } catch (e) {
+        afficherResultat('exo-resultat', 'Impossible de contacter le serveur.', true);
+    }
+
+    btnTexte.textContent = '✨ Générer l\'exercice';
+};
+
+// ==================== 4. EXPLICATION DE CONCEPT ====================
+
+window.expliquerConcept = async function() {
+    const question = document.getElementById('explic-question').value.trim();
+    const niveau = document.getElementById('explic-niveau').value;
+
+    if (!question) {
+        alert('Écris ta question.');
+        return;
+    }
+
+    const btnTexte = document.getElementById('explic-btn-texte');
+    btnTexte.textContent = '⏳ Réflexion en cours...';
+
+    afficherLoader('explic-resultat');
+
+    try {
+        const data = await appelerAPI('/api/ia/explication-concept/', {
+            question: question, niveau_eleve: niveau
+        });
+        afficherResultat('explic-resultat', extraireTexteReponse(data), !!data.erreur);
+    } catch (e) {
+        afficherResultat('explic-resultat', 'Impossible de contacter le serveur.', true);
+    }
+
+    btnTexte.textContent = '📚 Expliquer ce concept';
+};
+
+// ==================== 5. CORRECTION AUTOMATIQUE ====================
+
+window.corrigerReponse = async function() {
+    const enonce = document.getElementById('correc-enonce').value.trim();
+    const reponseEleve = document.getElementById('correc-reponse').value.trim();
+    const bareme = document.getElementById('correc-bareme').value.trim();
+
+    if (!enonce || !reponseEleve) {
+        alert('Remplis l\'énoncé et ta réponse.');
+        return;
+    }
+
+    const btnTexte = document.getElementById('correc-btn-texte');
+    btnTexte.textContent = '⏳ Correction en cours...';
+
+    afficherLoader('correc-resultat');
+
+    try {
+        const data = await appelerAPI('/api/ia/correction/', {
+            enonce: enonce, reponse_eleve: reponseEleve, bareme: bareme
+        });
+        afficherResultat('correc-resultat', extraireTexteReponse(data), !!data.erreur);
+    } catch (e) {
+        afficherResultat('correc-resultat', 'Impossible de contacter le serveur.', true);
+    }
+
+    btnTexte.textContent = '📝 Corriger ma réponse';
+};
+
+// ==================== 6. PARCOURS ADAPTATIF ====================
+
+window.updateSliderValue = function(slider) {
+    const span = slider.nextElementSibling;
+    span.textContent = slider.value + '%';
+    mettreAJourVisualisationProfil();
+};
+
+function mettreAJourVisualisationProfil() {
+    const sliders = document.querySelectorAll('.bai-slider');
+    const radarContainer = document.getElementById('radar-bars');
+    if (!radarContainer) return;
+
+    radarContainer.innerHTML = '';
+
+    sliders.forEach(function(slider) {
+        const sujet = slider.dataset.sujet;
+        const valeur = parseInt(slider.value);
+
+        let couleur = '#ef4444';
+        if (valeur >= 70) couleur = '#22c55e';
+        else if (valeur >= 40) couleur = '#f59e0b';
+
+        const item = document.createElement('div');
+        item.className = 'bai-radar-item';
+        item.innerHTML =
+            '<span class="bai-radar-label">' + sujet + '</span>' +
+            '<div class="bai-radar-track"><div class="bai-radar-fill" style="width:' + valeur + '%; background:' + couleur + ';"></div></div>' +
+            '<span class="bai-radar-pct" style="color:' + couleur + ';">' + valeur + '%</span>';
+
+        radarContainer.appendChild(item);
+    });
+}
+
+window.genererParcoursAdaptatif = async function() {
+    const sliders = document.querySelectorAll('.bai-slider');
+    const profilScores = {};
+    sliders.forEach(function(s) {
+        profilScores[s.dataset.sujet] = parseInt(s.value);
+    });
+
+    const parcoursActuel = document.getElementById('parcours-actuel').value.trim();
+    const objectif = document.getElementById('parcours-objectif').value.trim();
+
+    const btnTexte = document.getElementById('parcours-btn-texte');
+    btnTexte.textContent = '⏳ Construction de ta stratégie...';
+
+    afficherLoader('parcours-resultat');
+
+    try {
+        const data = await appelerAPI('/api/ia/parcours-adaptatif/', {
+            profil_scores: profilScores,
+            parcours_actuel: parcoursActuel,
+            objectif: objectif
+        });
+
+        const texteReponse = extraireTexteReponse(data);
+
+        // Génère la visualisation timeline (✔ acquis / ⚠ à renforcer / ➡ prochain)
+        let timelineHtml = '<div class="bai-parcours-timeline">';
+        const sujetsTries = Object.entries(profilScores).sort((a, b) => b[1] - a[1]);
+
+        sujetsTries.forEach(function([sujet, score], index) {
+            let classe, icone;
+            if (score >= 70) {
+                classe = 'bai-pt-acquis'; icone = '✔';
+            } else if (score >= 40) {
+                classe = 'bai-pt-renforcer'; icone = '⚠';
+            } else {
+                classe = 'bai-pt-prochain'; icone = '➡';
+            }
+
+            timelineHtml += '<div class="bai-pt-item ' + classe + '">' +
+                '<div class="bai-pt-icone">' + icone + '</div>' +
+                '<div class="bai-pt-texte"><strong>' + sujet + '</strong> — ' + score + '% maîtrisé</div>' +
+                '</div>';
+        });
+        timelineHtml += '</div>';
+
+        document.getElementById('parcours-resultat').innerHTML =
+            '<div class="bai-resultat-card">' +
+            '<h4 style="font-size:14px; color: var(--bleu-principal); margin-bottom: 12px;">📈 Visualisation de ton profil</h4>' +
+            timelineHtml +
+            '<div style="margin-top: 20px;">' + markdownVersHtml(texteReponse) + '</div>' +
+            '</div>';
+
+    } catch (e) {
+        afficherResultat('parcours-resultat', 'Impossible de contacter le serveur.', true);
+    }
+
+    btnTexte.textContent = '🧠 Construire ma stratégie';
+};
+
+// Initialise la visualisation au chargement
+mettreAJourVisualisationProfil();
+
+// ==================== 7. SIMULATEUR DE CARRIÈRE ====================
+
+window.remplirMetier = function(metier) {
+    document.getElementById('carriere-metier').value = metier;
+};
+
+window.simulerCarriere = async function() {
+    const metier = document.getElementById('carriere-metier').value.trim();
+
+    if (!metier) {
+        alert('Indique le métier qui t\'intéresse.');
+        return;
+    }
+
+    const btnTexte = document.getElementById('carriere-btn-texte');
+    btnTexte.textContent = '⏳ Simulation en cours...';
+
+    afficherLoader('carriere-resultat');
+
+    try {
+        const data = await appelerAPI('/api/ia/simulateur-carriere/', {
+            metier: metier
+        });
+        afficherResultat('carriere-resultat', extraireTexteReponse(data), !!data.erreur);
+    } catch (e) {
+        afficherResultat('carriere-resultat', 'Impossible de contacter le serveur.', true);
+    }
+
+    btnTexte.textContent = '🔮 Simuler cette carrière';
+};
+
+})();
 </script>
+
 {% endblock %}

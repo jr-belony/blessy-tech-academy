@@ -1368,7 +1368,7 @@ def api_chatbot_tuteur(request):
 # Simulateur de carrière
 # ================================================
 
-def simulateur_carriere(request):
+def simuler_carriere(request):
     """Simulateur de carrière — orientation IA ultra-détaillée."""
 
     METIERS_BTA = {
@@ -1775,3 +1775,20 @@ def parcours_professionnels(request):
     return render(request, 'academie/parcours.html', {
         'parcours_list': parcours_list,
     })
+
+
+@csrf_exempt
+@require_POST
+def api_simuler_carriere(request):
+    """API pour le simulateur de carrière (requêtes AJAX depuis le chatbot)."""
+    try:
+        data = json.loads(request.body)
+        metier = data.get('metier', '').strip()
+        if not metier:
+            return JsonResponse({'erreur': 'Le champ "metier" est requis.'}, status=400)
+        reponse = simuler_carriere(metier=metier)  # ← fonction IA dans ia.py
+        return JsonResponse({'reponse': reponse, 'metier': metier})
+    except json.JSONDecodeError:
+        return JsonResponse({'erreur': 'JSON invalide'}, status=400)
+    except Exception as e:
+        return JsonResponse({'erreur': str(e)}, status=500)

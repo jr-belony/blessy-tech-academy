@@ -13,11 +13,11 @@ class SecurityHeadersMiddleware:
         # Content-Security-Policy renforcée
         response['Content-Security-Policy'] = (
             "default-src 'none'; "
-            "script-src 'self' https://cdn.ckeditor.com https://cdn.jsdelivr.net; "
-            "style-src 'self' https://cdn.ckeditor.com https://cdn.jsdelivr.net 'unsafe-inline'; "
+            "script-src 'self' 'unsafe-inline' https://cdn.ckeditor.com https://cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.ckeditor.com https://cdn.jsdelivr.net; "
             "img-src 'self' data: https://*; "
-            "font-src 'self' https://cdn.ckeditor.com; "
-            "connect-src 'self'; "
+            "font-src 'self' https://fonts.googleapis.com https://cdn.ckeditor.com; "
+            "connect-src 'self' https://cdn.ckeditor.com; "
             "frame-ancestors 'none'; "
             "base-uri 'self'; "
             "form-action 'self'; "
