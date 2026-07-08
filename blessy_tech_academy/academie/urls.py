@@ -67,5 +67,6 @@ urlpatterns = [
     path('setlang/ht/', views.set_lang_ht, name='set_lang_ht'),
     path('ressources/', views.ressources, name='ressources'),
     path('ressources/<slug:slug>/', views.detail_article, name='detail_article'),
+    path('admin/apercu-article/<int:article_id>/', views.apercu_article_admin, name='apercu_article_admin'),
     path('parcours/', views.parcours_professionnels, name='parcours'),
 ]

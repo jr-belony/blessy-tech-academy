@@ -1792,3 +1792,16 @@ def api_simuler_carriere(request):
         return JsonResponse({'erreur': 'JSON invalide'}, status=400)
     except Exception as e:
         return JsonResponse({'erreur': str(e)}, status=500)
+    
+
+@staff_member_required
+def apercu_article_admin(request, article_id):
+    """Prévisualisation d'un article — vue admin uniquement, brouillon inclus."""
+    article = Article.objects.get(id=article_id)
+    return render(request, 'academie/detail_article.html', {
+        'article': article,
+        'articles_lies': Article.objects.filter(
+            publie=True, categorie=article.categorie
+        ).exclude(id=article.id)[:3],
+        'mode_apercu': True,
+    })

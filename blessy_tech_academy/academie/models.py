@@ -1,5 +1,6 @@
 from django.db import models
 from django_ckeditor_5.fields import CKEditor5Field
+from simple_history.models import HistoricalRecords
 
 class Ecole(models.Model):
     """Représente une École (catégorie de formations)."""
@@ -16,8 +17,27 @@ class Ecole(models.Model):
 
     def __str__(self):
         return f"{self.icone} {self.nom}"
+    history = HistoricalRecords()   # ← AJOUTE À LA FIN, avant Meta/méthodes
 
+    def progression_pour(self, utilisateur):
+        """Calcule le % de progression d'un utilisateur sur cette formation."""
+        if not utilisateur.is_authenticated:
+            return 0
 
+        toutes_lecons = Lecon.objects.filter(module__formation=self)
+        total = toutes_lecons.count()
+
+        if total == 0:
+            return 0
+
+        terminees = ProgressionLecon.objects.filter(
+            utilisateur=utilisateur,
+            lecon__in=toutes_lecons,
+            terminee=True
+        ).count()
+
+        return round((terminees / total) * 100)
+    
 class Formation(models.Model):
     """Représente une formation proposée par BTA."""
 
@@ -56,11 +76,11 @@ class Formation(models.Model):
     certifications = models.TextField(blank=True)
     actif = models.BooleanField(default=True)
     message_partage = models.CharField(
-    max_length=500,
-    blank=True,
-    default="",
-    help_text="Message utilisé pour le partage automatique sur les réseaux sociaux. Laissez vide pour générer automatiquement."
-)
+        max_length=500,
+        blank=True,
+        default="",
+        help_text="Message utilisé pour le partage automatique sur les réseaux sociaux. Laissez vide pour générer automatiquement."
+    )
     date_creation = models.DateTimeField(auto_now_add=True)
     gratuit = models.BooleanField(
         default=False,
@@ -87,7 +107,8 @@ class Formation(models.Model):
 
     def __str__(self):
         return f"{self.icone} {self.nom} ({self.duree_mois} mois)"
-
+    
+    
     def progression_pour(self, utilisateur):
         """Calcule le % de progression d'un utilisateur sur cette formation."""
         if not utilisateur.is_authenticated:
@@ -106,6 +127,8 @@ class Formation(models.Model):
         ).count()
 
         return round((terminees / total) * 100)
+    history = HistoricalRecords()
+
 class Inscription(models.Model):
     """Représente une demande d'inscription."""
 
@@ -284,7 +307,8 @@ class Lecon(models.Model):
 
     def __str__(self):
         return f"{self.module.titre} — {self.titre}"
-    
+        history = HistoricalRecords()   # ← AJOUTE À LA FIN
+
 class ProgressionLecon(models.Model):
     """Suit la progression d'un étudiant sur une leçon."""
 
@@ -709,7 +733,6 @@ class Article(models.Model):
     )
     mots_cles = models.CharField(max_length=255, blank=True, help_text="Mots-clés séparés par des virgules")
     noindex = models.BooleanField(default=False, help_text="Empêcher l'indexation Google")
-
     class Meta:
         ordering = ['-en_vedette', '-date_publication']
         verbose_name = 'Article'
@@ -717,6 +740,7 @@ class Article(models.Model):
 
     def __str__(self):
         return self.titre
+        history = HistoricalRecords()   # ← AJOUTE À LA FIN
 
     def save(self, *args, **kwargs):
         if not self.slug:

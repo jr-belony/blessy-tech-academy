@@ -879,3 +879,14 @@ Traceback (most recent call last):
                           ^^^^^^^^^^^^
 AttributeError: 'GestionCoursAdminSite' object has no attribute 'user'
 "GET /admin/gestion-cours/ HTTP/1.1" 500 107652
+Internal Server Error: /recrutement/
+Traceback (most recent call last):
+  File "C:\projects\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\projects\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\projects\blessy_tech_academy\academie\views.py", line 1595, in espace_recrutement
+    if formation.progression_pour(user) == 100:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Formation' object has no attribute 'progression_pour'
+"GET /recrutement/ HTTP/1.1" 500 89473

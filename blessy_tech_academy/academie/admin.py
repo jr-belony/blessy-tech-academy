@@ -5,6 +5,8 @@ from django.contrib import admin
 from django.db.models import Count, Sum, Avg, Q
 from django.utils import timezone
 from datetime import timedelta
+from simple_history.admin import SimpleHistoryAdmin
+from adminsortable2.admin import SortableAdminMixin, SortableInlineAdminMixin, SortableAdminBase
 from .models import (Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz, Module, Lecon, ProgressionLecon,
 Parcours, Sujet, Reponse, Reaction, OutilRecommande, Article, Temoignage)
 
@@ -25,8 +27,7 @@ class EcoleAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_editable = ['ordre']
     search_fields = ['nom']
 
-
-class ModuleInline(admin.TabularInline):
+class ModuleInline(SortableInlineAdminMixin, admin.TabularInline):
     model = Module
     extra = 1
     fields = ['ordre', 'titre', 'description']
@@ -34,7 +35,7 @@ class ModuleInline(admin.TabularInline):
 
 
 @admin.register(Formation)
-class FormationAdmin(AdminThemeMixin, admin.ModelAdmin):
+class FormationAdmin(AdminThemeMixin, SortableAdminBase, SimpleHistoryAdmin):
     list_display = [
         'icone', 'nom', 'ecole', 'niveau',
         'duree_mois', 'prix', 'actif'
@@ -73,7 +74,6 @@ class FormationAdmin(AdminThemeMixin, admin.ModelAdmin):
     class Media:
         js = ['academie/admin/generer_ia.js', 'academie/admin/generer_programme.js']
 
-
 @admin.register(Inscription)
 class InscriptionAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_display = [
@@ -111,15 +111,14 @@ class ResultatQuizAdmin(AdminThemeMixin, admin.ModelAdmin):
     search_fields = ['utilisateur__username']
     readonly_fields = ['date_passage']
 
-
-class LeconInline(admin.TabularInline):
+class LeconInline(SortableInlineAdminMixin, admin.TabularInline):
     model = Lecon
     extra = 3
     fields = ['ordre', 'titre', 'resume', 'duree_minutes']
 
 
 @admin.register(Module)
-class ModuleAdmin(AdminThemeMixin, admin.ModelAdmin):
+class ModuleAdmin(AdminThemeMixin, SortableAdminBase, admin.ModelAdmin):
     list_display = ['titre', 'get_ecole', 'formation', 'ordre', 'nombre_lecons']
     list_filter = ['formation__ecole', 'formation']
     search_fields = ['titre', 'formation__nom']
@@ -134,9 +133,8 @@ class ModuleAdmin(AdminThemeMixin, admin.ModelAdmin):
     class Media:
         js = ['academie/admin/generer_programme.js', 'academie/admin/generer_contenu_module.js']
 
-
 @admin.register(Lecon)
-class LeconAdmin(AdminThemeMixin, admin.ModelAdmin):
+class LeconAdmin(AdminThemeMixin, SimpleHistoryAdmin):
     list_display = ['titre', 'get_ecole', 'get_formation', 'module', 'duree_minutes', 'ordre']
     list_filter = ['module__formation__ecole', 'module__formation']
     search_fields = ['titre', 'contenu', 'module__formation__nom']
@@ -215,21 +213,24 @@ class ReactionAdmin(AdminThemeMixin, admin.ModelAdmin):
 # ================================================
 
 @admin.register(Article)
-class ArticleAdmin(AdminThemeMixin, admin.ModelAdmin):
+class ArticleAdmin(AdminThemeMixin, SimpleHistoryAdmin):
     list_display = ['titre', 'categorie', 'auteur', 'en_vedette',
-                    'badge_publie', 'temps_lecture', 'date_publication']
+                    'badge_publie', 'temps_lecture', 'date_publication', 'bouton_apercu']
     list_filter = ['categorie', 'publie', 'en_vedette', 'formation_liee']
     search_fields = ['titre', 'resume', 'contenu', 'mots_cles']
     list_editable = ['en_vedette']
     prepopulated_fields = {'slug': ('titre',)}
-    readonly_fields = ['date_publication', 'date_modification', 'apercu_seo']
+    readonly_fields = ['date_publication', 'date_modification', 'apercu_seo', 'apercu_responsive']
 
     fieldsets = [
         ('Informations principales', {
             'fields': ['titre', 'slug', 'categorie', 'resume',
-                       'temps_lecture', 'formation_liee', 'auteur']
+                    'temps_lecture', 'formation_liee', 'auteur']
         }),
         ('Contenu', {'fields': ['contenu']}),
+        ('👁️ Prévisualisation Responsive', {
+            'fields': ['apercu_responsive'],
+        }),
         ('🔍 Référencement SEO', {
             'fields': ['meta_titre', 'meta_description', 'mots_cles', 'noindex', 'apercu_seo'],
             'classes': ['collapse'],
@@ -246,6 +247,18 @@ class ArticleAdmin(AdminThemeMixin, admin.ModelAdmin):
         return format_html('<span style="background:#a0aec0;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">Brouillon</span>')
     badge_publie.short_description = 'Statut'
 
+    def bouton_apercu(self, obj):
+        from django.utils.html import format_html
+        if obj.id:
+            return format_html(
+                '<a href="/admin/apercu-article/{}/" target="_blank" '
+                'style="background:var(--bta-cyan); color:white; padding:4px 12px; '
+                'border-radius:6px; text-decoration:none; font-size:11px; font-weight:700;">'
+                '👁️ Aperçu</a>', obj.id
+            )
+        return "—"
+    bouton_apercu.short_description = 'Aperçu'
+
     def apercu_seo(self, obj):
         from django.utils.html import format_html
         titre = obj.meta_titre or obj.titre
@@ -258,7 +271,30 @@ class ArticleAdmin(AdminThemeMixin, admin.ModelAdmin):
             titre, obj.slug, desc
         )
     apercu_seo.short_description = "Aperçu Google"
-    
+
+
+    def apercu_responsive(self, obj):
+        from django.utils.html import format_html
+        if not obj.id:
+            return "Enregistre d'abord l'article pour voir l'aperçu."
+        url = f"/admin/apercu-article/{obj.id}/"
+        return format_html(
+            '''
+            <div style="display:flex; gap:8px; margin-bottom:12px;">
+                <button type="button" onclick="document.getElementById('apercu-frame').style.width='100%'; document.getElementById('apercu-frame').style.height='500px';"
+                        style="padding:6px 14px; border-radius:6px; border:1px solid #e2e8f0; cursor:pointer; background:white;">🖥️ Desktop</button>
+                <button type="button" onclick="document.getElementById('apercu-frame').style.width='768px'; document.getElementById('apercu-frame').style.height='500px';"
+                        style="padding:6px 14px; border-radius:6px; border:1px solid #e2e8f0; cursor:pointer; background:white;">📱 Tablette</button>
+                <button type="button" onclick="document.getElementById('apercu-frame').style.width='375px'; document.getElementById('apercu-frame').style.height='600px';"
+                        style="padding:6px 14px; border-radius:6px; border:1px solid #e2e8f0; cursor:pointer; background:white;">📱 Mobile</button>
+                <a href="{}" target="_blank" style="padding:6px 14px; border-radius:6px; background:var(--bta-orange); color:white; text-decoration:none; font-size:13px;">Ouvrir en plein écran ↗</a>
+            </div>
+            <div style="border:1px solid #e2e8f0; border-radius:8px; padding:16px; background:#f8fafc; overflow-x:auto;">
+                <iframe id="apercu-frame" src="{}" style="width:100%; height:500px; border:1px solid #ccc; border-radius:8px; background:white; transition:all 0.3s;"></iframe>
+            </div>
+            ''', url, url
+        )
+    apercu_responsive.short_description = "Prévisualisation"
 @admin.register(OutilRecommande)
 class OutilRecommandeAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_display = ['icone', 'nom', 'categorie', 'gratuit',
