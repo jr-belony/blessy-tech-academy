@@ -25,7 +25,7 @@
                         box-shadow: var(--ombre-legere); text-align: center;">
                 <span style="font-size: 40px;">📈</span>
                 <p style="font-size: 28px; font-weight: 800;
-                          color: var(--bleu-principal); margin: 8px 0;">
+                        color: var(--bleu-principal); margin: 8px 0;">
                     {{ stats.progression_globale }}%
                 </p>
                 <p style="color: var(--gris-texte); font-size: 14px;">
@@ -37,7 +37,7 @@
                         box-shadow: var(--ombre-legere); text-align: center;">
                 <span style="font-size: 40px;">✅</span>
                 <p style="font-size: 28px; font-weight: 800;
-                          color: var(--bleu-principal); margin: 8px 0;">
+                        color: var(--bleu-principal); margin: 8px 0;">
                     {{ stats.lecons_terminees }}/{{ stats.total_lecons }}
                 </p>
                 <p style="color: var(--gris-texte); font-size: 14px;">
@@ -49,7 +49,7 @@
                         box-shadow: var(--ombre-legere); text-align: center;">
                 <span style="font-size: 40px;">📝</span>
                 <p style="font-size: 28px; font-weight: 800;
-                          color: var(--bleu-principal); margin: 8px 0;">
+                        color: var(--bleu-principal); margin: 8px 0;">
                     {{ stats.quiz_passes }}
                 </p>
                 <p style="color: var(--gris-texte); font-size: 14px;">
@@ -61,7 +61,7 @@
                         box-shadow: var(--ombre-legere); text-align: center;">
                 <span style="font-size: 40px;">⭐</span>
                 <p style="font-size: 28px; font-weight: 800;
-                          color: var(--bleu-principal); margin: 8px 0;">
+                        color: var(--bleu-principal); margin: 8px 0;">
                     {{ stats.score_moyen_quiz }}/20
                 </p>
                 <p style="color: var(--gris-texte); font-size: 14px;">
@@ -70,12 +70,12 @@
             </div>
 
             <a href="{% url 'simulateur_carriere' %}" 
-               style="background: white; padding: 28px; border-radius: 12px;
-                      box-shadow: var(--ombre-legere); text-align: center;
-                      text-decoration: none; display: block;">
+            style="background: white; padding: 28px; border-radius: 12px;
+                    box-shadow: var(--ombre-legere); text-align: center;
+                    text-decoration: none; display: block;">
                 <span style="font-size: 40px;">🚀</span>
                 <p style="font-size: 16px; font-weight: 800;
-                          color: var(--bleu-principal); margin: 8px 0;">
+                        color: var(--bleu-principal); margin: 8px 0;">
                     Simulateur de carrière
                 </p>
                 <p style="color: var(--gris-texte); font-size: 14px;">
@@ -206,6 +206,51 @@
             </div>
 
         </div>
+            <!-- ================================================
+            DERNIÈRES CONNEXIONS
+            Rôle : Affiche les 5 dernières connexions de l'utilisateur
+                    avec IP, pays, navigateur et statut suspect/OK
+            ================================================ -->
+        <div style="background: white; padding: 32px; border-radius: 12px;
+                    box-shadow: var(--ombre-legere); margin-bottom: 32px;">
+            <h3 style="color: var(--bleu-principal); margin-bottom: 20px;">
+                🔐 Dernières connexions
+            </h3>
+            {% if connexions %}
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                        <thead>
+                            <tr style="background: var(--gris-clair);">
+                                <th style="padding: 8px 12px; text-align: left;">Date</th>
+                                <th style="padding: 8px 12px; text-align: left;">IP</th>
+                                <th style="padding: 8px 12px; text-align: left;">Pays</th>
+                                <th style="padding: 8px 12px; text-align: left;">Navigateur</th>
+                                <th style="padding: 8px 12px; text-align: center;">Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in connexions %}
+                            <tr style="border-bottom: 1px solid #f0f0f0;">
+                                <td style="padding: 8px 12px;">{{ c.date_connexion|date:"d/m/Y H:i" }}</td>
+                                <td style="padding: 8px 12px;">{{ c.adresse_ip }}</td>
+                                <td style="padding: 8px 12px;">{{ c.pays|default:"—" }}</td>
+                                <td style="padding: 8px 12px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ c.navigateur|truncatechars:40 }}</td>
+                                <td style="padding: 8px 12px; text-align: center;">
+                                    {% if c.suspecte %}
+                                        <span style="color: #e53e3e;">⚠️ Suspecte</span>
+                                    {% else %}
+                                        <span style="color: #22c55e;">✅ OK</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p style="color: var(--gris-texte);">Aucune connexion enregistrée.</p>
+            {% endif %}
+        </div>
 
         <!-- Si aucune activité -->
         {% if not formations_actives and stats.quiz_passes == 0 %}
@@ -272,11 +317,11 @@
             <div class="mes-infos-boutons" style="margin-top: 24px; padding-top: 24px;
                         border-top: 1px solid #eee; display: flex; align-items: center; flex-wrap: wrap;">
                 <a href="{% url 'mon_portfolio' %}" class="btn btn-principal"
-                   style="background: linear-gradient(135deg, #FF6B35, #e85a2a);">
+                style="background: linear-gradient(135deg, #FF6B35, #e85a2a);">
                     🎨 Mon Portfolio
                 </a>
                 <a href="{% url 'espace_recrutement' %}" class="btn btn-principal"
-                   style="background: var(--bleu-electrique); margin-left: 10px;">
+                style="background: var(--bleu-electrique); margin-left: 10px;">
                     💼 Espace Recrutement
                 </a>
                 <a href="{% url 'formations' %}" class="btn btn-principal" style="margin-left: 10px;">

@@ -258,12 +258,22 @@ def dashboard(request):
     if nouveaux_badges:
         messages.success(request, f'🎉 Nouveau(x) badge(s) : {", ".join(nouveaux_badges)} !')
     for badge_type in nouveaux_badges: notifications.notifier_badge(user, badge_type)
+    
+    # ================================================
+    # DERNIÈRES CONNEXIONS
+    # Récupère les 5 dernières connexions de l'utilisateur
+    # pour les afficher dans le dashboard
+    # ================================================
+    from .models import ConnexionUtilisateur
+    connexions = ConnexionUtilisateur.objects.filter(utilisateur=user).order_by('-date_connexion')[:5]
     return render(request, 'academie/dashboard.html', {
         'user': user,
         'stats': stats,
         'badges': tous_badges,
         'formations_actives': formations_actives,
+        'connexions': connexions,
     })
+
 # ================================================
 # Statistiques (admin uniquement)
 # ================================================

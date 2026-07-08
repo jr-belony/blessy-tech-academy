@@ -824,3 +824,32 @@ class Temoignage(models.Model):
 
     def __str__(self):
         return f"{self.prenom_nom} — {self.note}⭐"
+    
+
+    # ================================================
+# MODÈLE : ConnexionUtilisateur
+# Rôle : Enregistre chaque connexion d'un utilisateur
+# Utilisé par : signals.py (signal user_logged_in)
+#               dashboard.html (historique)
+# ================================================
+class ConnexionUtilisateur(models.Model):
+    """Enregistre chaque connexion d'un utilisateur pour l'historique et la détection suspecte."""
+    utilisateur = models.ForeignKey(
+        'auth.User',
+        on_delete=models.CASCADE,
+        related_name='connexions'
+    )
+    adresse_ip = models.GenericIPAddressField()
+    navigateur = models.CharField(max_length=300)
+    pays = models.CharField(max_length=100, blank=True)
+    ville = models.CharField(max_length=100, blank=True)
+    suspecte = models.BooleanField(default=False)  # True si IP ou pays différent de la dernière connexion
+    date_connexion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date_connexion']
+        verbose_name = 'Connexion utilisateur'
+        verbose_name_plural = 'Connexions utilisateurs'
+
+    def __str__(self):
+        return f"{self.utilisateur.username} - {self.date_connexion}"
