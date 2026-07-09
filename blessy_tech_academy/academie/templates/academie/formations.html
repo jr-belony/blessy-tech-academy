@@ -5,8 +5,8 @@
 {% block contenu %}
 
 <!-- ================================================
-     HERO FORMATIONS
-     ================================================ -->
+    HERO FORMATIONS
+    ================================================ -->
 <section class="formations-hero">
     <div class="formations-hero-bg"></div>
     <div class="formations-hero-inner">
@@ -23,15 +23,15 @@
         <!-- Barre de recherche -->
         <div class="formations-search-bar">
             <input type="text" id="search-formations"
-                   placeholder="🔍 Rechercher une formation..."
-                   oninput="filtrerFormations()">
+                placeholder="🔍 Rechercher une formation..."
+                oninput="filtrerFormations()">
         </div>
     </div>
 </section>
 
 <!-- ================================================
-     FILTRES STICKY
-     ================================================ -->
+    FILTRES STICKY
+    ================================================ -->
 <div class="filtres-bar" id="filtres-bar">
     <div class="filtres-inner">
 
@@ -101,8 +101,8 @@
 </div>
 
 <!-- ================================================
-     FORMATIONS GRATUITES (Lead Magnets)
-     ================================================ -->
+    FORMATIONS GRATUITES (Lead Magnets)
+    ================================================ -->
 {% with gratuites_count=0 %}
 {% for ecole in ecoles %}
 {% for formation in ecole.formations.all %}
@@ -145,7 +145,7 @@
                     <span style="color: #22c55e; font-weight: 800;">GRATUIT</span>
                 </div>
                 <a href="{% url 'detail_formation' formation.id %}"
-                   class="btn-gratuite-page">
+                class="btn-gratuite-page">
                     Commencer maintenant →
                 </a>
                 {% if formation.formation_upgrade %}
@@ -193,11 +193,11 @@
             {% if formation.actif and not formation.gratuit %}
 
             <article class="carte-formation-moderne"
-                     data-ecole="{{ ecole.nom|lower }}"
-                     data-niveau="{{ formation.niveau }}"
-                     data-prix="{% if formation.prix == 0 %}gratuit{% else %}payant{% endif %}"
-                     data-nom="{{ formation.nom|lower }}"
-                     data-desc="{{ formation.description|lower }}">
+                    data-ecole="{{ ecole.nom|lower }}"
+                    data-niveau="{{ formation.niveau }}"
+                    data-prix="{% if formation.prix == 0 %}gratuit{% else %}payant{% endif %}"
+                    data-nom="{{ formation.nom|lower }}"
+                    data-desc="{{ formation.description|lower }}">
 
                 <!-- Header carte -->
                 <div class="carte-moderne-header">
@@ -249,11 +249,11 @@
                 <!-- Footer -->
                 <div class="carte-moderne-footer">
                     <a href="{% url 'detail_formation' formation.id %}"
-                       class="btn-carte-programme">
+                    class="btn-carte-programme">
                         📋 Programme
                     </a>
                     <a href="{% url 'contact' %}"
-                       class="btn-carte-inscrire">
+                    class="btn-carte-inscrire">
                         S'inscrire
                     </a>
                 </div>

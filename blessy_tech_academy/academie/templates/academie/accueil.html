@@ -2865,90 +2865,49 @@
 
         <div class="ressources-grille">
 
-            <div class="carte-ressource">
-                <div class="ressource-icone-wrapper" style="background: linear-gradient(135deg, #0B2447, #1a4a8a);">
-                    <span>🤖</span>
-                </div>
-                <h3 class="ressource-titre">Assistant Blessy AI</h3>
-                <p class="ressource-desc">
-                    Chat IA disponible 24h/24 pour répondre à toutes
-                    tes questions sur les cours et ta progression.
-                </p>
-                <a href="{% url 'ressources' %}" class="ressource-lien">
-                        Accéder aux ressources →
-            </a>                  
-                </a>
-            </div>
+    <div class="carte-ressource">
+        <div class="ressource-icone-wrapper" style="background: linear-gradient(135deg, #0B2447, #1a4a8a);"><span>📖</span></div>
+        <h3 class="ressource-titre">Guides & Tutoriels</h3>
+        <p class="ressource-desc">Des articles pratiques pour progresser à ton rythme, rédigés par notre équipe.</p>
+        <a href="{% url 'ressources' %}?categorie=guide" class="ressource-lien">Voir les guides →</a>
+    </div>
 
-            <div class="carte-ressource">
-                <div class="ressource-icone-wrapper" style="background: linear-gradient(135deg, #FF6B35, #e85a2a);">
-                    <span>🎯</span>
-                </div>
-                <h3 class="ressource-titre">Orientation IA</h3>
-                <p class="ressource-desc">
-                    Réponds à 4 questions simples et obtiens un parcours
-                    de formation personnalisé en moins de 30 secondes.
-                </p>
-                <a href="{% url 'orientation_ia' %}" class="ressource-lien">
-                    Trouver mon parcours →
-                </a>
-            </div>
+    <div class="carte-ressource">
+        <div class="ressource-icone-wrapper" style="background: linear-gradient(135deg, #FF6B35, #e85a2a);"><span>🎯</span></div>
+        <h3 class="ressource-titre">Orientation IA</h3>
+        <p class="ressource-desc">Réponds à 4 questions et obtiens un parcours personnalisé en 30 secondes.</p>
+        <a href="{% url 'orientation_ia' %}" class="ressource-lien">Trouver mon parcours →</a>
+    </div>
 
-            <div class="carte-ressource">
-                <div class="ressource-icone-wrapper" style="background: linear-gradient(135deg, #22c55e, #16a34a);">
-                    <span>💬</span>
-                </div>
-                <h3 class="ressource-titre">Forum Communautaire</h3>
-                <p class="ressource-desc">
-                    Pose tes questions, partage tes projets et apprends
-                    avec une communauté d'étudiants actifs et motivés.
-                </p>
-                <a href="{% url 'forum_liste' %}" class="ressource-lien">
-                    Rejoindre le forum →
-                </a>
-            </div>
+    <div class="carte-ressource">
+        <div class="ressource-icone-wrapper" style="background: linear-gradient(135deg, #22c55e, #16a34a);"><span>💬</span></div>
+        <h3 class="ressource-titre">Forum Communautaire</h3>
+        <p class="ressource-desc">Pose tes questions et apprends avec une communauté active d'étudiants.</p>
+        <a href="{% url 'forum_liste' %}" class="ressource-lien">Rejoindre le forum →</a>
+    </div>
 
-            <div class="carte-ressource">
-                <div class="ressource-icone-wrapper" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">
-                    <span>📝</span>
-                </div>
-                <h3 class="ressource-titre">Quiz de validation</h3>
-                <p class="ressource-desc">
-                    Des quiz intelligents générés par IA pour tester
-                    tes connaissances après chaque module de cours.
-                </p>
-                <a href="{% url 'formations' %}" class="ressource-lien">
-                    Explorer les formations →
-                </a>
-            </div>
+    <div class="carte-ressource">
+        <div class="ressource-icone-wrapper" style="background: linear-gradient(135deg, #a855f7, #7c3aed);"><span>🛠️</span></div>
+        <h3 class="ressource-titre">Outils recommandés</h3>
+        <p class="ressource-desc">Les outils que l'équipe BTA utilise et recommande au quotidien.</p>
+        <a href="{% url 'ressources' %}" class="ressource-lien">Découvrir les outils →</a>
+    </div>
 
-            <div class="carte-ressource">
-                <div class="ressource-icone-wrapper" style="background: linear-gradient(135deg, #00B4D8, #0090b8);">
-                    <span>🎓</span>
-                </div>
-                <h3 class="ressource-titre">Certificats numériques</h3>
-                <p class="ressource-desc">
-                    Télécharge un certificat PDF officiel à la fin
-                    de chaque formation — vérifiable et partageable.
-                </p>
-                <a href="{% url 'inscription_compte' %}" class="ressource-lien">
-                    Créer mon compte →
-                </a>
-            </div>
+    <div class="carte-ressource">
+        <div class="ressource-icone-wrapper" style="background: linear-gradient(135deg, #00B4D8, #0090b8);"><span>🎓</span></div>
+        <h3 class="ressource-titre">Certificats numériques</h3>
+        <p class="ressource-desc">Télécharge un certificat vérifiable à la fin de chaque formation.</p>
+        <a href="{% url 'inscription_compte' %}" class="ressource-lien">Créer mon compte →</a>
+    </div>
 
-            <div class="carte-ressource">
-                <div class="ressource-icone-wrapper" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
-                    <span>🏆</span>
-                </div>
-                <h3 class="ressource-titre">Classement & Badges</h3>
-                <p class="ressource-desc">
-                    Un système de gamification pour rester motivé —
-                    badges, classement et récompenses pour les meilleurs.
-                </p>
-                <a href="{% url 'forum_membres' %}" class="ressource-lien">
-                    Voir le classement →
-                </a>
-            </div>
+    <div class="carte-ressource">
+        <div class="ressource-icone-wrapper" style="background: linear-gradient(135deg, #f59e0b, #d97706);"><span>💬</span></div>
+        <h3 class="ressource-titre">Témoignages étudiants</h3>
+        <p class="ressource-desc">Découvre les parcours réels de ceux qui ont transformé leur carrière avec BTA.</p>
+        <a href="{% url 'ressources' %}" class="ressource-lien">Lire les témoignages →</a>
+    </div>
+
+</div>
 
         </div>
     </div>

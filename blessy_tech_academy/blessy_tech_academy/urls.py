@@ -11,6 +11,8 @@ urlpatterns = [
     path('', include('academie.urls')),
     path('ckeditor5/', include('django_ckeditor_5.urls')),
     path('i18n/', include('django.conf.urls.i18n')),
+    path('sitemap.xml', views_academie.sitemap_xml, name='sitemap'),
+    path('robots.txt', views_academie.robots_txt, name='robots'),
 ]
 
 # Debug Toolbar (développement uniquement)

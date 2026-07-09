@@ -4,41 +4,414 @@
 
 {% block contenu %}
 
-<section class="page-hero">
-    <h2>Contactez-nous</h2>
-    <p>Notre équipe vous répond dans les 24 heures.</p>
+<!-- ================================================
+     HERO CONTACT
+     ================================================ -->
+<section class="contact-hero">
+    <div class="contact-hero-grid"></div>
+    <div class="contact-glow-1"></div>
+    <div class="contact-glow-2"></div>
+
+    <div class="contact-hero-inner">
+        <div class="section-tag contact-tag">📬 Parlons de ton avenir</div>
+        <h1 class="contact-hero-titre">
+            Une question ?<br>
+            <span class="contact-titre-accent">Nous sommes là pour toi.</span>
+        </h1>
+        <p class="contact-hero-sous">
+            Que ce soit pour choisir ta formation, comprendre nos parcours
+            ou simplement discuter de ton projet — notre équipe te répond
+            rapidement, humainement.
+        </p>
+
+        <div class="contact-hero-ctas">
+            <a href="#form-contact" class="btn-hero-principal">
+                ✉️ Envoyer un message
+                <span class="btn-arrow">→</span>
+            </a>
+            <a href="https://wa.me/50941970724" target="_blank" rel="noopener"
+               class="btn-hero-secondaire">
+                💬 WhatsApp direct
+            </a>
+        </div>
+
+        <div class="contact-hero-badge-reponse">
+            ⏱ Temps de réponse moyen : <strong>moins de 24h</strong>
+        </div>
+    </div>
 </section>
 
-<section class="section-contact">
-    <h2 style="color: var(--bleu-principal); margin-bottom: 32px;
-               text-align: center;">
-        Envoyer un message
-    </h2>
+<div class="contact-page-inner">
 
-    <form method="POST" novalidate>
-        {% csrf_token %}
+    <!-- ================================================
+         LAYOUT PRINCIPAL — FORMULAIRE + INFOS
+         ================================================ -->
+    <div class="contact-layout" id="form-contact">
 
-        {% for field in form %}
-            <div class="form-groupe">
-                <label for="{{ field.id_for_label }}">
-                    {{ field.label }}
-                </label>
-                {{ field }}
-                {% if field.errors %}
-                    {% for error in field.errors %}
-                        <span class="form-erreur">❌ {{ error }}</span>
+        <!-- ---- FORMULAIRE ---- -->
+        <div class="contact-form-card">
+            <h2 class="contact-form-titre">Envoie-nous un message</h2>
+            <p class="contact-form-sous">
+                Réponds à quelques questions, notre équipe te recontacte rapidement.
+            </p>
+
+            <form method="POST" novalidate id="contact-form">
+                {% csrf_token %}
+
+                <div class="cf-row">
+                    {% for field in form %}
+                        {% if field.name == 'prenom' or field.name == 'nom' %}
+                        <div class="cf-field cf-half">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                            <span class="cf-erreur">⚠ {{ field.errors|first }}</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
                     {% endfor %}
-                {% endif %}
+                </div>
+
+                {% for field in form %}
+                    {% if field.name != 'prenom' and field.name != 'nom' %}
+                    <div class="cf-field">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                        <span class="cf-erreur">⚠ {{ field.errors|first }}</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+
+                <button type="submit" class="cf-submit-btn" id="cf-submit-btn">
+                    <span id="cf-submit-texte">✉️ Envoyer le message</span>
+                </button>
+
+                <p class="cf-confidentialite">
+                    🔒 Tes informations restent confidentielles — nous ne les
+                    partageons jamais avec des tiers.
+                </p>
+            </form>
+        </div>
+
+        <!-- ---- INFOS DE CONTACT ---- -->
+        <div class="contact-infos-col">
+
+            <div class="ci-card">
+                <div class="ci-icone">📧</div>
+                <div>
+                    <h4>Email</h4>
+                    <a href="mailto:contact@blessytechacademy.com">contact@blessytechacademy.com</a>
+                </div>
             </div>
-        {% endfor %}
 
-        <button type="submit" class="btn btn-principal"
-                style="width:100%; text-align:center; padding:14px;
-                       margin-top: 8px;">
-            ✉️ Envoyer le message
-        </button>
+            <div class="ci-card">
+                <div class="ci-icone">💬</div>
+                <div>
+                    <h4>WhatsApp</h4>
+                    <a href="https://wa.me/50941970724" target="_blank" rel="noopener">
+                                +509 4197-0724
+                    </a>
+                </div>
+            </div>
 
-    </form>
-</section>
+            <div class="ci-card">
+                <div class="ci-icone">📍</div>
+                <div>
+                    <h4>Adresse</h4>
+                    <p>Pétionville, Haïti</p>
+                </div>
+            </div>
+
+            <div class="ci-card">
+                <div class="ci-icone">⏰</div>
+                <div>
+                    <h4>Horaires</h4>
+                    <p>Lun - Ven : 8h - 18h<br>Sam : 9h - 13h</p>
+                </div>
+            </div>
+
+            <!-- Bloc Blessy AI -->
+            <div class="ci-card ci-card-ai">
+                <div class="ci-icone" style="font-size: 28px;">🤖</div>
+                <div>
+                    <h4 style="color: white;">Réponse immédiate</h4>
+                    <p style="color: rgba(255,255,255,0.7); font-size: 13px; margin-bottom: 10px;">
+                        Besoin d'une réponse instantanée ? Parle à Blessy AI.
+                    </p>
+                    <a href="{% url 'chat_ia' %}" class="ci-ai-btn">
+                        💬 Ouvrir le chat
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ================================================
+         CARTE GOOGLE MAPS
+         ================================================ -->
+    <div class="contact-carte-section">
+        <div class="carte-wrapper">
+            <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3779.0!2d-72.285!3d18.512!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTjCsDMwJzQzLjIiTiA3MsKwMTcnMDYuMCJX!5e0!3m2!1sfr!2sht!4v1234567890"
+                width="100%" height="100%" style="border:0;" allowfullscreen=""
+                loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+                title="Localisation Blessy Tech Academy">
+            </iframe>
+        </div>
+    </div>
+
+    <!-- ================================================
+         POURQUOI NOUS CONTACTER
+         ================================================ -->
+    <section class="contact-pourquoi">
+        <div class="section-header" style="text-align:center; margin-bottom:48px;">
+            <div class="section-tag">💡 Pourquoi nous écrire ?</div>
+            <h2 class="section-titre">On peut t'aider avec ça</h2>
+        </div>
+
+        <div class="pourquoi-contact-grille">
+            <div class="pc-card">
+                <span class="pc-icone">🎯</span>
+                <h4>Choisir ta formation</h4>
+                <p>Tu hésites entre plusieurs parcours ? On t'oriente selon ton profil.</p>
+            </div>
+            <div class="pc-card">
+                <span class="pc-icone">💰</span>
+                <h4>Modalités de paiement</h4>
+                <p>Questions sur les tarifs, les facilités de paiement ou les bourses.</p>
+            </div>
+            <div class="pc-card">
+                <span class="pc-icone">🏢</span>
+                <h4>Partenariats & Entreprises</h4>
+                <p>Tu représentes une entreprise ou une organisation ? Parlons-en.</p>
+            </div>
+            <div class="pc-card">
+                <span class="pc-icone">🛠️</span>
+                <h4>Support technique</h4>
+                <p>Un problème sur la plateforme ? Notre équipe le résout rapidement.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================
+         FAQ RAPIDE
+         ================================================ -->
+    <section class="contact-faq">
+        <div class="section-header" style="text-align:center; margin-bottom:40px;">
+            <div class="section-tag">❓ Questions rapides</div>
+            <h2 class="section-titre">Avant de nous écrire</h2>
+        </div>
+
+        <div class="cf-faq-liste">
+            <div class="cf-faq-item">
+                <button class="cf-faq-question" onclick="toggleFaqContact(this)">
+                    <span>En combien de temps recevrai-je une réponse ?</span>
+                    <span class="cf-faq-icone">+</span>
+                </button>
+                <div class="cf-faq-reponse">
+                    <p>En général sous 24h ouvrées. Pour une réponse immédiate,
+                    utilise Blessy AI ou WhatsApp.</p>
+                </div>
+            </div>
+            <div class="cf-faq-item">
+                <button class="cf-faq-question" onclick="toggleFaqContact(this)">
+                    <span>Puis-je visiter le centre en personne ?</span>
+                    <span class="cf-faq-icone">+</span>
+                </button>
+                <div class="cf-faq-reponse">
+                    <p>BTA est 100% en ligne, mais notre équipe organise parfois
+                    des rencontres à Pétionville — écris-nous pour en savoir plus.</p>
+                </div>
+            </div>
+            <div class="cf-faq-item">
+                <button class="cf-faq-question" onclick="toggleFaqContact(this)">
+                    <span>Comment obtenir un devis pour un partenariat ?</span>
+                    <span class="cf-faq-icone">+</span>
+                </button>
+                <div class="cf-faq-reponse">
+                    <p>Sélectionne "Partenariat" dans le formulaire et décris ton
+                    projet — nous te répondons avec une proposition adaptée.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================
+         CTA FINAL
+         ================================================ -->
+    <section class="contact-cta-final">
+        <div class="contact-cta-inner">
+            <div style="font-size: 48px; margin-bottom: 16px;">🚀</div>
+            <h2>Pas envie d'attendre ?</h2>
+            <p>Commence dès maintenant avec une formation gratuite —
+               sans engagement, sans carte bancaire.</p>
+            <a href="{% url 'inscription_compte' %}" class="btn-hero-principal">
+                🎓 Créer mon compte gratuit
+            </a>
+        </div>
+    </section>
+
+</div>
+
+<!-- ================================================
+     CSS CONTACT
+     ================================================ -->
+<style>
+
+.contact-page-inner { max-width: 1200px; margin: 0 auto; padding: 0 40px 80px; }
+
+/* HERO */
+.contact-hero {
+    background: linear-gradient(135deg, #050d1a 0%, #0B2447 100%);
+    padding: 90px 40px 70px; text-align: center; position: relative; overflow: hidden;
+}
+.contact-hero-grid { position:absolute; inset:0; background-image:linear-gradient(rgba(0,180,216,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,180,216,0.05) 1px,transparent 1px); background-size:40px 40px; }
+.contact-glow-1 { position:absolute; width:450px; height:450px; background:radial-gradient(circle,rgba(0,180,216,0.12) 0%,transparent 70%); top:-100px; left:10%; }
+.contact-glow-2 { position:absolute; width:350px; height:350px; background:radial-gradient(circle,rgba(255,107,53,0.08) 0%,transparent 70%); bottom:-80px; right:10%; }
+
+.contact-hero-inner { max-width:680px; margin:0 auto; position:relative; z-index:2; }
+.contact-tag { background:rgba(0,180,216,0.12); border-color:rgba(0,180,216,0.3); color:#00B4D8; margin-bottom:24px; }
+.contact-hero-titre { font-size:44px; font-weight:800; color:white; line-height:1.2; letter-spacing:-1px; margin-bottom:18px; }
+.contact-titre-accent { background:linear-gradient(135deg,#00B4D8,#7dd3fc); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.contact-hero-sous { font-size:16px; color:rgba(255,255,255,0.7); line-height:1.8; margin-bottom:32px; }
+.contact-hero-ctas { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin-bottom:24px; }
+
+.contact-hero-badge-reponse {
+    display:inline-block; background:rgba(34,197,94,0.12); border:1px solid rgba(34,197,94,0.3);
+    color:#4ade80; padding:8px 20px; border-radius:20px; font-size:13px; font-weight:600;
+}
+
+/* LAYOUT */
+.contact-layout { display:grid; grid-template-columns:1.5fr 1fr; gap:32px; padding:70px 0 50px; align-items:start; }
+
+/* FORMULAIRE */
+.contact-form-card { background:white; border:1.5px solid #e2e8f0; border-radius:24px; padding:40px; box-shadow:0 8px 40px rgba(11,36,71,0.06); }
+.contact-form-titre { font-size:24px; font-weight:800; color:var(--bleu-principal); margin-bottom:6px; }
+.contact-form-sous { font-size:14px; color:var(--gris-texte); margin-bottom:28px; }
+
+.cf-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.cf-field { margin-bottom:18px; }
+.cf-half { margin-bottom:0; }
+
+.cf-field label { display:block; font-size:13px; font-weight:700; color:var(--bleu-principal); margin-bottom:6px; }
+
+.cf-field input, .cf-field select, .cf-field textarea {
+    width:100%; padding:13px 16px; border:2px solid #e2e8f0; border-radius:10px;
+    font-size:14px; font-family:inherit; transition:all 0.2s; color:var(--gris-texte);
+}
+.cf-field input:focus, .cf-field select:focus, .cf-field textarea:focus {
+    outline:none; border-color:#00B4D8; box-shadow:0 0 0 4px rgba(0,180,216,0.1);
+}
+.cf-field textarea { resize:vertical; min-height:120px; }
+
+.cf-erreur { display:block; color:#e53e3e; font-size:12px; margin-top:4px; font-weight:500; }
+
+.cf-submit-btn {
+    width:100%; background:linear-gradient(135deg,#FF6B35,#e85a2a); color:white; border:none;
+    padding:16px; border-radius:12px; font-weight:800; font-size:15px; cursor:pointer;
+    box-shadow:0 8px 24px rgba(255,107,53,0.35); transition:all 0.3s; margin-top:8px;
+}
+.cf-submit-btn:hover { transform:translateY(-2px); box-shadow:0 12px 32px rgba(255,107,53,0.45); }
+.cf-submit-btn:disabled { opacity:0.7; cursor:not-allowed; transform:none; }
+
+.cf-confidentialite { text-align:center; font-size:12px; color:#a0aec0; margin-top:16px; }
+
+/* INFOS COLONNE */
+.contact-infos-col { display:flex; flex-direction:column; gap:14px; }
+
+.ci-card {
+    background:white; border:1.5px solid #e2e8f0; border-radius:16px; padding:20px;
+    display:flex; align-items:flex-start; gap:14px; transition:all 0.3s;
+}
+.ci-card:hover { border-color:var(--bleu-electrique); transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,180,216,0.08); }
+
+.ci-icone { font-size:24px; flex-shrink:0; }
+.ci-card h4 { font-size:14px; font-weight:700; color:var(--bleu-principal); margin-bottom:4px; }
+.ci-card p, .ci-card a { font-size:13px; color:var(--gris-texte); text-decoration:none; }
+.ci-card a:hover { color:var(--bleu-electrique); }
+
+.ci-card-ai { background:linear-gradient(135deg,#0B2447,#1a4a8a); border-color:transparent; }
+.ci-ai-btn {
+    display:inline-block; background:#00B4D8; color:white; padding:8px 16px;
+    border-radius:8px; text-decoration:none; font-size:12px; font-weight:700; transition:all 0.2s;
+}
+.ci-ai-btn:hover { background:#0090b8; color:white; }
+
+/* CARTE MAPS */
+.contact-carte-section { padding:20px 0 60px; }
+.carte-wrapper { height:320px; border-radius:20px; overflow:hidden; box-shadow:0 8px 30px rgba(11,36,71,0.08); border:1.5px solid #e2e8f0; }
+
+/* POURQUOI */
+.contact-pourquoi { padding:60px 0; }
+.pourquoi-contact-grille { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:20px; }
+.pc-card { background:var(--gris-clair); border-radius:16px; padding:24px; transition:all 0.3s; }
+.pc-card:hover { background:white; box-shadow:0 12px 36px rgba(0,180,216,0.1); transform:translateY(-4px); }
+.pc-icone { font-size:32px; display:block; margin-bottom:10px; }
+.pc-card h4 { font-size:15px; font-weight:700; color:var(--bleu-principal); margin-bottom:6px; }
+.pc-card p { font-size:13px; color:var(--gris-texte); line-height:1.6; margin:0; }
+
+/* FAQ */
+.contact-faq { padding:60px 0; }
+.cf-faq-liste { max-width:700px; margin:0 auto; }
+.cf-faq-item { border-bottom:1px solid #e2e8f0; }
+.cf-faq-question {
+    width:100%; display:flex; justify-content:space-between; align-items:center;
+    padding:20px 0; background:none; border:none; cursor:pointer; text-align:left;
+    font-size:15px; font-weight:600; color:var(--bleu-principal); font-family:inherit;
+}
+.cf-faq-icone { font-size:22px; font-weight:300; width:28px; height:28px; border-radius:50%; background:var(--gris-clair); display:flex; align-items:center; justify-content:center; transition:all 0.3s; }
+.cf-faq-item.actif .cf-faq-icone { background:var(--bleu-principal); color:white; transform:rotate(45deg); }
+.cf-faq-reponse { display:none; padding:0 0 20px; }
+.cf-faq-reponse.visible { display:block; animation:apparition 0.3s ease-out; }
+.cf-faq-reponse p { font-size:14px; color:var(--gris-texte); line-height:1.7; margin:0; }
+
+/* CTA FINAL */
+.contact-cta-final { background:linear-gradient(135deg,#0B2447,#1a4a8a); border-radius:28px; padding:60px 40px; text-align:center; }
+.contact-cta-inner h2 { color:white; font-size:30px; font-weight:800; margin-bottom:12px; }
+.contact-cta-inner p { color:rgba(255,255,255,0.7); font-size:15px; margin-bottom:28px; max-width:450px; margin-left:auto; margin-right:auto; }
+
+/* RESPONSIVE */
+@media (max-width:1024px) {
+    .contact-layout { grid-template-columns:1fr; }
+}
+@media (max-width:768px) {
+    .contact-page-inner { padding:0 20px 60px; }
+    .contact-hero { padding:60px 20px; }
+    .contact-hero-titre { font-size:30px; }
+    .cf-row { grid-template-columns:1fr; }
+    .contact-form-card { padding:24px; }
+    .contact-cta-final { padding:40px 24px; }
+}
+</style>
+
+<!-- ================================================
+     JS CONTACT
+     ================================================ -->
+<script>
+function toggleFaqContact(bouton) {
+    const item = bouton.parentElement;
+    const reponse = item.querySelector('.cf-faq-reponse');
+    const ouvert = item.classList.contains('actif');
+
+    document.querySelectorAll('.cf-faq-item.actif').forEach(function(i) {
+        i.classList.remove('actif');
+        i.querySelector('.cf-faq-reponse').classList.remove('visible');
+    });
+
+    if (!ouvert) {
+        item.classList.add('actif');
+        reponse.classList.add('visible');
+    }
+}
+
+document.getElementById('contact-form').addEventListener('submit', function() {
+    const btn = document.getElementById('cf-submit-btn');
+    document.getElementById('cf-submit-texte').textContent = '⏳ Envoi en cours...';
+    btn.disabled = true;
+});
+</script>
 
 {% endblock %}

@@ -1815,3 +1815,11 @@ def apercu_article_admin(request, article_id):
         ).exclude(id=article.id)[:3],
         'mode_apercu': True,
     })
+# Vues pour le sitemap et robots.txt
+def sitemap_xml(request):
+    articles = Article.objects.filter(publie=True)
+    return render(request, 'academie/sitemap.xml', {'articles': articles}, content_type='application/xml')
+
+def robots_txt(request):
+    contenu = "User-agent: *\nAllow: /\nSitemap: " + request.build_absolute_uri('/sitemap.xml')
+    return HttpResponse(contenu, content_type='text/plain')

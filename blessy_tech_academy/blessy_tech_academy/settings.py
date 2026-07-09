@@ -309,26 +309,43 @@ SECURE_BROWSER_XSS_FILTER = True
 # ========== Anti-clickjacking ==========
 X_FRAME_OPTIONS = 'DENY'
 
-# ========== Content Security Policy (robuste) ==========
-CSP_DEFAULT_SRC = ("'none'",)
-CSP_SCRIPT_SRC = ("'self'",
-                "'unsafe-inline'",
-                "https://cdn.ckeditor.com",
-                "https://cdn.jsdelivr.net")
-CSP_STYLE_SRC = ("'self'",
-                "https://fonts.googleapis.com",
-                "https://cdn.ckeditor.com",
-                "https://cdn.jsdelivr.net",
-                "'unsafe-inline'")
-CSP_IMG_SRC = ("'self'", "data:", "https://*")
-CSP_FONT_SRC = ("'self'", "https://cdn.ckeditor.com")
-CSP_CONNECT_SRC = ("'self'",)
-CSP_FRAME_ANCESTORS = ("'none'",)
+# ========== Content Security Policy ==========
+# Note: Le CSP principal est géré par SecurityHeadersMiddleware
+# Ces variables sont utilisées comme fallback par Django
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC = (
+    "'self'",
+    "'unsafe-inline'",
+    "'unsafe-eval'",
+    "https://cdn.ckeditor.com",
+    "https://cdn.jsdelivr.net",
+    "https://www.googletagmanager.com",
+    "https://www.google-analytics.com",
+)
+CSP_STYLE_SRC = (
+    "'self'",
+    "'unsafe-inline'",
+    "https://cdn.ckeditor.com",
+    "https://cdn.jsdelivr.net",
+    "https://fonts.googleapis.com",
+)
+CSP_IMG_SRC = ("'self'", "data:", "https:")
+CSP_FONT_SRC = ("'self'", "https://cdn.ckeditor.com", "https://fonts.gstatic.com")
+CSP_CONNECT_SRC = ("'self'", "https://www.google-analytics.com")
+CSP_MANIFEST_SRC = ("'self'",)
+CSP_FRAME_ANCESTORS = ("'self'",)
 CSP_BASE_URI = ("'self'",)
 CSP_FORM_ACTION = ("'self'",)
-CSP_FRAME_SRC = ("'none'",)
+CSP_FRAME_SRC = ("'self'",)
 CSP_OBJECT_SRC = ("'none'",)
-CSP_UPGRADE_INSECURE_REQUESTS = True
+
+if DEBUG:
+    # En développement, on assouplit pour permettre localhost
+    CSP_DEFAULT_SRC = ("'self'", "http://127.0.0.1:8000", "http://localhost:8000")
+    CSP_CONNECT_SRC = ("'self'", "http://127.0.0.1:8000", "http://localhost:8000", "https://www.google-analytics.com")
+else:
+    # En production, on renforce la sécurité
+    CSP_UPGRADE_INSECURE_REQUESTS = True
 
 # ========== Journalisation sécurité ==========
 LOGGING['loggers']['django.security'] = {
