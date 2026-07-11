@@ -7,8 +7,11 @@ from django.utils import timezone
 from datetime import timedelta
 from simple_history.admin import SimpleHistoryAdmin
 from adminsortable2.admin import SortableAdminMixin, SortableInlineAdminMixin, SortableAdminBase
+from academie import views
+from . import views
 from .models import (Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz, Module, Lecon, ProgressionLecon,
-Parcours, Sujet, Reponse, Reaction, OutilRecommande, Article, Temoignage)
+Parcours, Sujet, Reponse, Reaction, OutilRecommande, Article, Temoignage, MoyenPaiement, Coupon, Promotion, Order, OrderItem,
+Invoice, Transaction, Refund, AccesFormationDebloque, ChoixExamen, QuestionExamen, TentativeExamen, Examen)
 
 # ================================================
 # Thème CSS global pour tout l'admin
@@ -38,7 +41,7 @@ class ModuleInline(SortableInlineAdminMixin, admin.TabularInline):
 class FormationAdmin(AdminThemeMixin, SortableAdminBase, SimpleHistoryAdmin):
     list_display = [
         'icone', 'nom', 'ecole', 'niveau',
-        'duree_mois', 'prix', 'actif'
+        'duree_mois', 'prix', 'actif', 'bouton_workspace'
     ]
     list_filter = ['actif', 'niveau', 'ecole']
     search_fields = ['nom', 'description']
@@ -71,9 +74,17 @@ class FormationAdmin(AdminThemeMixin, SortableAdminBase, SimpleHistoryAdmin):
             n += 1
         self.message_user(request, f"✅ {n} formation(s) partagée(s) (simulation). Voir les logs pour le contenu.")
 
+    def bouton_workspace(self, obj):
+        from django.utils.html import format_html
+        url = f"/admin/formation/{obj.id}/workspace/"
+        return format_html(
+            '<a href="{}" style="background:#00B4D8; color:white; padding:4px 12px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:700;">🗂️ Ouvrir le Workspace</a>',
+            url
+        )
+    bouton_workspace.short_description = 'Workspace'
+
     class Media:
         js = ['academie/admin/generer_ia.js', 'academie/admin/generer_programme.js']
-
 @admin.register(Inscription)
 class InscriptionAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_display = [
@@ -314,6 +325,45 @@ class TemoignageAdmin(AdminThemeMixin, admin.ModelAdmin):
 
 
 # ================================================
+# ADMIN — Plateforme d'examens officiels
+# ================================================
+
+class ChoixExamenInline(admin.TabularInline):
+    model = ChoixExamen
+    extra = 2
+
+
+class QuestionExamenInline(admin.TabularInline):
+    model = QuestionExamen
+    extra = 0
+    show_change_link = True
+
+
+@admin.register(Examen)
+class ExamenAdmin(admin.ModelAdmin):
+    list_display = ['titre', 'formation', 'duree_minutes', 'seuil_reussite', 'actif']
+    list_filter = ['actif', 'formation']
+    search_fields = ['titre']
+    inlines = [QuestionExamenInline]
+
+
+@admin.register(QuestionExamen)
+class QuestionExamenAdmin(admin.ModelAdmin):
+    list_display = ['texte_court', 'examen', 'type_question', 'points']
+    inlines = [ChoixExamenInline]
+    
+    def texte_court(self, obj):
+        return obj.texte[:80]
+
+
+@admin.register(TentativeExamen)
+class TentativeExamenAdmin(admin.ModelAdmin):
+    list_display = ['utilisateur', 'examen', 'score', 'reussi', 'date_debut']
+    list_filter = ['reussi', 'examen']
+    readonly_fields = ['date_debut', 'date_fin', 'evenements_suspects']
+
+
+# ================================================
 # Vue personnalisée — Gestion organisée par École
 # ================================================
 
@@ -323,7 +373,15 @@ class GestionCoursAdminSite(AdminThemeMixin):
         custom_urls = [
             path('gestion-cours/', admin.site.admin_view(self.vue_gestion_cours), name='gestion_cours'),
             path('dashboard-editorial/', admin.site.admin_view(self.vue_dashboard_editorial), name='dashboard_editorial'),
-            path('dashboard-business/', admin.site.admin_view(self.vue_dashboard_business), name='dashboard_business'),
+            path('dashboard-business/', views.vue_dashboard_business, name='dashboard_business'),            path('synchronisation/', admin.site.admin_view(views.admin_sync_dashboard), name='synchronisation'),
+            path('synchronisation/export/', admin.site.admin_view(views.admin_sync_export), name='sync_export'),
+            path('synchronisation/import/', admin.site.admin_view(views.admin_sync_import), name='sync_import'),
+            path('formation/<int:formation_id>/workspace/', admin.site.admin_view(views.workspace_formation), name='workspace_formation'),
+            
+            # === Centre d'administration des Emails (apercu + test) ===
+            path('emails/', views.admin_emails_dashboard, name='admin_emails'),
+            path('emails/preview/<str:template_name>/', views.admin_email_preview, name='email_preview'),
+            path('emails/test/', views.admin_email_test, name='email_test'),
         ]
         return custom_urls + original_urls
 
@@ -360,36 +418,6 @@ class GestionCoursAdminSite(AdminThemeMixin):
             'derniers_articles': derniers_articles,
         })
 
-    def vue_dashboard_business(self, request):
-        total_inscriptions = Inscription.objects.count()
-        inscriptions_non_traitees = Inscription.objects.filter(traite=False).count()
-
-        il_y_a_30j = timezone.now() - timedelta(days=30)
-        inscriptions_recentes = Inscription.objects.filter(
-            date_inscription__gte=il_y_a_30j
-        ).count()
-
-        revenus_potentiels = Formation.objects.filter(
-            actif=True
-        ).aggregate(total=Sum('prix'))['total'] or 0
-
-        formations_populaires = Formation.objects.annotate(
-            nb_inscrits=Count('inscriptions')
-        ).order_by('-nb_inscrits')[:8]
-
-        total_etudiants = User.objects.filter(is_staff=False).count()
-
-        return render(request, 'admin/dashboard_business.html', {
-            'title': '💼 Dashboard Business',
-            'site_header': admin.site.site_header,
-            'total_inscriptions': total_inscriptions,
-            'inscriptions_non_traitees': inscriptions_non_traitees,
-            'inscriptions_recentes': inscriptions_recentes,
-            'revenus_potentiels': revenus_potentiels,
-            'formations_populaires': formations_populaires,
-            'total_etudiants': total_etudiants,
-        })
-
 
 from django.contrib.auth.models import User
 
@@ -406,3 +434,195 @@ admin.site.get_urls = get_urls_avec_gestion
 admin.site.site_header = "Blessy Tech Academy — Back Office"
 admin.site.site_title = "BTA Admin"
 admin.site.index_title = "Tableau de bord"
+
+
+# ================================================
+# ADMIN.PY — Payment Center
+# ================================================
+@admin.register(MoyenPaiement)
+class MoyenPaiementAdmin(admin.ModelAdmin):
+    list_display = ['icone', 'nom_affiche', 'code', 'actif', 'ordre']
+    list_editable = ['actif', 'ordre']
+
+
+@admin.register(Coupon)
+class CouponAdmin(admin.ModelAdmin):
+    list_display = ['code', 'type_reduction', 'valeur', 'utilisations_actuelles', 'utilisations_max', 'actif']
+    list_editable = ['actif']
+    search_fields = ['code']
+
+
+@admin.register(Promotion)
+class PromotionAdmin(admin.ModelAdmin):
+    list_display = ['nom', 'pourcentage_reduction', 'date_debut', 'date_fin', 'actif']
+    list_editable = ['actif']
+    filter_horizontal = ['ecoles_concernees', 'formations_concernees']
+
+
+class OrderItemInline(admin.TabularInline):
+    model = OrderItem
+    extra = 0
+    readonly_fields = ['formation', 'nom_produit_snapshot', 'prix_unitaire']
+
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ['reference', 'utilisateur', 'total', 'statut', 'date_creation']
+    list_filter = ['statut', 'devise']
+    search_fields = ['reference', 'utilisateur__username']
+    inlines = [OrderItemInline]
+    readonly_fields = ['reference', 'sous_total', 'reduction_totale', 'total']
+
+
+@admin.register(Transaction)
+class TransactionAdmin(admin.ModelAdmin):
+    list_display = ['commande', 'moyen_paiement', 'montant', 'statut', 'date_creation', 'bouton_valider']
+    list_filter = ['statut', 'moyen_paiement']
+
+    def bouton_valider(self, obj):
+        from django.utils.html import format_html
+        if obj.statut == 'en_verification':
+            return format_html(
+                '<a href="/admin/valider-transaction/{}/" style="background:#22c55e; color:white; padding:4px 12px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:700;">✅ Valider le paiement</a>',
+                obj.id
+            )
+        return "—"
+    bouton_valider.short_description = 'Action'
+
+
+@admin.register(Invoice)
+class InvoiceAdmin(admin.ModelAdmin):
+    list_display = ['numero_facture', 'commande', 'date_emission']
+    search_fields = ['numero_facture']
+
+
+@admin.register(Refund)
+class RefundAdmin(admin.ModelAdmin):
+    list_display = ['commande', 'montant', 'statut', 'date_demande']
+    list_editable = ['statut']
+
+
+@admin.register(AccesFormationDebloque)
+class AccesFormationDebloqueAdmin(admin.ModelAdmin):
+    list_display = ['utilisateur', 'nom_formation_snapshot', 'date_deblocage']
+    search_fields = ['utilisateur__username', 'nom_formation_snapshot']
+
+
+# ========================================================================
+# ADMIN.PY — Enrichissement vue_dashboard_business avec données Chart.js
+# Remplace la méthode existante du même nom
+# ========================================================================
+
+@staff_member_required
+def vue_dashboard_business(self, request):
+    from datetime import timedelta
+    import json
+
+    total_inscriptions = Inscription.objects.count()
+    inscriptions_non_traitees = Inscription.objects.filter(traite=False).count()
+
+    # Revenus réels (basés sur commandes payées — pas potentiels)
+    ca_total = Order.objects.filter(statut='paye').aggregate(total=Sum('total'))['total'] or 0
+
+    # Ventes des 30 derniers jours (pour graphique)
+    labels_jours, valeurs_jours = [], []
+    for i in range(29, -1, -1):
+        jour = timezone.now().date() - timedelta(days=i)
+        montant_jour = Order.objects.filter(
+            statut='paye', date_paiement__date=jour
+        ).aggregate(total=Sum('total'))['total'] or 0
+        labels_jours.append(jour.strftime('%d/%m'))
+        valeurs_jours.append(float(montant_jour))
+
+    # Top formations vendues
+    formations_populaires = Formation.objects.annotate(
+        nb_ventes=Count('orderitem', filter=Q(orderitem__commande__statut='paye'))
+    ).order_by('-nb_ventes')[:8]
+
+    # Répartition par moyen de paiement
+    repartition_moyens = Transaction.objects.filter(statut='reussie').values(
+        'moyen_paiement__nom_affiche'
+    ).annotate(total=Count('id'))
+
+    coupons_utilises = Coupon.objects.filter(utilisations_actuelles__gt=0).count()
+    remboursements_total = Refund.objects.filter(statut='approuve').aggregate(total=Sum('montant'))['total'] or 0
+
+    return render(request, 'admin/dashboard_business.html', {
+        'title': '💼 Dashboard Business',
+        'site_header': admin.site.site_header,
+        'ca_total': ca_total,
+        'total_inscriptions': total_inscriptions,
+        'inscriptions_non_traitees': inscriptions_non_traitees,
+        'formations_populaires': formations_populaires,
+        'coupons_utilises': coupons_utilises,
+        'remboursements_total': remboursements_total,
+        'chart_labels_json': json.dumps(labels_jours),
+        'chart_valeurs_json': json.dumps(valeurs_jours),
+        'chart_moyens_labels': json.dumps([m['moyen_paiement__nom_affiche'] or 'N/A' for m in repartition_moyens]),
+        'chart_moyens_valeurs': json.dumps([m['total'] for m in repartition_moyens]),
+    })
+
+
+# ================================================
+# ADMIN.PY — Administration abonnements
+# ================================================
+from .models import PlanAbonnement, Subscription
+
+@admin.register(PlanAbonnement)
+class PlanAbonnementAdmin(admin.ModelAdmin):
+    list_display = ['nom', 'prix', 'periodicite', 'actif']
+    list_editable = ['actif']
+
+@admin.register(Subscription)
+class SubscriptionAdmin(admin.ModelAdmin):
+    list_display = ['utilisateur', 'plan_nom_snapshot', 'statut', 'date_prochain_renouvellement']
+    list_filter = ['statut']
+
+
+    # === Réorganisation de l'admin par groupes ===
+from django.conf import settings
+from django.utils.safestring import mark_safe
+
+original_get_app_list = admin.site.get_app_list
+
+def grouped_app_list(request):
+    app_list = original_get_app_list(request)
+    grouping = getattr(settings, 'ADMIN_GROUPING', {})
+    
+    academie_app = None
+    for app in app_list:
+        if app['app_label'] == 'academie':
+            academie_app = app
+            break
+    
+    if academie_app:
+        new_models = []
+        seen = set()
+        
+        for group_name, model_names in grouping.items():
+            group_models = []
+            for model in academie_app['models']:
+                model_name = model['object_name']
+                if model_name in model_names and model_name not in seen:
+                    group_models.append(model)
+                    seen.add(model_name)
+            if group_models:
+                # Ajouter un séparateur de catégorie stylisé
+                group_models.insert(0, {
+                    'name': mark_safe(
+                        f'<div style="background:#407690;color:white;padding:8px 12px;'
+                        f'border-radius:6px;margin:8px 0 4px;font-weight:700;font-size:13px;">'
+                        f'{group_name}</div>'
+                    ),
+                    'object_name': None,
+                    'admin_url': None,
+                    'add_url': None,
+                    'perms': {'add': False, 'change': False, 'delete': False, 'view': False},
+                })
+                new_models.extend(group_models)
+        
+        academie_app['models'] = new_models
+    
+    return app_list
+
+admin.site.get_app_list = grouped_app_list

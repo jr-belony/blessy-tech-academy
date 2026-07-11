@@ -69,4 +69,30 @@ urlpatterns = [
     path('ressources/<slug:slug>/', views.detail_article, name='detail_article'),
     path('admin/apercu-article/<int:article_id>/', views.apercu_article_admin, name='apercu_article_admin'),
     path('parcours/', views.parcours_professionnels, name='parcours'),
+    path('admin/formation/<int:formation_id>/workspace/', views.workspace_formation, name='workspace_formation'),
+    
+    # === Synchronisation export/import ===
+    path('admin/synchronisation/export/', views.admin_sync_export, name='admin_sync_export'),
+    path('admin/synchronisation/import/', views.admin_sync_import, name='admin_sync_import'),
+    # ================================================
+    # URLS.PY — Payment Center
+    # ================================================
+
+    path('acheter/<int:formation_id>/', views.initier_achat, name='initier_achat'),
+    path('checkout/<str:order_reference>/', views.checkout, name='checkout'),
+    path('confirmer-paiement/<str:order_reference>/', views.confirmer_paiement, name='confirmer_paiement'),
+    path('mes-commandes/', views.mes_commandes, name='mes_commandes'),
+    path('admin/valider-transaction/<int:transaction_id>/', views.admin_valider_transaction, name='admin_valider_transaction'),
+    # ================================================
+    # URLS.PY — Routes passerelles de paiement
+    # ================================================
+    path('payer/<str:order_reference>/', views.rediriger_paiement_externe, name='rediriger_paiement_externe'),
+    path('paiement-succes/<str:order_reference>/', views.paiement_succes, name='paiement_succes'),
+    path('webhooks/stripe/', views.stripe_webhook, name='stripe_webhook'),
+    path('admin/export/ventes-excel/', views.export_ventes_excel, name='export_ventes_excel'),
+    path('admin/export/ventes-pdf/', views.export_ventes_pdf, name='export_ventes_pdf'),
+    # === Plateforme d'examens officiels ===
+    path('examen/<int:examen_id>/preparation/', views.preparation_examen, name='preparation_examen'),
+    path('examen/<int:examen_id>/', views.passer_examen, name='passer_examen'),
+    path('examen/<int:examen_id>/soumettre/', views.soumettre_examen, name='soumettre_examen'),
 ]

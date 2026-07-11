@@ -206,11 +206,44 @@
             </div>
 
         </div>
-            <!-- ================================================
+
+    <!--=================================================
+    HISTORIQUE DES EXAMENS
+    ==================================================-->
+{% if examens_passes %}
+<div style="background: white; padding: 32px; border-radius: 12px;
+            box-shadow: var(--ombre-legere); margin-bottom: 32px;">
+    <h3 style="color: var(--bleu-principal); margin-bottom: 20px;">
+        📝 Historique d'examens
+    </h3>
+    {% for tentative in examens_passes %}
+    <div style="display:flex; justify-content:space-between; align-items:center; 
+                padding:12px 0; border-bottom:1px solid #f0f0f0;">
+        <div>
+            <span style="font-weight:600; color:var(--bleu-principal);">{{ tentative.examen.titre }}</span>
+            <span style="font-size:12px; color:#a0aec0; margin-left:8px;">{{ tentative.date_debut|date:"d/m/Y" }}</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px;">
+            <span style="font-weight:700; color:{% if tentative.reussi %}#22c55e{% else %}#e53e3e{% endif %};">
+                {{ tentative.score|default:0 }}%
+            </span>
+            {% if tentative.reussi %}
+            <span style="background:#d1fae5; color:#065f46; padding:2px 10px; border-radius:12px; font-size:11px; font-weight:700;">Réussi</span>
+            {% elif tentative.score is not None %}
+            <span style="background:#fee2e2; color:#991b1b; padding:2px 10px; border-radius:12px; font-size:11px; font-weight:700;">Échoué</span>
+            {% else %}
+            <span style="background:#fef3c7; color:#92400e; padding:2px 10px; border-radius:12px; font-size:11px; font-weight:700;">En cours</span>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+            <!-- ====================================================
             DERNIÈRES CONNEXIONS
             Rôle : Affiche les 5 dernières connexions de l'utilisateur
-                    avec IP, pays, navigateur et statut suspect/OK
-            ================================================ -->
+            avec IP, pays, navigateur et statut suspect/OK
+            =====================================================--->
         <div style="background: white; padding: 32px; border-radius: 12px;
                     box-shadow: var(--ombre-legere); margin-bottom: 32px;">
             <h3 style="color: var(--bleu-principal); margin-bottom: 20px;">

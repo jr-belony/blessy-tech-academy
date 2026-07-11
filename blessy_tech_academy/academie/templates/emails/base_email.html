@@ -1,0 +1,55 @@
+<!-- ================================================
+     BASE_EMAIL.HTML — Squelette maître de tous les emails BTA
+     Compatible Gmail / Outlook / Apple Mail (tables HTML, CSS inline)
+     ================================================ -->
+<!DOCTYPE html>
+<html lang="fr" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block titre_email %}Blessy Tech Academy{% endblock %}</title>
+<!--[if mso]>
+<style>table {border-collapse: collapse;} td,th,div,p,a {font-family: Arial, sans-serif;}</style>
+<![endif]-->
+<style>
+    body { margin:0; padding:0; background-color:#f4f7fb; -webkit-font-smoothing:antialiased; }
+    table { border-collapse:collapse; }
+    img { border:0; display:block; }
+    a { text-decoration:none; }
+    @media only screen and (max-width:600px) {
+        .conteneur-email { width:100% !important; }
+        .padding-mobile { padding-left:20px !important; padding-right:20px !important; }
+        .titre-mobile { font-size:22px !important; }
+    }
+</style>
+</head>
+<body style="margin:0; padding:0; background-color:#f4f7fb;">
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f7fb; padding:32px 16px;">
+<tr><td align="center">
+
+    <table role="presentation" class="conteneur-email" width="600" cellpadding="0" cellspacing="0"
+           style="width:600px; max-width:600px; background-color:#ffffff; border-radius:20px; overflow:hidden; box-shadow:0 8px 30px rgba(11,36,71,0.08);">
+
+        <!-- HEADER -->
+        <tr><td>
+            {% include 'emails/components/header.html' %}
+        </td></tr>
+
+        <!-- CONTENU PRINCIPAL (redéfini par chaque email enfant) -->
+        <tr><td class="padding-mobile" style="padding:40px 48px;">
+            {% block contenu_email %}{% endblock %}
+        </td></tr>
+
+        <!-- FOOTER -->
+        <tr><td>
+            {% include 'emails/components/footer.html' %}
+        </td></tr>
+
+    </table>
+
+</td></tr>
+</table>
+
+</body>
+</html>

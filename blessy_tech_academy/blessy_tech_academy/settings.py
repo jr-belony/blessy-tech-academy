@@ -347,9 +347,77 @@ else:
     # En production, on renforce la sécurité
     CSP_UPGRADE_INSECURE_REQUESTS = True
 
+    # ================================================
+# SETTINGS.PY — Configuration Email BTA
+# (Ajoute ce bloc à la fin de settings.py)
+# ================================================
+
+SITE_URL = config('SITE_URL', default='https://blessy-tech-academy-production.up.railway.app')
+
+# --- Adresses professionnelles dédiées ---
+EMAIL_CONTACT = 'contact@blessytechacademy.com'
+EMAIL_SUPPORT = 'support@blessytechacademy.com'
+EMAIL_ADMISSIONS = 'admissions@blessytechacademy.com'
+EMAIL_CERTIFICATS = 'certificats@blessytechacademy.com'
+EMAIL_FORMATIONS = 'formations@blessytechacademy.com'
+EMAIL_RECRUTEMENT = 'recrutement@blessytechacademy.com'
+EMAIL_NEWSLETTER = 'newsletter@blessytechacademy.com'
+EMAIL_NOREPLY = 'noreply@blessytechacademy.com'
+
+DEFAULT_FROM_EMAIL = EMAIL_NOREPLY
+
+# --- Backend SMTP (aujourd'hui) — bascule vers un provider en changeant UNIQUEMENT ici ---
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')       # ou smtp-relay.brevo.com, smtp.mailgun.org...
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+
+# En développement, afficher les emails dans le terminal
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+
 # ========== Journalisation sécurité ==========
 LOGGING['loggers']['django.security'] = {
     'handlers': ['file', 'console'],
     'level': 'WARNING',
     'propagate': False,
+}
+
+
+# ================================================
+# SETTINGS.PY — Configuration passerelles de paiement
+# Ajoute à la fin (toutes optionnelles, lisent .env)
+# ================================================
+
+STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='')
+STRIPE_PUBLIC_KEY = config('STRIPE_PUBLIC_KEY', default='')
+STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET', default='')
+
+MONCASH_CLIENT_ID = config('MONCASH_CLIENT_ID', default='')
+MONCASH_CLIENT_SECRET = config('MONCASH_CLIENT_SECRET', default='')
+MONCASH_MODE = config('MONCASH_MODE', default='sandbox')
+
+PAYPAL_CLIENT_ID = config('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = config('PAYPAL_CLIENT_SECRET', default='')
+PAYPAL_MODE = config('PAYPAL_MODE', default='sandbox')
+
+
+# === Organisation de l'admin Django (regroupement natif) ===
+ADMIN_GROUPING = {
+    '🎓 Pédagogie': [
+        'Ecole', 'Formation', 'Module', 'Lecon', 'Quiz',
+        'Parcours', 'Article', 'OutilRecommande', 'Temoignage',
+    ],
+    '📝 Examens': [
+    'Examen', 'QuestionExamen', 'ChoixExamen', 'TentativeExamen',
+    ],
+    '💳 Paiements & Commandes': [
+        'Order', 'OrderItem', 'Transaction', 'Invoice', 'Refund',
+        'Coupon', 'Promotion', 'MoyenPaiement', 'AccesFormationDebloque',
+    ],
+    '📬 Contacts': ['Inscription'],
+    '👥 Communauté': ['Sujet', 'Reponse', 'Reaction', 'ResultatQuiz'],
+    '📊 Abonnements': ['PlanAbonnement', 'Subscription'],
 }

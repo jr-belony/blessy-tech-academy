@@ -1,4 +1,5 @@
 import json
+import random
 import hashlib
 import markdown as markdown_lib
 from django.shortcuts import render, redirect
@@ -7,9 +8,9 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib import admin
 from django.core.paginator import Paginator
-from django.db.models import Count
-from django.db.models import Q, Count, Avg
+from django.db.models import Sum, Count, Q, Avg
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -20,10 +21,14 @@ from django.utils import translation
 from datetime import timedelta
 from django.db.models.functions import TruncMonth
 from django_ratelimit.decorators import ratelimit
+from django.core.management import call_command
+from django.shortcuts import get_object_or_404
+from io import StringIO
 from .models import (
-    Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz,
+    Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz, Examen, TentativeExamen, ChoixExamen,
     Module, Lecon, ProgressionLecon, Parcours, Sujet, Reponse, Reaction, 
-    ProjetEtudiant, Certificat, Article, OutilRecommande, Temoignage
+    ProjetEtudiant, Certificat, Article, OutilRecommande, Temoignage, Promotion, Order,
+    OrderItem, Coupon, Refund, Transaction, AccesFormationDebloque, MoyenPaiement, Invoice,
 )
 from .forms import InscriptionForm, InscriptionCompteForm, ConnexionForm, SujetForm, ReponseForm 
 from . import notifications
@@ -102,6 +107,27 @@ def accueil(request):
         'nb_sujets_forum': nb_sujets_forum,
     })
 
+def apropos(request):
+    return render(request, 'academie/apropos.html')
+
+def contact(request):
+    from django import forms
+    
+    class ContactForm(forms.Form):
+        prenom = forms.CharField(max_length=100, label='Prénom')
+        nom = forms.CharField(max_length=100, label='Nom')
+        email = forms.EmailField(label='Email')
+        sujet = forms.CharField(max_length=200, label='Sujet')
+        message = forms.CharField(widget=forms.Textarea, label='Message')
+
+    if request.method == 'POST':
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            messages.success(request, "✅ Message envoyé avec succès !")
+            return redirect('contact')
+    else:
+        form = ContactForm()
+    return render(request, 'academie/contact.html', {'form': form})
 
 def formations(request):
     """Page des formations organisées par école + formations gratuites + parcours professionnels."""
@@ -124,50 +150,53 @@ def formations(request):
     })
 
 
+# ================================================
+# VIEWS.PY — detail_formation() enrichie pour le tunnel de conversion
+# Remplace la fonction existante du même nom
+# ================================================
+
 def detail_formation(request, formation_id):
-    """Page de détail d'une formation avec son programme complet."""
+    """Page de détail d'une formation — tunnel de conversion premium."""
     formation = Formation.objects.prefetch_related(
         'modules__lecons'
     ).get(id=formation_id, actif=True)
 
     pourcentage_progression = 0
+    acces_autorise = formation.gratuit
+    deja_inscrit = False
+
     if request.user.is_authenticated:
         pourcentage_progression = formation.progression_pour(request.user)
+        acces_autorise = verifier_acces_formation(request.user, formation)
+        deja_inscrit = acces_autorise
+
+    # Prix dynamique avec promotion active (réutilise la fonction du Payment Center)
+    prix_final, promo_active = _prix_avec_promotion(formation)
+
+    # Statistiques du programme — 100% dynamiques, zéro donnée dupliquée
+    nb_modules = formation.modules.count()
+    nb_lecons = sum(m.lecons.count() for m in formation.modules.all())
+    duree_totale_minutes = sum(
+        l.duree_minutes for m in formation.modules.all() for l in m.lecons.all()
+    )
+
+    # Formations similaires (même école) pour la section "Ils ont aussi suivi"
+    formations_similaires = Formation.objects.filter(
+        ecole=formation.ecole, actif=True
+    ).exclude(id=formation.id)[:3] if formation.ecole else []
 
     return render(request, 'academie/detail_formation.html', {
         'formation': formation,
         'pourcentage_progression': pourcentage_progression,
+        'acces_autorise': acces_autorise,
+        'deja_inscrit': deja_inscrit,
+        'prix_final': prix_final,
+        'promo_active': promo_active,
+        'nb_modules': nb_modules,
+        'nb_lecons': nb_lecons,
+        'duree_totale_heures': round(duree_totale_minutes / 60, 1),
+        'formations_similaires': formations_similaires,
     })
-
-
-def apropos(request):
-    """Page à propos."""
-    return render(request, 'academie/apropos.html')
-
-
-def contact(request):
-    """Page de contact avec formulaire d'inscription."""
-    if request.method == 'POST':
-        form = InscriptionForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(
-                request,
-                '✅ Merci ! Votre message a été envoyé. '
-                'Nous vous répondrons dans les 24 heures.'
-            )
-            return redirect('contact')
-        else:
-            messages.error(
-                request,
-                '❌ Une erreur est survenue. '
-                'Veuillez vérifier les champs.'
-            )
-    else:
-        form = InscriptionForm()
-    return render(request, 'academie/contact.html', {'form': form})
-
-
 # ================================================
 # Authentification
 # ================================================
@@ -266,12 +295,17 @@ def dashboard(request):
     # ================================================
     from .models import ConnexionUtilisateur
     connexions = ConnexionUtilisateur.objects.filter(utilisateur=user).order_by('-date_connexion')[:5]
+    # === Historique des examens ===
+    examens_passes = TentativeExamen.objects.filter(
+    utilisateur=user
+).select_related('examen').order_by('-date_debut')[:10]
     return render(request, 'academie/dashboard.html', {
         'user': user,
         'stats': stats,
         'badges': tous_badges,
         'formations_actives': formations_actives,
         'connexions': connexions,
+        'examens_passes': examens_passes,
     })
 
 # ================================================
@@ -1823,3 +1857,713 @@ def sitemap_xml(request):
 def robots_txt(request):
     contenu = "User-agent: *\nAllow: /\nSitemap: " + request.build_absolute_uri('/sitemap.xml')
     return HttpResponse(contenu, content_type='text/plain')
+
+
+# =========================================================
+# VUES ADMIN — Prévisualisation et test d'envoi d'emails
+# ==========================================================
+@staff_member_required
+def admin_email_preview(request, template_name):
+    """Prévisualise un email dans le navigateur avec des données factices."""
+    contextes_demo = {
+        'welcome': {'prenom': 'Jean Raymond', 'lien_dashboard': '#'},
+        'certificate': {'prenom': 'Jean Raymond', 'formation_nom': 'Python & Django', 'lien_certificat': '#'},
+        'badge': {'prenom': 'Jean Raymond', 'badge_nom': 'Premier Post', 'badge_icone': '✍️', 'lien_classement': '#'},
+        'quiz_result': {'prenom': 'Jean Raymond', 'quiz_titre': 'Bases de Python', 'score_texte': '8/10', 'pourcentage_texte': '80%', 'message_feedback': '🎉 Excellent travail !', 'lien_formation': '#'},
+        'reset_password': {'prenom': 'Jean Raymond', 'lien_reset': '#'},
+        'forum_reply': {'auteur_reponse': 'Marc B.', 'sujet_titre': 'Comment installer Django ?', 'extrait_reponse': 'Il faut d\'abord installer Python...', 'lien_sujet': '#'},
+    }
+    contexte = contextes_demo.get(template_name, {})
+    return render(request, f'emails/notifications/{template_name}.html', contexte)
+
+
+@staff_member_required
+def admin_email_test(request):
+    """Envoie un email de test à l'admin connecté."""
+    if request.method == 'POST':
+        template_name = request.POST.get('template')
+        from .email_service import _envoyer_email
+        contextes_demo = {
+            'welcome': {'prenom': request.user.first_name or 'Testeur', 'lien_dashboard': '#'},
+        }
+        _envoyer_email(
+            f'emails/notifications/{template_name}.html',
+            contextes_demo.get(template_name, {}),
+            destinataire=request.user.email,
+            sujet=f"[TEST] {template_name}",
+        )
+        messages.success(request, f"✅ Email de test '{template_name}' envoyé à {request.user.email}")
+    return redirect('/admin/emails/')
+
+# ================================================
+# VUES ADMIN — Centre d'administration des Emails
+# ================================================
+@staff_member_required
+def admin_emails_dashboard(request):
+    return render(request, 'admin/emails.html', {
+        'title': '📧 Emails',
+        'site_header': 'Blessy Tech Academy',
+    })
+
+#=========================================================
+# Synchronisation de Contenu
+#Interface Admin "Synchronisation"
+#Vue Django pour déclencher les commandes
+#=========================================================
+
+@staff_member_required
+def admin_sync_export(request):
+    if request.method == 'POST':
+        import json
+        import time
+        from django.http import HttpResponse
+        from academie.models import Ecole, Formation, Module, Lecon
+
+        data = {
+            'ecoles': [],
+            'formations': [],
+            'modules': [],
+            'lecons': [],
+        }
+
+        for ecole in Ecole.objects.all():
+            data['ecoles'].append({
+                'nom': ecole.nom,
+                'icone': ecole.icone,
+                'description': ecole.description,
+                'ordre': ecole.ordre,
+            })
+
+        for formation in Formation.objects.select_related('ecole').all():
+            data['formations'].append({
+                'nom': formation.nom,
+                'ecole': formation.ecole.nom if formation.ecole else None,
+                'icone': formation.icone,
+                'description': formation.description,
+                'duree_mois': formation.duree_mois,
+                'prix': formation.prix,
+                'niveau': formation.niveau,
+                'actif': formation.actif,
+                'gratuit': formation.gratuit,
+            })
+
+        for module in Module.objects.select_related('formation').all():
+            data['modules'].append({
+                'titre': module.titre,
+                'formation': module.formation.nom,
+                'ordre': module.ordre,
+            })
+
+        for lecon in Lecon.objects.select_related('module').all():
+            data['lecons'].append({
+                'titre': lecon.titre,
+                'module': lecon.module.titre if lecon.module else None,
+                'contenu': lecon.contenu,
+                'ordre': lecon.ordre,
+            })
+
+        nom_fichier = f"bta_export_{time.strftime('%Y%m%d_%H%M%S')}.json"
+
+        response = HttpResponse(
+            json.dumps(data, ensure_ascii=False, indent=2),
+            content_type='application/json'
+        )
+        response['Content-Disposition'] = f'attachment; filename="{nom_fichier}"'
+        messages.success(request, f"✅ Export termine : {nom_fichier}")
+        return response
+
+    return redirect('/admin/synchronisation/')
+
+@staff_member_required
+def admin_sync_import(request):
+    if request.method == 'POST':
+        fichier = request.FILES.get('fichier_import')
+        if fichier:
+            chemin_temp = f"/tmp/{fichier.name}"
+            with open(chemin_temp, 'wb+') as dest:
+                for chunk in fichier.chunks():
+                    dest.write(chunk)
+            output = StringIO()
+            call_command('import_content', chemin_temp, stdout=output)
+            messages.success(request, "✅ Import terminé. " + output.getvalue().replace('\n', ' '))
+        else:
+            messages.error(request, "❌ Aucun fichier fourni.")
+    return redirect('/admin/synchronisation/')
+
+
+@staff_member_required
+def admin_sync_dashboard(request):
+    from academie.models import Formation
+    formations_liste = Formation.objects.filter(actif=True).order_by('nom')
+    return render(request, 'admin/synchronisation.html', {
+        'title': 'Synchronisation de contenu',
+        'formations_liste': formations_liste,
+    })
+
+#===============================================
+#Centre de Gestion de Formation (Workspace)
+#===============================================
+@staff_member_required
+def workspace_formation(request, formation_id):
+    """Centre de gestion pédagogique — arbre + panneau d'édition."""
+    formation = Formation.objects.prefetch_related(
+        'modules__lecons', 'modules__lecons__module'
+    ).get(id=formation_id)
+
+    quiz_par_formation = Quiz.objects.filter(formation=formation)
+
+    return render(request, 'admin/workspace_formation.html', {
+        'formation': formation,
+        'quiz_liste': quiz_par_formation,
+        'title': f'Centre de Gestion — {formation.nom}',
+        'site_header': admin.site.site_header,
+    })
+
+
+# ================================================
+# VIEWS.PY — Payment Center
+# ================================================
+
+from decimal import Decimal
+from django.db import transaction as db_transaction
+
+
+def _prix_avec_promotion(formation):
+    """Calcule le prix réel en tenant compte des promotions actives — dynamique, zéro duplication."""
+    prix_original = Decimal(str(formation.prix))
+    promo_active = Promotion.objects.filter(actif=True).first()
+    for promo in Promotion.objects.filter(actif=True):
+        if promo.s_applique_a(formation):
+            reduction = prix_original * (Decimal(promo.pourcentage_reduction) / 100)
+            return prix_original - reduction, promo
+    return prix_original, None
+
+
+@login_required(login_url='/connexion/')
+def initier_achat(request, formation_id):
+    """Étape 1 — Crée une commande en attente pour une formation."""
+    formation = Formation.objects.get(id=formation_id, actif=True)
+
+    if formation.gratuit:
+        messages.info(request, "Cette formation est gratuite — accès direct !")
+        return redirect('detail_formation', formation_id=formation.id)
+
+    # Empêche le rachat si déjà débloquée
+    deja_debloquee = AccesFormationDebloque.objects.filter(
+        utilisateur=request.user, formation=formation
+    ).exists()
+    if deja_debloquee:
+        messages.info(request, "Tu as déjà accès à cette formation !")
+        return redirect('detail_formation', formation_id=formation.id)
+
+    prix_final, promo = _prix_avec_promotion(formation)
+
+    with db_transaction.atomic():
+        commande = Order.objects.create(utilisateur=request.user, sous_total=prix_final, total=prix_final)
+        OrderItem.objects.create(
+            commande=commande,
+            formation=formation,
+            type_produit='formation',
+            nom_produit_snapshot=formation.nom,
+            icone_produit_snapshot=formation.icone,
+            ecole_nom_snapshot=str(formation.ecole) if formation.ecole else '',
+            prix_unitaire=prix_final,
+        )
+        commande.recalculer_total()
+
+    return redirect('checkout', order_reference=commande.reference)
+
+
+@login_required(login_url='/connexion/')
+def checkout(request, order_reference):
+    """Étape 2 — Page de paiement : choix moyen + coupon."""
+    commande = Order.objects.prefetch_related('items').get(reference=order_reference, utilisateur=request.user)
+
+    if request.method == 'POST':
+        code_coupon = request.POST.get('code_coupon', '').strip().upper()
+        moyen_id = request.POST.get('moyen_paiement')
+
+        if code_coupon:
+            try:
+                coupon = Coupon.objects.get(code=code_coupon)
+                valide, message_erreur = coupon.est_valide()
+                if valide:
+                    commande.coupon_applique = coupon
+                    commande.save()
+                    commande.recalculer_total()
+                    messages.success(request, f"✅ Coupon '{code_coupon}' appliqué !")
+                else:
+                    messages.error(request, f"❌ {message_erreur}")
+            except Coupon.DoesNotExist:
+                messages.error(request, "❌ Code coupon invalide.")
+            return redirect('checkout', order_reference=order_reference)
+
+        if moyen_id:
+            moyen = MoyenPaiement.objects.get(id=moyen_id)
+            commande.moyen_paiement = moyen
+            commande.save()
+            return redirect('confirmer_paiement', order_reference=order_reference)
+
+    moyens_paiement = MoyenPaiement.objects.filter(actif=True)
+    return render(request, 'academie/checkout.html', {
+        'commande': commande,
+        'moyens_paiement': moyens_paiement,
+    })
+
+
+@login_required(login_url='/connexion/')
+def confirmer_paiement(request, order_reference):
+    """
+    Étape 3 — Confirmation.
+    Paiement manuel = upload preuve + statut "en_verification" (admin valide ensuite).
+    """
+    commande = Order.objects.get(reference=order_reference, utilisateur=request.user)
+
+    if request.method == 'POST':
+        preuve = request.FILES.get('preuve_paiement')
+        reference_externe = request.POST.get('reference_externe', '')
+
+        with db_transaction.atomic():
+            Transaction.objects.create(
+                commande=commande,
+                moyen_paiement=commande.moyen_paiement,
+                reference_externe=reference_externe,
+                preuve_paiement=preuve,
+                montant=commande.total,
+                statut='en_verification' if commande.moyen_paiement.code == 'manuel' else 'initiee',
+            )
+
+        messages.success(
+            request,
+            "✅ Paiement soumis ! Notre équipe valide généralement sous 24h. "
+            "Tu recevras un email de confirmation dès validation."
+        )
+        return redirect('mes_commandes')
+
+    return render(request, 'academie/confirmer_paiement.html', {'commande': commande})
+
+
+@staff_member_required
+def admin_valider_transaction(request, transaction_id):
+    """Admin — valide manuellement un paiement et débloque l'accès automatiquement."""
+    trans = Transaction.objects.select_related('commande').get(id=transaction_id)
+
+    with db_transaction.atomic():
+        trans.statut = 'reussie'
+        trans.valide_par = request.user
+        trans.save()
+
+        commande = trans.commande
+        commande.statut = 'paye'
+        commande.date_paiement = timezone.now()
+        commande.save()
+
+        # Débloque l'accès pour CHAQUE item de la commande
+        for item in commande.items.all():
+            if item.formation:
+                AccesFormationDebloque.objects.get_or_create(
+                    utilisateur=commande.utilisateur,
+                    nom_formation_snapshot=item.nom_produit_snapshot,
+                    defaults={'formation': item.formation, 'commande_origine': commande}
+                )
+
+        # Génère la facture automatiquement
+        facture, _ = Invoice.objects.get_or_create(commande=commande)
+
+        # Incrémente l'usage du coupon si utilisé
+        if commande.coupon_applique:
+            commande.coupon_applique.utilisations_actuelles += 1
+            commande.coupon_applique.save()
+
+        # Envoie email de confirmation (réutilise email_service.py déjà construit)
+        try:
+            from .email_service import _envoyer_email
+            _envoyer_email(
+                'emails/notifications/payment_confirmed.html',
+                {
+                    'prenom': commande.utilisateur.first_name or commande.utilisateur.username,
+                    'commande': commande,
+                    'facture_numero': facture.numero_facture,
+                },
+                destinataire=commande.utilisateur.email,
+                sujet=f"✅ Paiement confirmé — Commande {commande.reference}",
+            )
+        except Exception:
+            pass
+
+    messages.success(request, f"✅ Transaction validée — Accès débloqué pour {commande.utilisateur.username}")
+    return redirect('/admin/academie/transaction/')
+
+
+@login_required(login_url='/connexion/')
+def mes_commandes(request):
+    """Dashboard étudiant — Mes commandes/factures/remboursements."""
+    commandes = Order.objects.filter(utilisateur=request.user).prefetch_related('items', 'facture')
+    return render(request, 'academie/mes_commandes.html', {'commandes': commandes})
+
+
+def verifier_acces_formation(user, formation):
+    """
+    Fonction utilitaire — à réutiliser PARTOUT où on doit vérifier
+    si un étudiant a accès à une formation payante.
+    Usage : if verifier_acces_formation(request.user, formation): ...
+    """
+    if formation.gratuit:
+        return True
+    if not user.is_authenticated:
+        return False
+    return AccesFormationDebloque.objects.filter(utilisateur=user, formation=formation).exists()
+
+
+# ================================================
+# VIEWS.PY — Intégration des passerelles réelles
+# Remplace/complète confirmer_paiement() selon moyen choisi
+# ================================================
+
+@login_required(login_url='/connexion/')
+def rediriger_paiement_externe(request, order_reference):
+    """Route vers la bonne passerelle selon le moyen choisi."""
+    commande = Order.objects.get(reference=order_reference, utilisateur=request.user)
+    code_moyen = commande.moyen_paiement.code
+
+    url_succes = request.build_absolute_uri(f'/paiement-succes/{order_reference}/')
+    url_annulation = request.build_absolute_uri(f'/checkout/{order_reference}/')
+
+    if code_moyen == 'stripe':
+        from academie.payment_gateways import stripe_gateway
+        url, session_id = stripe_gateway.creer_session_paiement(commande, url_succes, url_annulation)
+        if url:
+            Transaction.objects.create(
+                commande=commande, moyen_paiement=commande.moyen_paiement,
+                reference_externe=session_id, montant=commande.total, statut='initiee'
+            )
+            return redirect(url)
+        messages.error(request, f"Erreur Stripe : {session_id}")
+
+    elif code_moyen == 'moncash':
+        from academie.payment_gateways import moncash_gateway
+        url, erreur = moncash_gateway.creer_paiement(commande)
+        if url:
+            return redirect(url)
+        messages.error(request, erreur)
+
+    elif code_moyen == 'paypal':
+        from academie.payment_gateways import paypal_gateway
+        url, payment_id = paypal_gateway.creer_paiement(commande, url_succes, url_annulation)
+        if url:
+            Transaction.objects.create(
+                commande=commande, moyen_paiement=commande.moyen_paiement,
+                reference_externe=payment_id, montant=commande.total, statut='initiee'
+            )
+            return redirect(url)
+        messages.error(request, "Erreur PayPal")
+
+    return redirect('confirmer_paiement', order_reference=order_reference)
+
+
+@login_required(login_url='/connexion/')
+def paiement_succes(request, order_reference):
+    """Page de retour après paiement externe réussi — débloque l'accès."""
+    commande = Order.objects.get(reference=order_reference, utilisateur=request.user)
+
+    with db_transaction.atomic():
+        commande.statut = 'paye'
+        commande.date_paiement = timezone.now()
+        commande.save()
+
+        for item in commande.items.all():
+            if item.formation:
+                AccesFormationDebloque.objects.get_or_create(
+                    utilisateur=commande.utilisateur,
+                    nom_formation_snapshot=item.nom_produit_snapshot,
+                    defaults={'formation': item.formation, 'commande_origine': commande}
+                )
+        Invoice.objects.get_or_create(commande=commande)
+
+    messages.success(request, "🎉 Paiement confirmé ! Accès débloqué immédiatement.")
+    return redirect('mes_commandes')
+
+
+@csrf_exempt
+def stripe_webhook(request):
+    """Endpoint webhook Stripe — confirmation asynchrone officielle."""
+    from academie.payment_gateways import stripe_gateway
+    event = stripe_gateway.traiter_webhook(request.body, request.META.get('HTTP_STRIPE_SIGNATURE'))
+
+    if event and event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        reference = session.get('client_reference_id')
+        try:
+            commande = Order.objects.get(reference=reference)
+            if commande.statut != 'paye':
+                commande.statut = 'paye'
+                commande.date_paiement = timezone.now()
+                commande.save()
+                for item in commande.items.all():
+                    if item.formation:
+                        AccesFormationDebloque.objects.get_or_create(
+                            utilisateur=commande.utilisateur,
+                            nom_formation_snapshot=item.nom_produit_snapshot,
+                            defaults={'formation': item.formation, 'commande_origine': commande}
+                        )
+                Invoice.objects.get_or_create(commande=commande)
+        except Order.DoesNotExist:
+            pass
+
+    return HttpResponse(status=200)
+
+
+@staff_member_required
+def vue_dashboard_business(request):
+    from datetime import timedelta
+    import json
+
+    total_inscriptions = Inscription.objects.count()
+    inscriptions_non_traitees = Inscription.objects.filter(traite=False).count()
+
+    # Revenus réels (basés sur commandes payées — pas potentiels)
+    ca_total = Order.objects.filter(statut='paye').aggregate(total=Sum('total'))['total'] or 0
+
+    # Ventes des 30 derniers jours (pour graphique)
+    labels_jours, valeurs_jours = [], []
+    for i in range(29, -1, -1):
+        jour = timezone.now().date() - timedelta(days=i)
+        montant_jour = Order.objects.filter(
+            statut='paye', date_paiement__date=jour
+        ).aggregate(total=Sum('total'))['total'] or 0
+        labels_jours.append(jour.strftime('%d/%m'))
+        valeurs_jours.append(float(montant_jour))
+
+    # Top formations vendues
+    formations_populaires = Formation.objects.annotate(
+        nb_ventes=Count('orderitem', filter=Q(orderitem__commande__statut='paye'))
+    ).order_by('-nb_ventes')[:8]
+
+    # Répartition par moyen de paiement
+    repartition_moyens = Transaction.objects.filter(statut='reussie').values(
+        'moyen_paiement__nom_affiche'
+    ).annotate(total=Count('id'))
+
+    coupons_utilises = Coupon.objects.filter(utilisations_actuelles__gt=0).count()
+    remboursements_total = Refund.objects.filter(statut='approuve').aggregate(total=Sum('montant'))['total'] or 0
+
+    return render(request, 'admin/dashboard_business.html', {
+        'title': '💼 Dashboard Business',
+        'site_header': admin.site.site_header,
+        'ca_total': ca_total,
+        'total_inscriptions': total_inscriptions,
+        'inscriptions_non_traitees': inscriptions_non_traitees,
+        'formations_populaires': formations_populaires,
+        'coupons_utilises': coupons_utilises,
+        'remboursements_total': remboursements_total,
+        'chart_labels_json': json.dumps(labels_jours),
+        'chart_valeurs_json': json.dumps(valeurs_jours),
+        'chart_moyens_labels': json.dumps([m['moyen_paiement__nom_affiche'] or 'N/A' for m in repartition_moyens]),
+        'chart_moyens_valeurs': json.dumps([m['total'] for m in repartition_moyens]),
+    })
+
+
+# ================================================
+# VIEWS.PY — Export Excel/PDF des ventes
+# ================================================
+
+@staff_member_required
+def export_ventes_excel(request):
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Ventes BTA"
+
+    entetes = ['Référence', 'Client', 'Formation', 'Montant', 'Statut', 'Date']
+    ws.append(entetes)
+    for cell in ws[1]:
+        cell.font = Font(bold=True, color="FFFFFF")
+        cell.fill = PatternFill(start_color="0B2447", fill_type="solid")
+
+    commandes = Order.objects.filter(statut='paye').prefetch_related('items')
+    for cmd in commandes:
+        for item in cmd.items.all():
+            ws.append([
+                cmd.reference, cmd.utilisateur.username, item.nom_produit_snapshot,
+                float(item.prix_unitaire), cmd.get_statut_display(),
+                cmd.date_paiement.strftime('%d/%m/%Y') if cmd.date_paiement else ''
+            ])
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="ventes_bta.xlsx"'
+    wb.save(response)
+    return response
+
+
+@staff_member_required
+def export_ventes_pdf(request):
+    from weasyprint import HTML
+    commandes = Order.objects.filter(statut='paye').prefetch_related('items')
+    ca_total = commandes.aggregate(total=Sum('total'))['total'] or 0
+
+    html_string = render_to_string('academie/pdf/rapport_ventes.html', {
+        'commandes': commandes, 'ca_total': ca_total, 'date_generation': timezone.now(),
+    })
+    pdf = HTML(string=html_string).write_pdf()
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="rapport_ventes_bta.pdf"'
+    return response
+
+
+# ================================================
+# VUES — Plateforme d'examens officiels modernisée
+# ================================================
+
+@login_required
+def preparation_examen(request, examen_id):
+    """Page de préparation avant examen — vérifications et checklist."""
+    examen = get_object_or_404(Examen, id=examen_id, actif=True)
+    
+    # Vérifications d'accès
+    erreurs = []
+    
+    # Vérifier date de disponibilité
+    if examen.date_disponibilite and timezone.now() < examen.date_disponibilite:
+        erreurs.append(f"L'examen sera disponible le {examen.date_disponibilite.strftime('%d/%m/%Y à %H:%M')}")
+    
+    # Vérifier date d'expiration
+    if examen.date_expiration and timezone.now() > examen.date_expiration:
+        erreurs.append("Cet examen n'est plus disponible.")
+    
+    # Vérifier tentatives
+    tentatives_count = TentativeExamen.objects.filter(utilisateur=request.user, examen=examen).count()
+    tentatives_restantes = examen.tentatives_max - tentatives_count
+    if tentatives_restantes <= 0:
+        erreurs.append("Vous avez atteint le nombre maximum de tentatives.")
+    
+    # Compétences formatées
+    competences = [c.strip() for c in examen.competences_evaluees.split('\n') if c.strip()]
+    prerequis = [p.strip() for p in examen.prerequis_examen.split('\n') if p.strip()]
+    conditions = [c.strip() for c in examen.conditions_utilisation.split('\n') if c.strip()] if examen.conditions_utilisation else []
+    
+    checklist = [
+        ("Connexion Internet stable", "wifi"),
+        ("Batterie suffisante ou secteur branché", "battery"),
+        ("Navigateur compatible (Chrome, Firefox, Edge)", "browser"),
+        ("Être dans un endroit calme, sans distraction", "quiet"),
+    ]
+    
+    return render(request, 'academie/preparation_examen.html', {
+        'examen': examen,
+        'erreurs': erreurs,
+        'tentatives_restantes': tentatives_restantes,
+        'competences': competences,
+        'prerequis': prerequis,
+        'conditions': conditions,
+        'checklist': checklist,
+    })
+@login_required
+def passer_examen(request, examen_id):
+    """Interface d'examen chronométrée."""
+    examen = get_object_or_404(Examen, id=examen_id, actif=True)
+    
+    questions = list(examen.questions.prefetch_related('choix').all())
+    random.shuffle(questions)
+    
+    for question in questions:
+        choix_list = list(question.choix.all())
+        random.shuffle(choix_list)
+        question.choix_melanges = choix_list
+    
+    return render(request, 'academie/examen.html', {
+        'examen': examen,
+        'questions': questions,
+        'duree_secondes': examen.duree_minutes * 60,
+    })
+
+
+@login_required
+def soumettre_examen(request, examen_id):
+    """Soumission et correction de l'examen."""
+    if request.method != 'POST':
+        return redirect('passer_examen', examen_id=examen_id)
+    
+    examen = get_object_or_404(Examen, id=examen_id, actif=True)
+    
+    tentative = TentativeExamen.objects.create(
+        utilisateur=request.user,
+        examen=examen,
+    )
+    
+    evenements = request.POST.get('evenements_suspects', '[]')
+    try:
+        tentative.evenements_suspects = json.loads(evenements)
+    except:
+        pass
+    
+    temps_utilise = request.POST.get('temps_utilise', 0)
+    tentative.temps_utilise_secondes = int(temps_utilise) if temps_utilise else 0
+    
+    total_points = 0
+    points_obtenus = 0
+    bonnes = 0
+    mauvaises = 0
+    repondues = 0
+    
+    for question in examen.questions.all():
+        total_points += question.points
+        reponse_key = f'question_{question.id}'
+        
+        if question.type_question == 'qcm':
+            choix_id = request.POST.get(reponse_key)
+            if choix_id:
+                repondues += 1
+                choix = get_object_or_404(ChoixExamen, id=choix_id)
+                if choix.est_correct:
+                    points_obtenus += question.points
+                    bonnes += 1
+                else:
+                    mauvaises += 1
+        elif question.type_question in ['vrai_faux', 'texte']:
+            valeur = request.POST.get(reponse_key)
+            if valeur:
+                repondues += 1
+    
+    score = round((points_obtenus / total_points) * 100, 1) if total_points > 0 else 0
+    tentative.score = score
+    tentative.reussi = score >= examen.seuil_reussite
+    tentative.questions_repondues = repondues
+    tentative.bonnes_reponses = bonnes
+    tentative.mauvaises_reponses = mauvaises
+    tentative.date_fin = timezone.now()
+    tentative.save()
+
+    # === Enrichissement post-examen (XP, Certificat, Feedback IA) ===
+    if tentative.reussi:
+        from .xp_utils import ajouter_xp
+        ajouter_xp(request.user, examen.xp_recompense or 50)
+
+        if examen.certificat_auto:
+            from .models import Certificat
+            Certificat.objects.get_or_create(
+                utilisateur=request.user,
+                formation=examen.formation,
+            )
+
+    if score < 70:
+        contexte_feedback = f"L'étudiant a obtenu {score}% à l'examen {examen.titre}. Donne un conseil bref et motivant en 2 phrases."
+    else:
+        contexte_feedback = f"L'étudiant a réussi l'examen {examen.titre} avec {score}%. Félicite-le brièvement en 2 phrases."
+
+    try:
+        from .ia import initialiser_ia
+        client = initialiser_ia()
+        response = client.models.generate_content(model='gemini-2.5-flash', contents=contexte_feedback)
+        feedback_ia = response.text
+    except Exception:
+        feedback_ia = "Continue à pratiquer régulièrement — chaque tentative te rapproche de la maîtrise !"
+
+    return render(request, 'academie/resultat_examen.html', {
+        'examen': examen,
+        'tentative': tentative,
+        'score': score,
+        'reussi': tentative.reussi,
+        'feedback_ia': feedback_ia,
+    })

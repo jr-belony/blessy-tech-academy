@@ -1,0 +1,76 @@
+<!-- ================================================
+     CHECKOUT.HTML — Choix moyen de paiement + coupon
+     ================================================ -->
+{% extends 'academie/base.html' %}
+{% block titre %}Finaliser mon achat{% endblock %}
+{% block contenu %}
+
+<section class="checkout-hero">
+    <div class="checkout-hero-inner">
+        <div class="section-tag">🛒 Commande {{ commande.reference }}</div>
+        <h1 class="checkout-titre">Finalise ton inscription</h1>
+    </div>
+</section>
+
+<div class="checkout-layout">
+
+    <div class="checkout-recap">
+        <h3>📋 Récapitulatif</h3>
+        {% for item in commande.items.all %}
+        <div class="checkout-item">
+            <span>{{ item.icone_produit_snapshot }} {{ item.nom_produit_snapshot }}</span>
+            <span>{{ item.prix_unitaire }} $</span>
+        </div>
+        {% endfor %}
+
+        <div class="checkout-total-ligne">
+            <span>Sous-total</span><span>{{ commande.sous_total }} $</span>
+        </div>
+        {% if commande.reduction_totale > 0 %}
+        <div class="checkout-total-ligne" style="color:#22c55e;">
+            <span>Réduction {% if commande.coupon_applique %}({{ commande.coupon_applique.code }}){% endif %}</span>
+            <span>-{{ commande.reduction_totale }} $</span>
+        </div>
+        {% endif %}
+        <div class="checkout-total-final">
+            <span>Total à payer</span><span>{{ commande.total }} $</span>
+        </div>
+
+        <form method="POST" style="margin-top:16px;">
+            {% csrf_token %}
+            <input type="text" name="code_coupon" placeholder="Code promo (optionnel)" class="checkout-input">
+            <button type="submit" class="checkout-btn-secondaire">Appliquer le coupon</button>
+        </form>
+    </div>
+
+    <div class="checkout-moyens">
+        <h3>💳 Choisis ton moyen de paiement</h3>
+        <form method="POST">
+            {% csrf_token %}
+            {% for moyen in moyens_paiement %}
+            <label class="checkout-moyen-item">
+                <input type="radio" name="moyen_paiement" value="{{ moyen.id }}" required>
+                <span>{{ moyen.icone }} {{ moyen.nom_affiche }}</span>
+            </label>
+            {% endfor %}
+            <button type="submit" class="checkout-btn-principal">Continuer →</button>
+        </form>
+    </div>
+
+</div>
+
+<style>
+.checkout-hero { background:linear-gradient(135deg,#050d1a,#0B2447); padding:60px 40px; text-align:center; }
+.checkout-titre { color:white; font-size:32px; font-weight:800; margin-top:12px; }
+.checkout-layout { max-width:900px; margin:0 auto; padding:60px 40px; display:grid; grid-template-columns:1fr 1fr; gap:32px; }
+.checkout-recap, .checkout-moyens { background:white; border:1.5px solid #e2e8f0; border-radius:20px; padding:28px; }
+.checkout-item { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #f0f0f0; font-size:14px; }
+.checkout-total-ligne { display:flex; justify-content:space-between; padding:8px 0; font-size:14px; color:#718096; }
+.checkout-total-final { display:flex; justify-content:space-between; padding:16px 0; font-size:20px; font-weight:800; color:var(--bleu-principal); border-top:2px solid #e2e8f0; margin-top:8px; }
+.checkout-input { width:100%; padding:10px 14px; border:1.5px solid #e2e8f0; border-radius:8px; margin-bottom:8px; }
+.checkout-btn-secondaire { width:100%; padding:10px; background:var(--gris-clair); border:none; border-radius:8px; cursor:pointer; font-weight:600; }
+.checkout-btn-principal { width:100%; padding:14px; background:linear-gradient(135deg,#FF6B35,#e85a2a); color:white; border:none; border-radius:10px; font-weight:800; cursor:pointer; margin-top:16px; }
+.checkout-moyen-item { display:flex; align-items:center; gap:10px; padding:12px; border:1.5px solid #e2e8f0; border-radius:10px; margin-bottom:8px; cursor:pointer; }
+@media (max-width:768px) { .checkout-layout { grid-template-columns:1fr; } }
+</style>
+{% endblock %}

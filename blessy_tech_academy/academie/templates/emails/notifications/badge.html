@@ -1,0 +1,23 @@
+<!-- ================================================
+     NOTIFICATIONS/BADGE.HTML — Badge débloqué
+     ================================================ -->
+{% extends 'emails/base_email.html' %}
+
+{% block titre_email %}Nouveau badge débloqué !{% endblock %}
+
+{% block contenu_email %}
+<div style="text-align:center; margin-bottom:16px;">
+    <div style="font-size:48px;">{{ badge_icone|default:"🏅" }}</div>
+</div>
+
+<h1 style="font-size:22px; color:#0B2447; font-family:Arial,sans-serif; text-align:center; margin:0 0 12px;">
+    Bravo {{ prenom }} !
+</h1>
+
+<p style="font-size:15px; color:#4A5568; line-height:1.7; font-family:Arial,sans-serif; text-align:center; margin:0 0 24px;">
+    Tu viens de débloquer le badge<br>
+    <strong style="color:#00B4D8; font-size:18px;">{{ badge_nom }}</strong>
+</p>
+
+{% include 'emails/components/button.html' with texte="🏆 Voir mon classement" url=lien_classement couleur="#00B4D8" %}
+{% endblock %}

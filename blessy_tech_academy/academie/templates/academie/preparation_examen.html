@@ -1,0 +1,89 @@
+<!-- ================================================
+     PREPARATION_EXAMEN.HTML — Salle d'attente examen premium
+     Emplacement : academie/templates/academie/preparation_examen.html
+     ================================================ -->
+{% extends 'academie/base.html' %}
+{% block titre %}Préparation — {{ examen.titre }}{% endblock %}
+{% block contenu %}
+
+<section class="pe-hero">
+    <div class="pe-hero-inner">
+        <div class="section-tag">🎓 Centre d'Examens</div>
+        <h1 class="pe-titre">{{ examen.titre }}</h1>
+        <p class="pe-sous">{{ examen.formation.nom }} — {{ examen.formation.get_niveau_display }}</p>
+    </div>
+</section>
+
+<div class="pe-layout">
+
+    <!-- Infos examen -->
+    <div class="pe-infos-grille">
+        <div class="pe-info-card"><span>⏱</span><strong>{{ examen.duree_minutes }} min</strong><p>Durée</p></div>
+        <div class="pe-info-card"><span>📝</span><strong>{{ examen.questions.count }}</strong><p>Questions</p></div>
+        <div class="pe-info-card"><span>🎯</span><strong>{{ examen.seuil_reussite }}%</strong><p>Seuil requis</p></div>
+        <div class="pe-info-card"><span>🔄</span><strong>{{ tentatives_restantes }}</strong><p>Tentatives restantes</p></div>
+    </div>
+
+    <!-- Compétences évaluées -->
+    <div class="pe-card">
+        <h3>🎯 Compétences évaluées</h3>
+        <div class="pe-tags">
+            {% for competence in examen.competences_evaluees.split|default:"" %}
+            <span class="pe-tag">{{ competence }}</span>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Checklist interactive -->
+    <div class="pe-card">
+        <h3>✅ Avant de commencer</h3>
+        <label class="pe-check-item"><input type="checkbox" class="pe-checkbox" onchange="verifierChecklist()"> Connexion Internet stable</label>
+        <label class="pe-check-item"><input type="checkbox" class="pe-checkbox" onchange="verifierChecklist()"> Batterie suffisante</label>
+        <label class="pe-check-item"><input type="checkbox" class="pe-checkbox" onchange="verifierChecklist()"> Je suis dans un endroit calme</label>
+        <label class="pe-check-item"><input type="checkbox" class="pe-checkbox" onchange="verifierChecklist()"> J'accepte les conditions de l'examen</label>
+    </div>
+
+    {% if examen.conditions_utilisation %}
+    <div class="pe-card pe-conditions">
+        <h3>📋 Conditions</h3>
+        <p>{{ examen.conditions_utilisation }}</p>
+    </div>
+    {% endif %}
+
+    <a href="{% url 'passer_examen' examen.id %}" class="pe-btn-start" id="pe-btn-start" style="pointer-events:none; opacity:0.5;">
+        🚀 Commencer l'examen
+    </a>
+
+</div>
+
+<style>
+.pe-hero{background:linear-gradient(135deg,#050d1a,#0B2447);padding:60px 40px;text-align:center;}
+.pe-titre{color:white;font-size:32px;font-weight:800;margin:12px 0 6px;}
+.pe-sous{color:rgba(255,255,255,0.6);font-size:14px;}
+.pe-layout{max-width:700px;margin:0 auto;padding:40px 20px 80px;}
+.pe-infos-grille{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+.pe-info-card{background:white;border:1.5px solid #e2e8f0;border-radius:14px;padding:16px;text-align:center;}
+.pe-info-card span{font-size:22px;}
+.pe-info-card strong{display:block;font-size:18px;color:var(--bleu-principal);}
+.pe-info-card p{font-size:11px;color:#a0aec0;margin:0;}
+.pe-card{background:white;border:1.5px solid #e2e8f0;border-radius:16px;padding:24px;margin-bottom:16px;}
+.pe-card h3{color:var(--bleu-principal);font-size:16px;margin-bottom:14px;}
+.pe-tags{display:flex;gap:8px;flex-wrap:wrap;}
+.pe-tag{background:rgba(0,180,216,0.1);color:var(--bleu-electrique);padding:5px 12px;border-radius:14px;font-size:12px;font-weight:600;}
+.pe-check-item{display:flex;align-items:center;gap:10px;padding:10px 0;font-size:14px;color:var(--gris-texte);cursor:pointer;}
+.pe-checkbox{width:18px;height:18px;}
+.pe-conditions p{font-size:13px;color:var(--gris-texte);line-height:1.6;}
+.pe-btn-start{display:block;text-align:center;background:linear-gradient(135deg,#FF6B35,#e85a2a);color:white;padding:16px;border-radius:12px;font-weight:800;text-decoration:none;transition:all 0.3s;}
+@media(max-width:768px){.pe-infos-grille{grid-template-columns:repeat(2,1fr);}}
+</style>
+
+<script>
+function verifierChecklist(){
+    const cases=document.querySelectorAll('.pe-checkbox');
+    const toutCoche=Array.from(cases).every(c=>c.checked);
+    const btn=document.getElementById('pe-btn-start');
+    btn.style.pointerEvents=toutCoche?'auto':'none';
+    btn.style.opacity=toutCoche?'1':'0.5';
+}
+</script>
+{% endblock %}

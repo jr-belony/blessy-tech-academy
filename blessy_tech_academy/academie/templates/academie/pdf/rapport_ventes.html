@@ -1,0 +1,17 @@
+<!-- ================================================
+     PDF/RAPPORT_VENTES.HTML — Rapport ventes PDF
+     ================================================ -->
+<html><head><style>
+body{font-family:Arial;} table{width:100%;border-collapse:collapse;}
+th{background:#0B2447;color:white;padding:8px;} td{padding:8px;border-bottom:1px solid #eee;}
+</style></head><body>
+<h1 style="color:#0B2447;">📊 Rapport de Ventes — Blessy Tech Academy</h1>
+<p>Généré le {{ date_generation|date:"d/m/Y H:i" }}</p>
+<h2>Chiffre d'affaires total : {{ ca_total }} $</h2>
+<table>
+<tr><th>Référence</th><th>Client</th><th>Montant</th><th>Date</th></tr>
+{% for cmd in commandes %}
+<tr><td>{{ cmd.reference }}</td><td>{{ cmd.utilisateur.username }}</td><td>{{ cmd.total }} $</td><td>{{ cmd.date_paiement|date:"d/m/Y" }}</td></tr>
+{% endfor %}
+</table>
+</body></html>

@@ -1,0 +1,100 @@
+<!-- ================================================
+     EXAMEN.HTML — Interface d'examen immersive
+     Emplacement : academie/templates/academie/examen.html
+     ================================================ -->
+{% extends 'academie/base.html' %}
+{% block titre %}{{ examen.titre }} — Examen en cours{% endblock %}
+{% block contenu %}
+
+<div class="ex-topbar">
+    <div class="ex-topbar-inner">
+        <span class="ex-nom">{{ examen.titre }}</span>
+        <div class="ex-chrono" id="ex-chrono" data-duree="{{ examen.duree_minutes }}">--:--</div>
+        <span class="ex-progression" id="ex-progression-texte">Question 1/{{ questions|length }}</span>
+    </div>
+    <div class="ex-barre-progress"><div class="ex-barre-fill" id="ex-barre-fill"></div></div>
+</div>
+
+<form method="POST" action="{% url 'soumettre_examen' examen.id %}" id="form-examen">
+    {% csrf_token %}
+    <div class="ex-container">
+        {% for question in questions %}
+        <div class="ex-question-card {% if not forloop.first %}ex-cachee{% endif %}" data-index="{{ forloop.counter0 }}">
+            <span class="ex-q-num">Question {{ forloop.counter }}/{{ questions|length }}</span>
+            <h3 class="ex-q-texte">{{ question.texte }}</h3>
+            <div class="ex-choix-liste">
+                {% for choix in question.choix_melanges %}
+                <label class="ex-choix-item">
+                    <input type="radio" name="question_{{ question.id }}" value="{{ choix.id }}">
+                    <span>{{ choix.texte }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="ex-navigation">
+            <button type="button" class="ex-btn-nav" onclick="questionPrecedente()">← Précédent</button>
+            <button type="button" class="ex-btn-nav ex-btn-suivant" onclick="questionSuivante()" id="ex-btn-suivant">Suivant →</button>
+            <button type="submit" class="ex-btn-soumettre" id="ex-btn-soumettre" style="display:none;">✅ Soumettre l'examen</button>
+        </div>
+    </div>
+</form>
+
+<style>
+.ex-topbar{position:sticky;top:72px;z-index:900;background:white;border-bottom:1px solid #e2e8f0;padding:14px 20px;}
+.ex-topbar-inner{display:flex;justify-content:space-between;align-items:center;max-width:800px;margin:0 auto 8px;}
+.ex-nom{font-weight:700;color:var(--bleu-principal);font-size:14px;}
+.ex-chrono{font-size:18px;font-weight:800;color:#FF6B35;font-family:monospace;}
+.ex-progression{font-size:13px;color:var(--gris-texte);}
+.ex-barre-progress{max-width:800px;margin:0 auto;height:4px;background:#e2e8f0;border-radius:4px;overflow:hidden;}
+.ex-barre-fill{height:100%;background:var(--bleu-electrique);width:0;transition:width 0.3s;}
+.ex-container{max-width:700px;margin:0 auto;padding:40px 20px;}
+.ex-question-card{background:white;border:1.5px solid #e2e8f0;border-radius:20px;padding:32px;}
+.ex-cachee{display:none;}
+.ex-q-num{font-size:11px;color:var(--bleu-electrique);font-weight:700;text-transform:uppercase;}
+.ex-q-texte{font-size:18px;color:var(--bleu-principal);margin:12px 0 20px;}
+.ex-choix-item{display:flex;align-items:center;gap:12px;padding:14px;background:var(--gris-clair);border-radius:12px;margin-bottom:10px;cursor:pointer;transition:all 0.2s;}
+.ex-choix-item:hover{background:rgba(0,180,216,0.06);}
+.ex-navigation{display:flex;justify-content:space-between;margin-top:24px;gap:12px;}
+.ex-btn-nav{padding:12px 24px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;font-weight:700;cursor:pointer;}
+.ex-btn-suivant{background:var(--bleu-principal);color:white;border:none;}
+.ex-btn-soumettre{width:100%;padding:16px;background:linear-gradient(135deg,#22c55e,#16a34a);color:white;border:none;border-radius:12px;font-weight:800;cursor:pointer;}
+@media(max-width:768px){.ex-topbar{top:64px;}.ex-question-card{padding:20px;}}
+</style>
+
+<script>
+let indexActuel=0;
+const totalQuestions={{ questions|length }};
+
+function afficherQuestion(i){
+    document.querySelectorAll('.ex-question-card').forEach(c=>c.classList.add('ex-cachee'));
+    document.querySelector(`[data-index="${i}"]`).classList.remove('ex-cachee');
+    document.getElementById('ex-progression-texte').textContent=`Question ${i+1}/${totalQuestions}`;
+    document.getElementById('ex-barre-fill').style.width=`${((i+1)/totalQuestions)*100}%`;
+    document.getElementById('ex-btn-suivant').style.display=(i===totalQuestions-1)?'none':'block';
+    document.getElementById('ex-btn-soumettre').style.display=(i===totalQuestions-1)?'block':'none';
+}
+function questionSuivante(){if(indexActuel<totalQuestions-1){indexActuel++;afficherQuestion(indexActuel);}}
+function questionPrecedente(){if(indexActuel>0){indexActuel--;afficherQuestion(indexActuel);}}
+
+// Chronomètre — anti-triche : soumission auto à la fin
+const dureeSecondes=parseInt(document.getElementById('ex-chrono').dataset.duree)*60;
+let tempsRestant=dureeSecondes;
+const chronoEl=document.getElementById('ex-chrono');
+const intervalChrono=setInterval(()=>{
+    tempsRestant--;
+    const min=Math.floor(tempsRestant/60), sec=tempsRestant%60;
+    chronoEl.textContent=`${min}:${sec.toString().padStart(2,'0')}`;
+    if(tempsRestant<=60) chronoEl.style.color='#ef4444';
+    if(tempsRestant<=0){clearInterval(intervalChrono);document.getElementById('form-examen').submit();}
+},1000);
+
+// Sécurité anti-triche basique : détecte changement d'onglet
+document.addEventListener('visibilitychange',function(){
+    if(document.hidden) console.warn('Changement de fenêtre détecté');
+});
+
+afficherQuestion(0);
+</script>
+{% endblock %}

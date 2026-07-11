@@ -67,8 +67,8 @@
 <body>
 
 <!-- ================================================
-     HEADER OPTIMISÉ v3.0
-     ================================================ -->
+    HEADER OPTIMISÉ v3.0
+    ================================================ -->
 
 <div class="nav-overlay" id="nav-overlay" onclick="fermerMenu()"></div>
 
@@ -77,7 +77,7 @@
 
         <!-- Logo -->
         <a href="{% url 'accueil' %}" class="header-logo">
-            <div class="logo-icon-wrapper"><span class="logo-emoji">⚡</span></div>
+            <div class="logo-icon-wrapper"><span class="logo-emoji">🎓</span></div>
             <div class="logo-textes">
                 <span class="logo-principal">Blessy Tech</span>
                 <span class="logo-secondaire">Academy</span>
@@ -86,12 +86,12 @@
 
         {% if user.is_authenticated %}
         <!-- ============================================
-             NAVIGATION — ÉTUDIANT CONNECTÉ
-             ============================================ -->
+            NAVIGATION — ÉTUDIANT CONNECTÉ
+            ============================================ -->
         <nav class="header-nav" id="header-nav">
 
             <a href="{% url 'dashboard' %}"
-               class="nav-lien {% if request.resolver_match.url_name == 'dashboard' %}nav-actif{% endif %}">
+            class="nav-lien {% if request.resolver_match.url_name == 'dashboard' %}nav-actif{% endif %}">
                 📊 {% trans "Dashboard" %}
             </a>
 
@@ -146,12 +146,12 @@
             </div>
 
             <a href="{% url 'forum_liste' %}"
-               class="nav-lien {% if 'forum' in request.resolver_match.url_name %}nav-actif{% endif %}">
+            class="nav-lien {% if 'forum' in request.resolver_match.url_name %}nav-actif{% endif %}">
                 💬 {% trans "Forum" %}
             </a>
 
             <a href="{% url 'chat_ia' %}"
-               class="nav-lien nav-lien-ai {% if request.resolver_match.url_name == 'chat_ia' %}nav-actif{% endif %}">
+            class="nav-lien nav-lien-ai {% if request.resolver_match.url_name == 'chat_ia' %}nav-actif{% endif %}">
                 <span class="bai-pulse-dot"></span> Blessy AI
             </a>
         </nav>
@@ -228,12 +228,12 @@
 
         {% else %}
         <!-- ============================================
-             NAVIGATION — VISITEUR (non connecté)
-             ============================================ -->
+            NAVIGATION — VISITEUR (non connecté)
+            ============================================ -->
         <nav class="header-nav" id="header-nav">
 
             <a href="{% url 'accueil' %}"
-               class="nav-lien {% if request.resolver_match.url_name == 'accueil' %}nav-actif{% endif %}">
+            class="nav-lien {% if request.resolver_match.url_name == 'accueil' %}nav-actif{% endif %}">
                 {% trans "Accueil" %}
             </a>
 
@@ -271,12 +271,12 @@
             </div>
 
             <a href="{% url 'parcours' %}"
-               class="nav-lien {% if request.resolver_match.url_name == 'parcours' %}nav-actif{% endif %}">
+            class="nav-lien {% if request.resolver_match.url_name == 'parcours' %}nav-actif{% endif %}">
                 {% trans "Parcours" %}
             </a>
 
             <a href="{% url 'ressources' %}"
-               class="nav-lien {% if request.resolver_match.url_name == 'ressources' %}nav-actif{% endif %}">
+            class="nav-lien {% if request.resolver_match.url_name == 'ressources' %}nav-actif{% endif %}">
                 {% trans "Ressources" %}
             </a>
 
@@ -286,7 +286,7 @@
             </a>
 
             <a href="{% url 'apropos' %}"
-               class="nav-lien {% if request.resolver_match.url_name == 'apropos' %}nav-actif{% endif %}">
+            class="nav-lien {% if request.resolver_match.url_name == 'apropos' %}nav-actif{% endif %}">
                 {% trans "À propos" %}
             </a>
         </nav>
@@ -314,8 +314,8 @@
 </header>
 
 <!-- ================================================
-     DRAWER MOBILE — 2 ÉTATS
-     ================================================ -->
+    DRAWER MOBILE — 2 ÉTATS
+    ================================================ -->
 <div class="mobile-drawer" id="mobile-drawer">
     <div class="drawer-header">
         <a href="{% url 'accueil' %}" class="header-logo">
@@ -377,15 +377,15 @@
 </div>
 
 <!-- ================================================
-     MODAL RECHERCHE GLOBALE
-     ================================================ -->
+    MODAL RECHERCHE GLOBALE
+    ================================================ -->
 <div class="recherche-modal-overlay" id="recherche-modal-overlay" onclick="fermerRecherche()">
     <div class="recherche-modal" onclick="event.stopPropagation()">
         <div class="recherche-modal-input-zone">
             <span style="font-size:18px;">🔍</span>
             <input type="text" id="recherche-modal-input"
-                   placeholder="{% trans 'Rechercher une formation, un article, un sujet du forum...' %}"
-                   autocomplete="off">
+                placeholder="{% trans 'Rechercher une formation, un article, un sujet du forum...' %}"
+                autocomplete="off">
             <button class="recherche-modal-fermer" onclick="fermerRecherche()">✕</button>
         </div>
         <div class="recherche-modal-suggestions">
@@ -443,8 +443,8 @@
 </footer>
 
 <!-- ================================================
-     CSS HEADER v3.0
-     ================================================ -->
+    CSS HEADER v3.0
+    ================================================ -->
 <style>
 
 .header-bta {
@@ -642,26 +642,42 @@
 .lang-link { text-decoration: none; font-size: 15px; opacity: 0.7; transition: opacity 0.2s; }
 .lang-link:hover, .lang-active { opacity: 1; }
 
+/* ================================================
+   FIX HEADER MOBILE — Header responsive
+   ================================================ */
+
 @media (max-width: 1100px) {
-    .header-nav { display: none; }
-    .burger-btn { display: flex; }
-    .btn-header-cta { display: none; }
+    .header-nav { display: none !important; }
+    .burger-btn { display: flex !important; }
+    .btn-header-cta { display: none !important; }
+    .mobile-drawer { z-index: 9999 !important; }
+    .nav-overlay { z-index: 9998 !important; }
 }
 
 @media (max-width: 768px) {
-    .header-inner { padding: 0 20px; height: 64px; }
-    .btn-header-connexion { display: none; }
-    .icon-btn { width: 36px; height: 36px; }
-    .user-nom { display: none; }
-    .recherche-modal-overlay { padding-top: 60px; }
+    .header-inner { padding: 0 16px !important; height: 60px !important; }
+    .btn-header-connexion { display: none !important; }
+    .icon-btn { width: 34px !important; height: 34px !important; font-size: 14px !important; }
+    .user-nom { display: none !important; }
+    .logo-textes { display: none !important; }
+    .header-logo { gap: 0 !important; }
+    .header-actions { gap: 6px !important; flex-shrink: 0 !important; }
+    .mega-menu { display: none !important; }
+    .mobile-drawer { width: 85vw !important; max-width: 320px !important; }
+    .recherche-modal { width: 95% !important; margin: 0 10px; }
+    .recherche-modal-overlay { padding-top: 50px !important; }
 }
+
+.burger-btn { position: relative; z-index: 1001; }
+
+body.menu-ouvert-mobile { overflow: hidden !important; position: fixed; width: 100%; }
 </style>
 
 <script src="{% static 'academie/js/animations.js' %}"></script>
 
 <!-- ================================================
-     JS HEADER v3.0 + Mode sombre + Recherche
-     ================================================ -->
+    JS HEADER v3.0 + Mode sombre + Recherche
+    ================================================ -->
 <script>
 // Effet scroll header
 window.addEventListener('scroll', function() {
@@ -671,19 +687,42 @@ window.addEventListener('scroll', function() {
     }
 });
 
-// Menu mobile
+// === Menu mobile (FIX) ===
 function toggleMenu() {
-    document.getElementById('mobile-drawer').classList.toggle('ouvert');
-    document.getElementById('nav-overlay').classList.toggle('actif');
-    document.getElementById('burger-btn').classList.toggle('actif');
-    document.body.style.overflow = document.getElementById('mobile-drawer').classList.contains('ouvert') ? 'hidden' : '';
+    const drawer = document.getElementById('mobile-drawer');
+    const overlay = document.getElementById('nav-overlay');
+    const burger = document.getElementById('burger-btn');
+    const estOuvert = drawer.classList.contains('ouvert');
+
+    drawer.classList.toggle('ouvert');
+    overlay.classList.toggle('actif');
+    burger.classList.toggle('actif');
+
+    if (!estOuvert) {
+        document.body.classList.add('menu-ouvert-mobile');
+    } else {
+        document.body.classList.remove('menu-ouvert-mobile');
+    }
 }
+
 function fermerMenu() {
     document.getElementById('mobile-drawer').classList.remove('ouvert');
     document.getElementById('nav-overlay').classList.remove('actif');
     document.getElementById('burger-btn').classList.remove('actif');
-    document.body.style.overflow = '';
+    document.body.classList.remove('menu-ouvert-mobile');
 }
+
+// Ferme le drawer au clic sur un lien
+document.querySelectorAll('.drawer-lien, .btn-drawer-cta').forEach(function(lien) {
+    lien.addEventListener('click', fermerMenu);
+});
+
+// Ferme le drawer si on redimensionne vers desktop
+window.addEventListener('resize', function() {
+    if (window.innerWidth > 1100) {
+        fermerMenu();
+    }
+});
 
 // User dropdown
 const userBtn = document.getElementById('user-btn');
@@ -757,6 +796,7 @@ if (toggleBtn) {
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register("{% static 'academie/sw.js' %}");
 }
+
 </script>
 
 </body>

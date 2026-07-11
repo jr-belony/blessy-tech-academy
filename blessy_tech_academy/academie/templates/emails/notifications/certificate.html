@@ -1,0 +1,29 @@
+<!-- ================================================
+     NOTIFICATIONS/CERTIFICATE.HTML — Certificat obtenu
+     ================================================ -->
+{% extends 'emails/base_email.html' %}
+
+{% block titre_email %}Félicitations {{ prenom }} — Certificat obtenu !{% endblock %}
+
+{% block contenu_email %}
+<div style="text-align:center; margin-bottom:24px;">
+    <div style="font-size:56px;">🎓</div>
+</div>
+
+<h1 style="font-size:22px; color:#0B2447; font-family:Arial,sans-serif; text-align:center; margin:0 0 12px;">
+    Félicitations {{ prenom }} !
+</h1>
+
+<p style="font-size:15px; color:#4A5568; line-height:1.7; font-family:Arial,sans-serif; text-align:center; margin:0 0 20px;">
+    Tu as complété avec succès la formation<br>
+    <strong style="color:#0B2447;">{{ formation_nom }}</strong>
+</p>
+
+{% include 'emails/components/card.html' with icone="🏆" titre="Formation complétée" valeur="100%" %}
+
+{% include 'emails/components/button.html' with texte="📄 Télécharger mon certificat" url=lien_certificat couleur="#22c55e" %}
+
+<p style="font-size:13px; color:#a0aec0; font-family:Arial,sans-serif; text-align:center; margin-top:20px;">
+    Partage ta réussite sur LinkedIn et inspire d'autres étudiants ! 🚀
+</p>
+{% endblock %}

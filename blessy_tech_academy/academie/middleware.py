@@ -32,7 +32,7 @@ class SecurityHeadersMiddleware:
                 "frame-ancestors 'self'; "
                 "base-uri 'self'; "
                 "form-action 'self'; "
-                "frame-src 'self'; "
+                "frame-src 'self' https://www.google.com; "
                 "object-src 'none';"
             )
         else:
@@ -51,7 +51,7 @@ class SecurityHeadersMiddleware:
                 "frame-ancestors 'none'; "
                 "base-uri 'self'; "
                 "form-action 'self'; "
-                "frame-src 'none'; "
+                "frame-src 'self' https://www.google.com; "
                 "object-src 'none'; "
                 "upgrade-insecure-requests;"
             )
@@ -65,8 +65,6 @@ class SecurityHeadersMiddleware:
             "usb=(), "
             "magnetometer=(), "
             "gyroscope=(), "
-            "speaker=(), "
-            "vibrate=(), "
             "fullscreen=(self), "
             "display-capture=()"
         )

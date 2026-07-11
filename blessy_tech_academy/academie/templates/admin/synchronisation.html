@@ -1,0 +1,224 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}🔄 Synchronisation de contenu | {{ site_title }}{% endblock %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <style>
+        :root {
+            --bta-blue: #0B2447;
+            --bta-cyan: #00B4D8;
+            --bta-orange: #FF6B35;
+            --bta-bg: #f8fafc;
+            --bta-card: #ffffff;
+            --bta-border: #e2e8f0;
+            --bta-muted: #64748b;
+        }
+
+        .sync-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .sync-header h1 {
+            font-size: 28px;
+            color: var(--bta-blue);
+            margin: 0 0 8px;
+        }
+
+        .sync-header p {
+            color: var(--bta-muted);
+            font-size: 14px;
+            margin: 0 0 32px;
+        }
+
+        .sync-card {
+            background: var(--bta-card);
+            border: 1px solid var(--bta-border);
+            border-radius: 16px;
+            padding: 32px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+
+        .sync-card h3 {
+            font-size: 20px;
+            color: var(--bta-blue);
+            margin: 0 0 16px;
+        }
+
+        .sync-card label {
+            font-size: 13px;
+            color: var(--bta-muted);
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .sync-card select {
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            min-height: 38px;
+            padding: 10px 30px 10px 14px;
+            border: 1.5px solid var(--bta-border);
+            border-radius: 8px;
+            margin: 8px 0 16px;
+            font-size: 13px;
+            font-family: inherit;
+            background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center;
+            background-size: 12px;
+            cursor: pointer;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            line-height: 1.4;
+            color: var(--bta-blue);
+        }
+
+        .sync-card select:focus {
+            outline: none;
+            border-color: var(--bta-cyan);
+            box-shadow: 0 0 0 3px rgba(0,180,216,0.1);
+        }
+
+        .sync-card input[type="file"] {
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
+
+        .btn-export {
+            background: var(--bta-orange);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-export:hover {
+            background: #e55a2b;
+        }
+
+        .btn-import {
+            background: var(--bta-cyan);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-import:hover {
+            background: #009dc4;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fcd34d;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="sync-container">
+
+    <div class="sync-header">
+        <h1>🔄 Synchronisation de contenu</h1>
+        <p>Exporte ton contenu local, importe-le sur Railway — sans jamais ressaisir.</p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-error{% else %}alert-warning{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="sync-card">
+        <h3>📤 Exporter</h3>
+        <form method="POST" action="{% url 'admin_sync_export' %}">
+            {% csrf_token %}
+            <label for="type_export">Type de contenu a exporter</label>
+            <select name="type_export" id="type_export">
+                <option value="all">📦 Tout le contenu</option>
+                <option value="ecoles">🏫 Ecoles uniquement</option>
+                <option value="formations">📚 Formations uniquement</option>
+                <option value="formations_complet">📚 Formations + Modules + Lecons</option>
+                <option value="articles">📝 Articles uniquement</option>
+                <option value="quiz">❓ Quiz uniquement</option>
+            </select>
+
+            <label for="formation_id">Filtrer par formation (optionnel)</label>
+            <select name="formation_id" id="formation_id">
+                <option value="">-- Toutes les formations --</option>
+                {% for formation in formations_liste %}
+                    <option value="{{ formation.id }}">{{ formation.icone }} {{ formation.nom }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit" class="btn-export">
+                📤 Lancer l'export
+            </button>
+        </form>
+    </div>
+
+    <div class="sync-card">
+        <h3>📥 Importer</h3>
+        <form method="POST" action="{% url 'admin_sync_import' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="file" name="fichier_import" accept=".json">
+            <br>
+            <button type="submit" class="btn-import"
+                    onclick="return confirm('Attention: l\'import va creer ou mettre a jour du contenu. Continuer ?');">
+                📥 Lancer l'import
+            </button>
+        </form>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extrajs %}
+    {{ block.super }}
+    <script>
+        document.getElementById('type_export').addEventListener('change', function() {
+            var formationSelect = document.getElementById('formation_id');
+            if (this.value === 'all' || this.value === 'ecoles') {
+                formationSelect.disabled = true;
+                formationSelect.value = '';
+            } else {
+                formationSelect.disabled = false;
+            }
+        });
+    </script>
+{% endblock %}

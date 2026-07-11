@@ -1,0 +1,70 @@
+<!-- ================================================
+     RESULTAT_EXAMEN.HTML — Résultat premium avec Blessy AI
+     Emplacement : academie/templates/academie/resultat_examen.html
+     ================================================ -->
+{% extends 'academie/base.html' %}
+{% block titre %}Résultat — {{ examen.titre }}{% endblock %}
+{% block contenu %}
+
+<section class="re-hero {% if tentative.reussi %}re-reussi{% else %}re-echec{% endif %}">
+    <div class="re-hero-inner">
+        <div class="re-emoji">{% if tentative.reussi %}🎉{% else %}💪{% endif %}</div>
+        <div class="re-score">{{ tentative.pourcentage }}%</div>
+        <p class="re-statut">
+            {% if tentative.reussi %}Examen réussi !{% else %}Continue tes efforts{% endif %}
+        </p>
+    </div>
+</section>
+
+<div class="re-layout">
+
+    <div class="re-stats-grille">
+        <div class="re-stat"><span>✅</span><strong>{{ tentative.nb_bonnes }}</strong><p>Bonnes réponses</p></div>
+        <div class="re-stat"><span>❌</span><strong>{{ tentative.nb_mauvaises }}</strong><p>Mauvaises réponses</p></div>
+        <div class="re-stat"><span>⏱</span><strong>{{ tentative.temps_utilise }} min</strong><p>Temps utilisé</p></div>
+    </div>
+
+    {% if tentative.reussi and examen.certificat_automatique %}
+    <div class="re-certificat-card">
+        <span style="font-size:40px;">🎓</span>
+        <h3>Certificat débloqué !</h3>
+        <p>Ton certificat est disponible, avec QR Code de vérification.</p>
+        <a href="{% url 'telecharger_certificat' examen.formation.id %}" class="re-btn-certif">📄 Télécharger mon certificat</a>
+    </div>
+    {% endif %}
+
+    <div class="re-card">
+        <h3>💬 Feedback de Blessy AI</h3>
+        <p>{{ feedback_ia }}</p>
+    </div>
+
+    <div class="re-actions">
+        <a href="{% url 'detail_formation' examen.formation.id %}" class="re-btn-secondaire">📚 Retour à la formation</a>
+        {% if not tentative.reussi and tentatives_restantes > 0 %}
+        <a href="{% url 'preparation_examen' examen.id %}" class="re-btn-principal">🔄 Retenter l'examen</a>
+        {% endif %}
+    </div>
+
+</div>
+
+<style>
+.re-hero{padding:60px 40px;text-align:center;}
+.re-reussi{background:linear-gradient(135deg,#0B2447,#166534);}
+.re-echec{background:linear-gradient(135deg,#0B2447,#7c2d12);}
+.re-emoji{font-size:56px;}
+.re-score{font-size:52px;font-weight:800;color:white;margin:8px 0;}
+.re-statut{color:rgba(255,255,255,0.8);font-size:16px;}
+.re-layout{max-width:600px;margin:0 auto;padding:40px 20px 80px;}
+.re-stats-grille{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
+.re-stat{background:white;border:1.5px solid #e2e8f0;border-radius:14px;padding:16px;text-align:center;}
+.re-stat strong{display:block;font-size:20px;color:var(--bleu-principal);}
+.re-certificat-card{background:linear-gradient(135deg,#166534,#22c55e);color:white;border-radius:18px;padding:28px;text-align:center;margin-bottom:20px;}
+.re-btn-certif{display:inline-block;background:white;color:#166534;padding:12px 24px;border-radius:10px;font-weight:800;text-decoration:none;margin-top:12px;}
+.re-card{background:white;border:1.5px solid #e2e8f0;border-radius:16px;padding:24px;margin-bottom:20px;}
+.re-actions{display:flex;gap:12px;}
+.re-btn-principal,.re-btn-secondaire{flex:1;text-align:center;padding:14px;border-radius:10px;font-weight:700;text-decoration:none;}
+.re-btn-principal{background:linear-gradient(135deg,#FF6B35,#e85a2a);color:white;}
+.re-btn-secondaire{border:1.5px solid #e2e8f0;color:var(--bleu-principal);}
+@media(max-width:480px){.re-actions{flex-direction:column;}}
+</style>
+{% endblock %}

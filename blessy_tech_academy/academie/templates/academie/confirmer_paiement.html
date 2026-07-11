@@ -1,0 +1,37 @@
+<!-- ================================================
+     CONFIRMER_PAIEMENT.HTML — Upload preuve paiement manuel
+     ================================================ -->
+{% extends 'academie/base.html' %}
+{% block titre %}Confirmer mon paiement{% endblock %}
+{% block contenu %}
+
+<section style="max-width:600px; margin:60px auto; padding:0 20px;">
+    <div style="background:white; border:1.5px solid #e2e8f0; border-radius:20px; padding:36px;">
+        <h2 style="color:var(--bleu-principal);">💳 {{ commande.moyen_paiement.icone }} {{ commande.moyen_paiement.nom_affiche }}</h2>
+
+        {% if commande.moyen_paiement.instructions %}
+        <div style="background:var(--gris-clair); border-radius:12px; padding:16px; margin:16px 0; font-size:14px; color:var(--gris-texte);">
+            {{ commande.moyen_paiement.instructions|linebreaks }}
+        </div>
+        {% endif %}
+
+        <p style="font-size:18px; font-weight:800; color:var(--orange-accent); margin:16px 0;">
+            Montant à payer : {{ commande.total }} $
+        </p>
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <label style="font-size:13px; font-weight:700; color:var(--bleu-principal);">Référence de transaction</label>
+            <input type="text" name="reference_externe" placeholder="Ex: numéro de transaction MonCash"
+                   style="width:100%; padding:12px; border:1.5px solid #e2e8f0; border-radius:8px; margin:8px 0 16px;">
+
+            <label style="font-size:13px; font-weight:700; color:var(--bleu-principal);">Preuve de paiement (capture d'écran)</label>
+            <input type="file" name="preuve_paiement" accept="image/*" style="margin:8px 0 20px; display:block;">
+
+            <button type="submit" style="width:100%; padding:14px; background:linear-gradient(135deg,#FF6B35,#e85a2a); color:white; border:none; border-radius:10px; font-weight:800; cursor:pointer;">
+                ✅ Soumettre mon paiement
+            </button>
+        </form>
+    </div>
+</section>
+{% endblock %}

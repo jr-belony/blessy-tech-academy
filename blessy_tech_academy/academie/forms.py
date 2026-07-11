@@ -6,6 +6,15 @@ from .models import Inscription, Formation
 from .models import Sujet, Reponse
 
 
+class ContactForm(forms.Form):
+    """Formulaire de contact simple."""
+    prenom = forms.CharField(max_length=100, label='Prénom')
+    nom = forms.CharField(max_length=100, label='Nom')
+    email = forms.EmailField(label='Email')
+    sujet = forms.CharField(max_length=200, label='Sujet')
+    message = forms.CharField(widget=forms.Textarea, label='Message')
+
+
 class InscriptionForm(forms.ModelForm):
     """Formulaire d'inscription/contact lié au model Inscription."""
 

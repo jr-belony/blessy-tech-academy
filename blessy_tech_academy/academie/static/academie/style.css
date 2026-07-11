@@ -1,6 +1,6 @@
 /* ================================================
-   BLESSY TECH ACADEMY — Feuille de style principale
-   Version 2.0 — Responsive + Design moderne
+BLESSY TECH ACADEMY — Feuille de style principale
+Version 2.0 — Responsive + Design moderne
    ================================================ */
 
 /* ---- Import Google Fonts ---- */
@@ -54,7 +54,7 @@ img {
 }
 
 /* ================================================
-   HEADER
+HEADER
    ================================================ */
 
 header {
@@ -143,7 +143,7 @@ nav a.actif::after {
 }
 
 /* ================================================
-   BOUTONS
+BOUTONS
    ================================================ */
 
 .btn {
@@ -195,7 +195,7 @@ nav a.actif::after {
 }
 
 /* ================================================
-   SECTION HERO
+SECTION HERO
    ================================================ */
 
 .hero {
@@ -771,7 +771,7 @@ footer {
 }
 
 /* ================================================
-   RESPONSIVE — TABLET (max 768px)
+RESPONSIVE — TABLET (max 768px)
    ================================================ */
 
 @media (max-width: 768px) {
@@ -903,7 +903,7 @@ footer {
 }
 
 /* ================================================
-   RESPONSIVE — MOBILE (max 480px)
+RESPONSIVE — MOBILE (max 480px)
    ================================================ */
 
 @media (max-width: 480px) {
@@ -1231,7 +1231,7 @@ footer {
 
 
 /* ================================================
-   PAGE RESSOURCES – Blog moderne BTA
+PAGE RESSOURCES – Blog moderne BTA
    ================================================ */
 
 /* Filtres pills */
@@ -1470,3 +1470,282 @@ footer {
         font-size: 20px;
     }
 }
+
+
+/* ================================================
+   HEADER BTA v3.0 — Nouveau header
+   ================================================ */
+
+.header-bta {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: var(--bleu-principal);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.header-inner {
+    max-width: 1300px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    gap: 20px;
+}
+
+/* --- Logo --- */
+.header-bta .header-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    flex-shrink: 0;
+}
+
+.logo-icon-wrapper {
+    width: 42px;
+    height: 42px;
+    background: var(--bleu-electrique);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logo-emoji {
+    font-size: 22px;
+    line-height: 1;
+}
+
+.logo-textes {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.logo-principal {
+    font-weight: 800;
+    font-size: 16px;
+    color: white;
+    letter-spacing: -0.3px;
+}
+
+.logo-secondaire {
+    font-size: 11px;
+    color: rgba(255,255,255,0.65);
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* --- Navigation --- */
+.header-nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.nav-lien {
+    position: relative;
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 14px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.nav-lien:hover {
+    color: white;
+    background: rgba(255,255,255,0.08);
+}
+
+.nav-actif {
+    color: white;
+    background: rgba(255,255,255,0.12);
+}
+
+/* --- Actions --- */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-header-connexion {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 14px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.btn-header-connexion:hover {
+    background: rgba(255,255,255,0.08);
+}
+
+.btn-header-cta {
+    background: var(--orange-accent);
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 8px 18px;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.btn-header-cta:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+/* --- Bouton Burger mobile --- */
+.burger-btn {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+}
+
+.burger-line {
+    width: 24px;
+    height: 2px;
+    background: white;
+    border-radius: 2px;
+    transition: all 0.3s;
+}
+
+/* === Menu burger mobile === */
+.mobile-drawer {
+    position: fixed;
+    top: 0;
+    right: -320px;
+    width: 300px;
+    height: 100vh;
+    background: white;
+    z-index: 2000;
+    transition: right 0.3s ease;
+    overflow-y: auto;
+    box-shadow: -4px 0 20px rgba(0,0,0,0.2);
+}
+.mobile-drawer.open {
+    right: 0;
+}
+.nav-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1500;
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+    .header-nav {
+        display: none;
+    }
+    .burger-btn {
+        display: flex;
+    }
+    .btn-header-connexion,
+    .btn-header-cta {
+        display: none;
+    }
+}
+
+
+    /* ================================================
+    CARTE FORMATION V2 — Tunnel de conversion
+    ================================================ */
+
+    .carte-formation-v2 {
+        background: white;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 0;
+        overflow: hidden;
+        transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .carte-formation-v2:hover {
+        transform: translateY(-6px);
+        border-color: transparent;
+        box-shadow: 0 24px 60px rgba(11,36,71,0.14);
+    }
+
+    .cfv2-badge {
+        position: absolute;
+        top: 16px; right: 16px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        z-index: 2;
+    }
+    .cfv2-badge-gratuit { background: linear-gradient(135deg,#00B4D8,#0090b8); color: white; }
+
+    .cfv2-header {
+        padding: 24px 24px 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+    .cfv2-icone { font-size: 42px; }
+
+    .cfv2-niveau {
+        font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px;
+    }
+    .cfv2-niveau-debutant { background: rgba(34,197,94,0.1); color: #22c55e; }
+    .cfv2-niveau-intermediaire { background: rgba(0,180,216,0.1); color: #00B4D8; }
+    .cfv2-niveau-avance { background: rgba(255,107,53,0.1); color: #FF6B35; }
+    .cfv2-niveau-pro { background: rgba(168,85,247,0.1); color: #a855f7; }
+
+    .cfv2-corps { padding: 0 24px 16px; flex: 1; }
+    .cfv2-ecole { font-size: 11px; font-weight: 700; color: var(--bleu-electrique); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .cfv2-titre { font-size: 17px; font-weight: 800; color: var(--bleu-principal); margin-bottom: 8px; line-height: 1.3; }
+    .cfv2-desc { font-size: 13px; color: var(--gris-texte); line-height: 1.6; margin: 0; }
+
+    .cfv2-stats {
+        display: flex; gap: 16px; padding: 12px 24px;
+        border-top: 1px solid #f0f0f0; font-size: 12px; color: #a0aec0; font-weight: 600;
+    }
+
+    .cfv2-prix-zone { padding: 16px 24px; }
+    .cfv2-prix { font-size: 26px; font-weight: 800; color: var(--orange-accent); }
+    .cfv2-prix-gratuit { color: #22c55e; }
+
+    .cfv2-footer { display: flex; flex-direction: column; gap: 8px; padding: 0 24px 24px; }
+
+    .cfv2-btn-secondaire {
+        text-align: center; padding: 11px; border-radius: 10px;
+        background: transparent; color: var(--bleu-principal); font-weight: 700; font-size: 13px;
+        text-decoration: none; border: 1.5px solid #e2e8f0; transition: all 0.2s;
+    }
+    .cfv2-btn-secondaire:hover { border-color: var(--bleu-principal); background: rgba(11,36,71,0.03); }
+
+    .cfv2-btn-principal {
+        text-align: center; padding: 13px; border-radius: 10px;
+        background: linear-gradient(135deg, #FF6B35, #e85a2a); color: white;
+        font-weight: 800; font-size: 14px; text-decoration: none;
+        box-shadow: 0 6px 18px rgba(255,107,53,0.35); transition: all 0.3s;
+    }
+    .cfv2-btn-principal:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(255,107,53,0.45); }
+
+    

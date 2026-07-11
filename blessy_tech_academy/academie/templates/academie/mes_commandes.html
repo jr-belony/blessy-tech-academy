@@ -1,0 +1,34 @@
+<!-- ================================================
+     MES_COMMANDES.HTML — Dashboard étudiant paiements
+     ================================================ -->
+{% extends 'academie/base.html' %}
+{% block titre %}Mes Commandes{% endblock %}
+{% block contenu %}
+
+<section style="max-width:900px; margin:60px auto; padding:0 20px;">
+    <h1 style="color:var(--bleu-principal); margin-bottom:32px;">🧾 Mes Commandes</h1>
+
+    {% for commande in commandes %}
+    <div style="background:white; border:1.5px solid #e2e8f0; border-radius:16px; padding:24px; margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <span style="font-weight:700; color:var(--bleu-principal);">#{{ commande.reference }}</span>
+            <span style="font-size:12px; font-weight:700; padding:4px 12px; border-radius:12px;
+                background:{% if commande.statut == 'paye' %}rgba(34,197,94,0.1);color:#22c55e{% else %}rgba(255,107,53,0.1);color:#FF6B35{% endif %};">
+                {{ commande.get_statut_display }}
+            </span>
+        </div>
+        {% for item in commande.items.all %}
+        <p style="font-size:14px; color:var(--gris-texte);">{{ item.icone_produit_snapshot }} {{ item.nom_produit_snapshot }} — {{ item.prix_unitaire }}$</p>
+        {% endfor %}
+        <div style="display:flex; justify-content:space-between; margin-top:12px; padding-top:12px; border-top:1px solid #f0f0f0;">
+            <span style="font-weight:800;">Total : {{ commande.total }}$</span>
+            {% if commande.facture %}
+            <a href="{{ commande.facture.fichier_pdf.url }}" style="color:var(--bleu-electrique); font-weight:700;">📄 Facture PDF →</a>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <p style="text-align:center; color:var(--gris-texte); padding:60px;">Aucune commande pour le moment.</p>
+    {% endfor %}
+</section>
+{% endblock %}

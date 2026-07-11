@@ -1,0 +1,79 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<div style="padding:24px; max-width:800px;">
+    <h1 style="color:#0B2447;">📧 Centre d'administration des Emails</h1>
+
+    <div style="background:white; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-weight:700; color:#0B2447;">welcome</span>
+        <div style="display:flex; gap:8px;">
+            <a href="/admin/emails/preview/welcome/" target="_blank" style="padding:6px 14px; background:#00B4D8; color:white; border-radius:6px; text-decoration:none; font-size:12px;">👁️ Apercu</a>
+            <form method="POST" action="/admin/emails/test/" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="template" value="welcome">
+                <button type="submit" style="padding:6px 14px; background:#FF6B35; color:white; border:none; border-radius:6px; font-size:12px; cursor:pointer;">✉️ Test</button>
+            </form>
+        </div>
+    </div>
+
+    <div style="background:white; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-weight:700; color:#0B2447;">certificate</span>
+        <div style="display:flex; gap:8px;">
+            <a href="/admin/emails/preview/certificate/" target="_blank" style="padding:6px 14px; background:#00B4D8; color:white; border-radius:6px; text-decoration:none; font-size:12px;">👁️ Apercu</a>
+            <form method="POST" action="/admin/emails/test/" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="template" value="certificate">
+                <button type="submit" style="padding:6px 14px; background:#FF6B35; color:white; border:none; border-radius:6px; font-size:12px; cursor:pointer;">✉️ Test</button>
+            </form>
+        </div>
+    </div>
+
+    <div style="background:white; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-weight:700; color:#0B2447;">badge</span>
+        <div style="display:flex; gap:8px;">
+            <a href="/admin/emails/preview/badge/" target="_blank" style="padding:6px 14px; background:#00B4D8; color:white; border-radius:6px; text-decoration:none; font-size:12px;">👁️ Apercu</a>
+            <form method="POST" action="/admin/emails/test/" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="template" value="badge">
+                <button type="submit" style="padding:6px 14px; background:#FF6B35; color:white; border:none; border-radius:6px; font-size:12px; cursor:pointer;">✉️ Test</button>
+            </form>
+        </div>
+    </div>
+
+    <div style="background:white; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-weight:700; color:#0B2447;">quiz_result</span>
+        <div style="display:flex; gap:8px;">
+            <a href="/admin/emails/preview/quiz_result/" target="_blank" style="padding:6px 14px; background:#00B4D8; color:white; border-radius:6px; text-decoration:none; font-size:12px;">👁️ Apercu</a>
+            <form method="POST" action="/admin/emails/test/" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="template" value="quiz_result">
+                <button type="submit" style="padding:6px 14px; background:#FF6B35; color:white; border:none; border-radius:6px; font-size:12px; cursor:pointer;">✉️ Test</button>
+            </form>
+        </div>
+    </div>
+
+    <div style="background:white; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-weight:700; color:#0B2447;">reset_password</span>
+        <div style="display:flex; gap:8px;">
+            <a href="/admin/emails/preview/reset_password/" target="_blank" style="padding:6px 14px; background:#00B4D8; color:white; border-radius:6px; text-decoration:none; font-size:12px;">👁️ Apercu</a>
+            <form method="POST" action="/admin/emails/test/" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="template" value="reset_password">
+                <button type="submit" style="padding:6px 14px; background:#FF6B35; color:white; border:none; border-radius:6px; font-size:12px; cursor:pointer;">✉️ Test</button>
+            </form>
+        </div>
+    </div>
+
+    <div style="background:white; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-weight:700; color:#0B2447;">forum_reply</span>
+        <div style="display:flex; gap:8px;">
+            <a href="/admin/emails/preview/forum_reply/" target="_blank" style="padding:6px 14px; background:#00B4D8; color:white; border-radius:6px; text-decoration:none; font-size:12px;">👁️ Apercu</a>
+            <form method="POST" action="/admin/emails/test/" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="template" value="forum_reply">
+                <button type="submit" style="padding:6px 14px; background:#FF6B35; color:white; border:none; border-radius:6px; font-size:12px; cursor:pointer;">✉️ Test</button>
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

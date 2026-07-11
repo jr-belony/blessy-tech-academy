@@ -1,0 +1,29 @@
+<!-- ================================================
+     NOTIFICATIONS/QUIZ_RESULT.HTML — Résultat de quiz
+     ================================================ -->
+{% extends 'emails/base_email.html' %}
+
+{% block titre_email %}Résultat de ton quiz — {{ quiz_titre }}{% endblock %}
+
+{% block contenu_email %}
+<h1 style="font-size:22px; color:#0B2447; font-family:Arial,sans-serif; margin:0 0 16px;">
+    📝 Résultat — {{ quiz_titre }}
+</h1>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
+<tr>
+    <td width="50%" style="padding-right:8px;">
+        {% include 'emails/components/card.html' with icone="✅" titre="Score" valeur=score_texte %}
+    </td>
+    <td width="50%" style="padding-left:8px;">
+        {% include 'emails/components/card.html' with icone="📊" titre="Pourcentage" valeur=pourcentage_texte %}
+    </td>
+</tr>
+</table>
+
+<p style="font-size:15px; color:#4A5568; line-height:1.7; font-family:Arial,sans-serif; margin:0 0 20px;">
+    {{ message_feedback }}
+</p>
+
+{% include 'emails/components/button.html' with texte="📚 Retourner à ma formation" url=lien_formation couleur="#FF6B35" %}
+{% endblock %}

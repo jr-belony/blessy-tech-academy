@@ -1,0 +1,33 @@
+<!-- ================================================
+     NOTIFICATIONS/WELCOME.HTML — Email de bienvenue
+     ================================================ -->
+{% extends 'emails/base_email.html' %}
+
+{% block titre_email %}Bienvenue chez Blessy Tech Academy !{% endblock %}
+
+{% block contenu_email %}
+<h1 style="font-size:24px; color:#0B2447; font-family:Arial,sans-serif; margin:0 0 16px;">
+    Bienvenue {{ prenom }} ! 🎉
+</h1>
+
+<p style="font-size:15px; color:#4A5568; line-height:1.7; font-family:Arial,sans-serif; margin:0 0 16px;">
+    Ton compte Blessy Tech Academy est activé. Tu fais maintenant partie
+    d'une communauté de professionnels du numérique en pleine croissance
+    en Haïti et dans la diaspora.
+</p>
+
+<p style="font-size:15px; color:#4A5568; line-height:1.7; font-family:Arial,sans-serif; margin:0 0 8px;">
+    Voici comment démarrer :
+</p>
+<ul style="font-size:14px; color:#4A5568; line-height:1.9; font-family:Arial,sans-serif; padding-left:20px;">
+    <li>🎯 Utilise notre simulateur de carrière pour trouver ton parcours idéal</li>
+    <li>🎁 Commence gratuitement avec l'une de nos mini-formations</li>
+    <li>🤖 Pose tes questions à Blessy AI, disponible 24h/24</li>
+</ul>
+
+{% include 'emails/components/button.html' with texte="🚀 Accéder à mon dashboard" url=lien_dashboard couleur="#FF6B35" %}
+
+<p style="font-size:13px; color:#a0aec0; font-family:Arial,sans-serif; margin-top:24px;">
+    Une question ? Réponds simplement à cet email — notre équipe te répondra sous 24h.
+</p>
+{% endblock %}

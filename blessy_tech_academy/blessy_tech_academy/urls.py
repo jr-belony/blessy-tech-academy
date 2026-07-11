@@ -6,6 +6,7 @@ from academie import views as views_academie
 
 urlpatterns = [
     path('admin/api/generer-article/', views_academie.api_generer_article, name='api_generer_article'),
+    path('admin/synchronisation/', views_academie.admin_sync_dashboard, name='admin_sync_dashboard'),
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
     path('', include('academie.urls')),

@@ -1,6 +1,8 @@
 from django.db import models
 from django_ckeditor_5.fields import CKEditor5Field
 from simple_history.models import HistoricalRecords
+from django.utils import timezone 
+from django.contrib.auth.models import User
 
 class Ecole(models.Model):
     """Représente une École (catégorie de formations)."""
@@ -17,6 +19,8 @@ class Ecole(models.Model):
 
     def __str__(self):
         return f"{self.icone} {self.nom}"
+    def natural_key(self):                    # ← Ajoute cette méthode
+        return (self.nom,)
     history = HistoricalRecords()   # ← AJOUTE À LA FIN, avant Meta/méthodes
 
     def progression_pour(self, utilisateur):
@@ -108,7 +112,9 @@ class Formation(models.Model):
     def __str__(self):
         return f"{self.icone} {self.nom} ({self.duree_mois} mois)"
     
-    
+    def natural_key(self):                    # ← Ajouté
+        return (self.nom, self.ecole.nom if self.ecole else None)
+
     def progression_pour(self, utilisateur):
         """Calcule le % de progression d'un utilisateur sur cette formation."""
         if not utilisateur.is_authenticated:
@@ -853,3 +859,463 @@ class ConnexionUtilisateur(models.Model):
 
     def __str__(self):
         return f"{self.utilisateur.username} - {self.date_connexion}"
+    
+
+    # ================================================
+# MODELS.PY — Système de Paiement (Payment Center)
+# Ajoute ce bloc à la fin de models.py
+# ================================================
+
+import uuid
+
+
+class MoyenPaiement(models.Model):
+    """Moyens de paiement disponibles — administrable, extensible."""
+
+    CODES = [
+        ('manuel', 'Paiement manuel (validation admin)'),
+        ('moncash', 'MonCash'),
+        ('natcash', 'NatCash'),
+        ('stripe', 'Carte bancaire (Stripe)'),
+        ('paypal', 'PayPal'),
+        ('virement', 'Virement bancaire'),
+    ]
+
+    code = models.CharField(max_length=20, choices=CODES, unique=True)
+    nom_affiche = models.CharField(max_length=100)
+    icone = models.CharField(max_length=10, default='💳')
+    actif = models.BooleanField(default=True)
+    instructions = models.TextField(
+        blank=True,
+        help_text="Instructions affichées à l'étudiant (ex: numéro MonCash à utiliser)"
+    )
+    ordre = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['ordre']
+        verbose_name = 'Moyen de paiement'
+        verbose_name_plural = 'Moyens de paiement'
+
+    def __str__(self):
+        return f"{self.icone} {self.nom_affiche}"
+
+
+class Coupon(models.Model):
+    """Code promo — fixe ou pourcentage, avec restrictions flexibles."""
+
+    TYPES = [('fixe', 'Montant fixe'), ('pourcentage', 'Pourcentage')]
+
+    code = models.CharField(max_length=30, unique=True)
+    type_reduction = models.CharField(max_length=15, choices=TYPES, default='pourcentage')
+    valeur = models.DecimalField(max_digits=10, decimal_places=2, help_text="Montant $ ou % selon le type")
+
+    # Restrictions optionnelles — vide = applicable à tout
+    formation_specifique = models.ForeignKey(
+        Formation, on_delete=models.SET_NULL, null=True, blank=True, related_name='coupons'
+    )
+    ecole_specifique = models.ForeignKey(
+        Ecole, on_delete=models.SET_NULL, null=True, blank=True, related_name='coupons'
+    )
+    parcours_specifique = models.ForeignKey(
+        Parcours, on_delete=models.SET_NULL, null=True, blank=True, related_name='coupons'
+    )
+
+    utilisations_max = models.IntegerField(default=0, help_text="0 = illimité")
+    utilisations_actuelles = models.IntegerField(default=0)
+
+    date_debut = models.DateTimeField(default=timezone.now)
+    date_fin = models.DateTimeField(null=True, blank=True)
+    actif = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = 'Coupon'
+        verbose_name_plural = 'Coupons'
+
+    def __str__(self):
+        return f"{self.code} ({self.get_type_reduction_display()})"
+
+    def est_valide(self):
+        maintenant = timezone.now()
+        if not self.actif:
+            return False, "Ce coupon n'est plus actif."
+        if self.date_fin and maintenant > self.date_fin:
+            return False, "Ce coupon a expiré."
+        if self.utilisations_max > 0 and self.utilisations_actuelles >= self.utilisations_max:
+            return False, "Ce coupon a atteint sa limite d'utilisation."
+        return True, ""
+
+    def calculer_reduction(self, montant):
+        if self.type_reduction == 'pourcentage':
+            return round(montant * (self.valeur / 100), 2)
+        return min(self.valeur, montant)
+
+
+class Promotion(models.Model):
+    """Promotion globale automatique (ex: Black Friday) — s'applique sans code."""
+
+    nom = models.CharField(max_length=150)
+    description = models.TextField(blank=True)
+    pourcentage_reduction = models.IntegerField(help_text="Ex: 30 pour -30%")
+
+    ecoles_concernees = models.ManyToManyField(Ecole, blank=True, related_name='promotions')
+    formations_concernees = models.ManyToManyField(Formation, blank=True, related_name='promotions')
+
+    date_debut = models.DateTimeField()
+    date_fin = models.DateTimeField()
+    actif = models.BooleanField(default=True)
+    bandeau_texte = models.CharField(max_length=200, blank=True, help_text="Ex: 🔥 -30% jusqu'au 30 novembre")
+
+    class Meta:
+        verbose_name = 'Promotion'
+        verbose_name_plural = 'Promotions'
+
+    def __str__(self):
+        return f"{self.nom} (-{self.pourcentage_reduction}%)"
+
+    def est_active(self):
+        maintenant = timezone.now()
+        return self.actif and self.date_debut <= maintenant <= self.date_fin
+
+    def s_applique_a(self, formation):
+        if not self.est_active():
+            return False
+        if self.formations_concernees.filter(id=formation.id).exists():
+            return True
+        if formation.ecole and self.ecoles_concernees.filter(id=formation.ecole.id).exists():
+            return True
+        return False
+
+
+class Order(models.Model):
+    """Commande — le panier devenu commande."""
+
+    STATUTS = [
+        ('en_attente', '⏳ En attente de paiement'),
+        ('paye', '✅ Payée'),
+        ('annule', '❌ Annulée'),
+        ('rembourse', '↩️ Remboursée'),
+    ]
+
+    reference = models.CharField(max_length=20, unique=True, editable=False)
+    utilisateur = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='commandes')
+
+    sous_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    reduction_totale = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    devise = models.CharField(max_length=3, choices=[('USD', 'USD'), ('HTG', 'HTG')], default='USD')
+
+    coupon_applique = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True)
+    moyen_paiement = models.ForeignKey(MoyenPaiement, on_delete=models.SET_NULL, null=True, blank=True)
+
+    statut = models.CharField(max_length=15, choices=STATUTS, default='en_attente')
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_paiement = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-date_creation']
+        verbose_name = 'Commande'
+        verbose_name_plural = 'Commandes'
+
+    def __str__(self):
+        return f"Commande #{self.reference} — {self.utilisateur.username}"
+
+    def save(self, *args, **kwargs):
+        if not self.reference:
+            self.reference = f"BTA-{uuid.uuid4().hex[:8].upper()}"
+        super().save(*args, **kwargs)
+
+    def recalculer_total(self):
+        """Recalcule les totaux depuis les OrderItem — source de vérité unique."""
+        items = self.items.all()
+        self.sous_total = sum(item.prix_unitaire for item in items)
+        if self.coupon_applique:
+            self.reduction_totale = self.coupon_applique.calculer_reduction(self.sous_total)
+        self.total = max(0, self.sous_total - self.reduction_totale)
+        self.save(update_fields=['sous_total', 'reduction_totale', 'total'])
+
+
+class OrderItem(models.Model):
+    """
+    Ligne de commande — SNAPSHOT IMMUABLE.
+    C'est ICI que la magie anti-cassure opère : toutes les infos
+    produit sont copiées au moment de l'achat, indépendamment de
+    ce qui arrive ensuite à la Formation/Parcours d'origine.
+    """
+
+    TYPES_PRODUIT = [('formation', 'Formation'), ('parcours', 'Parcours Professionnel')]
+
+    commande = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+
+    # Liens "vivants" — SET_NULL si le produit est supprimé (ne casse jamais la commande)
+    formation = models.ForeignKey(Formation, on_delete=models.SET_NULL, null=True, blank=True)
+    parcours = models.ForeignKey(Parcours, on_delete=models.SET_NULL, null=True, blank=True)
+
+    type_produit = models.CharField(max_length=15, choices=TYPES_PRODUIT)
+
+    # === SNAPSHOT — copié au moment de l'achat, JAMAIS modifié après ===
+    nom_produit_snapshot = models.CharField(max_length=200)
+    icone_produit_snapshot = models.CharField(max_length=10, default='📚')
+    ecole_nom_snapshot = models.CharField(max_length=200, blank=True)
+    prix_unitaire = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        verbose_name = 'Article de commande'
+        verbose_name_plural = 'Articles de commande'
+
+    def __str__(self):
+        return f"{self.nom_produit_snapshot} — {self.prix_unitaire}$"
+
+    def obtenir_lien_produit(self):
+        """Retourne le lien si le produit existe encore, sinon None."""
+        if self.formation:
+            return f"/formation/{self.formation.id}/"
+        return None
+
+
+class Invoice(models.Model):
+    """Facture officielle — générée automatiquement après paiement validé."""
+
+    commande = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='facture')
+    numero_facture = models.CharField(max_length=30, unique=True, editable=False)
+    date_emission = models.DateTimeField(auto_now_add=True)
+    fichier_pdf = models.FileField(upload_to='factures/', null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Facture'
+        verbose_name_plural = 'Factures'
+
+    def save(self, *args, **kwargs):
+        if not self.numero_facture:
+            annee = timezone.now().year
+            self.numero_facture = f"FACT-{annee}-{uuid.uuid4().hex[:6].upper()}"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.numero_facture
+
+
+class Transaction(models.Model):
+    """Trace chaque tentative/confirmation de paiement — journalisation complète."""
+
+    STATUTS = [
+        ('initiee', 'Initiée'),
+        ('reussie', 'Réussie'),
+        ('echouee', 'Échouée'),
+        ('en_verification', 'En vérification manuelle'),
+    ]
+
+    commande = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='transactions')
+    moyen_paiement = models.ForeignKey(MoyenPaiement, on_delete=models.SET_NULL, null=True)
+    reference_externe = models.CharField(max_length=100, blank=True, help_text="ID transaction MonCash/Stripe/etc.")
+    preuve_paiement = models.ImageField(upload_to='preuves_paiement/', null=True, blank=True)
+    montant = models.DecimalField(max_digits=10, decimal_places=2)
+    statut = models.CharField(max_length=20, choices=STATUTS, default='initiee')
+    notes_admin = models.TextField(blank=True)
+    date_creation = models.DateTimeField(auto_now_add=True)
+    valide_par = models.ForeignKey(
+        'auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='transactions_validees'
+    )
+
+    class Meta:
+        ordering = ['-date_creation']
+        verbose_name = 'Transaction'
+        verbose_name_plural = 'Transactions'
+
+    def __str__(self):
+        return f"Transaction {self.commande.reference} — {self.get_statut_display()}"
+
+
+class Refund(models.Model):
+    """Remboursement — traçabilité complète, ne supprime jamais la commande d'origine."""
+
+    commande = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='remboursements')
+    montant = models.DecimalField(max_digits=10, decimal_places=2)
+    raison = models.TextField()
+    approuve_par = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True)
+    date_demande = models.DateTimeField(auto_now_add=True)
+    date_traitement = models.DateTimeField(null=True, blank=True)
+    statut = models.CharField(
+        max_length=15,
+        choices=[('demande', 'Demandé'), ('approuve', 'Approuvé'), ('rejete', 'Rejeté')],
+        default='demande'
+    )
+
+    class Meta:
+        verbose_name = 'Remboursement'
+        verbose_name_plural = 'Remboursements'
+
+    def __str__(self):
+        return f"Remboursement {self.commande.reference} — {self.montant}$"
+
+
+class AccesFormationDebloque(models.Model):
+    """
+    Table de vérité pour l'accès étudiant — INDÉPENDANTE de Formation.
+    Garantit que même si Formation est supprimée, on sait toujours
+    QUI a payé pour QUOI (utile pour reporting/support/historique).
+    """
+
+    utilisateur = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='acces_debloques')
+    formation = models.ForeignKey(Formation, on_delete=models.SET_NULL, null=True, blank=True)
+    nom_formation_snapshot = models.CharField(max_length=200)
+    commande_origine = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True, blank=True)
+    date_deblocage = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['utilisateur', 'nom_formation_snapshot']
+        verbose_name = "Accès formation débloqué"
+        verbose_name_plural = "Accès formations débloqués"
+
+    def __str__(self):
+        return f"{self.utilisateur.username} → {self.nom_formation_snapshot}"
+    
+
+    # ================================================
+# MODELS.PY — Abonnements Premium récurrents
+# Ajoute à la fin de models.py
+# ================================================
+
+class PlanAbonnement(models.Model):
+    """Plan d'abonnement Premium — administrable."""
+
+    PERIODICITES = [('mensuel', 'Mensuel'), ('annuel', 'Annuel')]
+
+    nom = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    prix = models.DecimalField(max_digits=10, decimal_places=2)
+    periodicite = models.CharField(max_length=10, choices=PERIODICITES, default='mensuel')
+    avantages = models.TextField(help_text="Un avantage par ligne")
+    actif = models.BooleanField(default=True)
+
+    stripe_price_id = models.CharField(max_length=100, blank=True, help_text="ID prix Stripe (price_xxx)")
+
+    class Meta:
+        verbose_name = 'Plan d\'abonnement'
+        verbose_name_plural = 'Plans d\'abonnement'
+
+    def __str__(self):
+        return f"{self.nom} — {self.prix}$/{self.get_periodicite_display()}"
+
+
+class Subscription(models.Model):
+    """Abonnement actif d'un utilisateur."""
+
+    STATUTS = [
+        ('actif', 'Actif'), ('annule', 'Annulé'),
+        ('expire', 'Expiré'), ('en_echec', 'Paiement échoué'),
+    ]
+
+    utilisateur = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='abonnements')
+    plan = models.ForeignKey(PlanAbonnement, on_delete=models.SET_NULL, null=True)
+    plan_nom_snapshot = models.CharField(max_length=100)
+    prix_snapshot = models.DecimalField(max_digits=10, decimal_places=2)
+
+    stripe_subscription_id = models.CharField(max_length=100, blank=True)
+    stripe_customer_id = models.CharField(max_length=100, blank=True)
+
+    statut = models.CharField(max_length=15, choices=STATUTS, default='actif')
+    date_debut = models.DateTimeField(auto_now_add=True)
+    date_prochain_renouvellement = models.DateTimeField()
+    date_annulation = models.DateTimeField(null=True, blank=True)
+    renouvellement_auto = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = 'Abonnement'
+        verbose_name_plural = 'Abonnements'
+
+    def __str__(self):
+        return f"{self.utilisateur.username} — {self.plan_nom_snapshot} ({self.get_statut_display()})"
+
+    def est_actif(self):
+        return self.statut == 'actif' and self.date_prochain_renouvellement > timezone.now()
+    
+
+# ================================================
+# MODÈLES — Plateforme d'examens officiels
+# ================================================
+
+class Examen(models.Model):
+    """Examen officiel avec sécurité anti-triche."""
+    formation = models.ForeignKey(Formation, on_delete=models.CASCADE, related_name='examens')
+    titre = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    duree_minutes = models.IntegerField(default=60)
+    seuil_reussite = models.IntegerField(default=70, help_text="Pourcentage minimum pour réussir")
+    tentatives_max = models.IntegerField(default=3)
+    actif = models.BooleanField(default=True)
+    date_creation = models.DateTimeField(auto_now_add=True)
+    
+    # === Nouveaux champs — Modernisation Exam Center ===
+    competences_evaluees = models.TextField(blank=True, help_text="Compétences évaluées (une par ligne)")
+    prerequis_examen = models.TextField(blank=True, help_text="Prérequis pour passer l'examen")
+    conditions_utilisation = models.TextField(blank=True, help_text="Conditions à accepter avant l'examen")
+    date_disponibilite = models.DateTimeField(null=True, blank=True, help_text="Date d'ouverture")
+    date_expiration = models.DateTimeField(null=True, blank=True, help_text="Date de fermeture")
+    xp_recompense = models.IntegerField(default=100, help_text="XP gagnés si réussite")
+    certificat_auto = models.BooleanField(default=True, help_text="Générer certificat si réussite")
+
+    class Meta:
+        verbose_name = 'Examen'
+        verbose_name_plural = 'Examens'
+
+    def __str__(self):
+        return f"📝 {self.titre}"
+
+
+class QuestionExamen(models.Model):
+    """Question d'examen avec ordre aléatoire."""
+    examen = models.ForeignKey(Examen, on_delete=models.CASCADE, related_name='questions')
+    texte = models.TextField()
+    type_question = models.CharField(max_length=20, choices=[
+        ('qcm', 'QCM'),
+        ('vrai_faux', 'Vrai/Faux'),
+        ('texte', 'Réponse texte'),
+    ], default='qcm')
+    ordre = models.IntegerField(default=0)
+    points = models.IntegerField(default=1)
+
+    class Meta:
+        verbose_name = "Question d'examen"
+        verbose_name_plural = "Questions d'examen"
+        ordering = ['ordre']
+
+    def __str__(self):
+        return f"❓ {self.texte[:60]}"
+
+
+class ChoixExamen(models.Model):
+    """Choix de réponse pour QCM."""
+    question = models.ForeignKey(QuestionExamen, on_delete=models.CASCADE, related_name='choix')
+    texte = models.CharField(max_length=300)
+    est_correct = models.BooleanField(default=False)
+    ordre = models.IntegerField(default=0)
+
+    class Meta:
+        verbose_name = 'Choix'
+        verbose_name_plural = 'Choix'
+        ordering = ['ordre']
+
+    def __str__(self):
+        return f"{'✅' if self.est_correct else '⬜'} {self.texte[:50]}"
+
+
+class TentativeExamen(models.Model):
+    """Tentative d'un étudiant avec suivi anti-triche."""
+    utilisateur = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tentatives_examens')
+    examen = models.ForeignKey(Examen, on_delete=models.CASCADE, related_name='tentatives')
+    date_debut = models.DateTimeField(auto_now_add=True)
+    date_fin = models.DateTimeField(null=True, blank=True)
+    score = models.FloatField(null=True, blank=True)
+    reussi = models.BooleanField(null=True, blank=True)
+    evenements_suspects = models.JSONField(default=list)
+    temps_utilise_secondes = models.IntegerField(null=True, blank=True, help_text="Temps total utilisé")
+    questions_repondues = models.IntegerField(default=0)
+    bonnes_reponses = models.IntegerField(default=0)
+    mauvaises_reponses = models.IntegerField(default=0)
+
+    class Meta:
+        verbose_name = "Tentative d'examen"
+        verbose_name_plural = "Tentatives d'examens"
+
+    def __str__(self):
+        return f"{self.utilisateur} - {self.examen.titre}"

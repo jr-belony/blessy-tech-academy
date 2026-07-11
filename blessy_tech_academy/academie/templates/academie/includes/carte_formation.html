@@ -1,124 +1,66 @@
 {% load static %}
-<div class="carte-formation-moderne {% if formation.gratuit %}carte-gratuite{% endif %}"
-     onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 30px rgba(0,0,0,0.1)';"
-     onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 20px rgba(0,0,0,0.06)';">
-    
-    <div class="carte-banniere {% if formation.gratuit %}banniere-gratuite{% else %}banniere-payante{% endif %}">
-        <span class="carte-illustration">{{ formation.illustration|default:formation.icone }}</span>
-        {% if formation.gratuit %}
-        <span class="carte-badge-gratuit">🎁 GRATUIT</span>
-        {% elif formation.niveau == 'professionnel' or formation.prix >= 200 %}
-        <span class="carte-badge-premium">⭐ PREMIUM</span>
+<!-- ================================================
+    INCLUDES/CARTE_FORMATION.HTML — Carte formation conversion
+    Utilisé dans formations.html ET accueil.html
+    ================================================ -->
+
+<article class="carte-formation-v2"
+        data-ecole="{{ formation.ecole.nom|lower }}"
+        data-niveau="{{ formation.niveau }}"
+        data-prix="{% if formation.gratuit %}gratuit{% else %}payant{% endif %}"
+        data-nom="{{ formation.nom|lower }}">
+
+    <!-- Badge gratuit / promo -->
+    {% if formation.gratuit %}
+    <div class="cfv2-badge cfv2-badge-gratuit">🎁 GRATUIT</div>
+    {% endif %}
+
+    <!-- Header -->
+    <div class="cfv2-header">
+        <div class="cfv2-icone">{{ formation.icone }}</div>
+        {% if formation.niveau == 'debutant' %}
+        <span class="cfv2-niveau cfv2-niveau-debutant">Débutant</span>
+        {% elif formation.niveau == 'intermediaire' %}
+        <span class="cfv2-niveau cfv2-niveau-intermediaire">Intermédiaire</span>
+        {% elif formation.niveau == 'avance' %}
+        <span class="cfv2-niveau cfv2-niveau-avance">Avancé</span>
+        {% else %}
+        <span class="cfv2-niveau cfv2-niveau-pro">Pro</span>
         {% endif %}
     </div>
 
-    <div class="carte-contenu">
-        <h3 class="carte-titre">{{ formation.icone }} {{ formation.nom }}</h3>
-        <p class="carte-description">{{ formation.description|truncatewords:15 }}</p>
-        <div class="carte-meta">
-            <span class="carte-duree">⏱ {{ formation.duree_mois }} mois</span>
-            <span class="carte-niveau">{{ formation.get_niveau_display }}</span>
-            <span class="carte-prix">{{ formation.prix }} USD</span>
-        </div>
-        <a href="{% url 'detail_formation' formation.id %}" class="carte-bouton">
-            Voir la formation
+    <!-- Contenu -->
+    <div class="cfv2-corps">
+        {% if formation.ecole %}
+        <div class="cfv2-ecole">{{ formation.ecole.icone }} {{ formation.ecole.nom }}</div>
+        {% endif %}
+        <h3 class="cfv2-titre">{{ formation.nom }}</h3>
+        <p class="cfv2-desc">{{ formation.description|truncatewords:16 }}</p>
+    </div>
+
+    <!-- Stats rapides -->
+    <div class="cfv2-stats">
+        <span>⏱ {{ formation.duree_mois }} mois</span>
+        <span>📦 {{ formation.modules.count }} modules</span>
+    </div>
+
+    <!-- Prix -->
+    <div class="cfv2-prix-zone">
+        {% if formation.gratuit %}
+        <span class="cfv2-prix cfv2-prix-gratuit">Gratuit</span>
+        {% else %}
+        <span class="cfv2-prix">{{ formation.prix }} $</span>
+        {% endif %}
+    </div>
+
+    <!-- CTAs — 2 boutons hiérarchisés -->
+    <div class="cfv2-footer">
+        <a href="{% url 'detail_formation' formation.id %}" class="cfv2-btn-secondaire">
+            📋 Voir le programme
+        </a>
+        <a href="{% url 'detail_formation' formation.id %}" class="cfv2-btn-principal">
+            🚀 Commencer maintenant
         </a>
     </div>
-</div>
 
-<style>
-.carte-formation-moderne {
-    background: white;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-    transition: transform 0.2s, box-shadow 0.2s;
-    display: flex;
-    flex-direction: column;
-}
-.carte-gratuite {
-    border: 2px solid #00c2ff;
-}
-.carte-banniere {
-    height: 160px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-}
-.banniere-gratuite {
-    background: linear-gradient(135deg, #e0f7ff, #b3ecff);
-}
-.banniere-payante {
-    background: linear-gradient(135deg, #0B2447, #1a3a6b);
-}
-.carte-illustration {
-    font-size: 64px;
-}
-.carte-badge-gratuit, .carte-badge-premium {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    color: white;
-    font-size: 11px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-weight: 700;
-}
-.carte-badge-gratuit {
-    background: #00c2ff;
-}
-.carte-badge-premium {
-    background: #f59e0b;
-}
-.carte-contenu {
-    padding: 20px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-.carte-titre {
-    margin: 0 0 8px;
-    font-size: 18px;
-    color: #0B2447;
-}
-.carte-description {
-    font-size: 13px;
-    color: #666;
-    margin-bottom: 12px;
-    flex: 1;
-}
-.carte-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 6px;
-}
-.carte-duree, .carte-niveau {
-    font-size: 13px;
-    font-weight: 600;
-}
-.carte-duree {
-    color: #00B4D8;
-}
-.carte-niveau {
-    color: #0B2447;
-}
-.carte-prix {
-    font-size: 16px;
-    font-weight: 800;
-    color: #f59e0b;
-}
-.carte-bouton {
-    display: block;
-    text-align: center;
-    margin-top: 12px;
-    background: #00B4D8;
-    color: white;
-    padding: 10px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 600;
-}
-</style>
+</article>
