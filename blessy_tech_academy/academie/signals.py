@@ -33,14 +33,11 @@ def compresser_image(image_field, taille_max=TAILLE_MAX, qualite=QUALITE_JPEG):
     try:
         img = Image.open(image_field)
 
-        # Convertit en RGB si nécessaire (PNG avec transparence, etc.)
         if img.mode in ('RGBA', 'P'):
             img = img.convert('RGB')
 
-        # Redimensionne si trop grande (garde le ratio)
         img.thumbnail(taille_max, Image.Resampling.LANCZOS)
 
-        # Sauvegarde en mémoire compressée
         buffer = BytesIO()
         img.save(buffer, format='JPEG', quality=qualite, optimize=True)
         buffer.seek(0)
@@ -56,24 +53,20 @@ def compresser_image(image_field, taille_max=TAILLE_MAX, qualite=QUALITE_JPEG):
 
 # ================================================
 # SIGNAL : pre_save (ProjetEtudiant)
-# Rôle : Compresse automatiquement l'image d'un projet avant sauvegarde
 # ================================================
 @receiver(pre_save, sender=ProjetEtudiant)
 def compresser_image_projet(sender, instance, **kwargs):
-    """Compresse automatiquement l'image d'un ProjetEtudiant avant sauvegarde."""
     if not instance.image:
         return
 
-    # Évite de recompresser une image déjà traitée (si l'objet existe déjà en base)
     if instance.pk:
         try:
             ancien = ProjetEtudiant.objects.get(pk=instance.pk)
             if ancien.image == instance.image:
-                return  # image inchangée, ne rien faire
+                return
         except ProjetEtudiant.DoesNotExist:
             pass
 
-    # Vérifie que le fichier est bien une image en mémoire (nouvel upload)
     if hasattr(instance.image, 'file'):
         image_compressee = compresser_image(instance.image)
         if image_compressee:
@@ -82,11 +75,9 @@ def compresser_image_projet(sender, instance, **kwargs):
 
 # ================================================
 # SIGNAL : pre_save (Formation)
-# Rôle : Compresse l'illustration d'une formation avant sauvegarde
 # ================================================
 @receiver(pre_save, sender=Formation)
 def compresser_illustration_formation(sender, instance, **kwargs):
-    """Compresse l'illustration d'une formation avant sauvegarde."""
     if not instance.illustration:
         return
 
@@ -106,11 +97,8 @@ def compresser_illustration_formation(sender, instance, **kwargs):
 
 # ================================================
 # FONCTION UTILITAIRE : Géolocalisation IP
-# Rôle : Récupère pays et ville via l'API gratuite ip-api.com
-# Utilisée par : enregistrer_connexion
 # ================================================
 def get_geo_info(ip):
-    """Récupère le pays et la ville via l'API gratuite ip-api.com."""
     try:
         response = requests.get(f'http://ip-api.com/json/{ip}', timeout=3)
         if response.status_code == 200:
@@ -123,25 +111,18 @@ def get_geo_info(ip):
 
 # ================================================
 # SIGNAL : user_logged_in
-# Rôle : Enregistre chaque connexion dans ConnexionUtilisateur
-#        Détecte les connexions suspectes (IP ou pays différent)
-#        Envoie un email d'alerte si connexion suspecte
 # ================================================
 @receiver(user_logged_in)
 def enregistrer_connexion(sender, request, user, **kwargs):
-    """Callback exécuté à chaque connexion réussie."""
-    # Récupère l'adresse IP réelle (derrière proxy)
     ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', '')).split(',')[0].strip()
     user_agent = request.META.get('HTTP_USER_AGENT', '')[:300]
     pays, ville = get_geo_info(ip)
 
-    # Vérifie si la connexion est suspecte (IP ou pays différent de la dernière connexion)
     derniere = ConnexionUtilisateur.objects.filter(utilisateur=user).order_by('-date_connexion').first()
     suspecte = False
     if derniere and (derniere.pays != pays or derniere.adresse_ip != ip):
         suspecte = True
 
-    # Sauvegarde la connexion
     ConnexionUtilisateur.objects.create(
         utilisateur=user,
         adresse_ip=ip,
@@ -151,21 +132,24 @@ def enregistrer_connexion(sender, request, user, **kwargs):
         suspecte=suspecte,
     )
 
-    # Envoie un email d'alerte si connexion suspecte
+    # === Email d'alerte (protégé) ===
     if suspecte and user.email:
-        send_mail(
-            subject='🔐 Nouvelle connexion détectée sur votre compte BTA',
-            message=(
-                f'Bonjour {user.first_name or user.username},\n\n'
-                f'Une nouvelle connexion à votre compte Blessy Tech Academy a été détectée :\n\n'
-                f'📍 Adresse IP : {ip}\n'
-                f'🌍 Pays : {pays}\n'
-                f'🏙️ Ville : {ville}\n'
-                f'🖥️ Navigateur : {user_agent[:100]}\n\n'
-                f'Si vous n\'êtes pas à l\'origine de cette connexion, changez immédiatement votre mot de passe.\n\n'
-                f'L\'équipe BTA'
-            ),
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
-            fail_silently=True,
-        )
+        try:
+            send_mail(
+                subject='🔐 Nouvelle connexion détectée sur votre compte BTA',
+                message=(
+                    f'Bonjour {user.first_name or user.username},\n\n'
+                    f'Une nouvelle connexion à votre compte Blessy Tech Academy a été détectée :\n\n'
+                    f'📍 Adresse IP : {ip}\n'
+                    f'🌍 Pays : {pays}\n'
+                    f'🏙️ Ville : {ville}\n'
+                    f'🖥️ Navigateur : {user_agent[:100]}\n\n'
+                    f'Si vous n\'êtes pas à l\'origine de cette connexion, changez immédiatement votre mot de passe.\n\n'
+                    f'L\'équipe BTA'
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                fail_silently=True,
+            )
+        except Exception:
+            pass
