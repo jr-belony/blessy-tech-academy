@@ -28,10 +28,18 @@
             <label style="font-size:13px; font-weight:700; color:var(--bleu-principal);">Preuve de paiement (capture d'écran)</label>
             <input type="file" name="preuve_paiement" accept="image/*" style="margin:8px 0 20px; display:block;">
 
-            <button type="submit" style="width:100%; padding:14px; background:linear-gradient(135deg,#FF6B35,#e85a2a); color:white; border:none; border-radius:10px; font-weight:800; cursor:pointer;">
-                ✅ Soumettre mon paiement
+            <button type="submit" class="cp-btn-payer">
+                💳 Payer maintenant
             </button>
         </form>
     </div>
 </section>
+
+<style>
+.cp-btn-payer {
+    width: 100%; padding: 14px; background: linear-gradient(135deg, #FF6B35, #e85a2a);
+    color: white; border: none; border-radius: 10px; font-weight: 800;
+    cursor: pointer; box-shadow: 0 6px 18px rgba(255,107,53,0.35);
+}
+</style>
 {% endblock %}

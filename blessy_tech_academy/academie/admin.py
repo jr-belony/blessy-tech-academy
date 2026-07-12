@@ -382,7 +382,8 @@ class GestionCoursAdminSite(AdminThemeMixin):
             path('emails/', views.admin_emails_dashboard, name='admin_emails'),
             path('emails/preview/<str:template_name>/', views.admin_email_preview, name='email_preview'),
             path('emails/test/', views.admin_email_test, name='email_test'),
-        ]
+            path('dashboard-ia/', views.vue_dashboard_ia, name='dashboard_ia'), 
+            ]
         return custom_urls + original_urls
 
     def vue_gestion_cours(self, request):
@@ -434,6 +435,55 @@ admin.site.get_urls = get_urls_avec_gestion
 admin.site.site_header = "Blessy Tech Academy — Back Office"
 admin.site.site_title = "BTA Admin"
 admin.site.index_title = "Tableau de bord"
+
+
+# ================================================
+# ADMIN.PY — Dashboard IA Admin (Intelligence Décisionnelle)
+# Ajoute cette méthode dans GestionCoursAdminSite + route dans get_urls
+# ================================================
+
+@staff_member_required
+def vue_dashboard_ia(self, request):
+    from django.db.models import Count, Avg, Sum
+
+    # Collecte des vraies données de la plateforme
+    formations_stats = Formation.objects.filter(actif=True).annotate(
+        nb_inscrits=Count('orderitem', filter=Q(orderitem__commande__statut='paye')),
+        nb_articles_lies=Count('articles'),
+    ).order_by('-nb_inscrits')[:10]
+
+    lecons_abandon = Lecon.objects.annotate(
+        nb_vues=Count('progressions'),
+        nb_terminees=Count('progressions', filter=Q(progressions__terminee=True)),
+    ).filter(nb_vues__gt=0)
+
+    quiz_difficiles = ResultatQuiz.objects.values('quiz__titre').annotate(
+        score_moyen=Avg('score'), nb_tentatives=Count('id')
+    ).order_by('score_moyen')[:5]
+
+    articles_populaires = Article.objects.filter(publie=True).order_by('-date_publication')[:5]
+
+    contexte_donnees = f"""
+Formations les plus vendues : {[(f.nom, f.nb_inscrits) for f in formations_stats[:5]]}
+Quiz avec scores les plus bas (difficiles) : {list(quiz_difficiles)}
+Nombre total de formations actives : {Formation.objects.filter(actif=True).count()}
+Nombre d'étudiants inscrits : {User.objects.filter(is_staff=False).count()}
+Chiffre d'affaires : {Order.objects.filter(statut='paye').aggregate(t=Sum('total'))['t'] or 0} $
+"""
+
+    analyse_ia = None
+    if request.GET.get('lancer_analyse'):
+        from academie.ia import analyser_plateforme_ia
+        analyse_ia = analyser_plateforme_ia(contexte_donnees)
+
+    return render(request, 'admin/dashboard_ia.html', {
+        'title': '🧠 Dashboard IA — Intelligence Décisionnelle',
+        'site_header': admin.site.site_header,
+        'formations_stats': formations_stats,
+        'quiz_difficiles': quiz_difficiles,
+        'articles_populaires': articles_populaires,
+        'analyse_ia': analyse_ia,
+    })
 
 
 # ================================================

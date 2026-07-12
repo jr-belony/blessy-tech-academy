@@ -1,3 +1,7 @@
+<!-- ================================================
+     DETAIL_FORMATION.HTML — Page de vente structurée
+     Emplacement : academie/templates/academie/detail_formation.html
+     ================================================ -->
 {% extends 'academie/base.html' %}
 
 {% block titre %}{{ formation.nom }} — Blessy Tech Academy{% endblock %}
@@ -5,23 +9,23 @@
 {% block contenu %}
 
 <!-- ================================================
-     HERO FORMATION — PAGE DE VENTE PREMIUM
+     1. HERO — Nom, description, prix, CTA principal
      ================================================ -->
-<section class="df-hero">
-    <div class="df-hero-grid"></div>
-    <div class="df-glow"></div>
+<section class="pv-hero">
+    <div class="pv-hero-grid"></div>
+    <div class="pv-glow"></div>
 
-    <div class="df-hero-layout">
+    <div class="pv-hero-layout">
 
-        <div class="df-hero-gauche">
+        <div class="pv-hero-gauche">
             {% if formation.ecole %}
             <div class="section-tag">{{ formation.ecole.icone }} {{ formation.ecole.nom }}</div>
             {% endif %}
 
-            <h1 class="df-hero-titre">{{ formation.nom }}</h1>
-            <p class="df-hero-sous">{{ formation.description }}</p>
+            <h1 class="pv-hero-titre">{{ formation.nom }}</h1>
+            <p class="pv-hero-sous">{{ formation.description }}</p>
 
-            <div class="df-hero-meta">
+            <div class="pv-hero-meta">
                 <span>⏱ {{ formation.duree_mois }} mois</span>
                 <span>📦 {{ nb_modules }} modules</span>
                 <span>📄 {{ nb_lecons }} leçons</span>
@@ -30,117 +34,150 @@
         </div>
 
         <!-- Card d'achat sticky -->
-        <div class="df-card-achat">
+        <div class="pv-card-achat">
 
             {% if promo_active %}
-            <div class="df-promo-bandeau">🔥 {{ promo_active.bandeau_texte|default:"Offre spéciale en cours" }}</div>
+            <div class="pv-promo-bandeau">🔥 {{ promo_active.bandeau_texte|default:"Offre spéciale en cours" }}</div>
             {% endif %}
 
-            <div class="df-prix-zone">
+            <div class="pv-prix-zone">
                 {% if formation.gratuit %}
-                <span class="df-prix-principal df-prix-gratuit">Gratuit</span>
+                <span class="pv-prix-principal pv-prix-gratuit">Gratuit</span>
                 {% else %}
                     {% if promo_active %}
-                    <span class="df-prix-barre">{{ formation.prix }} $</span>
+                    <span class="pv-prix-barre">{{ formation.prix }} $</span>
                     {% endif %}
-                    <span class="df-prix-principal">{{ prix_final }} $</span>
+                    <span class="pv-prix-principal">{{ prix_final }} $</span>
                 {% endif %}
             </div>
 
-            <!-- Éléments de confiance -->
-            <div class="df-confiance">
-                <div class="df-confiance-item">✓ Accès immédiat</div>
-                <div class="df-confiance-item">✓ Certificat vérifiable</div>
-                <div class="df-confiance-item">✓ Accès à vie</div>
-                <div class="df-confiance-item">✓ Assistance Blessy AI</div>
-                <div class="df-confiance-item">✓ Paiement sécurisé</div>
-                <div class="df-confiance-item">✓ Support pédagogique</div>
+            <!-- Éléments de réassurance -->
+            <div class="pv-confiance">
+                <div class="pv-confiance-item">✓ Accès immédiat après paiement</div>
+                <div class="pv-confiance-item">✓ Certificat vérifiable</div>
+                <div class="pv-confiance-item">✓ Accès à vie</div>
+                <div class="pv-confiance-item">✓ Support de Blessy AI</div>
+                <div class="pv-confiance-item">✓ Paiement sécurisé</div>
             </div>
 
-            <!-- CTA dynamique selon état -->
+            <!-- CTA principal — "Commencer maintenant" -->
             {% if deja_inscrit %}
                 {% if pourcentage_progression == 100 %}
-                <a href="{% url 'telecharger_certificat' formation.id %}" class="df-btn-cta" style="background:#22c55e;">
+                <a href="{% url 'telecharger_certificat' formation.id %}" class="pv-btn-cta" style="background:#22c55e;">
                     🎓 Télécharger mon certificat
                 </a>
                 {% else %}
-                <a href="{% url 'lire_lecon' formation.modules.first.lecons.first.id %}" class="df-btn-cta">
+                <a href="{% url 'lire_lecon' formation.modules.first.lecons.first.id %}" class="pv-btn-cta">
                     ▶️ Continuer ({{ pourcentage_progression }}%)
                 </a>
                 {% endif %}
             {% elif formation.gratuit %}
                 {% if user.is_authenticated %}
-                <a href="#programme" class="df-btn-cta">🚀 Commencer maintenant</a>
+                <a href="#programme" class="pv-btn-cta">🚀 Commencer maintenant</a>
                 {% else %}
-                <a href="{% url 'inscription_compte' %}" class="df-btn-cta">🎁 Créer mon compte gratuit</a>
+                <a href="{% url 'inscription_compte' %}" class="pv-btn-cta">🚀 Commencer maintenant</a>
                 {% endif %}
             {% else %}
                 {% if user.is_authenticated %}
-                <a href="{% url 'initier_achat' formation.id %}" class="df-btn-cta">🚀 Commencer maintenant</a>
+                <a href="{% url 'initier_achat' formation.id %}" class="pv-btn-cta">🚀 Commencer maintenant</a>
                 {% else %}
-                <a href="{% url 'connexion' %}?next={% url 'initier_achat' formation.id %}" class="df-btn-cta">🚀 Commencer maintenant</a>
+                <a href="{% url 'connexion' %}?next={% url 'initier_achat' formation.id %}" class="pv-btn-cta">🚀 Commencer maintenant</a>
                 {% endif %}
             {% endif %}
 
-            <a href="#programme" class="df-lien-programme">📋 Voir le programme complet ↓</a>
+            <a href="#programme" class="pv-lien-programme">📋 Voir le programme complet ↓</a>
 
         </div>
 
     </div>
 </section>
 
-<div class="df-page-inner">
+<div class="pv-page-inner">
 
     <!-- ================================================
-         CE QUE TU VAS APPRENDRE
+         2. CE QUE TU APPRENDRAS
          ================================================ -->
-    <section class="df-section">
-        <h2 class="df-section-titre">🎯 Ce que tu vas apprendre</h2>
-        <div class="df-competences-grille">
-            {% if formation.debouches %}
-            <div class="df-competence-card">
-                <span class="df-competence-icone">💼</span>
-                <div><strong>Débouchés</strong><p>{{ formation.debouches }}</p></div>
-            </div>
-            {% endif %}
-            {% if formation.prerequis %}
-            <div class="df-competence-card">
-                <span class="df-competence-icone">📋</span>
-                <div><strong>Prérequis</strong><p>{{ formation.prerequis }}</p></div>
-            </div>
-            {% endif %}
-            {% if formation.certifications %}
-            <div class="df-competence-card">
-                <span class="df-competence-icone">🏆</span>
-                <div><strong>Certifications</strong><p>{{ formation.certifications }}</p></div>
-            </div>
+    <section class="pv-section">
+        <h2 class="pv-section-titre">✅ Ce que tu apprendras</h2>
+        <div class="pv-apprentissage-grille">
+            {% if formation.competences_acquises %}
+                {% for competence in formation.competences_acquises.split|slice:":8" %}
+                <div class="pv-apprentissage-item">✔ {{ competence }}</div>
+                {% endfor %}
+            {% else %}
+                {% for module in formation.modules.all|slice:":6" %}
+                <div class="pv-apprentissage-item">✔ {{ module.titre }}</div>
+                {% endfor %}
             {% endif %}
         </div>
     </section>
 
     <!-- ================================================
-         PROGRAMME COMPLET
+         3. CE QUE TU RÉALISERAS
          ================================================ -->
-    <section class="df-section" id="programme">
-        <h2 class="df-section-titre">📚 Programme de la formation</h2>
-        <p class="df-section-sous">{{ nb_modules }} modules · {{ nb_lecons }} leçons · ~{{ duree_totale_heures }}h de contenu</p>
+    <section class="pv-section">
+        <h2 class="pv-section-titre">🛠️ Ce que tu réaliseras</h2>
+        <div class="pv-realisations-grille">
+            <div class="pv-realisation-card"><span>💼</span><strong>Portfolio</strong><p>Un projet professionnel à présenter</p></div>
+            <div class="pv-realisation-card"><span>💻</span><strong>Application</strong><p>Une réalisation concrète et fonctionnelle</p></div>
+            <div class="pv-realisation-card"><span>🚀</span><strong>Projet final</strong><p>Un livrable complet de fin de formation</p></div>
+            <div class="pv-realisation-card"><span>🏆</span><strong>Certification</strong><p>Une preuve vérifiable de tes compétences</p></div>
+        </div>
+    </section>
+
+   <!-- ================================================
+    4. DÉBOUCHÉS
+    ================================================ -->
+{% if formation.debouches_liste %}
+<section class="pv-section">
+    <h2 class="pv-section-titre">💼 Débouchés</h2>
+    <div class="pv-debouches-tags">
+        {% for debouche in formation.debouches_liste %}
+        <span class="pv-debouche-tag">{{ debouche }}</span>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+    <!-- ================================================
+         5. SALAIRE MOYEN (indicatif)
+         ================================================ -->
+    <section class="pv-section pv-section-salaire">
+        <h2 class="pv-section-titre">💰 Salaire moyen indicatif</h2>
+        <p class="pv-salaire-note-intro">Estimations selon le marché — à titre indicatif uniquement.</p>
+        <div class="pv-salaire-grille">
+            <div class="pv-salaire-bloc">
+                <span class="pv-salaire-zone">🇭🇹 Marché haïtien</span>
+                <span class="pv-salaire-montant">{{ formation.salaire_haiti|default:"600 - 2000" }} $/mois</span>
+            </div>
+            <div class="pv-salaire-bloc">
+                <span class="pv-salaire-zone">🌍 Marché international</span>
+                <span class="pv-salaire-montant" style="color:#22c55e;">{{ formation.salaire_international|default:"2000 - 6000" }} $/mois</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================
+         6. PROGRAMME DÉTAILLÉ (Modules → Leçons)
+         ================================================ -->
+    <section class="pv-section" id="programme">
+        <h2 class="pv-section-titre">📚 Programme détaillé</h2>
+        <p class="pv-section-sous">{{ nb_modules }} modules · {{ nb_lecons }} leçons · ~{{ duree_totale_heures }}h de contenu</p>
 
         {% for module in formation.modules.all %}
-        <div class="df-module-card">
-            <div class="df-module-header" onclick="toggleModule(this)">
+        <div class="pv-module-card">
+            <div class="pv-module-header" onclick="toggleModule(this)">
                 <div>
-                    <span class="df-module-num">Module {{ forloop.counter }}</span>
+                    <span class="pv-module-num">Module {{ forloop.counter }}</span>
                     <h4>{{ module.titre }}</h4>
                 </div>
-                <span class="df-module-chevron">▼</span>
+                <span class="pv-module-chevron">▼</span>
             </div>
-            <div class="df-module-lecons">
+            <div class="pv-module-lecons">
                 {% for lecon in module.lecons.all %}
-                <div class="df-lecon-item">
-                    <span class="df-lecon-icone">
-                        {% if user.is_authenticated and acces_autorise %}▶️{% else %}🔒{% endif %}
-                    </span>
-                    <div class="df-lecon-info">
+                <div class="pv-lecon-item">
+                    <span class="pv-lecon-icone">{% if user.is_authenticated and acces_autorise %}▶️{% else %}🔒{% endif %}</span>
+                    <div class="pv-lecon-info">
                         {% if acces_autorise %}
                         <a href="{% url 'lire_lecon' lecon.id %}">{{ lecon.titre }}</a>
                         {% else %}
@@ -148,7 +185,7 @@
                         {% endif %}
                         {% if lecon.resume %}<p>{{ lecon.resume }}</p>{% endif %}
                     </div>
-                    <span class="df-lecon-duree">⏱ {{ lecon.duree_minutes }} min</span>
+                    <span class="pv-lecon-duree">⏱ {{ lecon.duree_minutes }} min</span>
                 </div>
                 {% endfor %}
             </div>
@@ -159,25 +196,40 @@
     </section>
 
     <!-- ================================================
-         POURQUOI BTA (réassurance)
+         7. CE QUI EST INCLUS
          ================================================ -->
-    <section class="df-section df-section-dark">
-        <h2 class="df-section-titre" style="color:white;">💡 Pourquoi apprendre avec Blessy Tech Academy ?</h2>
-        <div class="df-pourquoi-grille">
-            <div class="df-pourquoi-item">🤖 <strong>Blessy AI</strong><p>Assistance IA 24h/24 pendant tout ton apprentissage</p></div>
-            <div class="df-pourquoi-item">💬 <strong>Forum actif</strong><p>Une communauté d'étudiants prête à t'aider</p></div>
-            <div class="df-pourquoi-item">🏆 <strong>Certificat vérifiable</strong><p>Preuve concrète de tes compétences</p></div>
-            <div class="df-pourquoi-item">♾️ <strong>Accès à vie</strong><p>Reviens révisier quand tu veux, sans limite</p></div>
+    <section class="pv-section pv-section-dark">
+        <h2 class="pv-section-titre" style="color:white;">🎁 Ce qui est inclus</h2>
+        <div class="pv-inclus-grille">
+            <div class="pv-inclus-item">♾️ <strong>Accès à vie</strong></div>
+            <div class="pv-inclus-item">🔄 <strong>Mises à jour</strong></div>
+            <div class="pv-inclus-item">🆘 <strong>Support pédagogique</strong></div>
+            <div class="pv-inclus-item">💬 <strong>Forum communautaire</strong></div>
+            <div class="pv-inclus-item">🤖 <strong>Assistance Blessy AI</strong></div>
+            <div class="pv-inclus-item">🏆 <strong>Certificat vérifiable</strong></div>
+            <div class="pv-inclus-item">🎨 <strong>Portfolio</strong></div>
+            <div class="pv-inclus-item">🎖️ <strong>Badges</strong></div>
         </div>
     </section>
 
     <!-- ================================================
-         FORMATIONS SIMILAIRES
+         8. POURQUOI CHOISIR BTA
          ================================================ -->
+    <section class="pv-section">
+        <h2 class="pv-section-titre">💡 Pourquoi choisir Blessy Tech Academy ?</h2>
+        <div class="pv-pourquoi-grille">
+            <div class="pv-pourquoi-item">🤖 <strong>Blessy AI</strong><p>Assistance IA 24h/24 pendant tout ton apprentissage</p></div>
+            <div class="pv-pourquoi-item">💬 <strong>Communauté active</strong><p>Un forum d'entraide vivant, pas figé</p></div>
+            <div class="pv-pourquoi-item">🎯 <strong>Pédagogie pratique</strong><p>Des projets réels, pas juste de la théorie</p></div>
+            <div class="pv-pourquoi-item">🇭🇹 <strong>Adapté au contexte</strong><p>Pensé pour Haïti et sa diaspora</p></div>
+        </div>
+    </section>
+
+    <!-- Formations similaires -->
     {% if formations_similaires %}
-    <section class="df-section">
-        <h2 class="df-section-titre">📚 Formations similaires</h2>
-        <div class="df-similaires-grille">
+    <section class="pv-section">
+        <h2 class="pv-section-titre">📚 Formations similaires</h2>
+        <div class="pv-similaires-grille">
             {% for f_sim in formations_similaires %}
             {% include 'academie/includes/carte_formation.html' with formation=f_sim %}
             {% endfor %}
@@ -186,43 +238,37 @@
     {% endif %}
 
     <!-- ================================================
-         FAQ
+         9. FAQ
          ================================================ -->
-    <section class="df-section">
-        <h2 class="df-section-titre">❓ Questions fréquentes</h2>
-        <div class="df-faq-liste">
-            <div class="df-faq-item">
-                <button class="df-faq-q" onclick="toggleFaqDf(this)">
-                    <span>L'accès est-il vraiment à vie ?</span><span>+</span>
-                </button>
-                <div class="df-faq-r"><p>Oui, une fois inscrit tu gardes accès au contenu indéfiniment, y compris aux mises à jour futures.</p></div>
+    <section class="pv-section">
+        <h2 class="pv-section-titre">❓ Questions fréquentes</h2>
+        <div class="pv-faq-liste">
+            <div class="pv-faq-item">
+                <button class="pv-faq-q" onclick="toggleFaqPv(this)"><span>L'accès est-il vraiment à vie ?</span><span>+</span></button>
+                <div class="pv-faq-r"><p>Oui, une fois inscrit tu gardes accès au contenu indéfiniment, y compris aux mises à jour futures.</p></div>
             </div>
-            <div class="df-faq-item">
-                <button class="df-faq-q" onclick="toggleFaqDf(this)">
-                    <span>Le certificat est-il reconnu ?</span><span>+</span>
-                </button>
-                <div class="df-faq-r"><p>Le certificat BTA atteste tes compétences et prépare aux certifications internationales (Google, Microsoft, etc.).</p></div>
+            <div class="pv-faq-item">
+                <button class="pv-faq-q" onclick="toggleFaqPv(this)"><span>Le certificat est-il reconnu ?</span><span>+</span></button>
+                <div class="pv-faq-r"><p>Le certificat BTA atteste tes compétences et prépare aux certifications internationales.</p></div>
             </div>
-            <div class="df-faq-item">
-                <button class="df-faq-q" onclick="toggleFaqDf(this)">
-                    <span>Puis-je payer en plusieurs fois ?</span><span>+</span>
-                </button>
-                <div class="df-faq-r"><p>Contacte notre équipe via la page Contact pour discuter des options de paiement flexible.</p></div>
+            <div class="pv-faq-item">
+                <button class="pv-faq-q" onclick="toggleFaqPv(this)"><span>Puis-je payer en plusieurs fois ?</span><span>+</span></button>
+                <div class="pv-faq-r"><p>Contacte notre équipe via la page Contact pour discuter des options de paiement flexible.</p></div>
             </div>
         </div>
     </section>
 
     <!-- ================================================
-         CTA FINAL
+         10. CTA FINAL
          ================================================ -->
-    <section class="df-cta-final">
+    <section class="pv-cta-final">
         {% if not deja_inscrit %}
-        <h2>Prêt à commencer ?</h2>
+        <h2>Prêt à devenir {{ formation.nom }} ?</h2>
         <p>Rejoins les étudiants qui transforment déjà leur carrière avec BTA.</p>
         {% if formation.gratuit %}
-        <a href="{% url 'inscription_compte' %}" class="df-btn-cta" style="max-width:320px; margin:0 auto;">🎁 Commencer gratuitement</a>
+        <a href="{% if user.is_authenticated %}#programme{% else %}{% url 'inscription_compte' %}{% endif %}" class="pv-btn-cta" style="max-width:340px; margin:0 auto;">🚀 Commencer maintenant</a>
         {% else %}
-        <a href="{% if user.is_authenticated %}{% url 'initier_achat' formation.id %}{% else %}{% url 'connexion' %}{% endif %}" class="df-btn-cta" style="max-width:320px; margin:0 auto;">🚀 Commencer maintenant — {{ prix_final }} $</a>
+        <a href="{% if user.is_authenticated %}{% url 'initier_achat' formation.id %}{% else %}{% url 'connexion' %}?next={% url 'initier_achat' formation.id %}{% endif %}" class="pv-btn-cta" style="max-width:340px; margin:0 auto;">🚀 Commencer maintenant — {{ prix_final }} $</a>
         {% endif %}
         {% endif %}
     </section>
@@ -230,108 +276,147 @@
 </div>
 
 <!-- ================================================
-     CSS DETAIL FORMATION — TUNNEL PREMIUM
+     CSS PAGE DE VENTE
      ================================================ -->
 <style>
+.pv-page-inner { max-width: 1000px; margin: 0 auto; padding: 0 40px 80px; }
+.pv-hero { background: linear-gradient(135deg,#050d1a,#0B2447); padding: 70px 40px; position: relative; overflow: hidden; }
+.pv-hero-grid { position:absolute; inset:0; background-image:linear-gradient(rgba(0,180,216,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,180,216,0.05) 1px,transparent 1px); background-size:40px 40px; }
+.pv-glow { position:absolute; width:450px; height:450px; background:radial-gradient(circle,rgba(0,180,216,0.12) 0%,transparent 70%); top:-100px; right:10%; }
+.pv-hero-layout { max-width:1100px; margin:0 auto; display:grid; grid-template-columns:1.4fr 1fr; gap:40px; position:relative; z-index:2; align-items:start; }
+.pv-hero-titre { font-size:38px; font-weight:800; color:white; line-height:1.2; margin:16px 0 12px; letter-spacing:-1px; }
+.pv-hero-sous { font-size:15px; color:rgba(255,255,255,0.7); line-height:1.8; margin-bottom:20px; }
+.pv-hero-meta { display:flex; gap:16px; flex-wrap:wrap; font-size:13px; color:rgba(255,255,255,0.6); font-weight:600; }
+.pv-card-achat { background:white; border-radius:20px; padding:24px; box-shadow:0 20px 60px rgba(0,0,0,0.3); position:sticky; top:90px; }
+.pv-promo-bandeau { background:linear-gradient(135deg,#FF6B35,#e85a2a); color:white; padding:8px 14px; border-radius:10px; font-size:12px; font-weight:800; text-align:center; margin-bottom:16px; }
+.pv-prix-zone { text-align:center; margin-bottom:20px; }
+.pv-prix-barre { display:block; text-decoration:line-through; color:#a0aec0; font-size:16px; }
+.pv-prix-principal { font-size:38px; font-weight:800; color:var(--bleu-principal); }
+.pv-prix-gratuit { color:#22c55e; }
+.pv-confiance { display:flex; flex-direction:column; gap:8px; margin-bottom:20px; }
+.pv-confiance-item { font-size:13px; color:var(--gris-texte); font-weight:500; }
+.pv-btn-cta { display:block; text-align:center; background:linear-gradient(135deg,#FF6B35,#e85a2a); color:white; padding:15px; border-radius:12px; font-weight:800; font-size:15px; text-decoration:none; box-shadow:0 8px 24px rgba(255,107,53,0.35); transition:all 0.3s; margin-bottom:12px; }
+.pv-btn-cta:hover { transform:translateY(-2px); box-shadow:0 12px 32px rgba(255,107,53,0.45); }
+.pv-lien-programme { display:block; text-align:center; font-size:13px; color:var(--bleu-electrique); text-decoration:none; font-weight:600; }
 
-.df-page-inner { max-width: 1000px; margin: 0 auto; padding: 0 40px 80px; }
+.pv-section { padding:56px 0; border-bottom:1px solid #f0f0f0; }
+.pv-section-titre { font-size:26px; font-weight:800; color:var(--bleu-principal); margin-bottom:8px; }
+.pv-section-sous { font-size:14px; color:var(--gris-texte); margin-bottom:24px; }
 
-/* HERO */
-.df-hero { background: linear-gradient(135deg,#050d1a,#0B2447); padding: 70px 40px; position: relative; overflow: hidden; }
-.df-hero-grid { position:absolute; inset:0; background-image:linear-gradient(rgba(0,180,216,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,180,216,0.05) 1px,transparent 1px); background-size:40px 40px; }
-.df-glow { position:absolute; width:450px; height:450px; background:radial-gradient(circle,rgba(0,180,216,0.12) 0%,transparent 70%); top:-100px; right:10%; }
+.pv-apprentissage-grille { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; }
+.pv-apprentissage-item { background:var(--gris-clair); border-radius:10px; padding:14px 18px; font-size:14px; color:var(--bleu-principal); font-weight:600; }
 
-.df-hero-layout { max-width:1100px; margin:0 auto; display:grid; grid-template-columns:1.4fr 1fr; gap:40px; position:relative; z-index:2; align-items:start; }
+.pv-realisations-grille { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; }
+.pv-realisation-card { background:var(--gris-clair); border-radius:14px; padding:22px; text-align:center; }
+.pv-realisation-card span { font-size:32px; }
+.pv-realisation-card strong { display:block; color:var(--bleu-principal); margin:8px 0 4px; }
+.pv-realisation-card p { font-size:12px; color:var(--gris-texte); margin:0; }
 
-.df-hero-titre { font-size:38px; font-weight:800; color:white; line-height:1.2; margin:16px 0 12px; letter-spacing:-1px; }
-.df-hero-sous { font-size:15px; color:rgba(255,255,255,0.7); line-height:1.8; margin-bottom:20px; }
-.df-hero-meta { display:flex; gap:16px; flex-wrap:wrap; font-size:13px; color:rgba(255,255,255,0.6); font-weight:600; }
+.pv-debouches-tags { display:flex; flex-wrap:wrap; gap:10px; }
 
-/* CARD ACHAT */
-.df-card-achat { background:white; border-radius:20px; padding:24px; box-shadow:0 20px 60px rgba(0,0,0,0.3); }
-.df-promo-bandeau { background:linear-gradient(135deg,#FF6B35,#e85a2a); color:white; padding:8px 14px; border-radius:10px; font-size:12px; font-weight:800; text-align:center; margin-bottom:16px; }
-.df-prix-zone { text-align:center; margin-bottom:20px; }
-.df-prix-barre { display:block; text-decoration:line-through; color:#a0aec0; font-size:16px; }
-.df-prix-principal { font-size:38px; font-weight:800; color:var(--bleu-principal); }
-.df-prix-gratuit { color:#22c55e; }
+.pv-section-salaire { background:linear-gradient(135deg,rgba(34,197,94,0.05),rgba(34,197,94,0.02)); border-radius:20px; padding:36px; border:none; }
+.pv-salaire-note-intro { font-size:12px; color:#a0aec0; font-style:italic; margin-bottom:16px; }
+.pv-salaire-grille { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.pv-salaire-bloc { background:white; border-radius:14px; padding:20px; text-align:center; }
+.pv-salaire-zone { display:block; font-size:12px; color:var(--gris-texte); margin-bottom:6px; }
+.pv-salaire-montant { font-size:20px; font-weight:800; color:var(--bleu-principal); }
 
-.df-confiance { display:flex; flex-direction:column; gap:8px; margin-bottom:20px; }
-.df-confiance-item { font-size:13px; color:var(--gris-texte); font-weight:500; }
+.pv-module-card { background:white; border:1.5px solid #e2e8f0; border-radius:16px; margin-bottom:12px; overflow:hidden; }
+.pv-module-header { display:flex; justify-content:space-between; align-items:center; padding:18px 20px; cursor:pointer; }
+.pv-module-num { font-size:11px; color:var(--bleu-electrique); font-weight:700; text-transform:uppercase; }
+.pv-module-header h4 { font-size:16px; color:var(--bleu-principal); margin:2px 0 0; }
+.pv-module-chevron { transition:transform 0.2s; color:#a0aec0; }
+.pv-module-header.ouvert .pv-module-chevron { transform:rotate(180deg); }
+.pv-module-lecons { display:none; padding:0 20px 16px; }
+.pv-module-lecons.visible { display:block; }
+.pv-lecon-item { display:flex; align-items:center; gap:12px; padding:10px 14px; background:var(--gris-clair); border-radius:8px; margin-bottom:8px; }
+.pv-lecon-info a { color:var(--bleu-principal); font-weight:600; text-decoration:none; font-size:14px; }
+.pv-lecon-info p { font-size:12px; color:var(--gris-texte); margin:2px 0 0; }
+.pv-lecon-duree { margin-left:auto; font-size:12px; color:#a0aec0; }
 
-.df-btn-cta { display:block; text-align:center; background:linear-gradient(135deg,#FF6B35,#e85a2a); color:white; padding:15px; border-radius:12px; font-weight:800; font-size:15px; text-decoration:none; box-shadow:0 8px 24px rgba(255,107,53,0.35); transition:all 0.3s; margin-bottom:12px; }
-.df-btn-cta:hover { transform:translateY(-2px); box-shadow:0 12px 32px rgba(255,107,53,0.45); }
-.df-lien-programme { display:block; text-align:center; font-size:13px; color:var(--bleu-electrique); text-decoration:none; font-weight:600; }
+.pv-section-dark { background:linear-gradient(135deg,#0B2447,#1a3a6a); border-radius:24px; padding:48px; margin:56px 0; border:none; }
+.pv-inclus-grille { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-top:20px; }
+.pv-inclus-item { color:rgba(255,255,255,0.9); font-size:14px; background:rgba(255,255,255,0.06); padding:14px 16px; border-radius:10px; }
 
-/* SECTIONS */
-.df-section { padding:56px 0; border-bottom:1px solid #f0f0f0; }
-.df-section-titre { font-size:26px; font-weight:800; color:var(--bleu-principal); margin-bottom:8px; }
-.df-section-sous { font-size:14px; color:var(--gris-texte); margin-bottom:24px; }
+.pv-pourquoi-grille { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:20px; margin-top:20px; }
+.pv-pourquoi-item { font-size:15px; }
+.pv-pourquoi-item strong { display:block; color:var(--bleu-principal); margin:8px 0 4px; }
+.pv-pourquoi-item p { font-size:13px; color:var(--gris-texte); }
 
-.df-competences-grille { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px; }
-.df-competence-card { display:flex; gap:12px; background:var(--gris-clair); border-radius:14px; padding:20px; }
-.df-competence-icone { font-size:28px; }
-.df-competence-card strong { color:var(--bleu-principal); display:block; margin-bottom:4px; }
-.df-competence-card p { font-size:13px; color:var(--gris-texte); margin:0; }
+.pv-similaires-grille { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px; }
 
-/* MODULES */
-.df-module-card { background:white; border:1.5px solid #e2e8f0; border-radius:16px; margin-bottom:12px; overflow:hidden; }
-.df-module-header { display:flex; justify-content:space-between; align-items:center; padding:18px 20px; cursor:pointer; }
-.df-module-num { font-size:11px; color:var(--bleu-electrique); font-weight:700; text-transform:uppercase; }
-.df-module-header h4 { font-size:16px; color:var(--bleu-principal); margin:2px 0 0; }
-.df-module-chevron { transition:transform 0.2s; color:#a0aec0; }
-.df-module-header.ouvert .df-module-chevron { transform:rotate(180deg); }
-.df-module-lecons { display:none; padding:0 20px 16px; }
-.df-module-lecons.visible { display:block; }
-.df-lecon-item { display:flex; align-items:center; gap:12px; padding:10px 14px; background:var(--gris-clair); border-radius:8px; margin-bottom:8px; }
-.df-lecon-info a { color:var(--bleu-principal); font-weight:600; text-decoration:none; font-size:14px; }
-.df-lecon-info p { font-size:12px; color:var(--gris-texte); margin:2px 0 0; }
-.df-lecon-duree { margin-left:auto; font-size:12px; color:#a0aec0; }
+.pv-faq-item { border-bottom:1px solid #e2e8f0; }
+.pv-faq-q { width:100%; display:flex; justify-content:space-between; padding:18px 0; background:none; border:none; cursor:pointer; font-size:15px; font-weight:600; color:var(--bleu-principal); }
+.pv-faq-r { display:none; padding:0 0 18px; font-size:14px; color:var(--gris-texte); }
+.pv-faq-r.visible { display:block; }
 
-/* POURQUOI DARK */
-.df-section-dark { background:linear-gradient(135deg,#0B2447,#1a3a6a); border-radius:24px; padding:48px; margin:56px 0; border:none; }
-.df-pourquoi-grille { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:20px; margin-top:20px; }
-.df-pourquoi-item { color:rgba(255,255,255,0.85); font-size:15px; }
-.df-pourquoi-item strong { display:block; color:white; margin:8px 0 4px; }
-.df-pourquoi-item p { font-size:13px; color:rgba(255,255,255,0.55); }
+.pv-cta-final { text-align:center; padding:60px 20px; background:var(--gris-clair); border-radius:24px; }
+.pv-cta-final h2 { color:var(--bleu-principal); font-size:26px; margin-bottom:8px; }
+.pv-cta-final p { color:var(--gris-texte); margin-bottom:24px; }
 
-.df-similaires-grille { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px; }
-
-/* FAQ */
-.df-faq-item { border-bottom:1px solid #e2e8f0; }
-.df-faq-q { width:100%; display:flex; justify-content:space-between; padding:18px 0; background:none; border:none; cursor:pointer; font-size:15px; font-weight:600; color:var(--bleu-principal); }
-.df-faq-r { display:none; padding:0 0 18px; font-size:14px; color:var(--gris-texte); }
-.df-faq-r.visible { display:block; }
-
-/* CTA FINAL */
-.df-cta-final { text-align:center; padding:60px 20px; background:var(--gris-clair); border-radius:24px; }
-.df-cta-final h2 { color:var(--bleu-principal); font-size:26px; margin-bottom:8px; }
-.df-cta-final p { color:var(--gris-texte); margin-bottom:24px; }
-
-@media (max-width:1024px) { .df-hero-layout { grid-template-columns:1fr; } }
+@media (max-width:1024px) { .pv-hero-layout { grid-template-columns:1fr; } .pv-card-achat { position:static; } }
 @media (max-width:768px) {
-    .df-page-inner { padding:0 20px 60px; }
-    .df-hero { padding:50px 20px; }
-    .df-hero-titre { font-size:28px; }
-    .df-section-dark { padding:32px 20px; }
+    .pv-page-inner { padding:0 20px 60px; }
+    .pv-hero { padding:50px 20px; }
+    .pv-hero-titre { font-size:28px; }
+    .pv-section-dark { padding:32px 20px; }
+    .pv-salaire-grille { grid-template-columns:1fr; }
+}
+/* === Débouchés tags === */
+.pv-debouches-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 0;
+}
+.pv-debouche-tag {
+    background: #dbeafe !important;
+    color: #0B2447;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-block;
+    transition: all 0.2s ease;
+    border: 1.5px solid transparent;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+.pv-debouche-tag:hover {
+    background: #00B4D8 !important;
+    color: white;
+    border-color: #0090b8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,180,216,0.25);
+}
+
+@media (max-width: 768px) {
+    .pv-debouche-tag {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+    .pv-debouches-tags {
+        gap: 6px;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .pv-debouche-tag {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+    .pv-debouches-tags {
+        gap: 6px;
+    }
 }
 </style>
 
-<!-- ================================================
-     JS DETAIL FORMATION
-     ================================================ -->
 <script>
-function toggleModule(header) {
-    header.classList.toggle('ouvert');
-    header.nextElementSibling.classList.toggle('visible');
-}
-function toggleFaqDf(bouton) {
-    const item = bouton.parentElement;
-    const reponse = item.querySelector('.df-faq-r');
-    reponse.classList.toggle('visible');
-}
-// Ouvre le premier module par défaut
+function toggleModule(header) { header.classList.toggle('ouvert'); header.nextElementSibling.classList.toggle('visible'); }
+function toggleFaqPv(bouton) { bouton.parentElement.querySelector('.pv-faq-r').classList.toggle('visible'); }
 document.addEventListener('DOMContentLoaded', function() {
-    const premier = document.querySelector('.df-module-header');
+    const premier = document.querySelector('.pv-module-header');
     if (premier) toggleModule(premier);
 });
 </script>

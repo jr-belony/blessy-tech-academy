@@ -4,7 +4,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>{% block titre %}Blessy Tech Academy{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'academie/style.css' %}">
     <link rel="stylesheet" href="{% static 'academie/css/animations.css' %}">
@@ -14,14 +14,13 @@
     <script src="https://cdn.ckeditor.com/ckeditor5/43.0.0/ckeditor5.umd.js"></script>
     <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/43.0.0/ckeditor5.css">
 
-    <!-- SEO de base -->
+    <!-- SEO -->
     <meta name="description" content="{% block meta_description %}Blessy Tech Academy — L'école de la haute technologie moderne d'Haïti. Formations certifiantes en développement web, IA, cybersécurité et plus.{% endblock %}">
-    <meta name="keywords" content="formation informatique Haïti, école tech Haïti, développeur Haïti, EdTech Haïti, cours en ligne Haïti">
+    <meta name="keywords" content="formation informatique Haïti, école tech Haïti, développeur Haïti, EdTech Haïti">
     <meta name="author" content="Blessy Tech Academy">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="{{ request.build_absolute_uri }}">
 
-    <!-- Open Graph (Facebook/LinkedIn) -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="{% block og_title %}Blessy Tech Academy{% endblock %}">
     <meta property="og:description" content="{% block og_description %}L'école de la haute technologie moderne d'Haïti{% endblock %}">
@@ -29,7 +28,6 @@
     <meta property="og:site_name" content="Blessy Tech Academy">
     <meta property="og:locale" content="fr_HT">
 
-    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{% block twitter_title %}Blessy Tech Academy{% endblock %}">
     <meta name="twitter:description" content="{% block twitter_description %}L'école de la haute technologie moderne d'Haïti{% endblock %}">
@@ -38,6 +36,9 @@
     <link rel="manifest" href="{% static 'academie/manifest.json' %}">
     <meta name="theme-color" content="#0B2447">
     <link rel="apple-touch-icon" href="{% static 'academie/icons/icon-192.png' %}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
 
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-01ECVC860Q"></script>
@@ -48,7 +49,6 @@
         gtag('config', 'G-01ECVC860Q');
     </script>
 
-    <!-- Données structurées Organisation (JSON-LD) -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -56,28 +56,19 @@
         "name": "Blessy Tech Academy",
         "url": "https://blessy-tech-academy-production.up.railway.app",
         "description": "École de haute technologie moderne d'Haïti",
-        "address": {
-            "@type": "PostalAddress",
-            "addressLocality": "Pétionville",
-            "addressCountry": "HT"
-        }
+        "address": {"@type": "PostalAddress", "addressLocality": "Pétionville", "addressCountry": "HT"}
     }
     </script>
 </head>
 <body>
-
-<!-- ================================================
-    HEADER OPTIMISÉ v3.0
-    ================================================ -->
 
 <div class="nav-overlay" id="nav-overlay" onclick="fermerMenu()"></div>
 
 <header class="header-bta" id="header-bta">
     <div class="header-inner">
 
-        <!-- Logo -->
         <a href="{% url 'accueil' %}" class="header-logo">
-            <div class="logo-icon-wrapper"><span class="logo-emoji">🎓</span></div>
+            <div class="logo-icon-wrapper"><span class="logo-emoji">⚡</span></div>
             <div class="logo-textes">
                 <span class="logo-principal">Blessy Tech</span>
                 <span class="logo-secondaire">Academy</span>
@@ -85,19 +76,11 @@
         </a>
 
         {% if user.is_authenticated %}
-        <!-- ============================================
-            NAVIGATION — ÉTUDIANT CONNECTÉ
-            ============================================ -->
         <nav class="header-nav" id="header-nav">
-
-            <a href="{% url 'dashboard' %}"
-            class="nav-lien {% if request.resolver_match.url_name == 'dashboard' %}nav-actif{% endif %}">
-                📊 {% trans "Dashboard" %}
-            </a>
+            <a href="{% url 'dashboard' %}" class="nav-lien {% if request.resolver_match.url_name == 'dashboard' %}nav-actif{% endif %}">📊 {% trans "Dashboard" %}</a>
 
             <div class="nav-dropdown-wrapper">
-                <button class="nav-lien nav-dropdown-btn
-                    {% if 'formation' in request.resolver_match.url_name %}nav-actif{% endif %}">
+                <button class="nav-lien nav-dropdown-btn {% if 'formation' in request.resolver_match.url_name %}nav-actif{% endif %}">
                     {% trans "Formations" %}
                     <svg class="dropdown-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
                 </button>
@@ -105,33 +88,15 @@
                     <div class="mega-menu-inner">
                         <div class="mega-col">
                             <p class="mega-col-titre">📚 {% trans "Continuer d'apprendre" %}</p>
-                            <a href="{% url 'formations' %}" class="mega-lien">
-                                <span class="mega-lien-icone">📖</span>
-                                <div><span class="mega-lien-nom">{% trans "Toutes les formations" %}</span><span class="mega-lien-desc">{% trans "Catalogue complet" %}</span></div>
-                            </a>
-                            <a href="{% url 'parcours' %}" class="mega-lien">
-                                <span class="mega-lien-icone">🚀</span>
-                                <div><span class="mega-lien-nom">{% trans "Parcours Professionnels" %}</span><span class="mega-lien-desc">{% trans "Programmes multi-formations" %}</span></div>
-                            </a>
-                            <a href="{% url 'simulateur' %}" class="mega-lien">
-                                <span class="mega-lien-icone">🎯</span>
-                                <div><span class="mega-lien-nom">{% trans "Simulateur de Carrière" %}</span><span class="mega-lien-desc">{% trans "Découvre ton métier idéal" %}</span></div>
-                            </a>
+                            <a href="{% url 'formations' %}" class="mega-lien"><span class="mega-lien-icone">📖</span><div><span class="mega-lien-nom">{% trans "Toutes les formations" %}</span><span class="mega-lien-desc">{% trans "Catalogue complet" %}</span></div></a>
+                            <a href="{% url 'parcours' %}" class="mega-lien"><span class="mega-lien-icone">🚀</span><div><span class="mega-lien-nom">{% trans "Parcours Professionnels" %}</span><span class="mega-lien-desc">{% trans "Programmes multi-formations" %}</span></div></a>
+                            <a href="{% url 'simulateur' %}" class="mega-lien"><span class="mega-lien-icone">🎯</span><div><span class="mega-lien-nom">{% trans "Simulateur de Carrière" %}</span><span class="mega-lien-desc">{% trans "Découvre ton métier idéal" %}</span></div></a>
                         </div>
                         <div class="mega-col">
                             <p class="mega-col-titre">👤 {% trans "Mon espace" %}</p>
-                            <a href="{% url 'mon_portfolio' %}" class="mega-lien">
-                                <span class="mega-lien-icone">🎨</span>
-                                <div><span class="mega-lien-nom">{% trans "Mon Portfolio" %}</span><span class="mega-lien-desc">{% trans "Mes projets réalisés" %}</span></div>
-                            </a>
-                            <a href="{% url 'espace_recrutement' %}" class="mega-lien">
-                                <span class="mega-lien-icone">💼</span>
-                                <div><span class="mega-lien-nom">{% trans "Espace Recrutement" %}</span><span class="mega-lien-desc">{% trans "Vitrine des talents BTA" %}</span></div>
-                            </a>
-                            <a href="{% url 'classement' %}" class="mega-lien">
-                                <span class="mega-lien-icone">🏆</span>
-                                <div><span class="mega-lien-nom">{% trans "Classement" %}</span><span class="mega-lien-desc">{% trans "Les héros du forum" %}</span></div>
-                            </a>
+                            <a href="{% url 'mon_portfolio' %}" class="mega-lien"><span class="mega-lien-icone">🎨</span><div><span class="mega-lien-nom">{% trans "Mon Portfolio" %}</span><span class="mega-lien-desc">{% trans "Mes projets réalisés" %}</span></div></a>
+                            <a href="{% url 'espace_recrutement' %}" class="mega-lien"><span class="mega-lien-icone">💼</span><div><span class="mega-lien-nom">{% trans "Espace Recrutement" %}</span><span class="mega-lien-desc">{% trans "Vitrine des talents BTA" %}</span></div></a>
+                            <a href="{% url 'classement' %}" class="mega-lien"><span class="mega-lien-icone">🏆</span><div><span class="mega-lien-nom">{% trans "Classement" %}</span><span class="mega-lien-desc">{% trans "Les héros du forum" %}</span></div></a>
                         </div>
                         <div class="mega-col mega-col-cta">
                             <div class="mega-cta-card">
@@ -145,15 +110,8 @@
                 </div>
             </div>
 
-            <a href="{% url 'forum_liste' %}"
-            class="nav-lien {% if 'forum' in request.resolver_match.url_name %}nav-actif{% endif %}">
-                💬 {% trans "Forum" %}
-            </a>
-
-            <a href="{% url 'chat_ia' %}"
-            class="nav-lien nav-lien-ai {% if request.resolver_match.url_name == 'chat_ia' %}nav-actif{% endif %}">
-                <span class="bai-pulse-dot"></span> Blessy AI
-            </a>
+            <a href="{% url 'forum_liste' %}" class="nav-lien {% if 'forum' in request.resolver_match.url_name %}nav-actif{% endif %}">💬 {% trans "Forum" %}</a>
+            <a href="{% url 'chat_ia' %}" class="nav-lien nav-lien-ai {% if request.resolver_match.url_name == 'chat_ia' %}nav-actif{% endif %}"><span class="bai-pulse-dot"></span> Blessy AI</a>
         </nav>
 
         <div class="header-actions">
@@ -162,16 +120,12 @@
             <div class="notif-wrapper">
                 <button class="icon-btn" onclick="toggleNotifs()" title="{% trans 'Notifications' %}">
                     🔔
-                    {% if nb_notifications > 0 %}
-                    <span class="notif-badge">{{ nb_notifications }}</span>
-                    {% endif %}
+                    {% if nb_notifications > 0 %}<span class="notif-badge">{{ nb_notifications }}</span>{% endif %}
                 </button>
                 <div class="notif-dropdown" id="notif-dropdown">
                     <div class="notif-header">{% trans "Notifications" %}</div>
                     <div class="notif-liste">
-                        <a href="{% url 'notifications_liste' %}" class="notif-voir-tout">
-                            {% trans "Voir toutes les notifications" %} →
-                        </a>
+                        <a href="{% url 'notifications_liste' %}" class="notif-voir-tout">{% trans "Voir toutes les notifications" %} →</a>
                     </div>
                 </div>
             </div>
@@ -185,14 +139,12 @@
                 <div class="user-dropdown" id="user-dropdown">
                     <div class="user-dropdown-header">
                         <div class="user-dropdown-avatar">{{ user.first_name|first|upper|default:user.username|first|upper }}</div>
-                        <div>
-                            <div class="user-dropdown-nom">{{ user.first_name }} {{ user.last_name }}</div>
-                            <div class="user-dropdown-email">{{ user.email|truncatechars:25 }}</div>
-                        </div>
+                        <div><div class="user-dropdown-nom">{{ user.first_name }} {{ user.last_name }}</div><div class="user-dropdown-email">{{ user.email|truncatechars:25 }}</div></div>
                     </div>
                     <div class="user-dropdown-liens">
                         <a href="{% url 'dashboard' %}" class="user-dropdown-lien"><span>📊</span> {% trans "Mon Dashboard" %}</a>
                         <a href="{% url 'mon_portfolio' %}" class="user-dropdown-lien"><span>🎨</span> {% trans "Mon Portfolio" %}</a>
+                        <a href="{% url 'mes_commandes' %}" class="user-dropdown-lien"><span>🧾</span> {% trans "Mes commandes" %}</a>
                         <a href="{% url 'parcours' %}" class="user-dropdown-lien"><span>🚀</span> {% trans "Parcours Pro" %}</a>
                         <a href="{% url 'classement' %}" class="user-dropdown-lien"><span>🏆</span> {% trans "Classement" %}</a>
                         {% if user.is_staff %}
@@ -200,8 +152,6 @@
                         <a href="/admin/" class="user-dropdown-lien"><span>⚙️</span> {% trans "Administration" %}</a>
                         {% endif %}
                     </div>
-
-                    <!-- Langue + Mode sombre intégrés au menu utilisateur -->
                     <div class="user-dropdown-liens" style="border-top:1px solid rgba(255,255,255,0.06); padding-top:8px;">
                         <div class="user-dropdown-lien" style="cursor:default; display:flex; justify-content:space-between;">
                             <span><span>🌐</span> {% trans "Langue" %}</span>
@@ -210,11 +160,8 @@
                                 <a href="{% url 'set_lang_ht' %}" class="lang-link {% if request.LANGUAGE_CODE == 'ht' %}lang-active{% endif %}">🇭🇹</a>
                             </span>
                         </div>
-                        <a href="#" id="dark-mode-toggle" class="user-dropdown-lien">
-                            <span>🌙</span> {% trans "Mode sombre" %}
-                        </a>
+                        <a href="#" id="dark-mode-toggle" class="user-dropdown-lien"><span>🌙</span> {% trans "Mode sombre" %}</a>
                     </div>
-
                     <div class="user-dropdown-footer">
                         <a href="{% url 'deconnexion' %}" class="user-dropdown-deconnexion">👋 {% trans "Se déconnecter" %}</a>
                     </div>
@@ -227,19 +174,11 @@
         </div>
 
         {% else %}
-        <!-- ============================================
-            NAVIGATION — VISITEUR (non connecté)
-            ============================================ -->
         <nav class="header-nav" id="header-nav">
-
-            <a href="{% url 'accueil' %}"
-            class="nav-lien {% if request.resolver_match.url_name == 'accueil' %}nav-actif{% endif %}">
-                {% trans "Accueil" %}
-            </a>
+            <a href="{% url 'accueil' %}" class="nav-lien {% if request.resolver_match.url_name == 'accueil' %}nav-actif{% endif %}">{% trans "Accueil" %}</a>
 
             <div class="nav-dropdown-wrapper">
-                <button class="nav-lien nav-dropdown-btn
-                    {% if 'formation' in request.resolver_match.url_name %}nav-actif{% endif %}">
+                <button class="nav-lien nav-dropdown-btn {% if 'formation' in request.resolver_match.url_name %}nav-actif{% endif %}">
                     {% trans "Formations" %}
                     <svg class="dropdown-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
                 </button>
@@ -270,40 +209,21 @@
                 </div>
             </div>
 
-            <a href="{% url 'parcours' %}"
-            class="nav-lien {% if request.resolver_match.url_name == 'parcours' %}nav-actif{% endif %}">
-                {% trans "Parcours" %}
-            </a>
-
-            <a href="{% url 'ressources' %}"
-            class="nav-lien {% if request.resolver_match.url_name == 'ressources' %}nav-actif{% endif %}">
-                {% trans "Ressources" %}
-            </a>
-
-            <a href="{% url 'chat_ia' %}"
-               class="nav-lien nav-lien-ai {% if request.resolver_match.url_name == 'chat_ia' %}nav-actif{% endif %}">
-                <span class="bai-pulse-dot"></span> Blessy AI
-            </a>
-
-            <a href="{% url 'apropos' %}"
-            class="nav-lien {% if request.resolver_match.url_name == 'apropos' %}nav-actif{% endif %}">
-                {% trans "À propos" %}
-            </a>
+            <a href="{% url 'parcours' %}" class="nav-lien {% if request.resolver_match.url_name == 'parcours' %}nav-actif{% endif %}">{% trans "Parcours" %}</a>
+            <a href="{% url 'ressources' %}" class="nav-lien {% if request.resolver_match.url_name == 'ressources' %}nav-actif{% endif %}">{% trans "Ressources" %}</a>
+            <a href="{% url 'chat_ia' %}" class="nav-lien nav-lien-ai {% if request.resolver_match.url_name == 'chat_ia' %}nav-actif{% endif %}"><span class="bai-pulse-dot"></span> Blessy AI</a>
+            <a href="{% url 'apropos' %}" class="nav-lien {% if request.resolver_match.url_name == 'apropos' %}nav-actif{% endif %}">{% trans "À propos" %}</a>
         </nav>
 
         <div class="header-actions">
             <button class="icon-btn" onclick="ouvrirRecherche()" title="{% trans 'Rechercher' %}">🔍</button>
-
-            <div style="display:flex; align-items:center; gap:6px;">
+            <div class="lang-selector-desktop">
                 <a href="{% url 'set_lang_fr' %}" class="lang-link {% if request.LANGUAGE_CODE == 'fr' %}lang-active{% endif %}">🇫🇷</a>
                 <a href="{% url 'set_lang_ht' %}" class="lang-link {% if request.LANGUAGE_CODE == 'ht' %}lang-active{% endif %}">🇭🇹</a>
             </div>
-
             <a href="#" id="dark-mode-toggle" class="icon-btn" title="{% trans 'Mode sombre' %}">🌙</a>
-
             <a href="{% url 'connexion' %}" class="btn-header-connexion">{% trans "Connexion" %}</a>
             <a href="{% url 'inscription_compte' %}" class="btn-header-cta">🎁 {% trans "Commencer gratuitement" %}</a>
-
             <button class="burger-btn" id="burger-btn" onclick="toggleMenu()" aria-label="Menu">
                 <span class="burger-line"></span><span class="burger-line"></span><span class="burger-line"></span>
             </button>
@@ -313,9 +233,6 @@
     </div>
 </header>
 
-<!-- ================================================
-    DRAWER MOBILE — 2 ÉTATS
-    ================================================ -->
 <div class="mobile-drawer" id="mobile-drawer">
     <div class="drawer-header">
         <a href="{% url 'accueil' %}" class="header-logo">
@@ -332,60 +249,56 @@
             <div><div class="drawer-user-nom">{{ user.first_name|default:user.username }}</div><div class="drawer-user-role">{% trans "Étudiant BTA" %}</div></div>
         </div>
         <nav class="drawer-nav">
-            <a href="{% url 'dashboard' %}" class="drawer-lien" onclick="fermerMenu()">📊 {% trans "Dashboard" %}</a>
-            <a href="{% url 'formations' %}" class="drawer-lien" onclick="fermerMenu()">📚 {% trans "Formations" %}</a>
-            <a href="{% url 'forum_liste' %}" class="drawer-lien" onclick="fermerMenu()">💬 {% trans "Forum" %}</a>
-            <a href="{% url 'chat_ia' %}" class="drawer-lien drawer-lien-highlight" onclick="fermerMenu()">🤖 Blessy AI</a>
+            <a href="{% url 'dashboard' %}" class="drawer-lien">📊 {% trans "Dashboard" %}</a>
+            <a href="{% url 'formations' %}" class="drawer-lien">📚 {% trans "Formations" %}</a>
+            <a href="{% url 'forum_liste' %}" class="drawer-lien">💬 {% trans "Forum" %}</a>
+            <a href="{% url 'chat_ia' %}" class="drawer-lien drawer-lien-highlight">🤖 Blessy AI</a>
             <div class="drawer-separateur"></div>
-            <a href="{% url 'mon_portfolio' %}" class="drawer-lien" onclick="fermerMenu()">🎨 {% trans "Mon Portfolio" %}</a>
-            <a href="{% url 'parcours' %}" class="drawer-lien" onclick="fermerMenu()">🚀 {% trans "Parcours Pro" %}</a>
-            <a href="{% url 'simulateur' %}" class="drawer-lien" onclick="fermerMenu()">🎯 {% trans "Simulateur Carrière" %}</a>
-            <a href="{% url 'espace_recrutement' %}" class="drawer-lien" onclick="fermerMenu()">💼 {% trans "Recrutement" %}</a>
-            <a href="{% url 'classement' %}" class="drawer-lien" onclick="fermerMenu()">🏆 {% trans "Classement" %}</a>
-            <a href="{% url 'ressources' %}" class="drawer-lien" onclick="fermerMenu()">📖 {% trans "Ressources" %}</a>
-            <a href="{% url 'notifications_liste' %}" class="drawer-lien" onclick="fermerMenu()">
+            <a href="{% url 'mon_portfolio' %}" class="drawer-lien">🎨 {% trans "Mon Portfolio" %}</a>
+            <a href="{% url 'mes_commandes' %}" class="drawer-lien">🧾 {% trans "Mes commandes" %}</a>
+            <a href="{% url 'parcours' %}" class="drawer-lien">🚀 {% trans "Parcours Pro" %}</a>
+            <a href="{% url 'simulateur' %}" class="drawer-lien">🎯 {% trans "Simulateur Carrière" %}</a>
+            <a href="{% url 'espace_recrutement' %}" class="drawer-lien">💼 {% trans "Recrutement" %}</a>
+            <a href="{% url 'classement' %}" class="drawer-lien">🏆 {% trans "Classement" %}</a>
+            <a href="{% url 'ressources' %}" class="drawer-lien">📖 {% trans "Ressources" %}</a>
+            <a href="{% url 'notifications_liste' %}" class="drawer-lien">
                 🔔 {% trans "Notifications" %}
                 {% if nb_notifications > 0 %}<span class="notif-badge" style="position:static; margin-left:6px;">{{ nb_notifications }}</span>{% endif %}
             </a>
             <div class="drawer-separateur"></div>
             {% if user.is_staff %}
-            <a href="{% url 'statistiques' %}" class="drawer-lien" onclick="fermerMenu()">📈 {% trans "Stats" %}</a>
-            <a href="/admin/" class="drawer-lien" onclick="fermerMenu()">⚙️ {% trans "Administration" %}</a>
+            <a href="{% url 'statistiques' %}" class="drawer-lien">📈 {% trans "Stats" %}</a>
+            <a href="/admin/" class="drawer-lien">⚙️ {% trans "Administration" %}</a>
             {% endif %}
-            <a href="{% url 'deconnexion' %}" class="drawer-lien drawer-lien-danger" onclick="fermerMenu()">👋 {% trans "Se déconnecter" %}</a>
+            <a href="{% url 'deconnexion' %}" class="drawer-lien drawer-lien-danger">👋 {% trans "Se déconnecter" %}</a>
         </nav>
         {% else %}
         <nav class="drawer-nav">
-            <a href="{% url 'accueil' %}" class="drawer-lien" onclick="fermerMenu()">🏠 {% trans "Accueil" %}</a>
-            <a href="{% url 'formations' %}" class="drawer-lien" onclick="fermerMenu()">📚 {% trans "Formations" %}</a>
-            <a href="{% url 'parcours' %}" class="drawer-lien" onclick="fermerMenu()">🚀 {% trans "Parcours" %}</a>
-            <a href="{% url 'orientation_ia' %}" class="drawer-lien drawer-lien-highlight" onclick="fermerMenu()">🎯 {% trans "Trouver mon parcours" %}</a>
-            <a href="{% url 'simulateur' %}" class="drawer-lien" onclick="fermerMenu()">🎯 {% trans "Simulateur" %}</a>
-            <a href="{% url 'forum_liste' %}" class="drawer-lien" onclick="fermerMenu()">💬 {% trans "Forum" %}</a>
-            <a href="{% url 'ressources' %}" class="drawer-lien" onclick="fermerMenu()">📖 {% trans "Ressources" %}</a>
-            <a href="{% url 'chat_ia' %}" class="drawer-lien" onclick="fermerMenu()">🤖 Blessy AI</a>
-            <a href="{% url 'apropos' %}" class="drawer-lien" onclick="fermerMenu()">ℹ️ {% trans "À propos" %}</a>
-            <a href="{% url 'contact' %}" class="drawer-lien" onclick="fermerMenu()">✉️ {% trans "Contact" %}</a>
+            <a href="{% url 'accueil' %}" class="drawer-lien">🏠 {% trans "Accueil" %}</a>
+            <a href="{% url 'formations' %}" class="drawer-lien">📚 {% trans "Formations" %}</a>
+            <a href="{% url 'parcours' %}" class="drawer-lien">🚀 {% trans "Parcours" %}</a>
+            <a href="{% url 'orientation_ia' %}" class="drawer-lien drawer-lien-highlight">🎯 {% trans "Trouver mon parcours" %}</a>
+            <a href="{% url 'simulateur' %}" class="drawer-lien">🎯 {% trans "Simulateur" %}</a>
+            <a href="{% url 'forum_liste' %}" class="drawer-lien">💬 {% trans "Forum" %}</a>
+            <a href="{% url 'ressources' %}" class="drawer-lien">📖 {% trans "Ressources" %}</a>
+            <a href="{% url 'chat_ia' %}" class="drawer-lien">🤖 Blessy AI</a>
+            <a href="{% url 'apropos' %}" class="drawer-lien">ℹ️ {% trans "À propos" %}</a>
+            <a href="{% url 'contact' %}" class="drawer-lien">✉️ {% trans "Contact" %}</a>
             <div class="drawer-separateur"></div>
-            <a href="{% url 'connexion' %}" class="drawer-lien" onclick="fermerMenu()">🔐 {% trans "Connexion" %}</a>
+            <a href="{% url 'connexion' %}" class="drawer-lien">🔐 {% trans "Connexion" %}</a>
         </nav>
         <div class="drawer-cta">
-            <a href="{% url 'inscription_compte' %}" class="btn-drawer-cta" onclick="fermerMenu()">🎁 {% trans "Commencer gratuitement" %}</a>
+            <a href="{% url 'inscription_compte' %}" class="btn-drawer-cta">🎁 {% trans "Commencer gratuitement" %}</a>
         </div>
         {% endif %}
     </div>
 </div>
 
-<!-- ================================================
-    MODAL RECHERCHE GLOBALE
-    ================================================ -->
 <div class="recherche-modal-overlay" id="recherche-modal-overlay" onclick="fermerRecherche()">
     <div class="recherche-modal" onclick="event.stopPropagation()">
         <div class="recherche-modal-input-zone">
             <span style="font-size:18px;">🔍</span>
-            <input type="text" id="recherche-modal-input"
-                placeholder="{% trans 'Rechercher une formation, un article, un sujet du forum...' %}"
-                autocomplete="off">
+            <input type="text" id="recherche-modal-input" placeholder="{% trans 'Rechercher une formation, un article, un sujet du forum...' %}" autocomplete="off">
             <button class="recherche-modal-fermer" onclick="fermerRecherche()">✕</button>
         </div>
         <div class="recherche-modal-suggestions">
@@ -402,17 +315,11 @@
 </div>
 
 <main>
-    <!-- Messages de confirmation/erreur -->
     {% if messages %}
     <div class="messages-container">
-        {% for message in messages %}
-            <div class="message message-{{ message.tags }}">
-                {{ message }}
-            </div>
-        {% endfor %}
+        {% for message in messages %}<div class="message message-{{ message.tags }}">{{ message }}</div>{% endfor %}
     </div>
     {% endif %}
-
     {% block contenu %}{% endblock %}
 </main>
 
@@ -442,142 +349,77 @@
     </div>
 </footer>
 
-<!-- ================================================
-    CSS HEADER v3.0
-    ================================================ -->
 <style>
-
-.header-bta {
-    position: sticky; top: 0; z-index: 1000;
-    background: rgba(11, 36, 71, 0.95); backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(255,255,255,0.06); transition: all 0.3s ease;
-}
+/* ================================================
+   CSS HEADER v3.1 — Corrigé responsive mobile complet
+   ================================================ */
+.header-bta { position: sticky; top: 0; z-index: 1000; background: rgba(11, 36, 71, 0.95); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.06); transition: all 0.3s ease; }
 .header-bta.scrolled { background: rgba(5, 13, 26, 0.98); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
-
-.header-inner {
-    max-width: 1300px; margin: 0 auto; padding: 0 40px; height: 72px;
-    display: flex; align-items: center; justify-content: space-between; gap: 24px;
-}
+.header-inner { max-width: 1300px; margin: 0 auto; padding: 0 40px; height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 
 .header-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; flex-shrink: 0; }
-.logo-icon-wrapper {
-    width: 40px; height: 40px; background: linear-gradient(135deg, #00B4D8, #0090b8);
-    border-radius: 10px; display: flex; align-items: center; justify-content: center;
-    font-size: 20px; flex-shrink: 0; box-shadow: 0 4px 14px rgba(0,180,216,0.4);
-}
+.logo-icon-wrapper { width: 40px; height: 40px; background: linear-gradient(135deg, #00B4D8, #0090b8); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; box-shadow: 0 4px 14px rgba(0,180,216,0.4); }
 .logo-textes { display: flex; flex-direction: column; line-height: 1.1; }
 .logo-principal { font-size: 16px; font-weight: 800; color: white; letter-spacing: -0.3px; }
 .logo-secondaire { font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.5); letter-spacing: 1px; text-transform: uppercase; }
 
 .header-nav { display: flex; align-items: center; gap: 4px; flex: 1; justify-content: center; }
-
-.nav-lien {
-    position: relative; color: rgba(255,255,255,0.75); text-decoration: none; font-size: 14px;
-    font-weight: 500; padding: 8px 14px; border-radius: 8px; transition: all 0.2s ease;
-    background: none; border: none; cursor: pointer; font-family: inherit;
-    display: flex; align-items: center; gap: 6px; white-space: nowrap;
-}
+.nav-lien { position: relative; color: rgba(255,255,255,0.75); text-decoration: none; font-size: 14px; font-weight: 500; padding: 8px 14px; border-radius: 8px; transition: all 0.2s ease; background: none; border: none; cursor: pointer; font-family: inherit; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
 .nav-lien:hover { color: white; background: rgba(255,255,255,0.08); }
 .nav-actif { color: white; background: rgba(0,180,216,0.12); }
-.nav-actif::after {
-    content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-    width: 20px; height: 2px; background: #00B4D8; border-radius: 2px;
-}
+.nav-actif::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 20px; height: 2px; background: #00B4D8; border-radius: 2px; }
 .nav-lien-ai { background: rgba(0,180,216,0.1); border: 1px solid rgba(0,180,216,0.2); color: #00B4D8; font-weight: 600; }
 .nav-lien-ai:hover { background: rgba(0,180,216,0.2); color: #00B4D8; }
-
 .bai-pulse-dot { width: 6px; height: 6px; background: #22c55e; border-radius: 50%; animation: pulse-dot-header 2s infinite; }
 @keyframes pulse-dot-header { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.5;transform:scale(0.8);} }
 
 .nav-dropdown-wrapper { position: relative; }
 .dropdown-chevron { transition: transform 0.2s; opacity: 0.6; }
 .nav-dropdown-wrapper:hover .dropdown-chevron { transform: rotate(180deg); opacity: 1; }
-
-.mega-menu {
-    position: absolute; top: calc(100% + 12px); left: 50%; transform: translateX(-50%) translateY(-8px);
-    width: 780px; background: rgba(11,36,71,0.98); backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; box-shadow: 0 40px 80px rgba(0,0,0,0.4);
-    opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    pointer-events: none; z-index: 1000;
-}
+.mega-menu { position: absolute; top: calc(100% + 12px); left: 50%; transform: translateX(-50%) translateY(-8px); width: 780px; background: rgba(11,36,71,0.98); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; box-shadow: 0 40px 80px rgba(0,0,0,0.4); opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); pointer-events: none; z-index: 1000; }
 .nav-dropdown-wrapper:hover .mega-menu { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); pointer-events: all; }
-
 .mega-menu-inner { display: grid; grid-template-columns: 1.2fr 1fr 0.9fr; gap: 0; padding: 8px; }
 .mega-col { padding: 20px; }
 .mega-col:not(:last-child) { border-right: 1px solid rgba(255,255,255,0.06); }
 .mega-col-titre { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; }
-
 .mega-lien { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 10px; text-decoration: none; transition: background 0.2s; margin-bottom: 2px; }
 .mega-lien:hover { background: rgba(255,255,255,0.07); }
-.mega-lien-icone { font-size: 20px; width: 36px; height: 36px; background: rgba(255,255,255,0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s; }
-.mega-lien:hover .mega-lien-icone { background: rgba(0,180,216,0.15); }
+.mega-lien-icone { font-size: 20px; width: 36px; height: 36px; background: rgba(255,255,255,0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .mega-lien-nom { display: block; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9); margin-bottom: 2px; }
 .mega-lien-desc { display: block; font-size: 11px; color: rgba(255,255,255,0.4); }
-
 .mega-col-cta { display: flex; align-items: center; }
 .mega-cta-card { background: linear-gradient(135deg, rgba(0,180,216,0.1), rgba(11,36,71,0.5)); border: 1px solid rgba(0,180,216,0.2); border-radius: 16px; padding: 24px 20px; text-align: center; width: 100%; }
 .mega-cta-emoji { font-size: 36px; margin-bottom: 12px; }
 .mega-cta-titre { font-size: 15px; font-weight: 700; color: white; margin-bottom: 8px; }
 .mega-cta-desc { font-size: 12px; color: rgba(255,255,255,0.55); line-height: 1.5; margin-bottom: 16px; }
-.mega-cta-btn { display: block; background: linear-gradient(135deg, #FF6B35, #e85a2a); color: white; padding: 10px 16px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 700; transition: all 0.3s; }
-.mega-cta-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255,107,53,0.4); }
+.mega-cta-btn { display: block; background: linear-gradient(135deg, #FF6B35, #e85a2a); color: white; padding: 10px 16px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 700; }
 
 .header-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-
-.icon-btn {
-    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
-    color: white; width: 40px; height: 40px; border-radius: 10px; cursor: pointer;
-    font-size: 16px; display: flex; align-items: center; justify-content: center;
-    transition: all 0.2s; position: relative; text-decoration: none;
-}
+.icon-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: white; width: 40px; height: 40px; border-radius: 10px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; position: relative; text-decoration: none; }
 .icon-btn:hover { background: rgba(255,255,255,0.15); }
+.lang-selector-desktop { display: flex; gap: 6px; align-items: center; }
+.lang-link { text-decoration: none; font-size: 15px; opacity: 0.7; transition: opacity 0.2s; }
+.lang-link:hover, .lang-active { opacity: 1; }
 
-.btn-header-connexion { color: rgba(255,255,255,0.8); text-decoration: none; font-size: 14px; font-weight: 500; padding: 8px 16px; border-radius: 8px; transition: all 0.2s; }
+.btn-header-connexion { color: rgba(255,255,255,0.8); text-decoration: none; font-size: 14px; font-weight: 500; padding: 8px 16px; border-radius: 8px; }
 .btn-header-connexion:hover { color: white; background: rgba(255,255,255,0.08); }
-
-.btn-header-cta {
-    background: linear-gradient(135deg, #FF6B35, #e85a2a); color: white; padding: 10px 20px;
-    border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 700; white-space: nowrap;
-    box-shadow: 0 4px 14px rgba(255,107,53,0.35); transition: all 0.3s;
-}
+.btn-header-cta { background: linear-gradient(135deg, #FF6B35, #e85a2a); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 700; white-space: nowrap; box-shadow: 0 4px 14px rgba(255,107,53,0.35); transition: all 0.3s; }
 .btn-header-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,107,53,0.45); }
 
 .notif-wrapper { position: relative; }
-.notif-badge {
-    position: absolute; top: -4px; right: -4px; background: #FF6B35; color: white;
-    font-size: 10px; font-weight: 800; width: 18px; height: 18px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-}
-.notif-dropdown {
-    position: absolute; top: calc(100% + 10px); right: 0; width: 260px;
-    background: rgba(11,36,71,0.98); backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.4); opacity: 0; visibility: hidden;
-    transform: translateY(-8px); transition: all 0.3s; z-index: 1000; overflow: hidden;
-}
+.notif-badge { position: absolute; top: -4px; right: -4px; background: #FF6B35; color: white; font-size: 10px; font-weight: 800; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.notif-dropdown { position: absolute; top: calc(100% + 10px); right: 0; width: 260px; background: rgba(11,36,71,0.98); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); opacity: 0; visibility: hidden; transform: translateY(-8px); transition: all 0.3s; z-index: 1000; overflow: hidden; }
 .notif-dropdown.ouvert { opacity: 1; visibility: visible; transform: translateY(0); }
 .notif-header { padding: 16px; font-weight: 700; color: white; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); }
 .notif-liste { padding: 8px; }
 .notif-voir-tout { display: block; padding: 10px 12px; color: #00B4D8; text-decoration: none; font-size: 13px; font-weight: 600; }
-.notif-voir-tout:hover { background: rgba(255,255,255,0.06); border-radius: 8px; }
 
 .user-menu-wrapper { position: relative; }
-.user-btn {
-    display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 6px 12px 6px 6px;
-    cursor: pointer; color: white; font-family: inherit; font-size: 13px; font-weight: 600; transition: all 0.2s;
-}
+.user-btn { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 6px 12px 6px 6px; cursor: pointer; color: white; font-family: inherit; font-size: 13px; font-weight: 600; transition: all 0.2s; }
 .user-btn:hover { background: rgba(255,255,255,0.14); }
 .user-avatar { width: 32px; height: 32px; background: linear-gradient(135deg, #00B4D8, #0090b8); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; color: white; }
 .user-nom { max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-.user-dropdown {
-    position: absolute; top: calc(100% + 10px); right: 0; width: 260px;
-    background: rgba(11,36,71,0.98); backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.4); opacity: 0; visibility: hidden;
-    transform: translateY(-8px); transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 1000; overflow: hidden;
-}
+.user-dropdown { position: absolute; top: calc(100% + 10px); right: 0; width: 260px; background: rgba(11,36,71,0.98); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); opacity: 0; visibility: hidden; transform: translateY(-8px); transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 1000; overflow: hidden; }
 .user-dropdown.ouvert { opacity: 1; visibility: visible; transform: translateY(0); }
 .user-dropdown-header { display: flex; align-items: center; gap: 12px; padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.06); }
 .user-dropdown-avatar { width: 40px; height: 40px; background: linear-gradient(135deg, #00B4D8, #FF6B35); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px; color: white; flex-shrink: 0; }
@@ -587,71 +429,58 @@
 .user-dropdown-lien { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; text-decoration: none; font-size: 13px; color: rgba(255,255,255,0.8); font-weight: 500; transition: all 0.2s; }
 .user-dropdown-lien:hover { background: rgba(255,255,255,0.07); color: white; }
 .user-dropdown-footer { padding: 8px; border-top: 1px solid rgba(255,255,255,0.06); }
-.user-dropdown-deconnexion { display: block; padding: 10px 12px; border-radius: 8px; text-decoration: none; font-size: 13px; color: #fc8181; font-weight: 500; transition: background 0.2s; }
+.user-dropdown-deconnexion { display: block; padding: 10px 12px; border-radius: 8px; text-decoration: none; font-size: 13px; color: #fc8181; font-weight: 500; }
 .user-dropdown-deconnexion:hover { background: rgba(252,129,129,0.1); }
 
-.burger-btn { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 8px; border-radius: 8px; transition: background 0.2s; }
+.burger-btn { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 8px; border-radius: 8px; transition: background 0.2s; position: relative; z-index: 1001; }
 .burger-btn:hover { background: rgba(255,255,255,0.08); }
 .burger-line { display: block; width: 22px; height: 2px; background: white; border-radius: 2px; transition: all 0.3s; }
 .burger-btn.actif .burger-line:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
 .burger-btn.actif .burger-line:nth-child(2) { opacity: 0; }
 .burger-btn.actif .burger-line:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
 
-.nav-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 998; opacity: 0; transition: opacity 0.3s; }
+.nav-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 9998; opacity: 0; transition: opacity 0.3s; }
 .nav-overlay.actif { display: block; opacity: 1; }
 
-.mobile-drawer {
-    position: fixed; top: 0; right: -100%; width: 320px; max-width: 90vw; height: 100vh;
-    background: #050d1a; border-left: 1px solid rgba(255,255,255,0.08); z-index: 999;
-    transition: right 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); display: flex; flex-direction: column; overflow: hidden;
-}
+.mobile-drawer { position: fixed; top: 0; right: -100%; width: 320px; max-width: 90vw; height: 100vh; height: 100dvh; background: #050d1a; border-left: 1px solid rgba(255,255,255,0.08); z-index: 9999; transition: right 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); display: flex; flex-direction: column; overflow: hidden; }
 .mobile-drawer.ouvert { right: 0; }
 .drawer-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; }
 .drawer-fermer { background: rgba(255,255,255,0.08); border: none; color: white; width: 36px; height: 36px; border-radius: 8px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
 .drawer-fermer:hover { background: rgba(255,255,255,0.15); }
-.drawer-contenu { flex: 1; overflow-y: auto; padding: 16px; }
+.drawer-contenu { flex: 1; overflow-y: auto; padding: 16px; -webkit-overflow-scrolling: touch; }
 .drawer-user { display: flex; align-items: center; gap: 12px; padding: 16px; background: rgba(255,255,255,0.05); border-radius: 12px; margin-bottom: 16px; }
 .drawer-user-avatar { width: 44px; height: 44px; background: linear-gradient(135deg, #00B4D8, #FF6B35); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; color: white; flex-shrink: 0; }
 .drawer-user-nom { font-size: 15px; font-weight: 700; color: white; }
 .drawer-user-role { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 2px; }
 .drawer-nav { display: flex; flex-direction: column; gap: 2px; }
 .drawer-lien { display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-radius: 10px; text-decoration: none; font-size: 15px; color: rgba(255,255,255,0.8); font-weight: 500; transition: all 0.2s; }
-.drawer-lien:hover { background: rgba(255,255,255,0.07); color: white; }
+.drawer-lien:hover, .drawer-lien:active { background: rgba(255,255,255,0.07); color: white; }
 .drawer-lien-highlight { background: rgba(255,107,53,0.1); color: #FF6B35; font-weight: 700; border: 1px solid rgba(255,107,53,0.2); }
-.drawer-lien-highlight:hover { background: rgba(255,107,53,0.2); color: #FF6B35; }
 .drawer-lien-danger { color: #fc8181; }
-.drawer-lien-danger:hover { background: rgba(252,129,129,0.08); color: #fc8181; }
 .drawer-separateur { height: 1px; background: rgba(255,255,255,0.06); margin: 8px 0; }
 .drawer-cta { padding: 16px; border-top: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
-.btn-drawer-cta { display: block; text-align: center; background: linear-gradient(135deg, #FF6B35, #e85a2a); color: white; padding: 14px 24px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 15px; box-shadow: 0 4px 14px rgba(255,107,53,0.35); transition: all 0.3s; }
-.btn-drawer-cta:hover { transform: translateY(-2px); }
+.btn-drawer-cta { display: block; text-align: center; background: linear-gradient(135deg, #FF6B35, #e85a2a); color: white; padding: 14px 24px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 15px; box-shadow: 0 4px 14px rgba(255,107,53,0.35); }
 
-.recherche-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(5,13,26,0.75); backdrop-filter: blur(8px); z-index: 3000; align-items: flex-start; justify-content: center; padding-top: 100px; }
+.recherche-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(5,13,26,0.75); backdrop-filter: blur(8px); z-index: 10000; align-items: flex-start; justify-content: center; padding-top: 100px; }
 .recherche-modal-overlay.actif { display: flex; }
-.recherche-modal { background: white; border-radius: 20px; max-width: 600px; width: 90%; box-shadow: 0 40px 100px rgba(0,0,0,0.5); animation: apparition 0.25s ease-out; overflow: hidden; }
+.recherche-modal { background: white; border-radius: 20px; max-width: 600px; width: 90%; box-shadow: 0 40px 100px rgba(0,0,0,0.5); animation: apparition-modal 0.25s ease-out; overflow: hidden; }
+@keyframes apparition-modal { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
 .recherche-modal-input-zone { display: flex; align-items: center; gap: 12px; padding: 20px 24px; border-bottom: 1px solid #e2e8f0; }
 .recherche-modal-input-zone input { flex: 1; border: none; outline: none; font-size: 16px; font-family: inherit; }
 .recherche-modal-fermer { background: var(--gris-clair); border: none; width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-size: 14px; flex-shrink: 0; }
 .recherche-modal-suggestions { padding: 16px 24px 24px; }
 .recherche-modal-hint { font-size: 11px; font-weight: 700; color: #a0aec0; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
-.recherche-suggestion-item { display: block; padding: 10px 12px; border-radius: 8px; text-decoration: none; color: var(--bleu-principal); font-size: 14px; font-weight: 500; transition: background 0.2s; }
+.recherche-suggestion-item { display: block; padding: 10px 12px; border-radius: 8px; text-decoration: none; color: var(--bleu-principal); font-size: 14px; font-weight: 500; }
 .recherche-suggestion-item:hover { background: var(--gris-clair); }
 
-@keyframes apparition { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+body.menu-ouvert-mobile { overflow: hidden !important; position: fixed; width: 100%; }
 
-.lang-link { text-decoration: none; font-size: 15px; opacity: 0.7; transition: opacity 0.2s; }
-.lang-link:hover, .lang-active { opacity: 1; }
-
-/* ================================================
-   FIX HEADER MOBILE — Header responsive
-   ================================================ */
-
+/* ============ RESPONSIVE — CORRECTIONS CRITIQUES ============ */
 @media (max-width: 1100px) {
     .header-nav { display: none !important; }
     .burger-btn { display: flex !important; }
     .btn-header-cta { display: none !important; }
-    .mobile-drawer { z-index: 9999 !important; }
-    .nav-overlay { z-index: 9998 !important; }
+    .lang-selector-desktop { display: none !important; }
 }
 
 @media (max-width: 768px) {
@@ -667,27 +496,19 @@
     .recherche-modal { width: 95% !important; margin: 0 10px; }
     .recherche-modal-overlay { padding-top: 50px !important; }
 }
-
-.burger-btn { position: relative; z-index: 1001; }
-
-body.menu-ouvert-mobile { overflow: hidden !important; position: fixed; width: 100%; }
 </style>
 
 <script src="{% static 'academie/js/animations.js' %}"></script>
 
-<!-- ================================================
-    JS HEADER v3.0 + Mode sombre + Recherche
-    ================================================ -->
 <script>
-// Effet scroll header
+/* ================================================
+   JS HEADER v3.1 — Corrigé (scroll lock propre, fermeture liens)
+   ================================================ */
 window.addEventListener('scroll', function() {
     const header = document.getElementById('header-bta');
-    if (header) {
-        header.classList.toggle('scrolled', window.scrollY > 20);
-    }
+    if (header) header.classList.toggle('scrolled', window.scrollY > 20);
 });
 
-// === Menu mobile (FIX) ===
 function toggleMenu() {
     const drawer = document.getElementById('mobile-drawer');
     const overlay = document.getElementById('nav-overlay');
@@ -712,19 +533,14 @@ function fermerMenu() {
     document.body.classList.remove('menu-ouvert-mobile');
 }
 
-// Ferme le drawer au clic sur un lien
 document.querySelectorAll('.drawer-lien, .btn-drawer-cta').forEach(function(lien) {
     lien.addEventListener('click', fermerMenu);
 });
 
-// Ferme le drawer si on redimensionne vers desktop
 window.addEventListener('resize', function() {
-    if (window.innerWidth > 1100) {
-        fermerMenu();
-    }
+    if (window.innerWidth > 1100) fermerMenu();
 });
 
-// User dropdown
 const userBtn = document.getElementById('user-btn');
 const userDropdown = document.getElementById('user-dropdown');
 if (userBtn && userDropdown) {
@@ -734,29 +550,23 @@ if (userBtn && userDropdown) {
     });
 }
 
-// Notifications dropdown
 function toggleNotifs() {
     document.getElementById('notif-dropdown').classList.toggle('ouvert');
 }
 
 document.addEventListener('click', function() {
     if (userDropdown) userDropdown.classList.remove('ouvert');
-    const notifDropdown = document.getElementById('notif-dropdown');
-    if (notifDropdown) notifDropdown.classList.remove('ouvert');
+    const nd = document.getElementById('notif-dropdown');
+    if (nd) nd.classList.remove('ouvert');
 });
 
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') fermerMenu();
-});
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') fermerMenu(); });
 
-// Recherche modal
 function ouvrirRecherche() {
     document.getElementById('recherche-modal-overlay').classList.add('actif');
     setTimeout(function() { document.getElementById('recherche-modal-input').focus(); }, 100);
 }
-function fermerRecherche() {
-    document.getElementById('recherche-modal-overlay').classList.remove('actif');
-}
+function fermerRecherche() { document.getElementById('recherche-modal-overlay').classList.remove('actif'); }
 document.getElementById('recherche-modal-input').addEventListener('keydown', function(e) {
     if (e.key === 'Enter' && this.value.trim()) {
         document.getElementById('recherche-modal-hidden').value = this.value.trim();
@@ -765,13 +575,9 @@ document.getElementById('recherche-modal-input').addEventListener('keydown', fun
     if (e.key === 'Escape') fermerRecherche();
 });
 document.addEventListener('keydown', function(e) {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        ouvrirRecherche();
-    }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); ouvrirRecherche(); }
 });
 
-// Mode sombre (conservé à l'identique de ton code existant)
 const body = document.body;
 const toggleBtn = document.getElementById('dark-mode-toggle');
 if (toggleBtn) {
@@ -792,11 +598,14 @@ if (toggleBtn) {
     });
 }
 
-// Service Worker PWA
+/* ================================================
+   PWA — Enregistrement Service Worker + Sync
+   ================================================ */
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register("{% static 'academie/sw.js' %}");
+    navigator.serviceWorker.register("{% static 'academie/sw.js' %}").then(function(reg) {
+        console.log('✅ Service Worker BTA enregistré');
+    });
 }
-
 </script>
 
 </body>

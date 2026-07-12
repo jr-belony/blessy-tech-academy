@@ -60,7 +60,7 @@ INSTALLED_APPS = [
     'adminsortable2',   # ← AJOUTE ICI
     'simple_history',   # ← AJOUTE ICI
     'rest_framework',
-
+    'rest_framework.authtoken',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -420,4 +420,18 @@ ADMIN_GROUPING = {
     '📬 Contacts': ['Inscription'],
     '👥 Communauté': ['Sujet', 'Reponse', 'Reaction', 'ResultatQuiz'],
     '📊 Abonnements': ['PlanAbonnement', 'Subscription'],
+}
+
+
+# ================================================
+# SETTINGS.PY — Django REST Framework
+# ================================================
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated'],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
 }

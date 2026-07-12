@@ -152,7 +152,6 @@ def formations(request):
 
 # ================================================
 # VIEWS.PY — detail_formation() enrichie pour le tunnel de conversion
-# Remplace la fonction existante du même nom
 # ================================================
 
 def detail_formation(request, formation_id):
@@ -170,20 +169,26 @@ def detail_formation(request, formation_id):
         acces_autorise = verifier_acces_formation(request.user, formation)
         deja_inscrit = acces_autorise
 
-    # Prix dynamique avec promotion active (réutilise la fonction du Payment Center)
+    # Prix dynamique avec promotion active
     prix_final, promo_active = _prix_avec_promotion(formation)
 
-    # Statistiques du programme — 100% dynamiques, zéro donnée dupliquée
+    # Statistiques du programme
     nb_modules = formation.modules.count()
     nb_lecons = sum(m.lecons.count() for m in formation.modules.all())
     duree_totale_minutes = sum(
         l.duree_minutes for m in formation.modules.all() for l in m.lecons.all()
     )
 
-    # Formations similaires (même école) pour la section "Ils ont aussi suivi"
+    # Formations similaires
     formations_similaires = Formation.objects.filter(
         ecole=formation.ecole, actif=True
     ).exclude(id=formation.id)[:3] if formation.ecole else []
+
+    # === Liste des débouchés (split par virgule ou point) ===
+    if formation.debouches:
+        formation.debouches_liste = [d.strip() for d in formation.debouches.replace('.', ',').split(',') if d.strip()]
+    else:
+        formation.debouches_liste = []
 
     return render(request, 'academie/detail_formation.html', {
         'formation': formation,
@@ -196,6 +201,7 @@ def detail_formation(request, formation_id):
         'nb_lecons': nb_lecons,
         'duree_totale_heures': round(duree_totale_minutes / 60, 1),
         'formations_similaires': formations_similaires,
+        'debouches_liste': formation.debouches_liste,
     })
 # ================================================
 # Authentification

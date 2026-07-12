@@ -43,7 +43,13 @@ class Ecole(models.Model):
         return round((terminees / total) * 100)
     
 class Formation(models.Model):
-    """Représente une formation proposée par BTA."""
+    """
+    Représente une formation proposée par Blessy Tech Academy.
+    """
+
+    # ==========================================================
+    # 1. CONSTANTES
+    # ==========================================================
 
     NIVEAUX = [
         ('debutant', 'Débutant'),
@@ -52,6 +58,10 @@ class Formation(models.Model):
         ('professionnel', 'Professionnel'),
     ]
 
+    # ==========================================================
+    # 2. INFORMATIONS GÉNÉRALES
+    # ==========================================================
+
     ecole = models.ForeignKey(
         Ecole,
         on_delete=models.SET_NULL,
@@ -59,62 +69,179 @@ class Formation(models.Model):
         blank=True,
         related_name='formations'
     )
+
     nom = models.CharField(max_length=200)
-    icone = models.CharField(max_length=10, default='📚')
+
+    icone = models.CharField(
+        max_length=10,
+        default='📚'
+    )
+
     illustration = models.CharField(
         max_length=10,
         blank=True,
         default='',
-        help_text="Émoji d'illustration moderne (ex: 💻, 📈, 🔐)"
+        help_text="Émoji d'illustration (💻 🤖 🔐 📈 ...)"
     )
+
     description = models.TextField()
-    duree_mois = models.IntegerField()
-    prix = models.IntegerField()
+
     niveau = models.CharField(
         max_length=20,
         choices=NIVEAUX,
         default='debutant'
     )
-    debouches = models.TextField(blank=True)
-    prerequis = models.TextField(blank=True)
-    certifications = models.TextField(blank=True)
+
+    duree_mois = models.IntegerField()
+
+    prix = models.IntegerField()
+
     actif = models.BooleanField(default=True)
+
+    gratuit = models.BooleanField(
+        default=False,
+        help_text="Formation gratuite (Lead Magnet)"
+    )
+
+    # ==========================================================
+    # 3. PROGRAMME & CONTENU
+    # ==========================================================
+
+    prerequis = models.TextField(blank=True)
+
+    debouches = models.TextField(blank=True)
+
+    certifications = models.TextField(blank=True)
+
+    # ==========================================================
+    # 4. EMPLOYABILITÉ & CARRIÈRE
+    # ==========================================================
+
+    metiers = models.TextField(
+        blank=True,
+        help_text="Un métier par ligne"
+    )
+
+    competences_acquises = models.TextField(
+        blank=True,
+        help_text="Une compétence par ligne"
+    )
+
+    competences_cles = models.TextField(
+        blank=True,
+        help_text="Compétences clés (une par ligne)"
+    )
+
+    logiciels_maitrises = models.TextField(
+        blank=True,
+        help_text="Logiciels ou outils maîtrisés (un par ligne)"
+    )
+
+    outils_utilises = models.TextField(
+        blank=True,
+        help_text="Technologies utilisées durant la formation"
+    )
+
+    projets_realises = models.TextField(
+        blank=True,
+        help_text="Un projet réalisé par ligne"
+    )
+
+    certification_obtenue = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Nom du certificat délivré"
+    )
+
+    niveau_sortie = models.CharField(
+        max_length=120,
+        blank=True,
+        help_text="Ex : Développeur Backend Junior"
+    )
+
+    temps_pour_emploi = models.CharField(
+        max_length=120,
+        blank=True,
+        help_text="Ex : 3 à 6 mois"
+    )
+
+    taux_employabilite = models.PositiveIntegerField(
+        default=0,
+        help_text="Pourcentage estimé"
+    )
+
+    salaire_haiti = models.CharField(
+        max_length=60,
+        blank=True,
+        help_text="Ex : 40 000 à 120 000 HTG/mois"
+    )
+
+    salaire_international = models.CharField(
+        max_length=60,
+        blank=True,
+        help_text="Ex : 2 000 à 6 000 USD/mois"
+    )
+
+    # ==========================================================
+    # 5. MARKETING & PARTAGE
+    # ==========================================================
+
     message_partage = models.CharField(
         max_length=500,
         blank=True,
         default="",
-        help_text="Message utilisé pour le partage automatique sur les réseaux sociaux. Laissez vide pour générer automatiquement."
+        help_text="Message utilisé lors du partage automatique."
     )
-    date_creation = models.DateTimeField(auto_now_add=True)
-    gratuit = models.BooleanField(
-        default=False,
-        help_text="Coche si c'est une formation gratuite (lead magnet)"
-    )
+
+    # ==========================================================
+    # 6. UPSELL / CROSS-SELL
+    # ==========================================================
+
     formation_upgrade = models.ForeignKey(
         'self',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='formations_gratuites',
-        help_text="Formation payante recommandée à la fin de cette formation gratuite"
+        help_text="Formation premium recommandée après cette formation gratuite"
     )
+
+    # ==========================================================
+    # 7. MÉTADONNÉES
+    # ==========================================================
+
+    date_creation = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    # ==========================================================
+    # 8. CONFIGURATION DJANGO
+    # ==========================================================
 
     class Meta:
         ordering = ['nom']
         verbose_name = 'Formation'
         verbose_name_plural = 'Formations'
+
         indexes = [
             models.Index(fields=['actif']),
             models.Index(fields=['niveau']),
             models.Index(fields=['ecole', 'actif']),
         ]
 
+    # ==========================================================
+    # 9. MÉTHODES
+    # ==========================================================
+
     def __str__(self):
         return f"{self.icone} {self.nom} ({self.duree_mois} mois)"
-    
-    def natural_key(self):                    # ← Ajouté
-        return (self.nom, self.ecole.nom if self.ecole else None)
 
+    def natural_key(self):
+        return (
+            self.nom,
+            self.ecole.nom if self.ecole else None
+        )
+    
     def progression_pour(self, utilisateur):
         """Calcule le % de progression d'un utilisateur sur cette formation."""
         if not utilisateur.is_authenticated:
@@ -739,6 +866,21 @@ class Article(models.Model):
     )
     mots_cles = models.CharField(max_length=255, blank=True, help_text="Mots-clés séparés par des virgules")
     noindex = models.BooleanField(default=False, help_text="Empêcher l'indexation Google")
+    # === Knowledge Center — nouveaux types de contenu ===
+    TYPES_CONTENU = [
+        ('article', '📝 Article'),
+        ('guide', '📖 Guide'),
+        ('tutoriel', '🎓 Tutoriel'),
+        ('etude_cas', '📊 Étude de cas'),
+        ('actualite', '📰 Actualité Tech'),
+        ('livre_blanc', '📄 Livre blanc'),
+        ('faq', '❓ FAQ'),
+    ]
+    type_contenu = models.CharField(max_length=20, choices=TYPES_CONTENU, default='article')
+    fichier_telechargeable = models.FileField(upload_to='knowledge_center/', null=True, blank=True)
+    articles_associes = models.ManyToManyField('self', blank=True, symmetrical=True)
+    nb_vues = models.IntegerField(default=0)
+    nb_partages = models.IntegerField(default=0)
     class Meta:
         ordering = ['-en_vedette', '-date_publication']
         verbose_name = 'Article'
@@ -832,7 +974,7 @@ class Temoignage(models.Model):
         return f"{self.prenom_nom} — {self.note}⭐"
     
 
-    # ================================================
+# ================================================
 # MODÈLE : ConnexionUtilisateur
 # Rôle : Enregistre chaque connexion d'un utilisateur
 # Utilisé par : signals.py (signal user_logged_in)
@@ -861,9 +1003,8 @@ class ConnexionUtilisateur(models.Model):
         return f"{self.utilisateur.username} - {self.date_connexion}"
     
 
-    # ================================================
+# ================================================
 # MODELS.PY — Système de Paiement (Payment Center)
-# Ajoute ce bloc à la fin de models.py
 # ================================================
 
 import uuid
@@ -1170,9 +1311,8 @@ class AccesFormationDebloque(models.Model):
         return f"{self.utilisateur.username} → {self.nom_formation_snapshot}"
     
 
-    # ================================================
+# ================================================
 # MODELS.PY — Abonnements Premium récurrents
-# Ajoute à la fin de models.py
 # ================================================
 
 class PlanAbonnement(models.Model):

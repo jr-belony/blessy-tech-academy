@@ -95,4 +95,6 @@ urlpatterns = [
     path('examen/<int:examen_id>/preparation/', views.preparation_examen, name='preparation_examen'),
     path('examen/<int:examen_id>/', views.passer_examen, name='passer_examen'),
     path('examen/<int:examen_id>/soumettre/', views.soumettre_examen, name='soumettre_examen'),
+    # URLs..py — Page offline (fallback PWA)
+    path('offline/', views.page_offline, name='offline'),
 ]

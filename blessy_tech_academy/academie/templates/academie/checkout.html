@@ -36,6 +36,11 @@
             <span>Total à payer</span><span>{{ commande.total }} $</span>
         </div>
 
+        <!-- Bouton Acheter -->
+        <a href="#choix-paiement" class="checkout-btn-acheter">
+            🛒 Acheter cette formation
+        </a>
+
         <form method="POST" style="margin-top:16px;">
             {% csrf_token %}
             <input type="text" name="code_coupon" placeholder="Code promo (optionnel)" class="checkout-input">
@@ -43,7 +48,7 @@
         </form>
     </div>
 
-    <div class="checkout-moyens">
+    <div class="checkout-moyens" id="choix-paiement">
         <h3>💳 Choisis ton moyen de paiement</h3>
         <form method="POST">
             {% csrf_token %}
@@ -67,6 +72,8 @@
 .checkout-item { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #f0f0f0; font-size:14px; }
 .checkout-total-ligne { display:flex; justify-content:space-between; padding:8px 0; font-size:14px; color:#718096; }
 .checkout-total-final { display:flex; justify-content:space-between; padding:16px 0; font-size:20px; font-weight:800; color:var(--bleu-principal); border-top:2px solid #e2e8f0; margin-top:8px; }
+.checkout-btn-acheter { display:block; text-align:center; width:100%; margin-top:16px; padding:14px; background:linear-gradient(135deg,#FF6B35,#e85a2a); color:white; border-radius:10px; font-weight:800; font-size:15px; text-decoration:none; box-shadow:0 6px 18px rgba(255,107,53,0.35); transition:all 0.3s; }
+.checkout-btn-acheter:hover { transform:translateY(-2px); }
 .checkout-input { width:100%; padding:10px 14px; border:1.5px solid #e2e8f0; border-radius:8px; margin-bottom:8px; }
 .checkout-btn-secondaire { width:100%; padding:10px; background:var(--gris-clair); border:none; border-radius:8px; cursor:pointer; font-weight:600; }
 .checkout-btn-principal { width:100%; padding:14px; background:linear-gradient(135deg,#FF6B35,#e85a2a); color:white; border:none; border-radius:10px; font-weight:800; cursor:pointer; margin-top:16px; }

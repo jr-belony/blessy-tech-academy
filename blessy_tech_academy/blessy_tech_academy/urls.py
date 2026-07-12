@@ -3,6 +3,8 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from academie import views as views_academie
+from rest_framework.routers import DefaultRouter
+from academie.api_views import FormationViewSet, ArticleViewSet, MaProgressionViewSet, obtenir_token_api
 
 urlpatterns = [
     path('admin/api/generer-article/', views_academie.api_generer_article, name='api_generer_article'),
@@ -23,3 +25,14 @@ if settings.DEBUG:
         path('__debug__/', include(debug_toolbar.urls)),
     ]
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# === API REST v1 ===
+router = DefaultRouter()
+router.register('formations', FormationViewSet, basename='api-formations')
+router.register('articles', ArticleViewSet, basename='api-articles')
+router.register('ma-progression', MaProgressionViewSet, basename='api-progression')
+
+urlpatterns += [
+    path('api/v1/', include(router.urls)),
+    path('api/v1/token/', obtenir_token_api, name='api-token'),
+]
