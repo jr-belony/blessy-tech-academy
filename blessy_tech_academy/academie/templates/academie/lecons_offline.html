@@ -1,0 +1,38 @@
+<!-- ================================================
+     LECONS_OFFLINE.HTML — Consultation leçons téléchargées
+     ================================================ -->
+{% extends 'academie/base.html' %}
+{% block titre %}Mes leçons hors-ligne{% endblock %}
+{% block contenu %}
+<section style="max-width:700px; margin:60px auto; padding:0 20px;">
+    <h1 style="color:var(--bleu-principal);">📥 Mes leçons hors-ligne</h1>
+    <div id="liste-lecons-offline" style="margin-top:24px;"></div>
+</section>
+
+<script>
+async function chargerLeconsOffline() {
+    const req = indexedDB.open('bta-offline-db', 1);
+    req.onsuccess = function(e) {
+        const db = e.target.result;
+        const tx = db.transaction('lecons_telechargees', 'readonly');
+        const store = tx.objectStore('lecons_telechargees');
+        const getAll = store.getAll();
+        getAll.onsuccess = function() {
+            const conteneur = document.getElementById('liste-lecons-offline');
+            if (getAll.result.length === 0) {
+                conteneur.innerHTML = '<p style="color:var(--gris-texte);">Aucune leçon téléchargée pour le moment.</p>';
+                return;
+            }
+            conteneur.innerHTML = getAll.result.map(l => `
+                <div style="background:white; border:1.5px solid #e2e8f0; border-radius:12px; padding:20px; margin-bottom:12px; cursor:pointer;"
+                     onclick="document.getElementById('contenu-${l.lecon_id}').style.display='block'">
+                    <strong>${l.titre}</strong>
+                    <div id="contenu-${l.lecon_id}" style="display:none; margin-top:12px;">${l.contenu_html}</div>
+                </div>
+            `).join('');
+        };
+    };
+}
+chargerLeconsOffline();
+</script>
+{% endblock %}

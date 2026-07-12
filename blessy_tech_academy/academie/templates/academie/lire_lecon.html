@@ -39,7 +39,7 @@
         </div>
         <div style="background: #d1d5db; border-radius: 6px; height: 8px; overflow: hidden;">
             <div id="barre-progression" data-pourcentage="{{ pourcentage_formation }}"
-                 style="background: var(--bleu-electrique); height: 100%; transition: width 0.3s;"></div>
+                style="background: var(--bleu-electrique); height: 100%; transition: width 0.3s;"></div>
         </div>
     </div>
 
@@ -77,6 +77,56 @@
     </p>
     {% endif %}
 
+    <!-- ================================================
+     LIRE_LECON.HTML — Bouton téléchargement offline
+     À insérer juste après le bouton "Marquer comme terminée"
+     ================================================ -->
+<div style="text-align:center; margin-top:16px;">
+    <button id="btn-telecharger-offline" onclick="telechargerLeconOffline()"
+            style="background:var(--gris-clair); color:var(--bleu-principal); border:1.5px solid #e2e8f0;
+                   padding:10px 20px; border-radius:10px; font-weight:700; cursor:pointer;">
+        📥 Télécharger pour hors-ligne
+    </button>
+</div>
+
+<script>
+/* ================================================
+JS OFFLINE — Téléchargement leçon via IndexedDB
+   ================================================ */
+async function ouvrirDB() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open('bta-offline-db', 1);
+        req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('lecons_telechargees')) {
+                db.createObjectStore('lecons_telechargees', { keyPath: 'lecon_id' });
+            }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = reject;
+    });
+}
+
+async function telechargerLeconOffline() {
+    const btn = document.getElementById('btn-telecharger-offline');
+    btn.textContent = '⏳ Téléchargement...';
+
+    const db = await ouvrirDB();
+    const donneesLecon = {
+        lecon_id: {{ lecon.id }},
+        titre: {{ lecon.titre|escapejs }},
+        contenu_html: document.querySelector('.contenu-lecon').innerHTML,
+        date_telechargement: new Date().toISOString(),
+    };
+
+    const tx = db.transaction('lecons_telechargees', 'readwrite');
+    tx.objectStore('lecons_telechargees').put(donneesLecon);
+
+    btn.textContent = '✅ Disponible hors-ligne';
+    setTimeout(() => { btn.textContent = '📥 Télécharger pour hors-ligne'; }, 3000);
+}
+</script>
+
     <!-- Navigation entre leçons -->
     <div class="nav-lecons" style="display: flex; justify-content: space-between;
                 margin-top: 48px; padding-top: 24px;
@@ -84,7 +134,7 @@
 
         {% if lecon_precedente %}
         <a href="{% url 'lire_lecon' lecon_precedente.id %}"
-           class="nav-lien" style="color: var(--bleu-electrique); text-decoration: none; font-weight: 600;">
+        class="nav-lien" style="color: var(--bleu-electrique); text-decoration: none; font-weight: 600;">
             ← {{ lecon_precedente.titre }}
         </a>
         {% else %}
@@ -93,7 +143,7 @@
 
         {% if lecon_suivante %}
         <a href="{% url 'lire_lecon' lecon_suivante.id %}"
-           class="nav-lien" style="color: var(--bleu-electrique); text-decoration: none; font-weight: 600;">
+        class="nav-lien" style="color: var(--bleu-electrique); text-decoration: none; font-weight: 600;">
             {{ lecon_suivante.titre }} →
         </a>
         {% endif %}

@@ -1,0 +1,13 @@
+<!-- ================================================
+    OFFLINE.HTML — Page affichée sans connexion
+    ================================================ -->
+{% extends 'academie/base.html' %}
+{% block titre %}Hors ligne{% endblock %}
+{% block contenu %}
+<section style="text-align:center; padding:100px 20px;">
+    <div style="font-size:64px;">📡</div>
+    <h1 style="color:var(--bleu-principal); margin:16px 0;">Tu es hors ligne</h1>
+    <p style="color:var(--gris-texte);">Reconnecte-toi à Internet pour continuer, ou consulte tes leçons téléchargées.</p>
+    <a href="/dashboard/" style="display:inline-block; margin-top:20px; padding:14px 28px; background:var(--bleu-principal); color:white; border-radius:10px; text-decoration:none;">Retour au Dashboard</a>
+</section>
+{% endblock %}
