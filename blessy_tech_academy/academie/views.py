@@ -265,7 +265,9 @@ def deconnexion(request):
     messages.success(request, '👋 Tu as été déconnecté avec succès.')
     return redirect('accueil')
 
-
+# ================================================
+# VUE — Dashboard étudiant (badges, stats, examens)
+# ================================================
 @login_required(login_url='/connexion/')
 def dashboard(request):
     """Tableau de bord étudiant moderne."""
@@ -274,31 +276,27 @@ def dashboard(request):
     user = request.user
     stats = calculer_stats_etudiant(user)
 
-    # Récupère les derniers badges (max 6)
     tous_badges = stats['badges']
 
-    # Formations récemment actives (triées par progression)
     formations_actives = sorted(
         stats['en_cours'],
         key=lambda f: f['pourcentage'],
         reverse=True
     )[:4]
+
     nouveaux_badges = attribuer_badges(user)
     if nouveaux_badges:
         messages.success(request, f'🎉 Nouveau(x) badge(s) : {", ".join(nouveaux_badges)} !')
-    for badge_type in nouveaux_badges: notifications.notifier_badge(user, badge_type)
-    
-    # ================================================
-    # DERNIÈRES CONNEXIONS
-    # Récupère les 5 dernières connexions de l'utilisateur
-    # pour les afficher dans le dashboard
-    # ================================================
+    for badge_type in nouveaux_badges:
+        notifications.notifier_badge(user, badge_type)
+
     from .models import ConnexionUtilisateur
     connexions = ConnexionUtilisateur.objects.filter(utilisateur=user).order_by('-date_connexion')[:5]
-    # === Historique des examens ===
+
     examens_passes = TentativeExamen.objects.filter(
-    utilisateur=user
-).select_related('examen').order_by('-date_debut')[:10]
+        utilisateur=user
+    ).select_related('examen').order_by('-date_debut')[:10]
+
     return render(request, 'academie/dashboard.html', {
         'user': user,
         'stats': stats,
@@ -308,6 +306,14 @@ def dashboard(request):
         'examens_passes': examens_passes,
     })
 
+# ================================================
+# VUE — Dashboard IA (admin)
+# ================================================
+@staff_member_required
+def vue_dashboard_ia(request):
+    return render(request, 'admin/dashboard_ia.html', {
+        'title': '🤖 Dashboard IA',
+    })
 # ================================================
 # Statistiques (admin uniquement)
 # ================================================
@@ -2567,3 +2573,11 @@ def soumettre_examen(request, examen_id):
         'reussi': tentative.reussi,
         'feedback_ia': feedback_ia,
     })
+
+
+# ================================================
+# VIEWS.PY — Page offline (fallback PWA)
+# ================================================
+
+def page_offline(request):
+    return render(request, 'academie/offline.html')
