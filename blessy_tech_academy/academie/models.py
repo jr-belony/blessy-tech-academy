@@ -291,7 +291,25 @@ class Inscription(models.Model):
     message = models.TextField()
     date_inscription = models.DateTimeField(auto_now_add=True)
     traite = models.BooleanField(default=False)
-
+    # === Extension CRM ===
+    STATUTS_LEAD = [
+        ('nouveau', '🆕 Nouveau'),
+        ('contacte', '📞 Contacté'),
+        ('interesse', '💬 Intéressé'),
+        ('converti', '✅ Converti'),
+        ('perdu', '❌ Perdu'),
+    ]
+    statut_lead = models.CharField(max_length=15, choices=STATUTS_LEAD, default='nouveau')
+    assigne_a = models.ForeignKey(
+        'auth.User', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='leads_assignes', help_text="Membre de l'équipe responsable de ce lead"
+    )
+    source_lead = models.CharField(
+        max_length=50, blank=True,
+        choices=[('site', 'Site web'), ('forum', 'Forum'), ('reseaux', 'Réseaux sociaux'), ('bouche_oreille', 'Bouche-à-oreille'), ('autre', 'Autre')],
+        default='site'
+    )
+    notes_internes = models.TextField(blank=True, help_text="Notes visibles uniquement par l'équipe")
     class Meta:
         ordering = ['-date_inscription']
         verbose_name = 'Inscription'
@@ -785,6 +803,13 @@ class ProfilUtilisateur(models.Model):
         ('api_client', 'API Client'),
     ]
     role = models.CharField(max_length=30, choices=ROLE_CHOICES, default='etudiant')
+    # === Champs additionnels ===
+    bio_formateur = models.TextField(blank=True)
+    specialites = models.CharField(max_length=300, blank=True, help_text="Séparées par des virgules")
+    taux_remuneration = models.DecimalField(max_digits=5, decimal_places=2, default=0, help_text="% des ventes reversé")
+    telephone = models.CharField(max_length=20, blank=True)
+    date_creation = models.DateTimeField(auto_now_add=True)
+
     NIVEAUX = [
         (0, 'Débutant'),
         (500, 'Explorateur'),
@@ -794,7 +819,18 @@ class ProfilUtilisateur(models.Model):
         (10000, 'Expert'),
         (20000, 'Master Tech'),
     ]
+    # === Méthodes de vérification rapide ===
+    def peut_voir_finance(self):
+        return self.role in ['admin', 'super_admin', 'finance', 'direction']
 
+    def peut_moderer_forum(self):
+        return self.role in ['admin', 'super_admin', 'support']
+
+    def peut_gerer_formations(self):
+        return self.role in ['admin', 'super_admin', 'formateur', 'resp_academique']
+
+    def peut_voir_crm(self):
+        return self.role in ['admin', 'super_admin', 'marketing', 'support', 'direction']
     class Meta:
         verbose_name = 'Profil utilisateur'
         verbose_name_plural = 'Profils utilisateurs'
@@ -829,6 +865,41 @@ class ProfilUtilisateur(models.Model):
         return round(((self.xp - seuil_actuel) / (prochain - seuil_actuel)) * 100) if prochain > seuil_actuel else 0
     
 
+
+# ================================================
+# MODÈLE — LogAudit (journalisation centralisée)
+# ================================================
+class LogAudit(models.Model):
+    """Journalisation centralisée des actions sensibles."""
+
+    ACTIONS = [
+        ('validation_paiement', 'Validation de paiement'),
+        ('suppression', 'Suppression'),
+        ('modification_role', 'Modification de rôle'),
+        ('remboursement', 'Remboursement'),
+        ('publication', 'Publication de contenu'),
+        ('connexion_admin', 'Connexion admin'),
+    ]
+
+    utilisateur = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, related_name='logs_audit')
+    action = models.CharField(max_length=30, choices=ACTIONS)
+    description = models.TextField()
+    objet_type = models.CharField(max_length=100, blank=True, help_text="Ex: Order, Formation")
+    objet_id = models.IntegerField(null=True, blank=True)
+    adresse_ip = models.GenericIPAddressField(null=True, blank=True)
+    date_creation = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date_creation']
+        verbose_name = "Log d'audit"
+        verbose_name_plural = "Logs d'audit"
+
+    def __str__(self):
+        return f"{self.get_action_display()} par {self.utilisateur} le {self.date_creation:%d/%m/%Y %H:%M}"
+
+# ================================================
+# MODÈLE — Article (Blog, Ressources, Knowledge Center)
+# ================================================
 class Article(models.Model):
     """Article ou guide publié dans la page Ressources."""
 
@@ -1106,8 +1177,9 @@ class Coupon(models.Model):
         return True, ""
 
     def calculer_reduction(self, montant):
+        from decimal import Decimal
         if self.type_reduction == 'pourcentage':
-            return round(montant * (self.valeur / 100), 2)
+            return round(montant * (Decimal(str(self.valeur)) / 100), 2)
         return min(self.valeur, montant)
 
 
@@ -1479,3 +1551,78 @@ class TentativeExamen(models.Model):
 
     def __str__(self):
         return f"{self.utilisateur} - {self.examen.titre}"
+    
+
+# ================================================
+# MODELS.PY — Historique des interactions CRM
+# ================================================
+
+class InteractionCRM(models.Model):
+    """Historique des échanges avec un prospect/lead."""
+
+    TYPES = [('appel', '📞 Appel'), ('email', '📧 Email'), ('whatsapp', '💬 WhatsApp'), ('rencontre', '🤝 Rencontre'), ('note', '📝 Note')]
+
+    inscription = models.ForeignKey(Inscription, on_delete=models.CASCADE, related_name='interactions')
+    type_interaction = models.CharField(max_length=15, choices=TYPES, default='note')
+    contenu = models.TextField()
+    auteur = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True)
+    date_creation = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date_creation']
+        verbose_name = 'Interaction CRM'
+        verbose_name_plural = 'Interactions CRM'
+
+    def __str__(self):
+        return f"{self.get_type_interaction_display()} — {self.inscription}"
+    
+
+# ================================================
+# MODÈLE — Enseignant (multi-formateur)
+# ================================================
+class Enseignant(models.Model):
+    """
+    Profil enrichi d'un formateur — lié à ProfilUtilisateur (role='formateur').
+    Permet de scaler vers plusieurs formateurs, chacun avec ses stats propres.
+    """
+
+    STATUTS = [('actif', '✅ Actif'), ('en_attente', '⏳ En attente validation'), ('suspendu', '⛔ Suspendu')]
+
+    profil = models.OneToOneField(ProfilUtilisateur, on_delete=models.CASCADE, related_name='enseignant')
+    formations_attribuees = models.ManyToManyField(Formation, blank=True, related_name='enseignants')
+
+    statut = models.CharField(max_length=15, choices=STATUTS, default='en_attente')
+    date_recrutement = models.DateTimeField(auto_now_add=True)
+
+    numero_contrat = models.CharField(max_length=50, blank=True)
+    document_cv = models.FileField(upload_to='enseignants/cv/', null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Enseignant'
+        verbose_name_plural = 'Enseignants'
+
+    def __str__(self):
+        return f"{self.profil.utilisateur.get_full_name() or self.profil.utilisateur.username} — {self.get_statut_display()}"
+
+    def revenus_generes(self):
+        from django.db.models import Sum
+        total = OrderItem.objects.filter(
+            formation__in=self.formations_attribuees.all(),
+            commande__statut='paye'
+        ).aggregate(t=Sum('prix_unitaire'))['t'] or 0
+        return total
+
+    def part_remuneration(self):
+        taux = self.profil.taux_remuneration or 0
+        return round(self.revenus_generes() * (taux / 100), 2)
+
+    def nb_etudiants_formes(self):
+        return AccesFormationDebloque.objects.filter(
+            formation__in=self.formations_attribuees.all()
+        ).values('utilisateur').distinct().count()
+
+    def note_moyenne_temoignages(self):
+        from django.db.models import Avg
+        return Temoignage.objects.filter(
+            formation_suivie__in=self.formations_attribuees.all(), approuve=True
+        ).aggregate(m=Avg('note'))['m']

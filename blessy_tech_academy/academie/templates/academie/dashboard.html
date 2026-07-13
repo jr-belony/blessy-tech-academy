@@ -361,10 +361,10 @@
                     📚 Voir les formations
                 </a>
                 <a href="{% url 'deconnexion' %}"
-                style="margin-left: 16px; color: #e53e3e;
-                        text-decoration: none; font-weight: 600;">
-                    👋 Se déconnecter
-                </a>
+                style="color: #e53e3e; text-decoration: none; 
+                font-weight: 600; padding: 10px 0;">
+                        👋 Se déconnecter
+            </a>
             </div>
 
         </div>
@@ -390,8 +390,13 @@
         }
         .mes-infos-boutons {
             flex-direction: column !important;
-            align-items: flex-start !important;
-            gap: 12px !important;
+            align-items: stretch !important;
+            gap: 10px !important;
+        }
+        .mes-infos-boutons a {
+            margin-left: 0 !important;
+            text-align: center;
+            width: 100%;
         }
         .infos-grid {
             grid-template-columns: 1fr !important;

@@ -153,3 +153,17 @@ def enregistrer_connexion(sender, request, user, **kwargs):
             )
         except Exception:
             pass
+
+
+# ================================================
+# SIGNAL — Auto-création ProfilUtilisateur à l'inscription
+# ================================================
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+
+@receiver(post_save, sender=User)
+def creer_profil_utilisateur(sender, instance, created, **kwargs):
+    """Crée automatiquement un ProfilUtilisateur pour chaque nouveau User."""
+    if created:
+        from .models import ProfilUtilisateur
+        ProfilUtilisateur.objects.get_or_create(utilisateur=instance, defaults={'role': 'etudiant'})

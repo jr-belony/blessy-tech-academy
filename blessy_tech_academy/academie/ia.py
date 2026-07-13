@@ -531,6 +531,45 @@ def simuler_carriere(metier):
     except Exception as e:
         logger.exception("Erreur simulateur carrière")
         return f"❌ Erreur : {str(e)}"
+    
+
+# ================================================
+# IA.PY — Analyse intelligente de la plateforme (Dashboard IA Admin)
+# ================================================
+
+def analyser_plateforme_ia(donnees_contexte):
+    """
+    Analyse les données réelles de BTA avec Gemini et produit des 
+    recommandations décisionnelles concrètes.
+    """
+    try:
+        client = initialiser_ia()
+
+        prompt = f"""Tu es un analyste business EdTech expert pour Blessy Tech Academy.
+
+Voici les données réelles de la plateforme :
+{donnees_contexte}
+
+Analyse ces données et produis un rapport structuré en Markdown :
+
+## 🔍 Constats principaux
+[3-4 observations factuelles basées sur les chiffres]
+
+## ⚠️ Alertes
+[Points nécessitant une attention urgente]
+
+## 💡 Recommandations prioritaires
+[3 actions concrètes à entreprendre, classées par impact]
+
+## 📈 Opportunités identifiées
+[Ce qui fonctionne bien et pourrait être amplifié]
+
+Sois précis, orienté action, et base-toi UNIQUEMENT sur les chiffres fournis. Réponds en français."""
+
+        response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
+        return response.text
+    except Exception as e:
+        return f"❌ Analyse indisponible : {str(e)}"
 
 
 # ================================================

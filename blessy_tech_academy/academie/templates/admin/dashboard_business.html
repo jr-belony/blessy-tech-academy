@@ -32,9 +32,9 @@
     </div>
 
     <div style="margin-top:24px;">
-        <a href="/admin/export/ventes-excel/" style="padding:10px 20px; background:#22c55e; color:white; border-radius:8px; text-decoration:none; font-weight:700; margin-right:8px;">📊 Export Excel</a>
-        <a href="/admin/export/ventes-pdf/" style="padding:10px 20px; background:var(--bta-orange); color:white; border-radius:8px; text-decoration:none; font-weight:700;">📄 Export PDF</a>
-    </div>
+    <a href="{% url 'export_ventes_excel' %}" style="padding:10px 20px; background:#22c55e; color:white; border-radius:8px; text-decoration:none; font-weight:700; margin-right:8px;">📊 Export Excel</a>
+    <a href="{% url 'export_ventes_pdf' %}" style="padding:10px 20px; background:#FF6B35; color:white; border-radius:8px; text-decoration:none; font-weight:700;">📄 Export PDF</a>
+</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

@@ -89,12 +89,15 @@ urlpatterns = [
     path('payer/<str:order_reference>/', views.rediriger_paiement_externe, name='rediriger_paiement_externe'),
     path('paiement-succes/<str:order_reference>/', views.paiement_succes, name='paiement_succes'),
     path('webhooks/stripe/', views.stripe_webhook, name='stripe_webhook'),
-    path('admin/export/ventes-excel/', views.export_ventes_excel, name='export_ventes_excel'),
-    path('admin/export/ventes-pdf/', views.export_ventes_pdf, name='export_ventes_pdf'),
     # === Plateforme d'examens officiels ===
     path('examen/<int:examen_id>/preparation/', views.preparation_examen, name='preparation_examen'),
     path('examen/<int:examen_id>/', views.passer_examen, name='passer_examen'),
     path('examen/<int:examen_id>/soumettre/', views.soumettre_examen, name='soumettre_examen'),
     # URLs..py — Page offline (fallback PWA)
     path('offline/', views.page_offline, name='offline'),
+    # === Dashboard Enseignant ===
+    path('dashboard-enseignant/', views.dashboard_enseignant, name='dashboard_enseignant'),
+    # === CRM ===
+    path('admin/dashboard-crm/', views.dashboard_crm, name='dashboard_crm'),
+    path('admin/crm/interaction/<int:inscription_id>/', views.ajouter_interaction_crm, name='ajouter_interaction_crm'),
 ]

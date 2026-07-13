@@ -16,6 +16,9 @@ urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),
     path('sitemap.xml', views_academie.sitemap_xml, name='sitemap'),
     path('robots.txt', views_academie.robots_txt, name='robots'),
+    # === Export Ventes (Excel / PDF) ===
+    path('admin/export/ventes-excel/', views_academie.export_ventes_excel, name='export_ventes_excel'),
+    path('admin/export/ventes-pdf/', views_academie.export_ventes_pdf, name='export_ventes_pdf'),
 ]
 
 # Debug Toolbar (développement uniquement)

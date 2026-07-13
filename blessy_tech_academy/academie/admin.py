@@ -11,7 +11,8 @@ from academie import views
 from . import views
 from .models import (Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz, Module, Lecon, ProgressionLecon,
 Parcours, Sujet, Reponse, Reaction, OutilRecommande, Article, Temoignage, MoyenPaiement, Coupon, Promotion, Order, OrderItem,
-Invoice, Transaction, Refund, AccesFormationDebloque, ChoixExamen, QuestionExamen, TentativeExamen, Examen)
+Invoice, Transaction, Refund, AccesFormationDebloque, ChoixExamen, QuestionExamen, 
+TentativeExamen, Examen, ProfilUtilisateur, LogAudit, InteractionCRM, Enseignant)
 
 # ================================================
 # Thème CSS global pour tout l'admin
@@ -24,11 +25,40 @@ class AdminThemeMixin:
         }
 
 
+# ================================================
+# ADMIN — Écoles (Formateur, RespAcademique, Admin, SuperAdmin)
+# ================================================
 @admin.register(Ecole)
 class EcoleAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_display = ['icone', 'nom', 'ordre']
     list_editable = ['ordre']
     search_fields = ['nom']
+
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['formateur', 'resp_academique', 'admin']
+        except Exception:
+            return False
+class ModuleInline(SortableInlineAdminMixin, admin.TabularInline):
+    model = Module
+    extra = 1
+    fields = ['ordre', 'titre', 'description']
+    show_change_link = True
+
+
+class LeconInline(SortableInlineAdminMixin, admin.TabularInline):
+    model = Lecon
+    extra = 3
+    fields = ['ordre', 'titre', 'resume', 'duree_minutes']
+
+
+class ReponseInline(admin.TabularInline):
+    model = Reponse
+    extra = 0
+    fields = ['auteur', 'contenu', 'acceptee', 'date_creation']
+    readonly_fields = ['date_creation']
 
 class ModuleInline(SortableInlineAdminMixin, admin.TabularInline):
     model = Module
@@ -37,6 +67,9 @@ class ModuleInline(SortableInlineAdminMixin, admin.TabularInline):
     show_change_link = True
 
 
+# ================================================
+# ADMIN — Formations (Formateur, RespAcademique, Admin, SuperAdmin)
+# ================================================
 @admin.register(Formation)
 class FormationAdmin(AdminThemeMixin, SortableAdminBase, SimpleHistoryAdmin):
     list_display = [
@@ -83,26 +116,66 @@ class FormationAdmin(AdminThemeMixin, SortableAdminBase, SimpleHistoryAdmin):
         )
     bouton_workspace.short_description = 'Workspace'
 
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['formateur', 'resp_academique', 'admin']
+        except Exception:
+            return False
+
+    def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['resp_academique', 'admin']
+        except Exception:
+            return False
+
+    def has_delete_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['admin']
+        except Exception:
+            return False
+
     class Media:
         js = ['academie/admin/generer_ia.js', 'academie/admin/generer_programme.js']
+
+# ================================================
+# ADMIN — Inscriptions CRM (Support, Marketing, Admin, SuperAdmin)
+# ================================================
+class InteractionCRMInline(admin.TabularInline):
+    model = InteractionCRM
+    extra = 0
+    readonly_fields = ['auteur', 'date_creation']
 @admin.register(Inscription)
 class InscriptionAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_display = [
         'prenom', 'nom', 'email', 'formation',
-        'sujet', 'date_inscription', 'traite'
+        'sujet', 'statut_lead', 'assigne_a', 'date_inscription', 'traite'
     ]
-    list_filter = ['traite', 'formation', 'sujet']
+    list_filter = ['traite', 'formation', 'sujet', 'statut_lead', 'source_lead']
     search_fields = ['prenom', 'nom', 'email']
-    list_editable = ['traite']
+    list_editable = ['traite', 'statut_lead']
     readonly_fields = ['date_inscription']
+    inlines = [InteractionCRMInline]
 
-
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['support', 'marketing', 'admin']
+        except Exception:
+            return False
+# ================================================
+# ADMIN — Quiz (Formateur, Examinateur, RespAcademique, Admin, SuperAdmin)
+# ================================================
 class QuestionInline(admin.TabularInline):
     model = Question
     extra = 5
     fields = ['ordre', 'texte', 'choix_a', 'choix_b', 'choix_c', 'choix_d', 'bonne_reponse']
-
-
 @admin.register(Quiz)
 class QuizAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_display = ['titre', 'formation', 'nombre_questions', 'limite_temps_minutes', 'actif', 'date_creation']
@@ -111,10 +184,21 @@ class QuizAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_editable = ['actif', 'limite_temps_minutes']
     inlines = [QuestionInline]
 
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['formateur', 'examinateur', 'resp_academique', 'admin']
+        except Exception:
+            return False
+
     class Media:
         js = ['academie/admin/generer_quiz.js']
 
 
+# ================================================
+# ADMIN — Résultats Quiz (Examinateur, Correcteur, RespAcademique, Admin, SuperAdmin)
+# ================================================
 @admin.register(ResultatQuiz)
 class ResultatQuizAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_display = ['utilisateur', 'quiz', 'score', 'total_questions', 'pourcentage', 'date_passage']
@@ -122,12 +206,17 @@ class ResultatQuizAdmin(AdminThemeMixin, admin.ModelAdmin):
     search_fields = ['utilisateur__username']
     readonly_fields = ['date_passage']
 
-class LeconInline(SortableInlineAdminMixin, admin.TabularInline):
-    model = Lecon
-    extra = 3
-    fields = ['ordre', 'titre', 'resume', 'duree_minutes']
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['examinateur', 'correcteur', 'resp_academique', 'admin']
+        except Exception:
+            return False
 
-
+# ================================================
+# ADMIN — Modules (Formateur, RespAcademique, Admin, SuperAdmin)
+# ================================================
 @admin.register(Module)
 class ModuleAdmin(AdminThemeMixin, SortableAdminBase, admin.ModelAdmin):
     list_display = ['titre', 'get_ecole', 'formation', 'ordre', 'nombre_lecons']
@@ -141,9 +230,37 @@ class ModuleAdmin(AdminThemeMixin, SortableAdminBase, admin.ModelAdmin):
     get_ecole.short_description = 'École'
     get_ecole.admin_order_field = 'formation__ecole'
 
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['formateur', 'resp_academique', 'admin']
+        except Exception:
+            return False
+
+    def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['resp_academique', 'admin']
+        except Exception:
+            return False
+
+    def has_delete_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['admin']
+        except Exception:
+            return False
+
     class Media:
         js = ['academie/admin/generer_programme.js', 'academie/admin/generer_contenu_module.js']
 
+
+# ================================================
+# ADMIN — Leçons (Formateur, RespAcademique, Admin, SuperAdmin)
+# ================================================
 @admin.register(Lecon)
 class LeconAdmin(AdminThemeMixin, SimpleHistoryAdmin):
     list_display = ['titre', 'get_ecole', 'get_formation', 'module', 'duree_minutes', 'ordre']
@@ -161,10 +278,35 @@ class LeconAdmin(AdminThemeMixin, SimpleHistoryAdmin):
     get_formation.short_description = 'Formation'
     get_formation.admin_order_field = 'module__formation'
 
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['formateur', 'resp_academique', 'admin']
+        except Exception:
+            return False
+
+    def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['resp_academique', 'admin']
+        except Exception:
+            return False
+
+    def has_delete_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['admin']
+        except Exception:
+            return False
+
     class Media:
         js = ['academie/admin/generer_contenu_lecon.js']
-
-
+# ================================================
+# ADMIN — Parcours (RespAcademique, Admin, SuperAdmin)
+# ================================================
 @admin.register(Parcours)
 class ParcoursAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_display = ['icone', 'titre', 'duree_mois', 'prix', 'nombre_formations', 'actif', 'ordre']
@@ -183,14 +325,18 @@ class ParcoursAdmin(AdminThemeMixin, admin.ModelAdmin):
         }),
     ]
 
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['resp_academique', 'admin']
+        except Exception:
+            return False
 
-class ReponseInline(admin.TabularInline):
-    model = Reponse
-    extra = 0
-    fields = ['auteur', 'contenu', 'acceptee', 'date_creation']
-    readonly_fields = ['date_creation']
 
-
+# ================================================
+# ADMIN — Sujets (Support, Admin, SuperAdmin)
+# ================================================
 @admin.register(Sujet)
 class SujetAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_display = [
@@ -204,7 +350,18 @@ class SujetAdmin(AdminThemeMixin, admin.ModelAdmin):
     readonly_fields = ['date_creation', 'date_modification', 'vues']
     inlines = [ReponseInline]
 
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['support', 'admin']
+        except Exception:
+            return False
 
+
+# ================================================
+# ADMIN — Réponses (Support, Admin, SuperAdmin)
+# ================================================
 @admin.register(Reponse)
 class ReponseAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_display = ['auteur', 'sujet', 'acceptee', 'date_creation']
@@ -212,16 +369,34 @@ class ReponseAdmin(AdminThemeMixin, admin.ModelAdmin):
     search_fields = ['contenu', 'auteur__username']
     readonly_fields = ['date_creation']
 
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['support', 'admin']
+        except Exception:
+            return False
 
+
+# ================================================
+# ADMIN — Réactions (Support, Admin, SuperAdmin)
+# ================================================
 @admin.register(Reaction)
 class ReactionAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_display = ['utilisateur', 'sujet', 'reponse', 'date_creation']
     readonly_fields = ['date_creation']
 
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['support', 'admin']
+        except Exception:
+            return False
 
-# ================================================
-# Articles de blog
-# ================================================
+# ==============================================================
+# Articles de blog (Marketing, RespAcademique, Admin, SuperAdmin)
+# ==============================================================
 
 @admin.register(Article)
 class ArticleAdmin(AdminThemeMixin, SimpleHistoryAdmin):
@@ -283,7 +458,6 @@ class ArticleAdmin(AdminThemeMixin, SimpleHistoryAdmin):
         )
     apercu_seo.short_description = "Aperçu Google"
 
-
     def apercu_responsive(self, obj):
         from django.utils.html import format_html
         if not obj.id:
@@ -306,6 +480,16 @@ class ArticleAdmin(AdminThemeMixin, SimpleHistoryAdmin):
             ''', url, url
         )
     apercu_responsive.short_description = "Prévisualisation"
+
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['marketing', 'resp_academique', 'admin']
+        except Exception:
+            return False
+
+
 @admin.register(OutilRecommande)
 class OutilRecommandeAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_display = ['icone', 'nom', 'categorie', 'gratuit',
@@ -313,6 +497,14 @@ class OutilRecommandeAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_filter = ['categorie', 'gratuit', 'recommande_par_bta']
     search_fields = ['nom', 'description']
     list_editable = ['ordre', 'recommande_par_bta']
+
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['marketing', 'resp_academique', 'admin']
+        except Exception:
+            return False
 
 
 @admin.register(Temoignage)
@@ -323,7 +515,14 @@ class TemoignageAdmin(AdminThemeMixin, admin.ModelAdmin):
     search_fields = ['prenom_nom', 'texte']
     list_editable = ['en_vedette', 'approuve']
 
-
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['marketing', 'admin']
+        except Exception:
+            return False
+        
 # ================================================
 # ADMIN — Plateforme d'examens officiels
 # ================================================
@@ -339,6 +538,9 @@ class QuestionExamenInline(admin.TabularInline):
     show_change_link = True
 
 
+# ================================================
+# ADMIN — Examens (Examinateur, RespAcademique, Admin, SuperAdmin)
+# ================================================
 @admin.register(Examen)
 class ExamenAdmin(admin.ModelAdmin):
     list_display = ['titre', 'formation', 'duree_minutes', 'seuil_reussite', 'actif']
@@ -346,7 +548,18 @@ class ExamenAdmin(admin.ModelAdmin):
     search_fields = ['titre']
     inlines = [QuestionExamenInline]
 
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['examinateur', 'resp_academique', 'admin']
+        except Exception:
+            return False
 
+
+# ================================================
+# ADMIN — Questions Examen (Examinateur, RespAcademique, Admin, SuperAdmin)
+# ================================================
 @admin.register(QuestionExamen)
 class QuestionExamenAdmin(admin.ModelAdmin):
     list_display = ['texte_court', 'examen', 'type_question', 'points']
@@ -355,14 +568,32 @@ class QuestionExamenAdmin(admin.ModelAdmin):
     def texte_court(self, obj):
         return obj.texte[:80]
 
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['examinateur', 'resp_academique', 'admin']
+        except Exception:
+            return False
 
+
+# ================================================
+# ADMIN — Tentatives Examen (Examinateur, Correcteur, RespAcademique, Admin, SuperAdmin)
+# ================================================
 @admin.register(TentativeExamen)
 class TentativeExamenAdmin(admin.ModelAdmin):
     list_display = ['utilisateur', 'examen', 'score', 'reussi', 'date_debut']
     list_filter = ['reussi', 'examen']
     readonly_fields = ['date_debut', 'date_fin', 'evenements_suspects']
 
-
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['examinateur', 'correcteur', 'resp_academique', 'admin']
+        except Exception:
+            return False
+        
 # ================================================
 # Vue personnalisée — Gestion organisée par École
 # ================================================
@@ -383,6 +614,16 @@ class GestionCoursAdminSite(AdminThemeMixin):
             path('emails/preview/<str:template_name>/', views.admin_email_preview, name='email_preview'),
             path('emails/test/', views.admin_email_test, name='email_test'),
             path('dashboard-ia/', views.vue_dashboard_ia, name='dashboard_ia'), 
+            # === Export Ventes (Excel / PDF) ===
+            path('export/ventes-excel/', views.export_ventes_excel, name='export_ventes_excel'),
+            path('export/ventes-pdf/', views.export_ventes_pdf, name='export_ventes_pdf'),
+            # ================================================
+            # ROUTE — Dashboard Business (via views.py)
+            # ================================================
+            path('dashboard-business/', views.vue_dashboard_business, name='dashboard_business'),
+            # === CRM ===
+            path('dashboard-crm/', views.dashboard_crm, name='dashboard_crm'),
+            path('crm/interaction/<int:inscription_id>/', views.ajouter_interaction_crm, name='ajouter_interaction_crm'),
             ]
         return custom_urls + original_urls
 
@@ -438,61 +679,37 @@ admin.site.index_title = "Tableau de bord"
 
 
 # ================================================
-# ADMIN.PY — Dashboard IA Admin (Intelligence Décisionnelle)
-# Ajoute cette méthode dans GestionCoursAdminSite + route dans get_urls
-# ================================================
-
-@staff_member_required
-def vue_dashboard_ia(self, request):
-    from django.db.models import Count, Avg, Sum
-
-    # Collecte des vraies données de la plateforme
-    formations_stats = Formation.objects.filter(actif=True).annotate(
-        nb_inscrits=Count('orderitem', filter=Q(orderitem__commande__statut='paye')),
-        nb_articles_lies=Count('articles'),
-    ).order_by('-nb_inscrits')[:10]
-
-    lecons_abandon = Lecon.objects.annotate(
-        nb_vues=Count('progressions'),
-        nb_terminees=Count('progressions', filter=Q(progressions__terminee=True)),
-    ).filter(nb_vues__gt=0)
-
-    quiz_difficiles = ResultatQuiz.objects.values('quiz__titre').annotate(
-        score_moyen=Avg('score'), nb_tentatives=Count('id')
-    ).order_by('score_moyen')[:5]
-
-    articles_populaires = Article.objects.filter(publie=True).order_by('-date_publication')[:5]
-
-    contexte_donnees = f"""
-Formations les plus vendues : {[(f.nom, f.nb_inscrits) for f in formations_stats[:5]]}
-Quiz avec scores les plus bas (difficiles) : {list(quiz_difficiles)}
-Nombre total de formations actives : {Formation.objects.filter(actif=True).count()}
-Nombre d'étudiants inscrits : {User.objects.filter(is_staff=False).count()}
-Chiffre d'affaires : {Order.objects.filter(statut='paye').aggregate(t=Sum('total'))['t'] or 0} $
-"""
-
-    analyse_ia = None
-    if request.GET.get('lancer_analyse'):
-        from academie.ia import analyser_plateforme_ia
-        analyse_ia = analyser_plateforme_ia(contexte_donnees)
-
-    return render(request, 'admin/dashboard_ia.html', {
-        'title': '🧠 Dashboard IA — Intelligence Décisionnelle',
-        'site_header': admin.site.site_header,
-        'formations_stats': formations_stats,
-        'quiz_difficiles': quiz_difficiles,
-        'articles_populaires': articles_populaires,
-        'analyse_ia': analyse_ia,
-    })
-
-
-# ================================================
-# ADMIN.PY — Payment Center
+# ADMIN.PY — Payment Center (Finance, Admin, SuperAdmin)
 # ================================================
 @admin.register(MoyenPaiement)
 class MoyenPaiementAdmin(admin.ModelAdmin):
     list_display = ['icone', 'nom_affiche', 'code', 'actif', 'ordre']
     list_editable = ['actif', 'ordre']
+
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['finance', 'admin']
+        except Exception:
+            return False
+
+    # === RBAC : permissions de modification/suppression ===
+    def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['admin']
+        except Exception:
+            return False
+
+    def has_delete_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['admin']
+        except Exception:
+            return False
 
 
 @admin.register(Coupon)
@@ -501,6 +718,31 @@ class CouponAdmin(admin.ModelAdmin):
     list_editable = ['actif']
     search_fields = ['code']
 
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['finance', 'admin']
+        except Exception:
+            return False
+
+    # === RBAC : permissions de modification/suppression ===
+    def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['admin']
+        except Exception:
+            return False
+
+    def has_delete_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['admin']
+        except Exception:
+            return False
+
 
 @admin.register(Promotion)
 class PromotionAdmin(admin.ModelAdmin):
@@ -508,20 +750,30 @@ class PromotionAdmin(admin.ModelAdmin):
     list_editable = ['actif']
     filter_horizontal = ['ecoles_concernees', 'formations_concernees']
 
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['finance', 'admin']
+        except Exception:
+            return False
 
-class OrderItemInline(admin.TabularInline):
-    model = OrderItem
-    extra = 0
-    readonly_fields = ['formation', 'nom_produit_snapshot', 'prix_unitaire']
+    # === RBAC : permissions de modification/suppression ===
+    def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['admin']
+        except Exception:
+            return False
 
-
-@admin.register(Order)
-class OrderAdmin(admin.ModelAdmin):
-    list_display = ['reference', 'utilisateur', 'total', 'statut', 'date_creation']
-    list_filter = ['statut', 'devise']
-    search_fields = ['reference', 'utilisateur__username']
-    inlines = [OrderItemInline]
-    readonly_fields = ['reference', 'sous_total', 'reduction_totale', 'total']
+    def has_delete_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['admin']
+        except Exception:
+            return False
 
 
 @admin.register(Transaction)
@@ -539,11 +791,56 @@ class TransactionAdmin(admin.ModelAdmin):
         return "—"
     bouton_valider.short_description = 'Action'
 
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['finance', 'admin']
+        except Exception:
+            return False
+
+    # === RBAC : permissions de modification/suppression ===
+    def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['finance', 'admin']
+        except Exception:
+            return False
+
+    def has_delete_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['admin']
+        except Exception:
+            return False
+
 
 @admin.register(Invoice)
 class InvoiceAdmin(admin.ModelAdmin):
     list_display = ['numero_facture', 'commande', 'date_emission']
     search_fields = ['numero_facture']
+
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['finance', 'admin']
+        except Exception:
+            return False
+
+    # === RBAC : factures non modifiables ===
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['admin']
+        except Exception:
+            return False
 
 
 @admin.register(Refund)
@@ -551,66 +848,56 @@ class RefundAdmin(admin.ModelAdmin):
     list_display = ['commande', 'montant', 'statut', 'date_demande']
     list_editable = ['statut']
 
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['finance', 'admin']
+        except Exception:
+            return False
+
+    # === RBAC : permissions de modification/suppression ===
+    def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['finance', 'admin']
+        except Exception:
+            return False
+
+    def has_delete_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['admin']
+        except Exception:
+            return False
+
 
 @admin.register(AccesFormationDebloque)
 class AccesFormationDebloqueAdmin(admin.ModelAdmin):
     list_display = ['utilisateur', 'nom_formation_snapshot', 'date_deblocage']
     search_fields = ['utilisateur__username', 'nom_formation_snapshot']
 
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['finance', 'admin']
+        except Exception:
+            return False
 
-# ========================================================================
-# ADMIN.PY — Enrichissement vue_dashboard_business avec données Chart.js
-# Remplace la méthode existante du même nom
-# ========================================================================
+    # === RBAC : lecture seule ===
+    def has_change_permission(self, request, obj=None):
+        return False
 
-@staff_member_required
-def vue_dashboard_business(self, request):
-    from datetime import timedelta
-    import json
-
-    total_inscriptions = Inscription.objects.count()
-    inscriptions_non_traitees = Inscription.objects.filter(traite=False).count()
-
-    # Revenus réels (basés sur commandes payées — pas potentiels)
-    ca_total = Order.objects.filter(statut='paye').aggregate(total=Sum('total'))['total'] or 0
-
-    # Ventes des 30 derniers jours (pour graphique)
-    labels_jours, valeurs_jours = [], []
-    for i in range(29, -1, -1):
-        jour = timezone.now().date() - timedelta(days=i)
-        montant_jour = Order.objects.filter(
-            statut='paye', date_paiement__date=jour
-        ).aggregate(total=Sum('total'))['total'] or 0
-        labels_jours.append(jour.strftime('%d/%m'))
-        valeurs_jours.append(float(montant_jour))
-
-    # Top formations vendues
-    formations_populaires = Formation.objects.annotate(
-        nb_ventes=Count('orderitem', filter=Q(orderitem__commande__statut='paye'))
-    ).order_by('-nb_ventes')[:8]
-
-    # Répartition par moyen de paiement
-    repartition_moyens = Transaction.objects.filter(statut='reussie').values(
-        'moyen_paiement__nom_affiche'
-    ).annotate(total=Count('id'))
-
-    coupons_utilises = Coupon.objects.filter(utilisations_actuelles__gt=0).count()
-    remboursements_total = Refund.objects.filter(statut='approuve').aggregate(total=Sum('montant'))['total'] or 0
-
-    return render(request, 'admin/dashboard_business.html', {
-        'title': '💼 Dashboard Business',
-        'site_header': admin.site.site_header,
-        'ca_total': ca_total,
-        'total_inscriptions': total_inscriptions,
-        'inscriptions_non_traitees': inscriptions_non_traitees,
-        'formations_populaires': formations_populaires,
-        'coupons_utilises': coupons_utilises,
-        'remboursements_total': remboursements_total,
-        'chart_labels_json': json.dumps(labels_jours),
-        'chart_valeurs_json': json.dumps(valeurs_jours),
-        'chart_moyens_labels': json.dumps([m['moyen_paiement__nom_affiche'] or 'N/A' for m in repartition_moyens]),
-        'chart_moyens_valeurs': json.dumps([m['total'] for m in repartition_moyens]),
-    })
+    def has_delete_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['admin']
+        except Exception:
+            return False
 
 
 # ================================================
@@ -676,3 +963,57 @@ def grouped_app_list(request):
     return app_list
 
 admin.site.get_app_list = grouped_app_list
+
+
+# ================================================
+# ADMIN — ProfilUtilisateur & LogAudit
+# ================================================
+
+@admin.register(ProfilUtilisateur)
+class ProfilUtilisateurAdmin(admin.ModelAdmin):
+    list_display = ['utilisateur', 'role', 'telephone', 'date_creation']
+    list_filter = ['role']
+    list_editable = ['role']
+    search_fields = ['utilisateur__username', 'utilisateur__email']
+
+
+@admin.register(LogAudit)
+class LogAuditAdmin(admin.ModelAdmin):
+    list_display = ['action', 'utilisateur', 'description_courte', 'adresse_ip', 'date_creation']
+    list_filter = ['action']
+    readonly_fields = ['utilisateur', 'action', 'description', 'objet_type', 'objet_id', 'adresse_ip', 'date_creation']
+    search_fields = ['description', 'utilisateur__username']
+
+    def description_courte(self, obj):
+        return obj.description[:80]
+    description_courte.short_description = 'Description'
+
+    def has_add_permission(self, request):
+        return False
+    
+
+# ================================================
+# ADMIN — Enseignants (Admin, SuperAdmin)
+# ================================================
+@admin.register(Enseignant)
+class EnseignantAdmin(admin.ModelAdmin):
+    list_display = ['profil', 'statut', 'nb_formations', 'revenus_generes_affiche', 'nb_etudiants_formes']
+    list_filter = ['statut']
+    filter_horizontal = ['formations_attribuees']
+    list_editable = ['statut']
+
+    def nb_formations(self, obj):
+        return obj.formations_attribuees.count()
+    nb_formations.short_description = 'Formations'
+
+    def revenus_generes_affiche(self, obj):
+        return f"{obj.revenus_generes()} $"
+    revenus_generes_affiche.short_description = 'Revenus générés'
+
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['admin']
+        except Exception:
+            return False

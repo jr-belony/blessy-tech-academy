@@ -24,12 +24,13 @@ from django_ratelimit.decorators import ratelimit
 from django.core.management import call_command
 from django.shortcuts import get_object_or_404
 from io import StringIO
-from .permissions import role_required
+from .permissions import enregistrer_log, role_required
 from .models import (
     Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz, Examen, TentativeExamen, ChoixExamen,
     Module, Lecon, ProgressionLecon, Parcours, Sujet, Reponse, Reaction, 
     ProjetEtudiant, Certificat, Article, OutilRecommande, Temoignage, Promotion, Order,
-    OrderItem, Coupon, Refund, Transaction, AccesFormationDebloque, MoyenPaiement, Invoice,
+    OrderItem, Coupon, Refund, Transaction, AccesFormationDebloque, MoyenPaiement, 
+    Invoice, InteractionCRM, Enseignant
 )
 from .forms import InscriptionForm, InscriptionCompteForm, ConnexionForm, SujetForm, ReponseForm 
 from . import notifications
@@ -314,13 +315,50 @@ def dashboard(request):
     })
 
 # ================================================
-# VUE — Dashboard IA (admin)
+# VUE — Dashboard IA (resp_academique, direction, admin)
 # ================================================
 @login_required
 @role_required('resp_academique', 'direction', 'admin', 'super_admin')
 def vue_dashboard_ia(request):
+    from django.db.models import Count, Avg, Sum, Q
+    from .models import Formation, Order, ResultatQuiz, Article, Lecon
+    from django.contrib.auth.models import User
+
+    formations_stats = Formation.objects.filter(actif=True).annotate(
+        nb_inscrits=Count('orderitem', filter=Q(orderitem__commande__statut='paye')),
+    ).order_by('-nb_inscrits')[:10]
+
+    lecons_abandon = Lecon.objects.annotate(
+        nb_vues=Count('progressions'),
+        nb_terminees=Count('progressions', filter=Q(progressions__terminee=True)),
+    ).filter(nb_vues__gt=0)
+
+    quiz_difficiles = ResultatQuiz.objects.values('quiz__titre').annotate(
+        score_moyen=Avg('score'), nb_tentatives=Count('id')
+    ).order_by('score_moyen')[:5]
+
+    articles_populaires = Article.objects.filter(publie=True).order_by('-date_publication')[:5]
+
+    contexte_donnees = f"""
+Formations les plus vendues : {[(f.nom, f.nb_inscrits) for f in formations_stats[:5]]}
+Quiz avec scores les plus bas (difficiles) : {list(quiz_difficiles)}
+Nombre total de formations actives : {Formation.objects.filter(actif=True).count()}
+Nombre d'étudiants inscrits : {User.objects.filter(is_staff=False).count()}
+Chiffre d'affaires : {Order.objects.filter(statut='paye').aggregate(t=Sum('total'))['t'] or 0} $
+"""
+
+    analyse_ia = None
+    if request.GET.get('lancer_analyse'):
+        from .ia import analyser_plateforme_ia
+        analyse_ia = analyser_plateforme_ia(contexte_donnees)
+    if analyse_ia:
+        analyse_ia = analyse_ia.replace('##', '').replace('**', '').replace('---', '')
     return render(request, 'admin/dashboard_ia.html', {
-        'title': '🤖 Dashboard IA',
+        'title': '🧠 Dashboard IA — Intelligence Décisionnelle',
+        'formations_stats': formations_stats,
+        'quiz_difficiles': quiz_difficiles,
+        'articles_populaires': articles_populaires,
+        'analyse_ia': analyse_ia,
     })
 # ================================================
 # Statistiques (admin uniquement)
@@ -2243,7 +2281,13 @@ def admin_valider_transaction(request, transaction_id):
             )
         except Exception:
             pass
-
+# === Journalisation ===
+    from .permissions import enregistrer_log
+    enregistrer_log(
+    request, 'validation_paiement',
+    f"Transaction {trans.id} validée pour commande {commande.reference} ({commande.total}$)",
+    'Transaction', trans.id
+)
     messages.success(request, f"✅ Transaction validée — Accès débloqué pour {commande.utilisateur.username}")
     return redirect('/admin/academie/transaction/')
 
@@ -2630,6 +2674,80 @@ def soumettre_examen(request, examen_id):
         'score': score,
         'reussi': tentative.reussi,
         'feedback_ia': feedback_ia,
+    })
+
+
+# ================================================
+# VUES — Dashboard CRM (marketing, support, admin)
+# ================================================
+@login_required
+@role_required('marketing', 'support', 'admin', 'super_admin')
+def dashboard_crm(request):
+    """Centre CRM — gestion des leads/prospects."""
+    statut_filtre = request.GET.get('statut', '')
+
+    leads = Inscription.objects.select_related('formation', 'assigne_a').prefetch_related('interactions')
+    if statut_filtre:
+        leads = leads.filter(statut_lead=statut_filtre)
+
+    stats = {
+        'total': Inscription.objects.count(),
+        'nouveaux': Inscription.objects.filter(statut_lead='nouveau').count(),
+        'convertis': Inscription.objects.filter(statut_lead='converti').count(),
+        'perdus': Inscription.objects.filter(statut_lead='perdu').count(),
+    }
+
+    return render(request, 'admin/dashboard_crm.html', {
+        'title': '📢 Centre CRM',
+        'leads': leads.order_by('-date_inscription')[:50],
+        'stats': stats,
+        'statut_filtre': statut_filtre,
+        'statuts': Inscription._meta.get_field('statut_lead').choices,
+    })
+
+
+@login_required
+@role_required('marketing', 'support', 'admin', 'super_admin')
+def ajouter_interaction_crm(request, inscription_id):
+    """Ajoute une interaction à un lead."""
+    if request.method == 'POST':
+        inscription = Inscription.objects.get(id=inscription_id)
+        InteractionCRM.objects.create(
+            inscription=inscription,
+            type_interaction=request.POST.get('type_interaction', 'note'),
+            contenu=request.POST.get('contenu', ''),
+            auteur=request.user,
+        )
+        nouveau_statut = request.POST.get('nouveau_statut')
+        if nouveau_statut:
+            inscription.statut_lead = nouveau_statut
+            inscription.save()
+        messages.success(request, "✅ Interaction ajoutée")
+    return redirect('dashboard_crm')
+
+
+# ================================================
+# VUE — Dashboard Enseignant (formateur, admin)
+# ================================================
+@login_required
+@role_required('formateur', 'resp_academique', 'admin', 'super_admin')
+def dashboard_enseignant(request):
+    """Espace personnel du formateur connecté — ses formations et revenus."""
+    try:
+        enseignant = request.user.profil.enseignant
+    except (AttributeError, Enseignant.DoesNotExist):
+        messages.error(request, "❌ Aucun profil enseignant associé à ce compte.")
+        return redirect('dashboard')
+
+    formations = enseignant.formations_attribuees.all()
+
+    return render(request, 'academie/dashboard_enseignant.html', {
+        'enseignant': enseignant,
+        'formations': formations,
+        'revenus': enseignant.revenus_generes(),
+        'remuneration': enseignant.part_remuneration(),
+        'nb_etudiants': enseignant.nb_etudiants_formes(),
+        'note_moyenne': enseignant.note_moyenne_temoignages(),
     })
 
 

@@ -1,0 +1,39 @@
+<!-- ================================================
+     DASHBOARD_ENSEIGNANT.HTML — Espace personnel formateur
+     ================================================ -->
+{% extends 'academie/base.html' %}
+{% block titre %}Mon espace Formateur{% endblock %}
+{% block contenu %}
+<section style="max-width:900px; margin:60px auto; padding:0 20px;">
+    <h1 style="color:var(--bleu-principal);">👨‍🏫 Mon espace Formateur</h1>
+
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin:24px 0;">
+        <div style="background:white; border:1.5px solid #e2e8f0; border-radius:14px; padding:20px; text-align:center;">
+            <div style="font-size:24px; font-weight:800; color:var(--bleu-principal);">{{ formations.count }}</div>
+            <div style="font-size:12px; color:#a0aec0;">Formations</div>
+        </div>
+        <div style="background:white; border:1.5px solid #e2e8f0; border-radius:14px; padding:20px; text-align:center;">
+            <div style="font-size:24px; font-weight:800; color:var(--bleu-electrique);">{{ nb_etudiants }}</div>
+            <div style="font-size:12px; color:#a0aec0;">Étudiants formés</div>
+        </div>
+        <div style="background:white; border:1.5px solid #e2e8f0; border-radius:14px; padding:20px; text-align:center;">
+            <div style="font-size:24px; font-weight:800; color:#22c55e;">{{ remuneration }} $</div>
+            <div style="font-size:12px; color:#a0aec0;">Ma rémunération</div>
+        </div>
+        <div style="background:white; border:1.5px solid #e2e8f0; border-radius:14px; padding:20px; text-align:center;">
+            <div style="font-size:24px; font-weight:800; color:var(--orange-accent);">{{ note_moyenne|floatformat:1|default:"—" }}⭐</div>
+            <div style="font-size:12px; color:#a0aec0;">Note moyenne</div>
+        </div>
+    </div>
+
+    <h3 style="color:var(--bleu-principal); margin:24px 0 12px;">📚 Mes formations</h3>
+    {% for f in formations %}
+    <div style="background:white; border:1.5px solid #e2e8f0; border-radius:12px; padding:16px 20px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+        <span>{{ f.icone }} {{ f.nom }}</span>
+        <a href="/admin/formation/{{ f.id }}/workspace/" style="color:var(--bleu-electrique); font-weight:700; text-decoration:none; font-size:13px;">Gérer →</a>
+    </div>
+    {% empty %}
+    <p style="color:var(--gris-texte);">Aucune formation attribuée pour le moment.</p>
+    {% endfor %}
+</section>
+{% endblock %}

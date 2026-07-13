@@ -1,0 +1,61 @@
+<!-- ================================================
+     ADMIN/DASHBOARD_CRM.HTML — Centre CRM
+     ================================================ -->
+{% extends "admin/base_site.html" %}
+{% block content %}
+<div style="padding:24px; max-width:1300px;">
+
+    <div style="display:flex; gap:10px; margin-bottom:24px; flex-wrap:wrap;">
+        <a href="/admin/dashboard-editorial/" style="padding:8px 18px; background:#f0f4f8; color:var(--bta-bleu); border-radius:20px; text-decoration:none; font-size:13px; font-weight:700;">📝 Éditorial</a>
+        <a href="/admin/dashboard-business/" style="padding:8px 18px; background:#f0f4f8; color:var(--bta-bleu); border-radius:20px; text-decoration:none; font-size:13px; font-weight:700;">💼 Business</a>
+        <a href="/admin/dashboard-ia/" style="padding:8px 18px; background:#f0f4f8; color:var(--bta-bleu); border-radius:20px; text-decoration:none; font-size:13px; font-weight:700;">🧠 IA</a>
+        <a href="/admin/dashboard-crm/" style="padding:8px 18px; background:var(--bta-bleu); color:white; border-radius:20px; text-decoration:none; font-size:13px; font-weight:700;">📢 CRM</a>
+    </div>
+
+    <h1 style="color:var(--bta-bleu);">📢 Centre CRM</h1>
+
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin:24px 0;">
+        <div class="bta-dash-card"><div style="font-size:26px; font-weight:800; color:var(--bta-bleu);">{{ stats.total }}</div><div>Total leads</div></div>
+        <div class="bta-dash-card"><div style="font-size:26px; font-weight:800; color:var(--bta-cyan);">{{ stats.nouveaux }}</div><div>Nouveaux</div></div>
+        <div class="bta-dash-card"><div style="font-size:26px; font-weight:800; color:#22c55e;">{{ stats.convertis }}</div><div>Convertis</div></div>
+        <div class="bta-dash-card"><div style="font-size:26px; font-weight:800; color:#ef4444;">{{ stats.perdus }}</div><div>Perdus</div></div>
+    </div>
+
+    <div style="display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap;">
+        <a href="?" style="padding:6px 14px; background:{% if not statut_filtre %}var(--bta-bleu){% else %}#f0f4f8{% endif %}; color:{% if not statut_filtre %}white{% else %}var(--bta-bleu){% endif %}; border-radius:14px; text-decoration:none; font-size:12px; font-weight:600;">Tous</a>
+        {% for code, label in statuts %}
+        <a href="?statut={{ code }}" style="padding:6px 14px; background:{% if statut_filtre == code %}var(--bta-bleu){% else %}#f0f4f8{% endif %}; color:{% if statut_filtre == code %}white{% else %}var(--bta-bleu){% endif %}; border-radius:14px; text-decoration:none; font-size:12px; font-weight:600;">{{ label }}</a>
+        {% endfor %}
+    </div>
+
+    {% for lead in leads %}
+    <div class="bta-dash-card" style="margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <strong>{{ lead.prenom }} {{ lead.nom }}</strong> — {{ lead.email }}
+                <div style="font-size:12px; color:#718096;">{{ lead.formation }} · {{ lead.date_inscription|date:"d/m/Y" }}</div>
+            </div>
+            <span style="font-size:11px; font-weight:700; padding:4px 10px; border-radius:10px; background:#f0f4f8;">{{ lead.get_statut_lead_display }}</span>
+        </div>
+
+        <form method="POST" action="/admin/crm/interaction/{{ lead.id }}/" style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+            {% csrf_token %}
+            <select name="type_interaction" style="padding:6px; border-radius:6px; border:1px solid #e2e8f0;">
+                <option value="appel">📞 Appel</option>
+                <option value="email">📧 Email</option>
+                <option value="whatsapp">💬 WhatsApp</option>
+                <option value="note">📝 Note</option>
+            </select>
+            <input type="text" name="contenu" placeholder="Note..." style="flex:1; min-width:150px; padding:6px; border-radius:6px; border:1px solid #e2e8f0;">
+            <select name="nouveau_statut" style="padding:6px; border-radius:6px; border:1px solid #e2e8f0;">
+                <option value="">-- Statut --</option>
+                {% for code, label in statuts %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+            </select>
+            <button type="submit" style="padding:6px 14px; background:var(--bta-orange); color:white; border:none; border-radius:6px; cursor:pointer;">Ajouter</button>
+        </form>
+    </div>
+    {% empty %}
+    <p style="color:#718096;">Aucun lead pour ce filtre.</p>
+    {% endfor %}
+</div>
+{% endblock %}
