@@ -24,6 +24,7 @@ from django_ratelimit.decorators import ratelimit
 from django.core.management import call_command
 from django.shortcuts import get_object_or_404
 from io import StringIO
+from .permissions import role_required
 from .models import (
     Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz, Examen, TentativeExamen, ChoixExamen,
     Module, Lecon, ProgressionLecon, Parcours, Sujet, Reponse, Reaction, 
@@ -315,7 +316,8 @@ def dashboard(request):
 # ================================================
 # VUE — Dashboard IA (admin)
 # ================================================
-@staff_member_required
+@login_required
+@role_required('resp_academique', 'direction', 'admin', 'super_admin')
 def vue_dashboard_ia(request):
     return render(request, 'admin/dashboard_ia.html', {
         'title': '🤖 Dashboard IA',
@@ -324,12 +326,12 @@ def vue_dashboard_ia(request):
 # Statistiques (admin uniquement)
 # ================================================
 
-@staff_member_required
+@login_required
+@role_required('direction', 'admin', 'super_admin')
 def statistiques(request):
     """Centre de Commande EdTech - Phases 1, 2 et 3."""
     from django.db.models import Sum
     from django.db.models.functions import TruncMonth
-
     # --- KPIs Phase 1 ---
     total_etudiants = User.objects.filter(is_active=True).count()
     total_formations = Formation.objects.filter(actif=True).count()
@@ -532,16 +534,19 @@ def recommandations_ia(request):
     })
 
 
-@staff_member_required
+# ================================================
+# API — Générer formation via IA (resp académique, admin)
+# ================================================
+@login_required
+@role_required('resp_academique', 'admin', 'super_admin')
 @csrf_exempt
 def api_generer_formation(request):
-    """API pour générer le contenu d'une formation via l'IA (admin only)."""
+    """API pour générer le contenu d'une formation via l'IA."""
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
             nom = data.get('nom', '').strip()
             ecole = data.get('ecole', '').strip()
-
             if not nom:
                 return JsonResponse({'erreur': 'Nom de formation requis'}, status=400)
 
@@ -556,13 +561,14 @@ def api_generer_formation(request):
 
 
 # ================================================
-# Quiz Intelligents
+# API — Générer quiz via IA (resp académique, examinateur, admin)
 # ================================================
 
-@staff_member_required
+@login_required
+@role_required('resp_academique', 'examinateur', 'admin', 'super_admin')
 @csrf_exempt
 def api_generer_quiz(request):
-    """API pour générer un quiz via l'IA (admin only)."""
+    """API pour générer un quiz via l'IA."""
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -642,7 +648,8 @@ def passer_quiz(request, quiz_id):
 
     return render(request, 'academie/passer_quiz.html', {'quiz': quiz})
 
-@staff_member_required
+@login_required
+@role_required('resp_academique', 'admin', 'super_admin')
 @csrf_exempt
 def api_generer_programme(request):
     """API pour générer un programme complet (modules+leçons) via l'IA."""
@@ -696,7 +703,11 @@ def api_generer_programme(request):
     return JsonResponse({'erreur': 'Méthode non autorisée'}, status=405)
 
 
-@staff_member_required
+# ================================================
+# API — Générer contenu leçon via IA (formateur, resp académique, admin)
+# ================================================
+@login_required
+@role_required('formateur', 'resp_academique', 'admin', 'super_admin')
 @csrf_exempt
 def api_generer_contenu_lecon(request):
     """API pour générer le contenu d'UNE leçon via l'IA."""
@@ -733,7 +744,8 @@ def api_generer_contenu_lecon(request):
     return JsonResponse({'erreur': 'Méthode non autorisée'}, status=405)
 
 
-@staff_member_required
+@login_required
+@role_required('resp_academique', 'admin', 'super_admin')
 @csrf_exempt
 def api_generer_contenu_module(request):
     """API pour générer le contenu de TOUTES les leçons d'un module."""
@@ -1420,7 +1432,7 @@ def api_chatbot_tuteur(request):
         return JsonResponse({'erreur': str(e)}, status=500)
     
 
-    # ================================================
+# ================================================
 # Simulateur de carrière
 # ================================================
 
@@ -1799,10 +1811,14 @@ def detail_article(request, slug):
         'articles_lies': articles_lies,
     })
 
-@staff_member_required
+# ================================================
+# API — Générer article via IA (marketing, resp académique, admin)
+# ================================================
+@login_required
+@role_required('marketing', 'resp_academique', 'admin', 'super_admin')
 @csrf_exempt
 def api_generer_article(request):
-    """API pour générer un article via l'IA (admin only)."""
+    """API pour générer un article via l'IA."""
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -1850,9 +1866,13 @@ def api_simuler_carriere(request):
         return JsonResponse({'erreur': str(e)}, status=500)
     
 
-@staff_member_required
+# ================================================
+# VUE — Aperçu article admin (marketing, resp académique, admin)
+# ================================================
+@login_required
+@role_required('marketing', 'resp_academique', 'admin', 'super_admin')
 def apercu_article_admin(request, article_id):
-    """Prévisualisation d'un article — vue admin uniquement, brouillon inclus."""
+    """Prévisualisation d'un article — brouillon inclus."""
     article = Article.objects.get(id=article_id)
     return render(request, 'academie/detail_article.html', {
         'article': article,
@@ -1874,7 +1894,8 @@ def robots_txt(request):
 # =========================================================
 # VUES ADMIN — Prévisualisation et test d'envoi d'emails
 # ==========================================================
-@staff_member_required
+@login_required
+@role_required('resp_academique', 'admin', 'super_admin')
 def admin_email_preview(request, template_name):
     """Prévisualise un email dans le navigateur avec des données factices."""
     contextes_demo = {
@@ -1889,7 +1910,11 @@ def admin_email_preview(request, template_name):
     return render(request, f'emails/notifications/{template_name}.html', contexte)
 
 
-@staff_member_required
+# ================================================
+# VUE — Test email admin (marketing, direction, admin)
+# ================================================
+@login_required
+@role_required('marketing', 'direction', 'admin', 'super_admin')
 def admin_email_test(request):
     """Envoie un email de test à l'admin connecté."""
     if request.method == 'POST':
@@ -1910,7 +1935,8 @@ def admin_email_test(request):
 # ================================================
 # VUES ADMIN — Centre d'administration des Emails
 # ================================================
-@staff_member_required
+@login_required
+@role_required('marketing', 'direction', 'admin', 'super_admin')
 def admin_emails_dashboard(request):
     return render(request, 'admin/emails.html', {
         'title': '📧 Emails',
@@ -1923,14 +1949,17 @@ def admin_emails_dashboard(request):
 #Vue Django pour déclencher les commandes
 #=========================================================
 
-@staff_member_required
+# ================================================
+# VUE — Export synchronisation (direction, admin)
+# ================================================
+@login_required
+@role_required('direction', 'admin', 'super_admin')
 def admin_sync_export(request):
     if request.method == 'POST':
         import json
         import time
         from django.http import HttpResponse
         from academie.models import Ecole, Formation, Module, Lecon
-
         data = {
             'ecoles': [],
             'formations': [],
@@ -1986,7 +2015,11 @@ def admin_sync_export(request):
 
     return redirect('/admin/synchronisation/')
 
-@staff_member_required
+# ================================================
+# VUE — Import synchronisation (direction, admin)
+# ================================================
+@login_required
+@role_required('direction', 'admin', 'super_admin')
 def admin_sync_import(request):
     if request.method == 'POST':
         fichier = request.FILES.get('fichier_import')
@@ -2003,7 +2036,11 @@ def admin_sync_import(request):
     return redirect('/admin/synchronisation/')
 
 
-@staff_member_required
+# ================================================
+# VUE — Dashboard synchronisation (direction, admin)
+# ================================================
+@login_required
+@role_required('direction', 'admin', 'super_admin')
 def admin_sync_dashboard(request):
     from academie.models import Formation
     formations_liste = Formation.objects.filter(actif=True).order_by('nom')
@@ -2015,7 +2052,8 @@ def admin_sync_dashboard(request):
 #===============================================
 #Centre de Gestion de Formation (Workspace)
 #===============================================
-@staff_member_required
+@login_required
+@role_required('resp_academique', 'admin', 'super_admin')
 def workspace_formation(request, formation_id):
     """Centre de gestion pédagogique — arbre + panneau d'édition."""
     formation = Formation.objects.prefetch_related(
@@ -2155,11 +2193,14 @@ def confirmer_paiement(request, order_reference):
     return render(request, 'academie/confirmer_paiement.html', {'commande': commande})
 
 
-@staff_member_required
+# ================================================
+# VUE — Valider transaction (finance, admin)
+# ================================================
+@login_required
+@role_required('finance', 'admin', 'super_admin')
 def admin_valider_transaction(request, transaction_id):
     """Admin — valide manuellement un paiement et débloque l'accès automatiquement."""
     trans = Transaction.objects.select_related('commande').get(id=transaction_id)
-
     with db_transaction.atomic():
         trans.statut = 'reussie'
         trans.valide_par = request.user
@@ -2325,7 +2366,11 @@ def stripe_webhook(request):
     return HttpResponse(status=200)
 
 
-@staff_member_required
+# ================================================
+# VUE — Dashboard Business (finance, direction, admin)
+# ================================================
+@login_required
+@role_required('finance', 'direction', 'admin', 'super_admin')
 def vue_dashboard_business(request):
     from datetime import timedelta
     import json
@@ -2376,10 +2421,11 @@ def vue_dashboard_business(request):
 
 
 # ================================================
-# VIEWS.PY — Export Excel/PDF des ventes
+# VIEWS.PY — Export Excel/PDF des ventes (finance, admin)
 # ================================================
 
-@staff_member_required
+@login_required
+@role_required('finance', 'admin', 'super_admin')
 def export_ventes_excel(request):
     from openpyxl import Workbook
     from openpyxl.styles import Font, PatternFill
@@ -2409,9 +2455,16 @@ def export_ventes_excel(request):
     return response
 
 
-@staff_member_required
+@login_required
+@role_required('finance', 'admin', 'super_admin')
 def export_ventes_pdf(request):
-    from weasyprint import HTML
+    """Export des ventes au format PDF."""
+    try:
+        from weasyprint import HTML
+    except (ImportError, OSError):
+        messages.warning(request, "📄 L'export PDF n'est pas disponible. Utilisez l'export Excel.")
+        return redirect('/admin/dashboard-business/')
+
     commandes = Order.objects.filter(statut='paye').prefetch_related('items')
     ca_total = commandes.aggregate(total=Sum('total'))['total'] or 0
 
@@ -2422,7 +2475,6 @@ def export_ventes_pdf(request):
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="rapport_ventes_bta.pdf"'
     return response
-
 
 # ================================================
 # VUES — Plateforme d'examens officiels modernisée

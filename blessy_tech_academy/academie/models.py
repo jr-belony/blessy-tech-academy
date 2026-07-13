@@ -754,6 +754,9 @@ class Notification(models.Model):
         return f"{statut} {self.titre} — {self.utilisateur.username}"
     
 
+# ================================================
+# MODÈLE — ProfilUtilisateur (XP, niveau, streak, RBAC)
+# ================================================
 class ProfilUtilisateur(models.Model):
     """Profil étendu de l'utilisateur avec XP et niveau."""
     utilisateur = models.OneToOneField(
@@ -764,7 +767,24 @@ class ProfilUtilisateur(models.Model):
     xp = models.IntegerField(default=0)
     streak = models.IntegerField(default=0)  # jours consécutifs
     derniere_activite = models.DateField(null=True, blank=True)
-
+    # === RBAC — Rôle utilisateur ===
+    ROLE_CHOICES = [
+        ('etudiant', 'Étudiant'),
+        ('parent', 'Parent'),
+        ('formateur', 'Formateur'),
+        ('asst_formateur', 'Assistant Formateur'),
+        ('resp_academique', 'Responsable Académique'),
+        ('examinateur', 'Examinateur'),
+        ('correcteur', 'Correcteur'),
+        ('marketing', 'Marketing'),
+        ('support', 'Support'),
+        ('finance', 'Finance'),
+        ('direction', 'Direction'),
+        ('admin', 'Administrateur'),
+        ('super_admin', 'Super Administrateur'),
+        ('api_client', 'API Client'),
+    ]
+    role = models.CharField(max_length=30, choices=ROLE_CHOICES, default='etudiant')
     NIVEAUX = [
         (0, 'Débutant'),
         (500, 'Explorateur'),
