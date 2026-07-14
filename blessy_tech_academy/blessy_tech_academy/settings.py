@@ -89,6 +89,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+MIDDLEWARE += ['academie.middleware.MonitoringPerformanceMiddleware']
 
 # Debug Toolbar (développement uniquement)
 if DEBUG:
@@ -426,6 +427,10 @@ ADMIN_GROUPING = {
 # ================================================
 # SETTINGS.PY — Django REST Framework
 # ================================================
+
+# SETTINGS.PY — Configuration API v2 + Documentation
+INSTALLED_APPS += ['drf_spectacular', 'django_filters']
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
@@ -434,4 +439,28 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated'],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '30/minute',
+        'user': '120/minute',
+    },
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Blessy Tech Academy API',
+    'DESCRIPTION': 'API officielle de la plateforme EdTech Blessy Tech Academy — accès aux formations, articles, progression et écosystème partenaire.',
+    'VERSION': '2.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SWAGGER_UI_SETTINGS': {'deepLinking': True, 'persistAuthorization': True},
+    'TAGS': [
+        {'name': 'Formations', 'description': 'Catalogue de formations'},
+        {'name': 'Articles', 'description': 'Knowledge Center'},
+        {'name': 'Progression', 'description': "Suivi d'apprentissage étudiant"},
+        {'name': 'Auth', 'description': 'Authentification par token'},
+    ],
 }

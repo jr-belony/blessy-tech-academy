@@ -1,30 +1,23 @@
 <!-- ================================================
      ADMIN/DASHBOARD_CRM.HTML — Centre CRM
      ================================================ -->
-{% extends "admin/base_site.html" %}
-{% block content %}
+{% extends "admin/base_backoffice.html" %}
+{% block bo_contenu %}
 <div style="padding:24px; max-width:1300px;">
 
-    <div style="display:flex; gap:10px; margin-bottom:24px; flex-wrap:wrap;">
-        <a href="/admin/dashboard-editorial/" style="padding:8px 18px; background:#f0f4f8; color:var(--bta-bleu); border-radius:20px; text-decoration:none; font-size:13px; font-weight:700;">📝 Éditorial</a>
-        <a href="/admin/dashboard-business/" style="padding:8px 18px; background:#f0f4f8; color:var(--bta-bleu); border-radius:20px; text-decoration:none; font-size:13px; font-weight:700;">💼 Business</a>
-        <a href="/admin/dashboard-ia/" style="padding:8px 18px; background:#f0f4f8; color:var(--bta-bleu); border-radius:20px; text-decoration:none; font-size:13px; font-weight:700;">🧠 IA</a>
-        <a href="/admin/dashboard-crm/" style="padding:8px 18px; background:var(--bta-bleu); color:white; border-radius:20px; text-decoration:none; font-size:13px; font-weight:700;">📢 CRM</a>
-    </div>
-
-    <h1 style="color:var(--bta-bleu);">📢 Centre CRM</h1>
+    <h1 style="color:#0B2447;">📢 Centre CRM</h1>
 
     <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin:24px 0;">
-        <div class="bta-dash-card"><div style="font-size:26px; font-weight:800; color:var(--bta-bleu);">{{ stats.total }}</div><div>Total leads</div></div>
-        <div class="bta-dash-card"><div style="font-size:26px; font-weight:800; color:var(--bta-cyan);">{{ stats.nouveaux }}</div><div>Nouveaux</div></div>
+        <div class="bta-dash-card"><div style="font-size:26px; font-weight:800; color:#0B2447;">{{ stats.total }}</div><div>Total leads</div></div>
+        <div class="bta-dash-card"><div style="font-size:26px; font-weight:800; color:#00B4D8;">{{ stats.nouveaux }}</div><div>Nouveaux</div></div>
         <div class="bta-dash-card"><div style="font-size:26px; font-weight:800; color:#22c55e;">{{ stats.convertis }}</div><div>Convertis</div></div>
         <div class="bta-dash-card"><div style="font-size:26px; font-weight:800; color:#ef4444;">{{ stats.perdus }}</div><div>Perdus</div></div>
     </div>
 
     <div style="display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap;">
-        <a href="?" style="padding:6px 14px; background:{% if not statut_filtre %}var(--bta-bleu){% else %}#f0f4f8{% endif %}; color:{% if not statut_filtre %}white{% else %}var(--bta-bleu){% endif %}; border-radius:14px; text-decoration:none; font-size:12px; font-weight:600;">Tous</a>
+        <a href="?" style="padding:6px 14px; background:{% if not statut_filtre %}#0B2447{% else %}#f0f4f8{% endif %}; color:{% if not statut_filtre %}white{% else %}#0B2447{% endif %}; border-radius:14px; text-decoration:none; font-size:12px; font-weight:600;">Tous</a>
         {% for code, label in statuts %}
-        <a href="?statut={{ code }}" style="padding:6px 14px; background:{% if statut_filtre == code %}var(--bta-bleu){% else %}#f0f4f8{% endif %}; color:{% if statut_filtre == code %}white{% else %}var(--bta-bleu){% endif %}; border-radius:14px; text-decoration:none; font-size:12px; font-weight:600;">{{ label }}</a>
+        <a href="?statut={{ code }}" style="padding:6px 14px; background:{% if statut_filtre == code %}#0B2447{% else %}#f0f4f8{% endif %}; color:{% if statut_filtre == code %}white{% else %}#0B2447{% endif %}; border-radius:14px; text-decoration:none; font-size:12px; font-weight:600;">{{ label }}</a>
         {% endfor %}
     </div>
 
@@ -51,7 +44,7 @@
                 <option value="">-- Statut --</option>
                 {% for code, label in statuts %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
             </select>
-            <button type="submit" style="padding:6px 14px; background:var(--bta-orange); color:white; border:none; border-radius:6px; cursor:pointer;">Ajouter</button>
+            <button type="submit" style="padding:6px 14px; background:#FF6B35; color:white; border:none; border-radius:6px; cursor:pointer;">Ajouter</button>
         </form>
     </div>
     {% empty %}

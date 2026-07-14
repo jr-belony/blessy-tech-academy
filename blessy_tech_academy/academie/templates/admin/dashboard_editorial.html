@@ -1,40 +1,28 @@
-{% extends "admin/base_site.html" %}
+{% extends "admin/base_backoffice.html" %}
+{% block bo_contenu %}
 {% block extrahead %}
 <link rel="stylesheet" href="/static/academie/admin/theme_premium.css">
 <style>
-    /* Styles pour le dashboard éditorial */
     .dash-container { padding: 24px; max-width: 1300px; }
-    .dash-tabs { display: flex; gap: 10px; margin-bottom: 24px; }
-    .dash-tab { padding: 8px 18px; border-radius: 20px; text-decoration: none; font-size: 13px; font-weight: 700; }
-    .dash-tab.active { background: var(--bta-bleu); color: white; }
-    .dash-tab.inactive { background: #f0f4f8; color: var(--bta-bleu); }
-    .dash-title { color: var(--bta-bleu); margin-bottom: 24px; }
+    .dash-title { color: #0B2447; margin-bottom: 24px; }
     .dash-kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
     .dash-kpi { font-size: 32px; font-weight: 800; }
-    .dash-kpi.blue { color: var(--bta-bleu); }
+    .dash-kpi.blue { color: #0B2447; }
     .dash-kpi.green { color: #22c55e; }
-    .dash-kpi.orange { color: var(--bta-orange); }
+    .dash-kpi.orange { color: #FF6B35; }
     .dash-kpi-label { color: #718096; font-size: 13px; }
-    .dash-card { margin-bottom: 24px; border-left: 4px solid var(--bta-orange); }
+    .dash-card { margin-bottom: 24px; border-left: 4px solid #FF6B35; }
     .dash-card.red { border-left-color: #ef4444; }
-    .dash-card h3 { color: var(--bta-bleu); margin-bottom: 12px; }
+    .dash-card h3 { color: #0B2447; margin-bottom: 12px; }
     .dash-link { display: block; padding: 8px 0; color: #0B2447; text-decoration: none; border-bottom: 1px solid #f0f0f0; }
-    .dash-link.blue { color: var(--bta-bleu); }
-    .dash-article-link { display: flex; justify-content: space-between; padding: 10px 0; color: var(--bta-bleu); text-decoration: none; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+    .dash-link.blue { color: #0B2447; }
+    .dash-article-link { display: flex; justify-content: space-between; padding: 10px 0; color: #0B2447; text-decoration: none; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
     .dash-article-status.published { color: #22c55e; }
     .dash-article-status.draft { color: #a0aec0; }
 </style>
 {% endblock %}
 
-{% block content %}
 <div class="dash-container">
-
-    <div class="dash-tabs">
-        <a href="/admin/dashboard-editorial/" class="dash-tab active">📝 Éditorial</a>
-        <a href="/admin/dashboard-business/" class="dash-tab inactive">💼 Business</a>
-        <a href="/admin/gestion-cours/" class="dash-tab inactive">🎓 Pédagogique</a>
-    </div>
-
     <h1 class="dash-title">📝 Dashboard Éditorial</h1>
 
     <div class="dash-kpi-grid">
@@ -75,7 +63,7 @@
     {% endif %}
 
     <div class="bta-dash-card">
-        <h3 style="color:var(--bta-bleu); margin-bottom:12px;">📰 Derniers articles</h3>
+        <h3 style="color:#0B2447; margin-bottom:12px;">📰 Derniers articles</h3>
         {% for a in derniers_articles %}
         <a href="/admin/academie/article/{{ a.id }}/change/" class="dash-article-link">
             <span>{{ a.titre }}</span>

@@ -1,0 +1,164 @@
+<!-- ================================================
+     ADMIN/BASE_BACKOFFICE.HTML — Design System Back Office
+     Tous les futurs dashboards admin étendent CE fichier
+     (pas base_site.html directement)
+     ================================================ -->
+{% extends "admin/base_site.html" %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+:root {
+    --bo-bleu: #003B8E;
+    --bo-cyan: #00B5E2;
+    --bo-orange: #FF6B00;
+    --bo-blanc: #FFFFFF;
+    --bo-gris-fond: #F5F7FA;
+    --bo-gris-bordure: #E2E8F0;
+    --bo-texte: #1A202C;
+    --bo-texte-secondaire: #718096;
+}
+
+body.bo-dark-mode {
+    --bo-blanc: #12172b;
+    --bo-gris-fond: #0a0e1c;
+    --bo-gris-bordure: #232b45;
+    --bo-texte: #f0f4f8;
+    --bo-texte-secondaire: #94a3b8;
+}
+
+.bo-shell { display: flex; min-height: calc(100vh - 60px); background: var(--bo-gris-fond); }
+
+/* ---- SIDEBAR ---- */
+.bo-sidebar {
+    width: 260px; background: var(--bo-blanc); border-right: 1px solid var(--bo-gris-bordure);
+    padding: 20px 12px; flex-shrink: 0; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+}
+.bo-sidebar-section { margin-bottom: 20px; }
+.bo-sidebar-titre { font-size: 11px; font-weight: 700; color: var(--bo-texte-secondaire); text-transform: uppercase; letter-spacing: 1px; padding: 0 12px; margin-bottom: 8px; }
+.bo-sidebar-lien {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px;
+    color: var(--bo-texte); text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s;
+}
+.bo-sidebar-lien:hover { background: var(--bo-gris-fond); }
+.bo-sidebar-lien.actif { background: var(--bo-bleu); color: white; font-weight: 700; }
+
+/* ---- TOPBAR ---- */
+.bo-topbar { display: flex; justify-content: space-between; align-items: center; padding: 14px 24px; background: var(--bo-blanc); border-bottom: 1px solid var(--bo-gris-bordure); }
+.bo-search-global { flex: 1; max-width: 400px; position: relative; }
+.bo-search-global input {
+    width: 100%; padding: 9px 14px 9px 36px; border: 1.5px solid var(--bo-gris-bordure); border-radius: 10px;
+    font-size: 13px; background: var(--bo-gris-fond); color: var(--bo-texte);
+}
+.bo-search-icone { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.5; }
+.bo-search-kbd { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 10px; background: var(--bo-gris-bordure); padding: 2px 6px; border-radius: 4px; color: var(--bo-texte-secondaire); }
+
+.bo-topbar-actions { display: flex; align-items: center; gap: 10px; }
+.bo-icon-btn { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--bo-gris-bordure); background: var(--bo-blanc); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+
+/* ---- CONTENU ---- */
+.bo-contenu { flex: 1; padding: 24px; overflow-x: hidden; }
+
+/* ---- CARTES KPI ---- */
+.bo-kpi-grille { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.bo-kpi-card {
+    background: var(--bo-blanc); border: 1px solid var(--bo-gris-bordure); border-radius: 16px; padding: 20px;
+    transition: all 0.2s;
+}
+.bo-kpi-card:hover { box-shadow: 0 8px 24px rgba(0,59,142,0.08); transform: translateY(-2px); }
+.bo-kpi-label { font-size: 12px; color: var(--bo-texte-secondaire); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.bo-kpi-valeur { font-size: 28px; font-weight: 800; color: var(--bo-texte); }
+.bo-kpi-tendance { font-size: 12px; font-weight: 600; margin-top: 6px; }
+.bo-kpi-tendance.positif { color: #22c55e; }
+.bo-kpi-tendance.negatif { color: #ef4444; }
+
+/* ---- CARTE GÉNÉRIQUE ---- */
+.bo-card { background: var(--bo-blanc); border: 1px solid var(--bo-gris-bordure); border-radius: 16px; padding: 24px; margin-bottom: 20px; }
+.bo-card h3 { color: var(--bo-texte); font-size: 16px; margin-bottom: 16px; }
+
+/* ---- MODAL RECHERCHE GLOBALE ---- */
+.bo-search-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 5000; align-items: flex-start; justify-content: center; padding-top: 100px; }
+.bo-search-modal-overlay.actif { display: flex; }
+.bo-search-modal { background: var(--bo-blanc); border-radius: 16px; width: 600px; max-width: 90%; padding: 20px; box-shadow: 0 40px 100px rgba(0,0,0,0.4); }
+
+@media (max-width: 900px) {
+    .bo-sidebar { position: fixed; left: -260px; z-index: 999; transition: left 0.3s; box-shadow: 0 0 40px rgba(0,0,0,0.2); }
+    .bo-sidebar.ouvert { left: 0; }
+    .bo-search-global { max-width: 200px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bo-shell">
+
+    <!-- SIDEBAR -->
+    <aside class="bo-sidebar" id="bo-sidebar">
+        <div class="bo-sidebar-section">
+            <div class="bo-sidebar-titre">Vue d'ensemble</div>
+            <a href="/admin/dashboard-business/" class="bo-sidebar-lien {% if 'business' in request.path %}actif{% endif %}">💼 Business</a>
+            <a href="/admin/dashboard-editorial/" class="bo-sidebar-lien {% if 'editorial' in request.path %}actif{% endif %}">📝 Éditorial</a>
+            <a href="/admin/dashboard-ia/" class="bo-sidebar-lien {% if 'dashboard-ia' in request.path %}actif{% endif %}">🧠 Intelligence IA</a>
+            <a href="/admin/dashboard-crm/" class="bo-sidebar-lien {% if 'crm' in request.path %}actif{% endif %}">📢 CRM</a>
+        </div>
+        <div class="bo-sidebar-section">
+            <div class="bo-sidebar-titre">Pédagogie</div>
+            <a href="/admin/gestion-cours/" class="bo-sidebar-lien">🎓 Gestion des cours</a>
+            <a href="/admin/academie/enseignant/" class="bo-sidebar-lien">👨‍🏫 Enseignants</a>
+            <a href="/admin/academie/examen/" class="bo-sidebar-lien">📋 Examens</a>
+        </div>
+        <div class="bo-sidebar-section">
+            <div class="bo-sidebar-titre">Système</div>
+            <a href="/admin/synchronisation/" class="bo-sidebar-lien">🔄 Synchronisation</a>
+            <a href="/admin/emails/" class="bo-sidebar-lien">📧 Emails</a>
+            <a href="/admin/academie/logaudit/" class="bo-sidebar-lien">🛡️ Logs d'audit</a>
+            <a href="/api/docs/" class="bo-sidebar-lien">📡 API Docs</a>
+        </div>
+    </aside>
+
+    <div style="flex:1; display:flex; flex-direction:column;">
+        <!-- TOPBAR -->
+        <div class="bo-topbar">
+            <div class="bo-search-global">
+                <span class="bo-search-icone">🔍</span>
+                <input type="text" placeholder="Rechercher..." onclick="ouvrirRechercheBO()" readonly>
+                <span class="bo-search-kbd">Ctrl+K</span>
+            </div>
+            <div class="bo-topbar-actions">
+                <button class="bo-icon-btn" onclick="toggleDarkModeBO()">🌙</button>
+                <button class="bo-icon-btn" onclick="document.getElementById('bo-sidebar').classList.toggle('ouvert')" style="display:none;" id="bo-burger">☰</button>
+            </div>
+        </div>
+
+        <!-- CONTENU (chaque dashboard remplit ce bloc) -->
+        <div class="bo-contenu">
+            {% block bo_contenu %}{% endblock %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal recherche globale Back Office -->
+<div class="bo-search-modal-overlay" id="bo-search-overlay" onclick="fermerRechercheBO()">
+    <div class="bo-search-modal" onclick="event.stopPropagation()">
+        <input type="text" placeholder="Rechercher formations, étudiants, commandes..." style="width:100%; padding:12px; border:1px solid var(--bo-gris-bordure); border-radius:8px; font-size:14px;" id="bo-search-input">
+        <div style="margin-top:12px; font-size:12px; color:var(--bo-texte-secondaire);">
+            Raccourcis : <kbd>Formations</kbd> <kbd>Étudiants</kbd> <kbd>Commandes</kbd>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleDarkModeBO() {
+    document.body.classList.toggle('bo-dark-mode');
+    localStorage.setItem('bo-dark-mode', document.body.classList.contains('bo-dark-mode') ? '1' : '0');
+}
+if (localStorage.getItem('bo-dark-mode') === '1') document.body.classList.add('bo-dark-mode');
+
+function ouvrirRechercheBO() { document.getElementById('bo-search-overlay').classList.add('actif'); document.getElementById('bo-search-input').focus(); }
+function fermerRechercheBO() { document.getElementById('bo-search-overlay').classList.remove('actif'); }
+document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); ouvrirRechercheBO(); }
+    if (e.key === 'Escape') fermerRechercheBO();
+});
+</script>
+{% endblock %}

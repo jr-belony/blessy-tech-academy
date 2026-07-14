@@ -78,3 +78,29 @@ class SecurityHeadersMiddleware:
             # HSTS est géré par Django settings (SECURE_HSTS_SECONDS)
 
         return response
+    
+
+# ================================================
+# MIDDLEWARE — Monitoring requêtes lentes
+# ================================================
+import time
+import logging
+
+logger = logging.getLogger('bta_performance')
+
+
+class MonitoringPerformanceMiddleware:
+    """Log les requêtes HTTP prenant plus de 1 seconde — alerte proactive."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        debut = time.time()
+        response = self.get_response(request)
+        duree = time.time() - debut
+
+        if duree > 1.0:
+            logger.warning(f"⚠️ Requête lente ({duree:.2f}s) : {request.path}")
+
+        return response

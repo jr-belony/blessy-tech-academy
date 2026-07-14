@@ -134,7 +134,7 @@ def contact(request):
 def formations(request):
     """Page des formations organisées par école + formations gratuites + parcours professionnels."""
 
-    ecoles = Ecole.objects.prefetch_related('formations').all()
+    ecoles = Ecole.objects.prefetch_related('formations__modules').all()
 
     formations_gratuites = Formation.objects.filter(
         actif=True,
@@ -994,15 +994,19 @@ def telecharger_certificat(request, formation_id):
 # Forum Communautaire
 # ================================================
 
+# VUE — Forum (liste des sujets, optimisé N+1)
 def forum_liste(request):
     """Page principale du forum — liste tous les sujets."""
+    from django.db.models import Count as DjangoCount
+
     categorie = request.GET.get('categorie', '')
     formation_id = request.GET.get('formation', '')
     recherche = request.GET.get('q', '')
 
-    sujets = Sujet.objects.select_related(
-        'auteur', 'formation'
-    ).all()
+    sujets = Sujet.objects.select_related('auteur', 'formation').annotate(
+        nb_reponses_calc=DjangoCount('reponses', distinct=True),
+        nb_likes_calc=DjangoCount('reactions', distinct=True),
+    )
 
     if categorie:
         sujets = sujets.filter(categorie=categorie)
@@ -1016,7 +1020,6 @@ def forum_liste(request):
             Q(contenu__icontains=recherche)
         )
 
-    # Pagination — 10 sujets par page
     paginator = Paginator(sujets, 10)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)

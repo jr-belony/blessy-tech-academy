@@ -30,3 +30,39 @@ class ProgressionSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProgressionLecon
         fields = ['id', 'lecon_titre', 'terminee', 'date_completion']
+
+
+# ================================================
+# API_SERIALIZERS.PY — Extensions v2 (Parcours, Ecole détaillée)
+# ================================================
+
+from rest_framework import serializers
+from .models import Parcours, Module, Lecon
+
+
+class ModuleSerializer(serializers.ModelSerializer):
+    nombre_lecons = serializers.SerializerMethodField()
+    class Meta:
+        model = Module
+        fields = ['id', 'titre', 'description', 'ordre', 'nombre_lecons']
+    def get_nombre_lecons(self, obj):
+        return obj.lecons.count()
+
+
+class FormationDetailSerializer(serializers.ModelSerializer):
+    """Version enrichie avec modules — pour /formations/{id}/detail/"""
+    ecole = serializers.StringRelatedField()
+    modules = ModuleSerializer(many=True, read_only=True)
+    class Meta:
+        model = Formation
+        fields = ['id', 'nom', 'icone', 'description', 'duree_mois', 'prix', 'niveau', 'gratuit', 'ecole', 'modules', 'debouches', 'prerequis']
+
+
+class ParcoursSerializer(serializers.ModelSerializer):
+    formations = FormationSerializer(many=True, read_only=True)
+    nombre_formations = serializers.SerializerMethodField()
+    class Meta:
+        model = Parcours
+        fields = ['id', 'titre', 'icone', 'description', 'duree_mois', 'prix', 'formations', 'nombre_formations']
+    def get_nombre_formations(self, obj):
+        return obj.formations.count()

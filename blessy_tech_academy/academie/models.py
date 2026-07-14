@@ -46,11 +46,7 @@ class Formation(models.Model):
     """
     Représente une formation proposée par Blessy Tech Academy.
     """
-
-    # ==========================================================
     # 1. CONSTANTES
-    # ==========================================================
-
     NIVEAUX = [
         ('debutant', 'Débutant'),
         ('intermediaire', 'Intermédiaire'),
@@ -58,10 +54,7 @@ class Formation(models.Model):
         ('professionnel', 'Professionnel'),
     ]
 
-    # ==========================================================
     # 2. INFORMATIONS GÉNÉRALES
-    # ==========================================================
-
     ecole = models.ForeignKey(
         Ecole,
         on_delete=models.SET_NULL,
@@ -103,20 +96,13 @@ class Formation(models.Model):
         help_text="Formation gratuite (Lead Magnet)"
     )
 
-    # ==========================================================
     # 3. PROGRAMME & CONTENU
-    # ==========================================================
-
     prerequis = models.TextField(blank=True)
 
     debouches = models.TextField(blank=True)
 
     certifications = models.TextField(blank=True)
-
-    # ==========================================================
     # 4. EMPLOYABILITÉ & CARRIÈRE
-    # ==========================================================
-
     metiers = models.TextField(
         blank=True,
         help_text="Un métier par ligne"
@@ -181,22 +167,14 @@ class Formation(models.Model):
         blank=True,
         help_text="Ex : 2 000 à 6 000 USD/mois"
     )
-
-    # ==========================================================
     # 5. MARKETING & PARTAGE
-    # ==========================================================
-
     message_partage = models.CharField(
         max_length=500,
         blank=True,
         default="",
         help_text="Message utilisé lors du partage automatique."
     )
-
-    # ==========================================================
     # 6. UPSELL / CROSS-SELL
-    # ==========================================================
-
     formation_upgrade = models.ForeignKey(
         'self',
         on_delete=models.SET_NULL,
@@ -205,19 +183,11 @@ class Formation(models.Model):
         related_name='formations_gratuites',
         help_text="Formation premium recommandée après cette formation gratuite"
     )
-
-    # ==========================================================
     # 7. MÉTADONNÉES
-    # ==========================================================
-
     date_creation = models.DateTimeField(
         auto_now_add=True
     )
-
-    # ==========================================================
     # 8. CONFIGURATION DJANGO
-    # ==========================================================
-
     class Meta:
         ordering = ['nom']
         verbose_name = 'Formation'
@@ -229,10 +199,7 @@ class Formation(models.Model):
             models.Index(fields=['ecole', 'actif']),
         ]
 
-    # ==========================================================
     # 9. MÉTHODES
-    # ==========================================================
-
     def __str__(self):
         return f"{self.icone} {self.nom} ({self.duree_mois} mois)"
 
@@ -405,6 +372,10 @@ class ResultatQuiz(models.Model):
             return 0
         return round((self.score / self.total_questions) * 100)
     
+
+# ================================================
+# MODÈLE — Module (regroupement de leçons)
+# ================================================
 class Module(models.Model):
     """Un module = un chapitre/section d'une formation."""
 
@@ -429,6 +400,9 @@ class Module(models.Model):
         return self.lecons.count()
 
 
+# ================================================
+# MODÈLE — Leçon (contenu pédagogique)
+# ================================================
 class Lecon(models.Model):
     """Une leçon = un contenu pédagogique précis dans un module."""
 
@@ -460,6 +434,9 @@ class Lecon(models.Model):
         return f"{self.module.titre} — {self.titre}"
         history = HistoricalRecords()   # ← AJOUTE À LA FIN
 
+# ================================================
+# MODÈLE — ProgressionLecon (suivi apprentissage)
+# ================================================
 class ProgressionLecon(models.Model):
     """Suit la progression d'un étudiant sur une leçon."""
 
@@ -475,16 +452,20 @@ class ProgressionLecon(models.Model):
     )
     terminee = models.BooleanField(default=False)
     date_completion = models.DateTimeField(null=True, blank=True)
-
     class Meta:
         unique_together = ['utilisateur', 'lecon']
         verbose_name = 'Progression de leçon'
         verbose_name_plural = 'Progressions de leçons'
-
+        indexes = [
+            models.Index(fields=['utilisateur', 'terminee']),
+            models.Index(fields=['lecon', 'terminee']),
+        ]
     def __str__(self):
         statut = "✅" if self.terminee else "⏳"
         return f"{statut} {self.utilisateur.username} — {self.lecon.titre}"
-    
+# ================================================
+# MODÈLE — Parcours (programme multi-formations)
+# ================================================    
 class Parcours(models.Model):
     """Un parcours professionnel = combinaison de plusieurs formations."""
 
@@ -512,7 +493,9 @@ class Parcours(models.Model):
     def nombre_formations(self):
         return self.formations.count()
     
-
+# ================================================
+# MODÈLE — Sujet (forum communautaire)
+# ================================================
 class Sujet(models.Model):
     """Un sujet de discussion dans le forum."""
 
@@ -553,7 +536,10 @@ class Sujet(models.Model):
         ordering = ['-epingle', '-date_creation']
         verbose_name = 'Sujet'
         verbose_name_plural = 'Sujets'
-
+        indexes = [
+            models.Index(fields=['categorie', 'date_creation']),
+            models.Index(fields=['formation']),
+        ]
     def __str__(self):
         return self.titre
 
@@ -563,7 +549,9 @@ class Sujet(models.Model):
     def nombre_likes(self):
         return self.reactions.count()
 
-
+# ================================================
+# MODÈLE — Réponse (forum)
+# ================================================
 class Reponse(models.Model):
     """Une réponse à un sujet du forum."""
 
@@ -593,7 +581,9 @@ class Reponse(models.Model):
     def nombre_likes(self):
         return self.reactions.count()
 
-
+# ================================================
+# MODÈLE — Réaction (like/émotion forum)
+# ================================================
 class Reaction(models.Model):
     """Un like sur un sujet ou une réponse."""
 
@@ -630,7 +620,9 @@ class Reaction(models.Model):
         cible = self.sujet or self.reponse
         return f"❤️ {self.utilisateur.username} → {cible}"
     
-
+# ================================================
+# MODÈLE — BadgeForum (gamification)
+# ================================================
 class BadgeForum(models.Model):
     """Badge attribué à un membre du forum."""
 
@@ -695,7 +687,9 @@ class BadgeForum(models.Model):
     def __str__(self):
         return f"{self.get_type_badge_display()} — {self.utilisateur.username}"
     
-
+# ================================================
+# MODÈLE — ProjetEtudiant (portfolio)
+# ================================================
 class ProjetEtudiant(models.Model):
     """Projet réalisé par un étudiant pour son portfolio."""
     auteur = models.ForeignKey(
@@ -723,6 +717,10 @@ class ProjetEtudiant(models.Model):
 
     def __str__(self):
         return f"{self.titre} par {self.auteur.username}"
+    
+# ================================================
+# MODÈLE — Certificat (certification)
+# ================================================
 class Certificat(models.Model):
     """Certificat émis à un étudiant après complétion d'une formation."""
     utilisateur = models.ForeignKey(
@@ -749,6 +747,9 @@ class Certificat(models.Model):
         return f"Certificat {self.numero} - {self.utilisateur.username} ({self.formation.nom})"
     
 
+# ================================================
+# MODÈLE — Notification (système d'alertes)
+# ================================================
 class Notification(models.Model):
     """Notification envoyée à un utilisateur."""
     utilisateur = models.ForeignKey(
@@ -1248,6 +1249,10 @@ class Order(models.Model):
         ordering = ['-date_creation']
         verbose_name = 'Commande'
         verbose_name_plural = 'Commandes'
+        indexes = [
+            models.Index(fields=['statut', 'date_creation']),
+            models.Index(fields=['utilisateur', 'statut']),
+        ]
 
     def __str__(self):
         return f"Commande #{self.reference} — {self.utilisateur.username}"
@@ -1353,6 +1358,10 @@ class Transaction(models.Model):
         ordering = ['-date_creation']
         verbose_name = 'Transaction'
         verbose_name_plural = 'Transactions'
+        indexes = [
+            models.Index(fields=['statut']),
+            models.Index(fields=['commande', 'statut']),
+        ]
 
     def __str__(self):
         return f"Transaction {self.commande.reference} — {self.get_statut_display()}"
@@ -1398,7 +1407,10 @@ class AccesFormationDebloque(models.Model):
         unique_together = ['utilisateur', 'nom_formation_snapshot']
         verbose_name = "Accès formation débloqué"
         verbose_name_plural = "Accès formations débloqués"
-
+        indexes = [
+            models.Index(fields=['utilisateur']),
+            models.Index(fields=['formation']),
+        ]
     def __str__(self):
         return f"{self.utilisateur.username} → {self.nom_formation_snapshot}"
     
@@ -1406,7 +1418,6 @@ class AccesFormationDebloque(models.Model):
 # ================================================
 # MODELS.PY — Abonnements Premium récurrents
 # ================================================
-
 class PlanAbonnement(models.Model):
     """Plan d'abonnement Premium — administrable."""
 

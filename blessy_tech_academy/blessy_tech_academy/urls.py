@@ -29,13 +29,35 @@ if settings.DEBUG:
     ]
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-# === API REST v1 ===
-router = DefaultRouter()
-router.register('formations', FormationViewSet, basename='api-formations')
-router.register('articles', ArticleViewSet, basename='api-articles')
-router.register('ma-progression', MaProgressionViewSet, basename='api-progression')
+# ================================================
+# URLS — API v1 + v2 + Documentation Swagger
+# ================================================
+
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+from academie.api_views import ParcoursViewSet, FormationV2ViewSet
+
+# --- v1 (rétrocompatibilité) ---
+router_v1 = DefaultRouter()
+router_v1.register('formations', FormationViewSet, basename='api-v1-formations')
+router_v1.register('articles', ArticleViewSet, basename='api-v1-articles')
+router_v1.register('ma-progression', MaProgressionViewSet, basename='api-v1-progression')
+
+# --- v2 enrichie ---
+router_v2 = DefaultRouter()
+router_v2.register('formations', FormationV2ViewSet, basename='api-v2-formations')
+router_v2.register('parcours', ParcoursViewSet, basename='api-v2-parcours')
+router_v2.register('articles', ArticleViewSet, basename='api-v2-articles')
+router_v2.register('ma-progression', MaProgressionViewSet, basename='api-v2-progression')
 
 urlpatterns += [
-    path('api/v1/', include(router.urls)),
+    path('api/v1/', include(router_v1.urls)),
     path('api/v1/token/', obtenir_token_api, name='api-token'),
+
+    path('api/v2/', include(router_v2.urls)),
+    path('api/v2/token/', obtenir_token_api, name='api-v2-token'),
+
+    # Documentation interactive
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ]
