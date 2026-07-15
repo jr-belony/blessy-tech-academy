@@ -1637,3 +1637,101 @@ class Enseignant(models.Model):
         return Temoignage.objects.filter(
             formation_suivie__in=self.formations_attribuees.all(), approuve=True
         ).aggregate(m=Avg('note'))['m']
+    
+
+# ================================================
+# MODELS.PY — Machine à États : Workflow de publication Formation
+# ================================================
+
+class WorkflowFormation(models.Model):
+    """
+    Machine à états pour le cycle de vie d'une formation.
+    Remplace le simple booléen Formation.actif par un vrai processus
+    éditorial avec traçabilité complète.
+    """
+
+    ETATS = [
+        ('brouillon', '📝 Brouillon'),
+        ('en_revision', '🔍 En révision'),
+        ('validee', '✅ Validée — prête à publier'),
+        ('publiee', '🌐 Publiée'),
+        ('suspendue', '⏸️ Suspendue temporairement'),
+        ('archivee', '📦 Archivée'),
+    ]
+
+    # Transitions autorisées : état actuel → liste des états accessibles
+    TRANSITIONS_AUTORISEES = {
+        'brouillon': ['en_revision', 'archivee'],
+        'en_revision': ['brouillon', 'validee'],
+        'validee': ['publiee', 'brouillon'],
+        'publiee': ['suspendue', 'archivee'],
+        'suspendue': ['publiee', 'archivee'],
+        'archivee': [],  # état final, aucune transition sortante
+    }
+
+    formation = models.OneToOneField(Formation, on_delete=models.CASCADE, related_name='workflow')
+    etat_actuel = models.CharField(max_length=20, choices=ETATS, default='brouillon')
+
+    demande_par = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, related_name='workflows_demandes')
+    valide_par = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='workflows_valides')
+
+    checklist_contenu_complet = models.BooleanField(default=False, help_text="Modules et leçons rédigés")
+    checklist_seo_complet = models.BooleanField(default=False, help_text="Description et mots-clés renseignés")
+    checklist_prix_valide = models.BooleanField(default=False, help_text="Prix et promotions vérifiés")
+    checklist_quiz_present = models.BooleanField(default=False, help_text="Au moins un quiz créé")
+
+    commentaire_revision = models.TextField(blank=True, help_text="Retours du réviseur si refus")
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_derniere_transition = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Workflow de formation'
+        verbose_name_plural = 'Workflows de formations'
+
+    def __str__(self):
+        return f"{self.formation.nom} — {self.get_etat_actuel_display()}"
+
+    def peut_transitionner_vers(self, nouvel_etat):
+        """Vérifie si la transition demandée est autorisée par la machine à états."""
+        return nouvel_etat in self.TRANSITIONS_AUTORISEES.get(self.etat_actuel, [])
+
+    def score_checklist(self):
+        """Pourcentage de complétion de la checklist qualité."""
+        items = [self.checklist_contenu_complet, self.checklist_seo_complet,
+                  self.checklist_prix_valide, self.checklist_quiz_present]
+        return round((sum(items) / len(items)) * 100)
+
+    def transitionner(self, nouvel_etat, utilisateur, commentaire=''):
+        """
+        Effectue la transition si autorisée. Retourne (succes: bool, message: str).
+        Synchronise automatiquement Formation.actif selon le nouvel état.
+        """
+        if not self.peut_transitionner_vers(nouvel_etat):
+            return False, f"Transition '{self.etat_actuel}' → '{nouvel_etat}' non autorisée."
+
+        if nouvel_etat == 'publiee' and self.score_checklist() < 100:
+            return False, f"Checklist incomplète ({self.score_checklist()}%) — impossible de publier."
+
+        ancien_etat = self.etat_actuel
+        self.etat_actuel = nouvel_etat
+
+        if nouvel_etat == 'publiee':
+            self.valide_par = utilisateur
+            self.formation.actif = True
+            self.formation.save(update_fields=['actif'])
+        elif nouvel_etat in ['suspendue', 'archivee', 'brouillon']:
+            self.formation.actif = False
+            self.formation.save(update_fields=['actif'])
+
+        if commentaire:
+            self.commentaire_revision = commentaire
+
+        self.save()
+
+        # Journalisation automatique (réutilise LogAudit existant)
+        LogAudit.objects.create(
+            utilisateur=utilisateur, action='publication',
+            description=f"Formation '{self.formation.nom}' : {ancien_etat} → {nouvel_etat}",
+            objet_type='Formation', objet_id=self.formation.id,
+        )
+        return True, f"Transition réussie vers '{self.get_etat_actuel_display()}'"

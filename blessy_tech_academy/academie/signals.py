@@ -167,3 +167,14 @@ def creer_profil_utilisateur(sender, instance, created, **kwargs):
     if created:
         from .models import ProfilUtilisateur
         ProfilUtilisateur.objects.get_or_create(utilisateur=instance, defaults={'role': 'etudiant'})
+
+
+# ================================================
+# SIGNAL — Auto-création WorkflowFormation
+# ================================================
+@receiver(post_save, sender=Formation)
+def creer_workflow_formation(sender, instance, created, **kwargs):
+    """Crée automatiquement un WorkflowFormation pour chaque nouvelle Formation."""
+    if created:
+        from .models import WorkflowFormation
+        WorkflowFormation.objects.get_or_create(formation=instance, defaults={'etat_actuel': 'brouillon'})

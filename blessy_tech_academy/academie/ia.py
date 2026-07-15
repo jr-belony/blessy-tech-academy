@@ -661,3 +661,38 @@ Utilise un ton engageant et inclusif. Structure avec introduction, corps (2-3 se
     except Exception as e:
         logger.exception("Erreur génération article")
         return {'titre': '', 'resume': '', 'contenu': '', 'tags': '', 'erreur': str(e)}
+    
+
+# ================================================
+# IA.PY — Assistant IA intégré au Back Office (aide administrateur)
+# ================================================
+
+def assistant_backoffice_ia(question, contexte_utilisateur):
+    """
+    Assistant conversationnel pour l'administration — aide à naviguer 
+    et comprendre le Back Office, différent de Blessy AI (étudiant).
+    """
+    try:
+        client = initialiser_ia()
+
+        prompt = f"""Tu es l'Assistant Back Office de Blessy Tech Academy — 
+un copilote pour l'équipe administrative (formateurs, comptables, marketing, admin).
+
+Contexte de l'utilisateur : {contexte_utilisateur}
+
+Question : {question}
+
+Tu connais l'architecture de la plateforme :
+- Workflow Formation : brouillon → en_revision → validee → publiee (ou suspendue/archivee)
+- Dashboards disponibles : Business (finances), Éditorial (contenu), CRM (leads), 
+  IA (analyses), Gestion des cours (workspace pédagogique)
+- Rôles : étudiant, formateur, modérateur, support, comptable, marketing, admin
+
+Réponds de façon concise, actionnable, en français, avec des étapes claires 
+si c'est une question "comment faire". Si tu ne connais pas la réponse exacte, 
+oriente vers le bon dashboard plutôt que d'inventer."""
+
+        response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
+        return response.text
+    except Exception as e:
+        return f"❌ Assistant indisponible : {str(e)}"

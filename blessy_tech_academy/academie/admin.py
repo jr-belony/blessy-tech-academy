@@ -12,7 +12,7 @@ from . import views
 from .models import (Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz, Module, Lecon, ProgressionLecon,
 Parcours, Sujet, Reponse, Reaction, OutilRecommande, Article, Temoignage, MoyenPaiement, Coupon, Promotion, Order, OrderItem,
 Invoice, Transaction, Refund, AccesFormationDebloque, ChoixExamen, QuestionExamen, 
-TentativeExamen, Examen, ProfilUtilisateur, LogAudit, InteractionCRM, Enseignant)
+TentativeExamen, Examen, ProfilUtilisateur, LogAudit, InteractionCRM, Enseignant,WorkflowFormation)
 
 # ================================================
 # Thème CSS global pour tout l'admin
@@ -1009,6 +1009,28 @@ class EnseignantAdmin(admin.ModelAdmin):
     def revenus_generes_affiche(self, obj):
         return f"{obj.revenus_generes()} $"
     revenus_generes_affiche.short_description = 'Revenus générés'
+
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['admin']
+        except Exception:
+            return False
+        
+
+# ================================================
+# ADMIN — Workflow Formation (Admin, SuperAdmin)
+# ================================================
+@admin.register(WorkflowFormation)
+class WorkflowFormationAdmin(admin.ModelAdmin):
+    list_display = ['formation', 'etat_actuel', 'score_checklist_affiche', 'demande_par', 'valide_par', 'date_derniere_transition']
+    list_filter = ['etat_actuel']
+    readonly_fields = ['date_creation', 'date_derniere_transition']
+
+    def score_checklist_affiche(self, obj):
+        return f"{obj.score_checklist()}%"
+    score_checklist_affiche.short_description = 'Checklist'
 
     def has_module_permission(self, request):
         if request.user.is_superuser:

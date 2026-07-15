@@ -100,4 +100,9 @@ urlpatterns = [
     # === CRM ===
     path('admin/dashboard-crm/', views.dashboard_crm, name='dashboard_crm'),
     path('admin/crm/interaction/<int:inscription_id>/', views.ajouter_interaction_crm, name='ajouter_interaction_crm'),
+    # === Workflow Formation (machine à états) ===
+    path('admin/workflow/<int:formation_id>/transition/', views.transitionner_workflow_formation, name='transitionner_workflow'),
+    path('admin/workflow/<int:formation_id>/checklist/', views.mettre_a_jour_checklist, name='mettre_a_jour_checklist'),
+    # === Assistant IA Back Office ===
+    path('api/assistant-backoffice/', views.api_assistant_backoffice, name='api_assistant_backoffice'),
 ]

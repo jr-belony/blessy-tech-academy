@@ -30,11 +30,16 @@ from .models import (
     Module, Lecon, ProgressionLecon, Parcours, Sujet, Reponse, Reaction, 
     ProjetEtudiant, Certificat, Article, OutilRecommande, Temoignage, Promotion, Order,
     OrderItem, Coupon, Refund, Transaction, AccesFormationDebloque, MoyenPaiement, 
-    Invoice, InteractionCRM, Enseignant
+    Invoice, InteractionCRM, Enseignant, WorkflowFormation 
 )
 from .forms import InscriptionForm, InscriptionCompteForm, ConnexionForm, SujetForm, ReponseForm 
 from . import notifications
 from .xp_utils import ajouter_xp
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema, inline_serializer
+from rest_framework import serializers
 from .ia import (
     blessy_ai_repondre,
     recommander_formations,
@@ -1890,6 +1895,46 @@ def parcours_professionnels(request):
     })
 
 
+# ================================================
+# API — Assistant Back Office (équipe admin)
+# ================================================
+@extend_schema(
+    tags=['Back Office'],
+    description='Assistant IA pour les administrateurs – réponse en HTML',
+    request=inline_serializer(name='AssistantBackOfficeRequest', fields={
+        'question': serializers.CharField()
+    }),
+    responses={
+        200: inline_serializer(name='AssistantBackOfficeResponse', fields={
+            'reponse': serializers.CharField()
+        })
+    }
+)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@login_required
+@role_required('formateur', 'resp_academique', 'marketing', 'support', 'finance', 'direction', 'admin', 'super_admin')
+def api_assistant_backoffice(request):
+    """Chat assistant intégré au Back Office."""
+    question = request.data.get('question', '').strip()
+    if not question:
+        return Response({'erreur': 'Question vide'}, status=400)
+
+    contexte = f"Rôle: {request.user.profil.get_role_display()}, Utilisateur: {request.user.username}"
+
+    from .ia import assistant_backoffice_ia
+    reponse_brute = assistant_backoffice_ia(question, contexte)
+
+    # Convertit la réponse Markdown en HTML pour une meilleure lisibilité
+    try:
+        reponse_html = markdown_lib.markdown(reponse_brute)
+    except Exception:
+        reponse_html = reponse_brute  # fallback en cas d'échec
+
+    return Response({'reponse': reponse_html})
+
+
+
 @csrf_exempt
 @require_POST
 def api_simuler_carriere(request):
@@ -2109,6 +2154,49 @@ def workspace_formation(request, formation_id):
         'title': f'Centre de Gestion — {formation.nom}',
         'site_header': admin.site.site_header,
     })
+
+
+# ================================================
+# VUES — Actions Workflow Formation (admin, formateur)
+# ================================================
+
+@login_required
+@role_required('formateur', 'resp_academique', 'admin', 'super_admin')
+def transitionner_workflow_formation(request, formation_id):
+    """Action de transition d'état — appelée depuis le Workspace Formation."""
+    if request.method == 'POST':
+        formation = get_object_or_404(Formation, id=formation_id)
+        workflow, _ = WorkflowFormation.objects.get_or_create(formation=formation)
+
+        nouvel_etat = request.POST.get('nouvel_etat')
+        commentaire = request.POST.get('commentaire', '')
+
+        succes, message = workflow.transitionner(nouvel_etat, request.user, commentaire)
+
+        if succes:
+            messages.success(request, f"✅ {message}")
+        else:
+            messages.error(request, f"❌ {message}")
+
+    return redirect(f'/admin/formation/{formation_id}/workspace/')
+
+
+@login_required
+@role_required('formateur', 'resp_academique', 'admin', 'super_admin')
+def mettre_a_jour_checklist(request, formation_id):
+    """Coche/décoche un item de checklist qualité."""
+    if request.method == 'POST':
+        formation = get_object_or_404(Formation, id=formation_id)
+        workflow, _ = WorkflowFormation.objects.get_or_create(formation=formation)
+
+        champ = request.POST.get('champ')
+        valeur = request.POST.get('valeur') == 'true'
+
+        if champ in ['checklist_contenu_complet', 'checklist_seo_complet', 'checklist_prix_valide', 'checklist_quiz_present']:
+            setattr(workflow, champ, valeur)
+            workflow.save()
+
+    return redirect(f'/admin/formation/{formation_id}/workspace/')
 
 
 # ================================================
