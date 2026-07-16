@@ -617,14 +617,12 @@ class GestionCoursAdminSite(AdminThemeMixin):
             # === Export Ventes (Excel / PDF) ===
             path('export/ventes-excel/', views.export_ventes_excel, name='export_ventes_excel'),
             path('export/ventes-pdf/', views.export_ventes_pdf, name='export_ventes_pdf'),
-            # ================================================
             # ROUTE — Dashboard Business (via views.py)
-            # ================================================
             path('dashboard-business/', views.vue_dashboard_business, name='dashboard_business'),
             # === CRM ===
             path('dashboard-crm/', views.dashboard_crm, name='dashboard_crm'),
             path('crm/interaction/<int:inscription_id>/', views.ajouter_interaction_crm, name='ajouter_interaction_crm'),
-            ]
+            path('dashboard-executif/', admin.site.admin_view(self.vue_dashboard_executif), name='dashboard_executif'),            ]
         return custom_urls + original_urls
 
     def vue_gestion_cours(self, request):
@@ -658,6 +656,63 @@ class GestionCoursAdminSite(AdminThemeMixin):
             'formations_sans_programme': formations_sans_programme,
             'lecons_sans_contenu': lecons_sans_contenu,
             'derniers_articles': derniers_articles,
+        })
+
+    # ================================================
+    # Vue Dashboard Exécutif (agrégation complète)
+    # ================================================
+    def vue_dashboard_executif(self, request):
+        from datetime import timedelta
+        from django.db.models import Sum, Count, Avg
+        from django.contrib.auth.models import User
+
+        maintenant = timezone.now()
+        il_y_a_30j = maintenant - timedelta(days=30)
+        il_y_a_60j = maintenant - timedelta(days=60)
+
+        # ---- REVENUS ----
+        ca_total = Order.objects.filter(statut='paye').aggregate(t=Sum('total'))['t'] or 0
+        ca_30j = Order.objects.filter(statut='paye', date_paiement__gte=il_y_a_30j).aggregate(t=Sum('total'))['t'] or 0
+        ca_periode_precedente = Order.objects.filter(
+            statut='paye', date_paiement__gte=il_y_a_60j, date_paiement__lt=il_y_a_30j
+        ).aggregate(t=Sum('total'))['t'] or 0
+        croissance_ca = round(((ca_30j - ca_periode_precedente) / ca_periode_precedente * 100), 1) if ca_periode_precedente else 0
+
+        # ---- ÉTUDIANTS ----
+        total_etudiants = User.objects.filter(is_staff=False).count()
+        nouveaux_etudiants_30j = User.objects.filter(is_staff=False, date_joined__gte=il_y_a_30j).count()
+
+        # ---- ALERTES ----
+        paiements_en_attente = Transaction.objects.filter(statut='en_verification').count()
+        formations_en_revision = WorkflowFormation.objects.filter(etat_actuel='en_revision').count()
+        leads_non_traites = Inscription.objects.filter(statut_lead='nouveau').count()
+
+        # ---- EXAMENS ----
+        tentatives_30j = TentativeExamen.objects.filter(date_debut__gte=il_y_a_30j).count()
+        taux_reussite_examens = TentativeExamen.objects.filter(
+            date_debut__gte=il_y_a_30j, reussi__isnull=False
+        ).aggregate(taux=Avg('reussi'))['taux']
+        taux_reussite_examens_pct = round(taux_reussite_examens * 100, 1) if taux_reussite_examens else None
+
+        # ---- ARTICLES / SEO ----
+        articles_publies = Article.objects.filter(publie=True).count()
+        articles_sans_seo = Article.objects.filter(publie=True, meta_description='').count()
+
+        # ---- PERFORMANCE ----
+        formations_actives = Formation.objects.filter(actif=True).count()
+        formations_brouillon = WorkflowFormation.objects.filter(etat_actuel='brouillon').count()
+
+        return render(request, 'admin/dashboard_executif.html', {
+            'title': '🧠 Dashboard Exécutif',
+            'site_header': admin.site.site_header,
+            'ca_total': ca_total, 'ca_30j': ca_30j, 'croissance_ca': croissance_ca,
+            'total_etudiants': total_etudiants, 'nouveaux_etudiants_30j': nouveaux_etudiants_30j,
+            'paiements_en_attente': paiements_en_attente,
+            'formations_en_revision': formations_en_revision,
+            'leads_non_traites': leads_non_traites,
+            'tentatives_30j': tentatives_30j,
+            'articles_publies': articles_publies, 'articles_sans_seo': articles_sans_seo,
+            'formations_actives': formations_actives, 'formations_brouillon': formations_brouillon,
         })
 
 
