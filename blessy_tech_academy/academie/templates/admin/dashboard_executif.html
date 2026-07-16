@@ -1,53 +1,84 @@
+<!-- ================================================
+     ADMIN/DASHBOARD_EXECUTIF.HTML — Le cerveau de BTA
+     ================================================ -->
 {% extends "admin/base_backoffice.html" %}
 {% block bo_contenu %}
-<div style="padding:24px; max-width:1300px;">
 
-    <h1 style="color:#0B2447;">🧠 Dashboard Exécutif</h1>
+<h1 style="color:var(--bo-texte); margin-bottom:4px;">🧠 Dashboard Exécutif</h1>
+<p style="color:var(--bo-texte-secondaire); margin-bottom:24px;">Vue d'ensemble en temps réel — Blessy Tech Academy</p>
 
-    <div class="bo-kpi-grille">
-        <div class="bo-kpi-card">
-            <div class="bo-kpi-label">Revenus totaux</div>
-            <div class="bo-kpi-valeur">{{ ca_total }} $</div>
-            <div class="bo-kpi-tendance {% if croissance_ca >= 0 %}positif{% else %}negatif{% endif %}">
-                {{ croissance_ca }}% (30j)
-            </div>
-        </div>
-        <div class="bo-kpi-card">
-            <div class="bo-kpi-label">Étudiants</div>
-            <div class="bo-kpi-valeur">{{ total_etudiants }}</div>
-            <div class="bo-kpi-tendance">+{{ nouveaux_etudiants_30j }} ce mois</div>
-        </div>
-        <div class="bo-kpi-card">
-            <div class="bo-kpi-label">Formations actives</div>
-            <div class="bo-kpi-valeur">{{ formations_actives }}</div>
-        </div>
-        <div class="bo-kpi-card">
-            <div class="bo-kpi-label">Articles SEO</div>
-            <div class="bo-kpi-valeur">{{ articles_publies }}</div>
-            <div class="bo-kpi-tendance negatif" style="{% if articles_sans_seo == 0 %}display:none;{% endif %}">{{ articles_sans_seo }} sans SEO</div>
-        </div>
-    </div>
-
-    <div class="bo-kpi-grille">
-        <div class="bo-card" style="border-left:4px solid #ef4444;">
-            <h3>⚠️ Paiements en attente</h3>
-            <div style="font-size:32px; font-weight:800; color:#ef4444;">{{ paiements_en_attente }}</div>
-        </div>
-        <div class="bo-card" style="border-left:4px solid #f59e0b;">
-            <h3>⏳ Formations en révision</h3>
-            <div style="font-size:32px; font-weight:800; color:#f59e0b;">{{ formations_en_revision }}</div>
-        </div>
-        <div class="bo-card" style="border-left:4px solid #3b82f6;">
-            <h3>🆕 Leads non traités</h3>
-            <div style="font-size:32px; font-weight:800; color:#3b82f6;">{{ leads_non_traites }}</div>
-        </div>
-    </div>
-
-    <div class="bo-card">
-        <h3>📊 Activité Examens (30j)</h3>
-        <p>Tentatives : <strong>{{ tentatives_30j }}</strong></p>
-        <p>Taux de réussite : <strong>{% if taux_reussite_examens_pct %}{{ taux_reussite_examens_pct }}%{% else %}—{% endif %}</strong></p>
-    </div>
-
+<!-- ================================================
+     SÉLECTEUR MULTI‑ACADÉMIE
+     ================================================ -->
+<div style="display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap;">
+    {% for acad in toutes_academies %}
+    <a href="?academie_id={{ acad.id }}"
+       style="padding:8px 16px; border-radius:20px; text-decoration:none; font-size:13px; font-weight:700;
+              background:{% if academie_selectionnee and academie_selectionnee.id == acad.id %}var(--bo-bleu){% else %}var(--bo-gris-fond){% endif %};
+              color:{% if academie_selectionnee and academie_selectionnee.id == acad.id %}white{% else %}var(--bo-texte){% endif %};">
+        {{ acad.icone }} {{ acad.nom }}
+    </a>
+    {% endfor %}
+    <a href="/admin/academie/academie/add/" style="padding:8px 16px; border-radius:20px; text-decoration:none; font-size:13px; font-weight:700; background:var(--bo-orange); color:white;">
+        ➕ Nouvelle Académie
+    </a>
 </div>
+
+<!-- ---- ALERTES PRIORITAIRES ---- -->
+{% if paiements_en_attente or formations_en_revision or leads_non_traites %}
+<div style="background:linear-gradient(135deg,#FF6B00,#e85a2a); color:white; border-radius:14px; padding:16px 20px; margin-bottom:24px; display:flex; gap:24px; flex-wrap:wrap;">
+    <strong style="font-size:14px;">⚠️ Actions requises :</strong>
+    {% if paiements_en_attente %}<a href="/admin/academie/transaction/" style="color:white; text-decoration:underline; font-size:13px;">{{ paiements_en_attente }} paiement(s) à valider</a>{% endif %}
+    {% if formations_en_revision %}<a href="/admin/academie/workflowformation/" style="color:white; text-decoration:underline; font-size:13px;">{{ formations_en_revision }} formation(s) en révision</a>{% endif %}
+    {% if leads_non_traites %}<a href="/admin/dashboard-crm/" style="color:white; text-decoration:underline; font-size:13px;">{{ leads_non_traites }} nouveau(x) lead(s)</a>{% endif %}
+</div>
+{% endif %}
+
+<!-- ---- KPI PRINCIPAUX ---- -->
+<div class="bo-kpi-grille">
+    <div class="bo-kpi-card">
+        <div class="bo-kpi-label">💰 Chiffre d'affaires total</div>
+        <div class="bo-kpi-valeur">{{ ca_total }} $</div>
+        <div class="bo-kpi-tendance {% if croissance_ca >= 0 %}positif{% else %}negatif{% endif %}">
+            {% if croissance_ca >= 0 %}▲{% else %}▼{% endif %} {{ croissance_ca }}% (30j)
+        </div>
+    </div>
+    <div class="bo-kpi-card">
+        <div class="bo-kpi-label">👥 Étudiants</div>
+        <div class="bo-kpi-valeur">{{ total_etudiants }}</div>
+        <div class="bo-kpi-tendance positif">+{{ nouveaux_etudiants_30j }} ce mois</div>
+    </div>
+    <div class="bo-kpi-card">
+        <div class="bo-kpi-label">🎓 Formations actives</div>
+        <div class="bo-kpi-valeur">{{ formations_actives }}</div>
+        <div class="bo-kpi-tendance">{{ formations_brouillon }} en brouillon</div>
+    </div>
+    <div class="bo-kpi-card">
+        <div class="bo-kpi-label">📝 Articles publiés</div>
+        <div class="bo-kpi-valeur">{{ articles_publies }}</div>
+        <div class="bo-kpi-tendance {% if articles_sans_seo %}negatif{% endif %}">{{ articles_sans_seo }} sans SEO</div>
+    </div>
+    <div class="bo-kpi-card">
+        <div class="bo-kpi-label">📋 Tentatives d'examen (30j)</div>
+        <div class="bo-kpi-valeur">{{ tentatives_30j }}</div>
+    </div>
+    <div class="bo-kpi-card">
+        <div class="bo-kpi-label">💳 Revenus (30 derniers jours)</div>
+        <div class="bo-kpi-valeur">{{ ca_30j }} $</div>
+    </div>
+</div>
+
+<!-- ---- ACCÈS RAPIDES AUX 10 MODULES ---- -->
+<div class="bo-card">
+    <h3>🗂️ Accès rapide</h3>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px;">
+        <a href="/admin/dashboard-business/" style="padding:14px; background:var(--bo-gris-fond); border-radius:10px; text-decoration:none; color:var(--bo-texte); font-size:13px; font-weight:600;">💼 Business</a>
+        <a href="/admin/gestion-cours/" style="padding:14px; background:var(--bo-gris-fond); border-radius:10px; text-decoration:none; color:var(--bo-texte); font-size:13px; font-weight:600;">🎓 Académie</a>
+        <a href="/admin/dashboard-crm/" style="padding:14px; background:var(--bo-gris-fond); border-radius:10px; text-decoration:none; color:var(--bo-texte); font-size:13px; font-weight:600;">📢 CRM</a>
+        <a href="/admin/dashboard-seo/" style="padding:14px; background:var(--bo-gris-fond); border-radius:10px; text-decoration:none; color:var(--bo-texte); font-size:13px; font-weight:600;">🔍 SEO</a>
+        <a href="/admin/dashboard-ia/" style="padding:14px; background:var(--bo-gris-fond); border-radius:10px; text-decoration:none; color:var(--bo-texte); font-size:13px; font-weight:600;">🤖 Blessy AI</a>
+        <a href="/admin/dashboard-analytics/" style="padding:14px; background:var(--bo-gris-fond); border-radius:10px; text-decoration:none; color:var(--bo-texte); font-size:13px; font-weight:600;">📈 Analytics</a>
+    </div>
+</div>
+
 {% endblock %}

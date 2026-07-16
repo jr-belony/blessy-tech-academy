@@ -14,9 +14,11 @@ class EcoleSerializer(serializers.ModelSerializer):
 
 class FormationSerializer(serializers.ModelSerializer):
     ecole = EcoleSerializer(read_only=True)
+    academie_nom = serializers.CharField(source='ecole.academie.nom', read_only=True, default=None)
+
     class Meta:
         model = Formation
-        fields = ['id', 'nom', 'icone', 'description', 'duree_mois', 'prix', 'niveau', 'gratuit', 'ecole']
+        fields = ['id', 'nom', 'icone', 'description', 'duree_mois', 'prix', 'niveau', 'gratuit', 'ecole', 'academie_nom']
 
 
 class ArticleSerializer(serializers.ModelSerializer):
@@ -53,9 +55,11 @@ class FormationDetailSerializer(serializers.ModelSerializer):
     """Version enrichie avec modules — pour /formations/{id}/detail/"""
     ecole = serializers.StringRelatedField()
     modules = ModuleSerializer(many=True, read_only=True)
+    academie_nom = serializers.CharField(source='ecole.academie.nom', read_only=True, default=None)
+
     class Meta:
         model = Formation
-        fields = ['id', 'nom', 'icone', 'description', 'duree_mois', 'prix', 'niveau', 'gratuit', 'ecole', 'modules', 'debouches', 'prerequis']
+        fields = ['id', 'nom', 'icone', 'description', 'duree_mois', 'prix', 'niveau', 'gratuit', 'ecole', 'academie_nom', 'modules', 'debouches', 'prerequis']
 
 
 class ParcoursSerializer(serializers.ModelSerializer):

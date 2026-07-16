@@ -4,7 +4,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from academie import views as views_academie
 from rest_framework.routers import DefaultRouter
-from academie.api_views import FormationViewSet, ArticleViewSet, MaProgressionViewSet, obtenir_token_api
+from academie.api_views import (FormationViewSet, ArticleViewSet, PartenaireEtudiantsFormesView,
+PartenaireFormationsView, MaProgressionViewSet, AcademieViewSet, obtenir_token_api)
 
 urlpatterns = [
     path('admin/api/generer-article/', views_academie.api_generer_article, name='api_generer_article'),
@@ -19,6 +20,8 @@ urlpatterns = [
     # === Export Ventes (Excel / PDF) ===
     path('admin/export/ventes-excel/', views_academie.export_ventes_excel, name='export_ventes_excel'),
     path('admin/export/ventes-pdf/', views_academie.export_ventes_pdf, name='export_ventes_pdf'),
+    path('api/v2/partenaire/etudiants-formes/', PartenaireEtudiantsFormesView.as_view(), name='api-partenaire-etudiants'),
+    path('api/v2/partenaire/formations/', PartenaireFormationsView.as_view(), name='api-partenaire-formations'),
 ]
 
 # Debug Toolbar (développement uniquement)
@@ -48,6 +51,7 @@ router_v2.register('formations', FormationV2ViewSet, basename='api-v2-formations
 router_v2.register('parcours', ParcoursViewSet, basename='api-v2-parcours')
 router_v2.register('articles', ArticleViewSet, basename='api-v2-articles')
 router_v2.register('ma-progression', MaProgressionViewSet, basename='api-v2-progression')
+router_v2.register('academies', AcademieViewSet, basename='api-v2-academies')
 
 urlpatterns += [
     path('api/v1/', include(router_v1.urls)),

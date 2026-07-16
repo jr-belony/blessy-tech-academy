@@ -104,3 +104,31 @@ class MonitoringPerformanceMiddleware:
             logger.warning(f"⚠️ Requête lente ({duree:.2f}s) : {request.path}")
 
         return response
+    
+
+# ================================================
+# MIDDLEWARE.PY — Détection Academie courante (multi-tenant)
+# ================================================
+
+class AcademieCouranteMiddleware:
+    """
+    Détecte quelle Academie est active pour la requête :
+    1. Via sous-domaine personnalisé (business.blessytechacademy.com)
+    2. Sinon via l'Academie par défaut (Blessy Tech Academy)
+    Injecte request.academie_courante utilisable partout.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        from .models import Academie
+
+        host = request.get_host().split(':')[0]
+        academie = Academie.objects.filter(domaine_personnalise=host, actif=True).first()
+
+        if not academie:
+            academie = Academie.objects.filter(est_academie_par_defaut=True, actif=True).first()
+
+        request.academie_courante = academie
+        return self.get_response(request)

@@ -1,0 +1,35 @@
+<!-- ================================================
+     ADMIN/DASHBOARD_SEO.HTML — Suite SEO
+     ================================================ -->
+{% extends "admin/base_backoffice.html" %}
+{% block bo_contenu %}
+<h1 style="color:var(--bo-texte);">🔍 Suite SEO</h1>
+
+<div class="bo-kpi-grille">
+    <div class="bo-kpi-card">
+        <div class="bo-kpi-label">Score SEO moyen</div>
+        <div class="bo-kpi-valeur" style="color:{% if score_moyen >= 70 %}#22c55e{% elif score_moyen >= 40 %}#FF6B00{% else %}#ef4444{% endif %};">{{ score_moyen }}/100</div>
+    </div>
+    <div class="bo-kpi-card">
+        <div class="bo-kpi-label">Articles analysés</div>
+        <div class="bo-kpi-valeur">{{ articles_avec_score|length }}</div>
+    </div>
+</div>
+
+<div class="bo-card">
+    <h3>📊 Articles par score SEO (du plus faible au plus fort)</h3>
+    {% for item in articles_avec_score %}
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid var(--bo-gris-bordure);">
+        <div>
+            <a href="/admin/academie/article/{{ item.article.id }}/change/" style="color:var(--bo-texte); font-weight:600; text-decoration:none;">{{ item.article.titre }}</a>
+            {% if item.suggestions %}
+            <div style="font-size:11px; color:var(--bo-texte-secondaire); margin-top:4px;">
+                💡 {{ item.suggestions|join:" · " }}
+            </div>
+            {% endif %}
+        </div>
+        <span style="font-weight:800; font-size:18px; color:{% if item.score >= 70 %}#22c55e{% elif item.score >= 40 %}#FF6B00{% else %}#ef4444{% endif %};">{{ item.score }}/100</span>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

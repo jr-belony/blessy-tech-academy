@@ -8,6 +8,7 @@ from datetime import timedelta
 from simple_history.admin import SimpleHistoryAdmin
 from adminsortable2.admin import SortableAdminMixin, SortableInlineAdminMixin, SortableAdminBase
 from academie import views
+from django.shortcuts import get_object_or_404
 from . import views
 from .models import (Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz, Module, Lecon, ProgressionLecon,
 Parcours, Sujet, Reponse, Reaction, OutilRecommande, Article, Temoignage, MoyenPaiement, Coupon, Promotion, Order, OrderItem,
@@ -30,8 +31,9 @@ class AdminThemeMixin:
 # ================================================
 @admin.register(Ecole)
 class EcoleAdmin(AdminThemeMixin, admin.ModelAdmin):
-    list_display = ['icone', 'nom', 'ordre']
+    list_display = ['icone', 'nom', 'academie', 'ordre']
     list_editable = ['ordre']
+    list_filter = ['academie']
     search_fields = ['nom']
 
     def has_module_permission(self, request):
@@ -41,13 +43,6 @@ class EcoleAdmin(AdminThemeMixin, admin.ModelAdmin):
             return request.user.profil.role in ['formateur', 'resp_academique', 'admin']
         except Exception:
             return False
-class ModuleInline(SortableInlineAdminMixin, admin.TabularInline):
-    model = Module
-    extra = 1
-    fields = ['ordre', 'titre', 'description']
-    show_change_link = True
-
-
 class LeconInline(SortableInlineAdminMixin, admin.TabularInline):
     model = Lecon
     extra = 3
@@ -544,7 +539,7 @@ class QuestionExamenInline(admin.TabularInline):
 @admin.register(Examen)
 class ExamenAdmin(admin.ModelAdmin):
     list_display = ['titre', 'formation', 'duree_minutes', 'seuil_reussite', 'actif']
-    list_filter = ['actif', 'formation']
+    list_filter = ['formation__ecole__academie', 'formation']
     search_fields = ['titre']
     inlines = [QuestionExamenInline]
 
@@ -622,6 +617,8 @@ class GestionCoursAdminSite(AdminThemeMixin):
             # === CRM ===
             path('dashboard-crm/', views.dashboard_crm, name='dashboard_crm'),
             path('crm/interaction/<int:inscription_id>/', views.ajouter_interaction_crm, name='ajouter_interaction_crm'),
+            path('dashboard-seo/', admin.site.admin_view(self.vue_dashboard_seo), name='dashboard_seo'),
+            path('dashboard-analytics/', admin.site.admin_view(self.vue_dashboard_analytics), name='dashboard_analytics'),
             path('dashboard-executif/', admin.site.admin_view(self.vue_dashboard_executif), name='dashboard_executif'),            ]
         return custom_urls + original_urls
 
@@ -659,7 +656,7 @@ class GestionCoursAdminSite(AdminThemeMixin):
         })
 
     # ================================================
-    # Vue Dashboard Exécutif (agrégation complète)
+    # Vue Dashboard Exécutif (agrégation complète + filtrage multi‑académie)
     # ================================================
     def vue_dashboard_executif(self, request):
         from datetime import timedelta
@@ -670,37 +667,70 @@ class GestionCoursAdminSite(AdminThemeMixin):
         il_y_a_30j = maintenant - timedelta(days=30)
         il_y_a_60j = maintenant - timedelta(days=60)
 
-        # ---- REVENUS ----
-        ca_total = Order.objects.filter(statut='paye').aggregate(t=Sum('total'))['t'] or 0
-        ca_30j = Order.objects.filter(statut='paye', date_paiement__gte=il_y_a_30j).aggregate(t=Sum('total'))['t'] or 0
+        # --- Filtrage par Académie ---
+        academie_id = request.GET.get('academie_id')
+        if academie_id:
+            academie_selectionnee = get_object_or_404(Academie, id=academie_id)
+        else:
+            academie_selectionnee = getattr(request, 'academie_courante', None)
+
+        if academie_selectionnee:
+            # Filtres adaptés à chaque modèle
+            filtre_order = Q(items__formation__ecole__academie=academie_selectionnee)
+            filtre_transaction = Q(commande__items__formation__ecole__academie=academie_selectionnee)
+            filtre_workflow = Q(formation__ecole__academie=academie_selectionnee)
+            filtre_inscription = Q(formation__ecole__academie=academie_selectionnee)
+            filtre_examen = Q(examen__formation__ecole__academie=academie_selectionnee)
+            filtre_formation = Q(ecole__academie=academie_selectionnee)
+        else:
+            filtre_order = Q()
+            filtre_transaction = Q()
+            filtre_workflow = Q()
+            filtre_inscription = Q()
+            filtre_examen = Q()
+            filtre_formation = Q()
+
+        # ---- REVENUS (utilise filtre_order) ----
+        ca_total = Order.objects.filter(statut='paye').filter(filtre_order).aggregate(t=Sum('total'))['t'] or 0
+        ca_30j = Order.objects.filter(statut='paye', date_paiement__gte=il_y_a_30j).filter(filtre_order).aggregate(t=Sum('total'))['t'] or 0
         ca_periode_precedente = Order.objects.filter(
             statut='paye', date_paiement__gte=il_y_a_60j, date_paiement__lt=il_y_a_30j
-        ).aggregate(t=Sum('total'))['t'] or 0
+        ).filter(filtre_order).aggregate(t=Sum('total'))['t'] or 0
         croissance_ca = round(((ca_30j - ca_periode_precedente) / ca_periode_precedente * 100), 1) if ca_periode_precedente else 0
 
         # ---- ÉTUDIANTS ----
-        total_etudiants = User.objects.filter(is_staff=False).count()
-        nouveaux_etudiants_30j = User.objects.filter(is_staff=False, date_joined__gte=il_y_a_30j).count()
+        if academie_selectionnee:
+            total_etudiants = User.objects.filter(is_staff=False, profil__academies=academie_selectionnee).count()
+            nouveaux_etudiants_30j = User.objects.filter(
+                is_staff=False, profil__academies=academie_selectionnee, date_joined__gte=il_y_a_30j
+            ).count()
+        else:
+            total_etudiants = User.objects.filter(is_staff=False).count()
+            nouveaux_etudiants_30j = User.objects.filter(is_staff=False, date_joined__gte=il_y_a_30j).count()
 
         # ---- ALERTES ----
-        paiements_en_attente = Transaction.objects.filter(statut='en_verification').count()
-        formations_en_revision = WorkflowFormation.objects.filter(etat_actuel='en_revision').count()
-        leads_non_traites = Inscription.objects.filter(statut_lead='nouveau').count()
+        paiements_en_attente = Transaction.objects.filter(statut='en_verification').filter(filtre_transaction).count()
+        formations_en_revision = WorkflowFormation.objects.filter(etat_actuel='en_revision').filter(filtre_workflow).count()
+        leads_non_traites = Inscription.objects.filter(statut_lead='nouveau').filter(filtre_inscription).count()
 
         # ---- EXAMENS ----
-        tentatives_30j = TentativeExamen.objects.filter(date_debut__gte=il_y_a_30j).count()
+        tentatives_30j = TentativeExamen.objects.filter(date_debut__gte=il_y_a_30j).filter(filtre_examen).count()
         taux_reussite_examens = TentativeExamen.objects.filter(
             date_debut__gte=il_y_a_30j, reussi__isnull=False
-        ).aggregate(taux=Avg('reussi'))['taux']
+        ).filter(filtre_examen).aggregate(taux=Avg('reussi'))['taux']
         taux_reussite_examens_pct = round(taux_reussite_examens * 100, 1) if taux_reussite_examens else None
-
-        # ---- ARTICLES / SEO ----
+        # ---- Total tentatives d'examen (académie) ----
+        tentatives_academie = TentativeExamen.objects.filter(filtre_examen).count()
+        # ---- ARTICLES / SEO (global, pas de filtre académie) ----
         articles_publies = Article.objects.filter(publie=True).count()
         articles_sans_seo = Article.objects.filter(publie=True, meta_description='').count()
 
         # ---- PERFORMANCE ----
-        formations_actives = Formation.objects.filter(actif=True).count()
-        formations_brouillon = WorkflowFormation.objects.filter(etat_actuel='brouillon').count()
+        formations_actives = Formation.objects.filter(actif=True).filter(filtre_formation).count()
+        formations_brouillon = WorkflowFormation.objects.filter(etat_actuel='brouillon').filter(filtre_workflow).count()
+
+        # ---- Toutes les académies pour le sélecteur ----
+        toutes_academies = Academie.objects.filter(actif=True)
 
         return render(request, 'admin/dashboard_executif.html', {
             'title': '🧠 Dashboard Exécutif',
@@ -711,8 +741,44 @@ class GestionCoursAdminSite(AdminThemeMixin):
             'formations_en_revision': formations_en_revision,
             'leads_non_traites': leads_non_traites,
             'tentatives_30j': tentatives_30j,
+            'tentatives_academie': tentatives_academie,   # ← nouvelle ligne
             'articles_publies': articles_publies, 'articles_sans_seo': articles_sans_seo,
             'formations_actives': formations_actives, 'formations_brouillon': formations_brouillon,
+            'toutes_academies': toutes_academies,
+            'academie_selectionnee': academie_selectionnee,
+        })
+
+# ================================================
+    # Vue Dashboard Suite SEO
+    # ================================================
+    def vue_dashboard_seo(self, request):
+        articles = Article.objects.filter(publie=True)
+        articles_avec_score = sorted(
+            [{'article': a, 'score': a.score_seo(), 'suggestions': a.suggestions_seo()} for a in articles],
+            key=lambda x: x['score']
+        )
+        score_moyen = round(sum(a['score'] for a in articles_avec_score) / len(articles_avec_score)) if articles_avec_score else 0
+
+        return render(request, 'admin/dashboard_seo.html', {
+            'title': '🔍 Suite SEO', 'site_header': admin.site.site_header,
+            'articles_avec_score': articles_avec_score, 'score_moyen': score_moyen,
+        })
+    
+
+    # ================================================
+    # Vue Analytics Consolidé (agrégation multi-modules)
+    # ================================================
+    def vue_dashboard_analytics(self, request):
+        from django.db.models import Sum, Count
+
+        return render(request, 'admin/dashboard_analytics.html', {
+            'title': '📈 Analytics Global', 'site_header': admin.site.site_header,
+            'ventes_par_ecole': Formation.objects.values('ecole__nom').annotate(
+                total=Count('orderitem', filter=Q(orderitem__commande__statut='paye'))
+            ).order_by('-total'),
+            'articles_top': Article.objects.filter(publie=True).order_by('-nb_vues')[:5],
+            'quiz_taux_reussite': ResultatQuiz.objects.count(),
+            'total_affilies': Affilie.objects.filter(actif=True).count(),
         })
 
 
@@ -977,7 +1043,7 @@ from django.utils.safestring import mark_safe
 
 original_get_app_list = admin.site.get_app_list
 
-def grouped_app_list(request):
+def grouped_app_list(request, app_label=None):
     app_list = original_get_app_list(request)
     grouping = getattr(settings, 'ADMIN_GROUPING', {})
     
@@ -1092,5 +1158,87 @@ class WorkflowFormationAdmin(admin.ModelAdmin):
             return True
         try:
             return request.user.profil.role in ['admin']
+        except Exception:
+            return False
+        
+
+# ================================================
+# ADMIN — Affiliation (Finance, Admin, SuperAdmin)
+# ================================================
+from .models import Affilie, CommissionAffiliation
+
+@admin.register(Affilie)
+class AffilieAdmin(admin.ModelAdmin):
+    list_display = ['utilisateur', 'code_affiliation', 'taux_commission', 'actif']
+    list_filter = ['actif']
+    search_fields = ['utilisateur__username', 'code_affiliation']
+    list_editable = ['taux_commission', 'actif']
+
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['finance', 'admin']
+        except Exception:
+            return False
+
+
+@admin.register(CommissionAffiliation)
+class CommissionAffiliationAdmin(admin.ModelAdmin):
+    list_display = ['affilie', 'commande', 'montant', 'statut', 'date_creation']
+    list_filter = ['statut']
+    readonly_fields = ['date_creation']
+
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['finance', 'admin']
+        except Exception:
+            return False
+        
+
+# ================================================
+# ADMIN — Académies (Direction, Admin, SuperAdmin)
+# ================================================
+from .models import Academie
+
+@admin.register(Academie)
+class AcademieAdmin(admin.ModelAdmin):
+    list_display = ['icone', 'nom', 'nb_ecoles', 'nb_formations', 'nb_etudiants', 'actif', 'est_academie_par_defaut']
+    list_editable = ['actif', 'est_academie_par_defaut']
+    prepopulated_fields = {'slug': ('nom',)}
+
+    fieldsets = [
+        ('Identité', {'fields': ['nom', 'slug', 'sous_titre', 'icone', 'logo']}),
+        ('Charte graphique', {'fields': ['couleur_principale', 'couleur_accent']}),
+        ('Configuration', {'fields': ['domaine_personnalise', 'actif', 'est_academie_par_defaut']}),
+    ]
+
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['direction', 'admin']
+        except Exception:
+            return False
+        
+
+# ================================================
+# ADMIN — Partenaires API (Direction, Admin, SuperAdmin)
+# ================================================
+from .models import PartenaireAPI
+@admin.register(PartenaireAPI)
+class PartenaireAPIAdmin(admin.ModelAdmin):
+    list_display = ['nom', 'email_contact', 'type_partenaire', 'academie_associee', 'actif']
+    list_filter = ['type_partenaire', 'academie_associee', 'actif']
+    search_fields = ['nom', 'email_contact']
+    list_editable = ['actif']
+
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['direction', 'admin']
         except Exception:
             return False

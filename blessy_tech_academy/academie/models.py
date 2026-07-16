@@ -3,12 +3,18 @@ from django_ckeditor_5.fields import CKEditor5Field
 from simple_history.models import HistoricalRecords
 from django.utils import timezone 
 from django.contrib.auth.models import User
+import uuid
 
 class Ecole(models.Model):
     """Représente une École (catégorie de formations)."""
 
     nom = models.CharField(max_length=200)
     icone = models.CharField(max_length=10, default='🏫')
+    # === Lien racine Academie (multi-tenant) ===
+    academie = models.ForeignKey(
+        'Academie', on_delete=models.CASCADE, null=True, blank=True,
+        related_name='ecoles', help_text="Académie mère de cette école"
+    )
     description = models.TextField()
     ordre = models.IntegerField(default=0)
 
@@ -804,6 +810,11 @@ class ProfilUtilisateur(models.Model):
         ('api_client', 'API Client'),
     ]
     role = models.CharField(max_length=30, choices=ROLE_CHOICES, default='etudiant')
+    # === Multi-appartenance Academie (multi-tenant) ===
+    academies = models.ManyToManyField(
+        'Academie', blank=True, related_name='membres',
+        help_text="Académies auxquelles cet utilisateur a accès (étudiant multi-académie ou formateur multi-académie)"
+    )
     # === Champs additionnels ===
     bio_formateur = models.TextField(blank=True)
     specialites = models.CharField(max_length=300, blank=True, help_text="Séparées par des virgules")
@@ -915,49 +926,26 @@ class Article(models.Model):
     titre = models.CharField(max_length=300)
     slug = models.SlugField(max_length=300, unique=True, blank=True)
     resume = models.TextField(max_length=500)
-    contenu = CKEditor5Field(
-        config_name='default',
-        blank=True
-    )
-    categorie = models.CharField(
-        max_length=20,
-        choices=CATEGORIES,
-        default='guide'
-    )
+    contenu = CKEditor5Field(config_name='default', blank=True)
+    categorie = models.CharField(max_length=20, choices=CATEGORIES, default='guide')
     formation_liee = models.ForeignKey(
-        Formation,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='articles'
+        Formation, on_delete=models.SET_NULL, null=True, blank=True, related_name='articles'
     )
     auteur = models.ForeignKey(
-        'auth.User',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='articles'
+        'auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='articles'
     )
     en_vedette = models.BooleanField(default=False)
     publie = models.BooleanField(default=False)
-    temps_lecture = models.IntegerField(
-        default=5,
-        help_text="Temps de lecture estimé en minutes"
-    )
+    temps_lecture = models.IntegerField(default=5, help_text="Temps de lecture estimé en minutes")
     date_publication = models.DateTimeField(auto_now_add=True)
     date_modification = models.DateTimeField(auto_now=True)
 
     # Champs SEO
-    meta_titre = models.CharField(
-        max_length=70, blank=True,
-        help_text="Titre SEO (60-70 caractères recommandés)"
-    )
-    meta_description = models.CharField(
-        max_length=160, blank=True,
-        help_text="Description SEO (150-160 caractères recommandés)"
-    )
+    meta_titre = models.CharField(max_length=70, blank=True, help_text="Titre SEO (60-70 caractères recommandés)")
+    meta_description = models.CharField(max_length=160, blank=True, help_text="Description SEO (150-160 caractères recommandés)")
     mots_cles = models.CharField(max_length=255, blank=True, help_text="Mots-clés séparés par des virgules")
     noindex = models.BooleanField(default=False, help_text="Empêcher l'indexation Google")
+
     # === Knowledge Center — nouveaux types de contenu ===
     TYPES_CONTENU = [
         ('article', '📝 Article'),
@@ -973,6 +961,10 @@ class Article(models.Model):
     articles_associes = models.ManyToManyField('self', blank=True, symmetrical=True)
     nb_vues = models.IntegerField(default=0)
     nb_partages = models.IntegerField(default=0)
+
+    # Enregistrement historique
+    history = HistoricalRecords()
+
     class Meta:
         ordering = ['-en_vedette', '-date_publication']
         verbose_name = 'Article'
@@ -980,7 +972,6 @@ class Article(models.Model):
 
     def __str__(self):
         return self.titre
-        history = HistoricalRecords()   # ← AJOUTE À LA FIN
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -994,6 +985,41 @@ class Article(models.Model):
         texte_brut = re.sub('<[^<]+?>', '', self.contenu or '')
         nb_mots = len(texte_brut.split())
         return max(1, round(nb_mots / 200))
+
+    # ================================================
+    # Score SEO (réutilisation des champs existants)
+    # ================================================
+    def score_seo(self):
+        """Calcule un score SEO sur 100 basé sur les champs déjà existants."""
+        score = 0
+        if self.meta_titre and 50 <= len(self.meta_titre) <= 70:
+            score += 20
+        if self.meta_description and 120 <= len(self.meta_description) <= 160:
+            score += 20
+        if self.mots_cles:
+            score += 15
+        if self.resume and len(self.resume) > 50:
+            score += 15
+        if self.temps_lecture_estime() >= 3:
+            score += 15
+        if not self.noindex:
+            score += 15
+        return score
+
+    def suggestions_seo(self):
+        """Liste de suggestions d'amélioration SEO — actionnable directement."""
+        suggestions = []
+        if not self.meta_titre:
+            suggestions.append("Ajoute un titre SEO (50-70 caractères)")
+        elif not (50 <= len(self.meta_titre) <= 70):
+            suggestions.append(f"Titre SEO actuel : {len(self.meta_titre)} caractères — vise 50-70")
+        if not self.meta_description:
+            suggestions.append("Ajoute une meta description (120-160 caractères)")
+        if not self.mots_cles:
+            suggestions.append("Renseigne des mots-clés principaux")
+        if self.temps_lecture_estime() < 3:
+            suggestions.append("Contenu court — articles de 3+ min se réfèrencent mieux")
+        return suggestions
 class OutilRecommande(models.Model):
     """Outil numérique recommandé aux étudiants."""
 
@@ -1240,7 +1266,8 @@ class Order(models.Model):
 
     coupon_applique = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True)
     moyen_paiement = models.ForeignKey(MoyenPaiement, on_delete=models.SET_NULL, null=True, blank=True)
-
+    # === Ajout champ affiliation ===
+    affilie_origine = models.ForeignKey('Affilie', on_delete=models.SET_NULL, null=True, blank=True, related_name='commandes_generees')
     statut = models.CharField(max_length=15, choices=STATUTS, default='en_attente')
     date_creation = models.DateTimeField(auto_now_add=True)
     date_paiement = models.DateTimeField(null=True, blank=True)
@@ -1503,6 +1530,11 @@ class Examen(models.Model):
 
     def __str__(self):
         return f"📝 {self.titre}"
+    def academie(self):
+        """Raccourci pour accéder à l'académie d'un examen sans naviguer manuellement les FK."""
+        if self.formation and self.formation.ecole:
+            return self.formation.ecole.academie
+        return None
 
 
 class QuestionExamen(models.Model):
@@ -1562,6 +1594,9 @@ class TentativeExamen(models.Model):
 
     def __str__(self):
         return f"{self.utilisateur} - {self.examen.titre}"
+    def academie(self):
+        """Permet de filtrer/grouper les tentatives d'examen par académie sans dupliquer la donnée."""
+        return self.examen.academie() if self.examen else None
     
 
 # ================================================
@@ -1735,3 +1770,141 @@ class WorkflowFormation(models.Model):
             objet_type='Formation', objet_id=self.formation.id,
         )
         return True, f"Transition réussie vers '{self.get_etat_actuel_display()}'"
+    
+
+# ================================================
+# MODELS.PY — Système d'Affiliation
+# ================================================
+
+class Affilie(models.Model):
+    """Partenaire affilié — génère des ventes via son lien unique."""
+
+    utilisateur = models.OneToOneField('auth.User', on_delete=models.CASCADE, related_name='affiliation')
+    code_affiliation = models.CharField(max_length=20, unique=True)
+    taux_commission = models.DecimalField(max_digits=5, decimal_places=2, default=10, help_text="% de commission")
+    actif = models.BooleanField(default=True)
+    date_creation = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Affilié'
+        verbose_name_plural = 'Affiliés'
+
+    def __str__(self):
+        return f"{self.utilisateur.username} ({self.code_affiliation})"
+
+    def save(self, *args, **kwargs):
+        if not self.code_affiliation:
+            self.code_affiliation = f"AFF-{self.utilisateur.username[:6].upper()}{uuid.uuid4().hex[:4].upper()}"
+        super().save(*args, **kwargs)
+
+    def commission_totale(self):
+        from django.db.models import Sum
+        ventes = OrderItem.objects.filter(
+            commande__affilie_origine=self, commande__statut='paye'
+        ).aggregate(t=Sum('prix_unitaire'))['t'] or 0
+        return round(ventes * (self.taux_commission / 100), 2)
+
+
+class CommissionAffiliation(models.Model):
+    """Trace chaque commission générée — payée ou en attente."""
+
+    STATUTS = [('en_attente', 'En attente'), ('payee', 'Payée')]
+
+    affilie = models.ForeignKey(Affilie, on_delete=models.CASCADE, related_name='commissions')
+    commande = models.ForeignKey(Order, on_delete=models.CASCADE)
+    montant = models.DecimalField(max_digits=10, decimal_places=2)
+    statut = models.CharField(max_length=15, choices=STATUTS, default='en_attente')
+    date_creation = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Commission affiliation'
+        verbose_name_plural = 'Commissions affiliation'
+
+
+# ================================================
+# MODELS.PY — Academie (racine Enterprise Multi-Academy)
+# ================================================
+
+class Academie(models.Model):
+    """
+    Racine de la plateforme Enterprise. Chaque Academie est une 
+    "marque" indépendante (Blessy Tech Academy, Blessy Business School...)
+    partageant le même code et la même base de données.
+    """
+
+    nom = models.CharField(max_length=150, unique=True)
+    slug = models.SlugField(max_length=150, unique=True, blank=True)
+    sous_titre = models.CharField(max_length=250, blank=True, help_text="Ex: L'école de la haute technologie moderne d'Haïti")
+    icone = models.CharField(max_length=10, default='🎓')
+    logo = models.ImageField(upload_to='academies/logos/', null=True, blank=True)
+
+    couleur_principale = models.CharField(max_length=7, default='#0B2447')
+    couleur_accent = models.CharField(max_length=7, default='#00B4D8')
+
+    domaine_personnalise = models.CharField(
+        max_length=200, blank=True,
+        help_text="Ex: business.blessytechacademy.com (optionnel — sous-domaine dédié)"
+    )
+    actif = models.BooleanField(default=True)
+    est_academie_par_defaut = models.BooleanField(
+        default=False,
+        help_text="Une seule Academie doit avoir ce champ à True — utilisée en fallback"
+    )
+
+    date_creation = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Académie'
+        verbose_name_plural = 'Académies'
+        ordering = ['nom']
+
+    def __str__(self):
+        return f"{self.icone} {self.nom}"
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+            self.slug = slugify(self.nom)
+        super().save(*args, **kwargs)
+
+    def nb_ecoles(self):
+        return self.ecoles.count()
+
+    def nb_formations(self):
+        return Formation.objects.filter(ecole__academie=self).count()
+
+    def nb_etudiants(self):
+        return ProfilUtilisateur.objects.filter(academies=self, role='etudiant').count()
+    
+
+# ================================================
+# MODÈLE — PartenaireAPI (accès API tiers)
+# ================================================
+class PartenaireAPI(models.Model):
+    nom = models.CharField(max_length=150)
+    email_contact = models.EmailField()
+    cle_api = models.CharField(max_length=64, unique=True)
+    type_partenaire = models.CharField(
+        max_length=30,
+        choices=[
+            ('universite', 'Université'),
+            ('entreprise', 'Entreprise'),
+            ('ong', 'ONG'),
+            ('gouvernement', 'Gouvernement'),
+        ],
+        default='entreprise'
+    )
+    academie_associee = models.ForeignKey(
+        'Academie', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='partenaires_api',
+        help_text="Si défini, ce partenaire n'accède qu'aux données de cette académie. Vide = accès toutes académies."
+    )
+    actif = models.BooleanField(default=True)
+    date_creation = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Partenaire API'
+        verbose_name_plural = 'Partenaires API'
+
+    def __str__(self):
+        return self.nom

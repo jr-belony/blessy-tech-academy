@@ -55,7 +55,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-
     'django_ckeditor_5',
     'adminsortable2',   # ← AJOUTE ICI
     'simple_history',   # ← AJOUTE ICI
@@ -66,7 +65,6 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.facebook',
-
     'academie',
     
 ]
@@ -90,6 +88,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 MIDDLEWARE += ['academie.middleware.MonitoringPerformanceMiddleware']
+# SETTINGS.PY — Ajout middleware Academie courante
+MIDDLEWARE += ['academie.middleware.AcademieCouranteMiddleware']
 
 # Debug Toolbar (développement uniquement)
 if DEBUG:
@@ -109,6 +109,8 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'academie.context_processors.notifications_non_lues',
+                'academie.context_processors.academie_courante',   # ← AJOUTER ICI
+
             ],
         },
     },
@@ -416,7 +418,7 @@ ADMIN_GROUPING = {
     ],
     '💳 Paiements & Commandes': [
         'Order', 'OrderItem', 'Transaction', 'Invoice', 'Refund',
-        'Coupon', 'Promotion', 'MoyenPaiement', 'AccesFormationDebloque',
+        'Coupon', 'Promotion', 'MoyenPaiement', 'AccesFormationDebloque',  'PartenaireAPI',
     ],
     '📬 Contacts': ['Inscription'],
     '👥 Communauté': ['Sujet', 'Reponse', 'Reaction', 'ResultatQuiz'],

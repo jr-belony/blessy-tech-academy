@@ -1,0 +1,30 @@
+<!-- ================================================
+     ADMIN/DASHBOARD_ANALYTICS.HTML — Vue transversale
+     ================================================ -->
+{% extends "admin/base_backoffice.html" %}
+{% block bo_contenu %}
+<h1 style="color:var(--bo-texte);">📈 Analytics Global</h1>
+
+<div class="bo-card">
+    <h3>🏫 Ventes par école</h3>
+    {% for e in ventes_par_ecole %}
+    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--bo-gris-bordure);">
+        <span>{{ e.ecole__nom|default:"Non assignée" }}</span><strong>{{ e.total }} ventes</strong>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="bo-card">
+    <h3>📝 Top articles (par vues)</h3>
+    {% for a in articles_top %}
+    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--bo-gris-bordure);">
+        <span>{{ a.titre }}</span><strong>{{ a.nb_vues }} vues</strong>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="bo-kpi-grille">
+    <div class="bo-kpi-card"><div class="bo-kpi-label">Résultats quiz total</div><div class="bo-kpi-valeur">{{ quiz_taux_reussite }}</div></div>
+    <div class="bo-kpi-card"><div class="bo-kpi-label">Affiliés actifs</div><div class="bo-kpi-valeur">{{ total_affilies }}</div></div>
+</div>
+{% endblock %}
