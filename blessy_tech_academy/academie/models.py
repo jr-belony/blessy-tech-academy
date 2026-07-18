@@ -1956,3 +1956,43 @@ class PartenaireAPI(models.Model):
 
     def __str__(self):
         return self.nom
+
+
+# ================================================
+# MODELS.PY — Journal des requêtes partenaires API
+# Enregistre chaque appel API partenaire pour le
+# monitoring, la facturation et les alertes de débit.
+# ================================================
+class LogRequetePartenaire(models.Model):
+    partenaire = models.ForeignKey(
+        PartenaireAPI,
+        on_delete=models.CASCADE,
+        related_name='requetes',
+        help_text="Partenaire ayant effectué l'appel"
+    )
+    date_creation = models.DateTimeField(
+        auto_now_add=True,
+        help_text="Date et heure de la requête"
+    )
+    statut_reponse = models.IntegerField(
+        default=200,
+        help_text="Code HTTP de la réponse (200, 400, 403, 500...)"
+    )
+    endpoint = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="URL de l'endpoint appelé"
+    )
+    ip_source = models.CharField(
+        max_length=45,
+        blank=True,
+        help_text="Adresse IP d'origine de la requête"
+    )
+
+    class Meta:
+        verbose_name = "Log Requête Partenaire"
+        verbose_name_plural = "Logs Requêtes Partenaires"
+        ordering = ['-date_creation']
+
+    def __str__(self):
+        return f"{self.partenaire.nom} — {self.statut_reponse} ({self.date_creation})"

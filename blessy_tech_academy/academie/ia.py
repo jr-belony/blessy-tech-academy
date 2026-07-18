@@ -1,10 +1,61 @@
 import json
 import logging
-
+import re
 import google.genai as genai
 from django.conf import settings
+from .async_tasks import executer_en_arriere_plan
+from .email_service import send_badge_email, send_certificate_email
 
 logger = logging.getLogger(__name__)
+
+
+# ================================================
+# IA.PY — Parsing JSON robuste pour réponses Gemini
+# Corrige le risque audit : "Prompt parsing JSON fragile"
+# Ajoute cette fonction juste après les imports, avant toute autre fonction
+# ================================================
+
+logger = logging.getLogger('academie')
+
+def parser_json_robuste(texte_brut, valeur_defaut=None):
+    """
+    Extrait et parse du JSON depuis une réponse Gemini de façon tolérante.
+    Gère : balises markdown ```json, texte parasite avant/après, 
+    guillemets mal échappés, JSON tronqué.
+    """
+    if not texte_brut:
+        return valeur_defaut
+
+    texte = texte_brut.strip()
+
+    # Étape 1 : retire les balises markdown
+    texte = re.sub(r'```(?:json)?\s*', '', texte)
+    texte = texte.replace('```', '').strip()
+
+    # Étape 2 : tentative directe
+    try:
+        return json.loads(texte)
+    except json.JSONDecodeError:
+        pass
+
+    # Étape 3 : extrait le premier bloc {...} ou [...] valide via regex
+    match_objet = re.search(r'\{.*\}', texte, re.DOTALL)
+    match_liste = re.search(r'\[.*\]', texte, re.DOTALL)
+
+    for match in [match_objet, match_liste]:
+        if match:
+            try:
+                return json.loads(match.group(0))
+            except json.JSONDecodeError:
+                continue
+
+    # Étape 4 : dernier recours — nettoie les virgules trainantes courantes
+    try:
+        texte_nettoye = re.sub(r',(\s*[}\]])', r'\1', texte)
+        return json.loads(texte_nettoye)
+    except json.JSONDecodeError:
+        logger.warning(f"⚠️ Parsing JSON impossible malgré tentatives — réponse brute : {texte_brut[:200]}")
+        return valeur_defaut
 
 
 def initialiser_ia():
@@ -120,7 +171,7 @@ def generer_contenu_formation(nom_formation, ecole_nom=""):
         prompt = (
             f"Tu es un expert pédagogique de Blessy Tech Academy, une école de technologie en Haïti.\n\n"
             f'Génère le contenu pour une formation nommée "{nom_formation}"'
-            f"{' dans la catégorie "' + ecole_nom + '"' if ecole_nom else ''}.\n\n"
+            f"{' dans la catégorie \"' + ecole_nom + '\"' if ecole_nom else ''}.\n\n"
             "Réponds UNIQUEMENT au format JSON suivant, sans texte avant ou après, sans balises markdown :\n\n"
             "{\n"
             '    "description": "Description engageante en 2-3 phrases, orientée résultats",\n'
@@ -131,8 +182,13 @@ def generer_contenu_formation(nom_formation, ecole_nom=""):
             "Le contenu doit être en français, professionnel, et adapté au contexte haïtien et international."
         )
         response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
-        texte = response.text.strip().replace("```json", "").replace("```", "").strip()
-        return json.loads(texte)
+        # Utilisation du parsing robuste
+        return parser_json_robuste(response.text, valeur_defaut={
+            "description": "",
+            "debouches": "",
+            "prerequis": "",
+            "certifications": ""
+        })
     except Exception as e:
         logger.exception("Erreur génération contenu formation")
         return {
@@ -169,8 +225,8 @@ def generer_quiz(sujet, nombre_questions=5):
             '"bonne_reponse" doit être exactement "a", "b", "c" ou "d" (minuscule).'
         )
         response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
-        texte = response.text.strip().replace("```json", "").replace("```", "").strip()
-        return json.loads(texte)
+        # Utilisation du parsing robuste
+        return parser_json_robuste(response.text, valeur_defaut=[])
     except Exception:
         logger.exception("Erreur génération quiz")
         return []
@@ -207,12 +263,11 @@ def generer_programme_complet(nom_formation, description_formation="", niveau="d
             "Tout doit être en français, professionnel et pédagogique."
         )
         response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
-        texte = response.text.strip().replace("```json", "").replace("```", "").strip()
-        return json.loads(texte)
+        # Utilisation du parsing robuste
+        return parser_json_robuste(response.text, valeur_defaut=[])
     except Exception:
         logger.exception("Erreur génération programme")
         return []
-
 
 def generer_contenu_lecon(titre_lecon, resume_lecon="", contexte_formation="", contexte_module=""):
     """Génère le contenu complet d'une leçon individuelle."""
@@ -290,18 +345,20 @@ def generer_parcours_oriente(profil, objectif, disponibilite, details, formation
             "- Réponds en français"
         )
         response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
-        texte = response.text.strip().replace("```json", "").replace("```", "").strip()
-        return json.loads(texte)
+        # Utilisation du parsing robuste au lieu du json.loads() fragile
+        resultat = parser_json_robuste(response.text, valeur_defaut={'erreur': 'Format de réponse IA invalide'})
+        return resultat
     except Exception as e:
         logger.exception("Erreur parcours orienté")
         return {"erreur": str(e)}
+    
 
 
 # ================================================
 # Badges
 # ================================================
 def attribuer_badges(utilisateur):
-    """Vérifie et attribue automatiquement TOUS les badges."""
+    """Vérifie et attribue automatiquement TOUS les badges, et notifie par email (asynchrone)."""
     from .models import (
         BadgeForum,
         Formation,
@@ -411,8 +468,11 @@ def attribuer_badges(utilisateur):
             BadgeForum.objects.create(utilisateur=utilisateur, type_badge=type_badge)
             nouveaux_badges.append(type_badge)
             badges_existants.add(type_badge)
+            # Envoi asynchrone de l'email de badge (les imports sont en haut du fichier)
+            executer_en_arriere_plan(send_badge_email, utilisateur, type_badge)
 
     return nouveaux_badges
+
 
 
 # ================================================

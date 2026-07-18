@@ -87,6 +87,8 @@ from .models import (
 )
 from .permissions import enregistrer_log, role_required
 from .xp_utils import ajouter_xp
+from .async_tasks import executer_en_arriere_plan
+from .email_service import _envoyer_email
 
 
 def _construire_contexte_utilisateur(request):
@@ -2783,22 +2785,18 @@ def admin_valider_transaction(request, transaction_id):
             commande.coupon_applique.utilisations_actuelles += 1
             commande.coupon_applique.save()
 
-        # Envoie email de confirmation (réutilise email_service.py déjà construit)
-        try:
-            from .email_service import _envoyer_email
-
-            _envoyer_email(
-                "emails/notifications/payment_confirmed.html",
-                {
-                    "prenom": commande.utilisateur.first_name or commande.utilisateur.username,
-                    "commande": commande,
-                    "facture_numero": facture.numero_facture,
-                },
-                destinataire=commande.utilisateur.email,
-                sujet=f"✅ Paiement confirmé — Commande {commande.reference}",
-            )
-        except Exception:
-            pass
+        # Envoie email de confirmation en arrière-plan (non bloquant)
+        executer_en_arriere_plan(
+            _envoyer_email,
+            "emails/notifications/payment_confirmed.html",
+            {
+                "prenom": commande.utilisateur.first_name or commande.utilisateur.username,
+                "commande": commande,
+                "facture_numero": facture.numero_facture,
+            },
+            destinataire=commande.utilisateur.email,
+            sujet=f"✅ Paiement confirmé — Commande {commande.reference}",
+        )
 
     # Journalisation (hors transaction pour ne pas bloquer)
     enregistrer_log(
@@ -2813,6 +2811,7 @@ def admin_valider_transaction(request, transaction_id):
         request, f"✅ Transaction validée — Accès débloqué pour {commande.utilisateur.username}"
     )
     return redirect("/admin/academie/transaction/")
+
 
 
 @login_required(login_url="/connexion/")

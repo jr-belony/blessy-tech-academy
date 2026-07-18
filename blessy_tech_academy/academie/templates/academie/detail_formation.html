@@ -427,4 +427,34 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+<!-- ================================================
+    DETAIL_FORMATION.HTML — Schema.org Course (SEO structuré)
+    ================================================ -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Course",
+    "name": "{{ formation.nom|escapejs }}",
+    "description": "{{ formation.description|truncatewords:30|escapejs }}",
+    "provider": {
+        "@type": "Organization",
+        "name": "Blessy Tech Academy",
+        "sameAs": "https://blessy-tech-academy-production.up.railway.app"
+    },
+    {% if not formation.gratuit %}
+    "offers": {
+        "@type": "Offer",
+        "price": "{{ prix_final }}",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock"
+    },
+    {% endif %}
+    "hasCourseInstance": {
+        "@type": "CourseInstance",
+        "courseMode": "online",
+        "courseWorkload": "P{{ formation.duree_mois }}M"
+    }
+}
+</script>
+
 {% endblock %}

@@ -428,4 +428,27 @@
 
 </style>
 
+
+<!-- ================================================
+     DETAIL_ARTICLE.HTML — Schema.org Article (SEO structuré)
+     ================================================ -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "{{ article.titre|escapejs }}",
+    "description": "{{ article.resume|truncatewords:25|escapejs }}",
+    "datePublished": "{{ article.date_publication|date:'c' }}",
+    "dateModified": "{{ article.date_modification|date:'c' }}",
+    "author": {
+        "@type": "Organization",
+        "name": "Blessy Tech Academy"
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "Blessy Tech Academy"
+    }
+}
+</script>
+
 {% endblock %}

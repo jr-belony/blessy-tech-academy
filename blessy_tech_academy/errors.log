@@ -8052,3 +8052,41 @@ Traceback (most recent call last):
            ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
 django.db.utils.OperationalError: no such table: django_session
 "GET / HTTP/1.1" 500 174855
+Internal Server Error: /admin/monitoring-partenaires/
+Traceback (most recent call last):
+  File "C:\Projects\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Projects\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Projects\venv\Lib\site-packages\django\utils\decorators.py", line 192, in _view_wrapper
+    result = _process_exception(request, e)
+  File "C:\Projects\venv\Lib\site-packages\django\utils\decorators.py", line 190, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+  File "C:\Projects\venv\Lib\site-packages\django\views\decorators\cache.py", line 80, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+  File "C:\Projects\venv\Lib\site-packages\django\contrib\admin\sites.py", line 247, in inner
+    return view(request, *args, **kwargs)
+  File "C:\Projects\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 56, in _view_wrapper
+    test_pass = test_func(request.user)
+                          ^^^^^^^^^^^^
+AttributeError: 'GestionCoursAdminSite' object has no attribute 'user'
+"GET /admin/monitoring-partenaires/ HTTP/1.1" 500 115503
+Internal Server Error: /admin/monitoring-partenaires/
+Traceback (most recent call last):
+  File "C:\Projects\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Projects\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Projects\venv\Lib\site-packages\django\utils\decorators.py", line 192, in _view_wrapper
+    result = _process_exception(request, e)
+  File "C:\Projects\venv\Lib\site-packages\django\utils\decorators.py", line 190, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+  File "C:\Projects\venv\Lib\site-packages\django\views\decorators\cache.py", line 80, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+  File "C:\Projects\venv\Lib\site-packages\django\contrib\admin\sites.py", line 247, in inner
+    return view(request, *args, **kwargs)
+  File "C:\Projects\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 56, in _view_wrapper
+    test_pass = test_func(request.user)
+                          ^^^^^^^^^^^^
+AttributeError: 'GestionCoursAdminSite' object has no attribute 'user'
+"GET /admin/monitoring-partenaires/ HTTP/1.1" 500 115503
