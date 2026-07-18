@@ -15,3 +15,8 @@
 - For app or web work, locate the entrypoint and the closest feature area first (views, routes, controllers, templates, services, tests).
 - If tests exist, run the relevant ones before and after making changes.
 - If no tests exist, validate with the project's documented commands and keep the change small and verifiable.
+
+## Safety rules
+- Do not create new files unless explicitly requested.
+- Prefer modifying existing files.
+- Always explain changes before applying them.

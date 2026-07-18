@@ -473,11 +473,22 @@ SPECTACULAR_SETTINGS = {
 
 
 # ================================================
-# Cache configuration (Sprint 2 — Baseline)
+# SETTINGS.PY — Cache Redis (fallback local si non configuré)
+# Variable Railway : REDIS_URL=redis://...
 # ================================================
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'bta-unique-cache',
+
+REDIS_URL = config('REDIS_URL', default='')
+
+if REDIS_URL:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': REDIS_URL,
+        }
     }
-}
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        }
+    }
