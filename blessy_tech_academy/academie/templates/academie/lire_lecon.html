@@ -1,98 +1,216 @@
 {% extends 'academie/base.html' %}
-
-{% block titre %}{{ lecon.titre }} — Blessy Tech Academy{% endblock %}
-
+{% block titre %}{{ lecon.titre }} — {{ formation.nom }}{% endblock %}
 {% block contenu %}
 
-<section style="background: var(--bleu-principal); color: white;
-                padding: 32px 20px;">
-    <div style="max-width: 800px; margin: 0 auto;">
-        <a href="{% url 'detail_formation' lecon.module.formation.id %}"
-        style="color: var(--bleu-electrique); text-decoration: none;
-                font-size: 14px;">
-            ← Retour au programme de {{ lecon.module.formation.nom }}
-        </a>
-        <p style="font-size: 13px; opacity: 0.7; margin-top: 12px;">
-            {{ lecon.module.titre }}
-        </p>
-        <h2 style="margin-top: 4px;">{{ lecon.titre }}</h2>
-        <p style="font-size: 13px; opacity: 0.8;">
-            ⏱ {{ lecon.duree_minutes }} minutes de lecture
-        </p>
-    </div>
-</section>
+<div class="ll-shell" id="ll-shell">
 
-<section style="max-width: 800px; margin: 0 auto; padding: 40px 20px;">
-
-    <!-- Barre de progression de la formation -->
-    <div style="background: var(--gris-clair); border-radius: 10px;
-                padding: 16px 20px; margin-bottom: 32px;">
-        <div style="display: flex; justify-content: space-between;
-                    margin-bottom: 8px;">
-            <span style="font-size: 13px; color: var(--gris-texte); font-weight: 600;">
-                Progression — {{ lecon.module.formation.nom }}
-            </span>
-            <span id="pourcentage-texte" style="font-size: 13px; font-weight: 700;
-                        color: var(--bleu-electrique);">
-                {{ pourcentage_formation }}%
-            </span>
+    <!-- ================= COLONNE GAUCHE — NAVIGATION ================= -->
+    <aside class="ll-nav" id="ll-nav">
+        <div class="ll-nav-header">
+            <a href="{% url 'detail_formation' formation.id %}" class="ll-retour">← {{ formation.nom }}</a>
+            <div class="ll-progress-mini">
+                <div class="ll-progress-bar"><div class="ll-progress-fill" style="width:{{ pourcentage_formation }}%;"></div></div>
+                <span>{{ pourcentage_formation }}%</span>
+            </div>
         </div>
-        <div style="background: #d1d5db; border-radius: 6px; height: 8px; overflow: hidden;">
-            <div id="barre-progression" data-pourcentage="{{ pourcentage_formation }}"
-                style="background: var(--bleu-electrique); height: 100%; transition: width 0.3s;"></div>
+        <div class="ll-nav-arbre">
+            {% for module in tous_modules %}
+            <div class="ll-nav-module">
+                <div class="ll-nav-module-titre">{{ module.titre }}</div>
+                {% for l in module.lecons.all %}
+                <a href="{% url 'lire_lecon' l.id %}" class="ll-nav-lecon {% if l.id == lecon.id %}ll-nav-actif{% endif %}">
+                    <span>{% if l.id == lecon.id %}▶{% else %}○{% endif %}</span> {{ l.titre }}
+                </a>
+                {% endfor %}
+            </div>
+            {% endfor %}
         </div>
-    </div>
+    </aside>
 
-    {% if contenu_html %}
-    <div class="contenu-lecon" style="line-height: 1.8; color: #1a1a2e;">
-        {{ contenu_html|safe }}
-    </div>
+    <!-- ================= COLONNE CENTRALE — CONTENU ================= -->
+    <main class="ll-contenu">
+        <div class="ll-topbar">
+            <button class="ll-icon-btn" onclick="toggleNavLL()" title="Navigation">☰</button>
+            <div class="ll-fil-ariane">{{ formation.nom }} / {{ lecon.module.titre }} / {{ lecon.titre }}</div>
+            <div class="ll-topbar-actions">
+                <button class="ll-icon-btn" onclick="toggleModeFocus()" title="Mode focus">🎯</button>
+                <button class="ll-icon-btn" onclick="toggleDarkLL()" title="Mode sombre">🌙</button>
+            </div>
+        </div>
 
-    <!-- Bouton Marquer comme terminée -->
-    <div style="text-align: center; margin-top: 32px;">
-        {% if lecon_terminee %}
-        <button id="bouton-terminer"
-                data-lecon-id="{{ lecon.id }}"
-                data-terminee="true"
-                class="btn-terminer"
-                style="background: #22c55e; color: white; border: none; padding: 14px 32px;
-                       border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 15px;">
-            ✅ Leçon terminée
-        </button>
-        {% else %}
-        <button id="bouton-terminer"
-                data-lecon-id="{{ lecon.id }}"
-                data-terminee="false"
-                class="btn-terminer"
-                style="background: var(--bleu-principal); color: white; border: none; padding: 14px 32px;
-                       border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 15px;">
-            ☐ Marquer comme terminée
-        </button>
-        {% endif %}
-    </div>
+        <div class="ll-corps">
+            <h1 class="ll-titre">{{ lecon.titre }}</h1>
+            <p class="ll-meta">⏱ {{ lecon.duree_minutes }} min de lecture</p>
 
-    {% else %}
-    <p style="color: var(--gris-texte); text-align: center; padding: 40px;">
-        Le contenu détaillé de cette leçon sera bientôt disponible.
-    </p>
-    {% endif %}
+            {% if contenu_html %}
+            <div class="ll-texte ck-content">{{ contenu_html|safe }}</div>
+            {% else %}
+            <p style="color:var(--gris-texte);">Contenu bientôt disponible.</p>
+            {% endif %}
 
-    <!-- ================================================
-     LIRE_LECON.HTML — Bouton téléchargement offline
-     À insérer juste après le bouton "Marquer comme terminée"
-     ================================================ -->
-<div style="text-align:center; margin-top:16px;">
-    <button id="btn-telecharger-offline" onclick="telechargerLeconOffline()"
-            style="background:var(--gris-clair); color:var(--bleu-principal); border:1.5px solid #e2e8f0;
-                   padding:10px 20px; border-radius:10px; font-weight:700; cursor:pointer;">
-        📥 Télécharger pour hors-ligne
-    </button>
+            <div style="text-align:center; margin-top:32px;">
+                {% if lecon_terminee %}
+                <button id="ll-btn-terminer" class="ll-btn-termine" data-lecon-id="{{ lecon.id }}" data-terminee="true">✅ Leçon terminée</button>
+                {% else %}
+                <button id="ll-btn-terminer" class="ll-btn-termine ll-btn-a-faire" data-lecon-id="{{ lecon.id }}" data-terminee="false">☐ Marquer comme terminée</button>
+                {% endif %}
+            </div>
+
+            <!-- ================= BOUTON TÉLÉCHARGEMENT OFFLINE (conservé) ================= -->
+            <div style="text-align:center; margin-top:16px;">
+                <button id="btn-telecharger-offline" onclick="telechargerLeconOffline()"
+                        style="background:var(--gris-clair); color:var(--bleu-principal); border:1.5px solid #e2e8f0;
+                               padding:10px 20px; border-radius:10px; font-weight:700; cursor:pointer;">
+                    📥 Télécharger pour hors-ligne
+                </button>
+            </div>
+
+            <div class="ll-navigation-bas">
+                {% if lecon_precedente %}<a href="{% url 'lire_lecon' lecon_precedente.id %}" class="ll-nav-prec">← {{ lecon_precedente.titre }}</a>{% else %}<span></span>{% endif %}
+                {% if lecon_suivante %}<a href="{% url 'lire_lecon' lecon_suivante.id %}" class="ll-nav-suiv" id="ll-lien-suivant">{{ lecon_suivante.titre }} →</a>{% endif %}
+            </div>
+        </div>
+    </main>
+
+    <!-- ================= COLONNE DROITE — BLESSY AI + OUTILS ================= -->
+    <aside class="ll-droite">
+        <div class="ll-droite-section">
+            <h4>🤖 Blessy AI</h4>
+            <p class="ll-ai-hint">Pose une question sur cette leçon</p>
+            <div id="ll-ai-messages"></div>
+            <div style="display:flex; gap:6px;">
+                <input type="text" id="ll-ai-input" placeholder="Ta question..." onkeydown="if(event.key==='Enter') envoyerQuestionLL();">
+                <button onclick="envoyerQuestionLL()">➤</button>
+            </div>
+            <div class="ll-ai-suggestions">
+                <button onclick="suggestionLL('Résume cette leçon en 3 points')">📋 Résumer</button>
+                <button onclick="suggestionLL('Explique ce concept plus simplement')">💡 Expliquer</button>
+                <button onclick="suggestionLL('Génère un exercice sur cette leçon')">📝 Exercice</button>
+            </div>
+        </div>
+
+        <div class="ll-droite-section">
+            <h4>💬 Forum</h4>
+            <a href="{% url 'forum_liste' %}?formation={{ formation.id }}" class="ll-droite-lien">Poser une question à la communauté →</a>
+        </div>
+    </aside>
+
 </div>
+
+<!-- Préchargement invisible de la leçon suivante (performance) -->
+{% if lecon_suivante %}
+<link rel="prefetch" href="{% url 'lire_lecon' lecon_suivante.id %}">
+{% endif %}
+
+<style>
+/* ================================================
+   CSS LIRE_LECON — Layout 3 colonnes Enterprise
+   ================================================ */
+.ll-shell { display:grid; grid-template-columns:260px 1fr 300px; min-height:calc(100vh - 72px); }
+.ll-nav { background:var(--gris-clair); border-right:1px solid #e2e8f0; padding:20px; overflow-y:auto; }
+.ll-nav-header { margin-bottom:16px; }
+.ll-retour { font-size:12px; color:var(--bleu-electrique); text-decoration:none; display:block; margin-bottom:10px; }
+.ll-progress-mini { display:flex; align-items:center; gap:8px; }
+.ll-progress-bar { flex:1; height:6px; background:#e2e8f0; border-radius:10px; overflow:hidden; }
+.ll-progress-fill { height:100%; background:var(--bleu-electrique); }
+.ll-nav-module-titre { font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin:14px 0 6px; }
+.ll-nav-lecon { display:block; padding:8px 10px; border-radius:8px; text-decoration:none; color:var(--gris-texte); font-size:13px; }
+.ll-nav-lecon:hover { background:white; }
+.ll-nav-actif { background:var(--bleu-principal); color:white; font-weight:700; }
+
+.ll-contenu { display:flex; flex-direction:column; }
+.ll-topbar { display:flex; justify-content:space-between; align-items:center; padding:12px 24px; border-bottom:1px solid #e2e8f0; position:sticky; top:0; background:white; z-index:10; }
+.ll-fil-ariane { font-size:12px; color:#a0aec0; }
+.ll-icon-btn { background:var(--gris-clair); border:none; width:32px; height:32px; border-radius:8px; cursor:pointer; }
+.ll-topbar-actions { display:flex; gap:6px; }
+.ll-corps { max-width:720px; margin:0 auto; padding:40px 24px; width:100%; }
+.ll-titre { font-size:28px; font-weight:800; color:var(--bleu-principal); }
+.ll-meta { font-size:13px; color:#a0aec0; margin-bottom:24px; }
+.ll-texte { font-size:16px; line-height:1.9; color:#1a1a2e; }
+.ll-btn-termine { padding:14px 32px; border-radius:12px; font-weight:800; border:none; cursor:pointer; }
+.ll-btn-a-faire { background:var(--bleu-principal); color:white; }
+.ll-navigation-bas { display:flex; justify-content:space-between; margin-top:40px; padding-top:20px; border-top:1px solid #eee; }
+.ll-navigation-bas a { color:var(--bleu-electrique); text-decoration:none; font-weight:600; }
+
+.ll-droite { background:var(--gris-clair); border-left:1px solid #e2e8f0; padding:20px; overflow-y:auto; }
+.ll-droite-section { margin-bottom:24px; }
+.ll-droite-section h4 { color:var(--bleu-principal); font-size:14px; margin-bottom:8px; }
+.ll-ai-hint { font-size:12px; color:#a0aec0; margin-bottom:10px; }
+#ll-ai-messages { max-height:200px; overflow-y:auto; margin-bottom:8px; font-size:12px; }
+.ll-droite input { flex:1; padding:8px; border:1px solid #e2e8f0; border-radius:8px; font-size:12px; }
+.ll-droite button { background:var(--orange-accent); color:white; border:none; border-radius:8px; padding:8px 12px; cursor:pointer; }
+.ll-ai-suggestions { display:flex; flex-direction:column; gap:6px; margin-top:10px; }
+.ll-ai-suggestions button { background:white; color:var(--bleu-principal); border:1px solid #e2e8f0; text-align:left; font-size:11px; padding:6px 10px; }
+.ll-droite-lien { font-size:12px; color:var(--bleu-electrique); text-decoration:none; }
+
+/* Mode Focus */
+body.ll-focus .ll-nav, body.ll-focus .ll-droite { display:none; }
+body.ll-focus .ll-shell { grid-template-columns:1fr; }
+
+/* Mode sombre lecture */
+body.ll-dark .ll-contenu, body.ll-dark .ll-nav, body.ll-dark .ll-droite { background:#0f1420; color:#e2e8f0; }
+body.ll-dark .ll-texte { color:#e2e8f0; }
+body.ll-dark .ll-titre { color:#7dd3fc; }
+
+@media (max-width:1024px) {
+    .ll-shell { grid-template-columns:1fr; }
+    .ll-nav, .ll-droite { display:none; }
+    .ll-nav.ll-ouvert { display:block; position:fixed; inset:0 auto 0 0; width:280px; z-index:500; }
+}
+</style>
 
 <script>
 /* ================================================
-JS OFFLINE — Téléchargement leçon via IndexedDB
+   JS LIRE_LECON — Focus/Dark/Nav mobile/Blessy AI contextuel + Téléchargement offline
    ================================================ */
+function toggleModeFocus() { document.body.classList.toggle('ll-focus'); }
+function toggleDarkLL() { document.body.classList.toggle('ll-dark'); }
+function toggleNavLL() { document.getElementById('ll-nav').classList.toggle('ll-ouvert'); }
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight') { const l = document.getElementById('ll-lien-suivant'); if (l) l.click(); }
+    if (e.key === 'f') toggleModeFocus();
+});
+
+function getCookieLL(name) {
+    const cookies = document.cookie.split(';');
+    for (let c of cookies) { const [k,v]=c.trim().split('='); if(k===name) return decodeURIComponent(v); }
+    return null;
+}
+
+// Bouton "Marquer comme terminée"
+document.getElementById('ll-btn-terminer').addEventListener('click', async function() {
+    const id = this.dataset.leconId;
+    const reponse = await fetch(`/lecon/${id}/terminer/`, { method:'POST', headers:{'X-CSRFToken':getCookieLL('csrftoken')} });
+    const data = await reponse.json();
+    if (data.succes) {
+        this.textContent = data.terminee ? '✅ Leçon terminée' : '☐ Marquer comme terminée';
+        document.querySelector('.ll-progress-fill').style.width = data.progression_formation + '%';
+    }
+});
+
+function suggestionLL(texte) { document.getElementById('ll-ai-input').value = texte; envoyerQuestionLL(); }
+
+async function envoyerQuestionLL() {
+    const input = document.getElementById('ll-ai-input');
+    const question = input.value.trim();
+    if (!question) return;
+    const contexte = `Contexte : leçon "{{ lecon.titre }}" du module "{{ lecon.module.titre }}", formation "{{ formation.nom }}". Question : ${question}`;
+
+    const messagesDiv = document.getElementById('ll-ai-messages');
+    messagesDiv.innerHTML += `<p><strong>Toi :</strong> ${question}</p>`;
+    input.value = '';
+
+    const reponse = await fetch('/api/chat/', {
+        method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':getCookieLL('csrftoken')},
+        body: JSON.stringify({ question: contexte })
+    });
+    const data = await reponse.json();
+    messagesDiv.innerHTML += `<p><strong>🤖 :</strong> ${(data.reponse||data.erreur||'').replace(/\n/g,'<br>')}</p>`;
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+// ================= TÉLÉCHARGEMENT OFFLINE (conservé de l'ancienne version) =================
 async function ouvrirDB() {
     return new Promise((resolve, reject) => {
         const req = indexedDB.open('bta-offline-db', 1);
@@ -114,8 +232,8 @@ async function telechargerLeconOffline() {
     const db = await ouvrirDB();
     const donneesLecon = {
         lecon_id: {{ lecon.id }},
-        titre: {{ lecon.titre|escapejs }},
-        contenu_html: document.querySelector('.contenu-lecon').innerHTML,
+        titre: "{{ lecon.titre|escapejs }}",
+        contenu_html: document.querySelector('.ll-texte').innerHTML,
         date_telechargement: new Date().toISOString(),
     };
 
@@ -126,157 +244,4 @@ async function telechargerLeconOffline() {
     setTimeout(() => { btn.textContent = '📥 Télécharger pour hors-ligne'; }, 3000);
 }
 </script>
-
-    <!-- Navigation entre leçons -->
-    <div class="nav-lecons" style="display: flex; justify-content: space-between;
-                margin-top: 48px; padding-top: 24px;
-                border-top: 1px solid #eee; flex-wrap: wrap; gap: 16px;">
-
-        {% if lecon_precedente %}
-        <a href="{% url 'lire_lecon' lecon_precedente.id %}"
-        class="nav-lien" style="color: var(--bleu-electrique); text-decoration: none; font-weight: 600;">
-            ← {{ lecon_precedente.titre }}
-        </a>
-        {% else %}
-        <span></span>
-        {% endif %}
-
-        {% if lecon_suivante %}
-        <a href="{% url 'lire_lecon' lecon_suivante.id %}"
-        class="nav-lien" style="color: var(--bleu-electrique); text-decoration: none; font-weight: 600;">
-            {{ lecon_suivante.titre }} →
-        </a>
-        {% endif %}
-    </div>
-
-</section>
-
-<style>
-    /* Styles pour le contenu de la leçon */
-    .contenu-lecon h2 {
-        color: var(--bleu-principal);
-        font-size: 22px;
-        margin-top: 32px;
-        margin-bottom: 12px;
-    }
-    .contenu-lecon p {
-        margin-bottom: 16px;
-    }
-    .contenu-lecon pre {
-        background: #1a1a2e;
-        color: #00B4D8;
-        padding: 16px;
-        border-radius: 8px;
-        overflow-x: auto;
-        margin-bottom: 16px;
-    }
-    .contenu-lecon code {
-        background: var(--gris-clair);
-        padding: 2px 6px;
-        border-radius: 4px;
-        font-size: 14px;
-    }
-    .contenu-lecon pre code {
-        background: none;
-        padding: 0;
-        color: inherit;
-    }
-    .contenu-lecon strong {
-        color: var(--bleu-principal);
-    }
-    /* Images et iframes responsives */
-    .contenu-lecon img,
-    .contenu-lecon iframe,
-    .contenu-lecon video {
-        max-width: 100%;
-        height: auto;
-    }
-    /* Tableaux responsives */
-    .contenu-lecon table {
-        width: 100%;
-        overflow-x: auto;
-        display: block;
-    }
-
-    /* Responsive mobile */
-    @media (max-width: 576px) {
-        .btn-terminer {
-            width: 100%;
-            padding: 12px 20px !important;
-        }
-        .nav-lecons {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 12px;
-        }
-        .nav-lien {
-            font-size: 14px;
-        }
-    }
-</style>
-
-<script>
-    // Initialise la largeur de la barre de progression au chargement
-    const barreInitiale = document.getElementById('barre-progression');
-    if (barreInitiale) {
-        barreInitiale.style.width = barreInitiale.dataset.pourcentage + '%';
-    }
-
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let cookie of cookies) {
-                cookie = cookie.trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
-    const boutonTerminer = document.getElementById('bouton-terminer');
-
-    if (boutonTerminer) {
-        boutonTerminer.addEventListener('click', async function () {
-            const leconId = this.dataset.leconId;
-
-            this.disabled = true;
-
-            try {
-                const reponse = await fetch(`/lecon/${leconId}/terminer/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': getCookie('csrftoken'),
-                    },
-                });
-
-                const data = await reponse.json();
-
-                if (data.succes) {
-                    if (data.terminee) {
-                        this.textContent = '✅ Leçon terminée';
-                        this.style.background = '#22c55e';
-                    } else {
-                        this.textContent = '☐ Marquer comme terminée';
-                        this.style.background = 'var(--bleu-principal)';
-                    }
-
-                    document.getElementById('pourcentage-texte').textContent =
-                        data.progression_formation + '%';
-                    document.getElementById('barre-progression').style.width =
-                        data.progression_formation + '%';
-                }
-
-            } catch (erreur) {
-                alert('Impossible de mettre à jour la progression.');
-            }
-
-            this.disabled = false;
-        });
-    }
-</script>
-
 {% endblock %}

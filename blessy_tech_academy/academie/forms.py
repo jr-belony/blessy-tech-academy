@@ -1,9 +1,9 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.models import User
 from django_ckeditor_5.widgets import CKEditor5Widget
-from .models import Inscription, Formation
-from .models import Sujet, Reponse
+
+from .models import Formation, Inscription, Reponse, Sujet
 
 
 class ContactForm(forms.Form):

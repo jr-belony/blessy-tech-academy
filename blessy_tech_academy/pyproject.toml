@@ -1,0 +1,22 @@
+[tool.ruff]
+# Cible tous les fichiers Python du projet
+include = ["*.py", "academie/**/*.py", "blessy_tech_academy/**/*.py"]
+
+# Règles recommandées pour Django
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort (tri des imports)
+    "N",   # pep8-naming
+    "UP",  # pyupgrade (modernisation Python)
+]
+
+# Ignorer les règles gênantes
+ignore = ["E501"]  # longueur de ligne (trop stricte pour le moment)
+
+# Longueur de ligne max
+line-length = 120
+
+# Formater les imports à la manière d'isort
+[tool.ruff.isort]
+combine-as-imports = true

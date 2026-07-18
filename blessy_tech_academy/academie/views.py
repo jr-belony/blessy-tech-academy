@@ -2,6 +2,10 @@ import json
 import random
 import hashlib
 import markdown as markdown_lib
+import os
+import filetype
+from decimal import Decimal
+from django.db import transaction as db_transaction
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import login, logout
@@ -55,7 +59,7 @@ from .ia import (
     correction_automatique,
     parcours_adaptatif,
     chatbot_tuteur,
-    simuler_carriere,
+    simuler_carriere as simuler_carriere_ia,
 )
 def _construire_contexte_utilisateur(request):
     """Construit un contexte utilisateur pour personnaliser les réponses du chatbot."""
@@ -98,8 +102,6 @@ def accueil(request):
         {'valeur': nb_formations, 'suffixe': '', 'label': 'Formations'},
         {'valeur': nb_sujets_forum, 'suffixe': '', 'label': 'Sujets forum'},
     ]
-    print("DEBUG STATS:", stats)
-
     articles_recents = Article.objects.filter(publie=True).order_by('-date_publication')[:3]
 
     return render(request, 'academie/accueil.html', {
@@ -183,8 +185,8 @@ def detail_formation(request, formation_id):
     nb_modules = formation.modules.count()
     nb_lecons = sum(m.lecons.count() for m in formation.modules.all())
     duree_totale_minutes = sum(
-        l.duree_minutes for m in formation.modules.all() for l in m.lecons.all()
-    )
+    lecon.duree_minutes for m in formation.modules.all() for lecon in m.lecons.all()
+)
 
     # Formations similaires
     formations_similaires = Formation.objects.filter(
@@ -224,7 +226,7 @@ def inscription_compte(request):
         form = InscriptionCompteForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             messages.success(
                 request,
                 f'🎉 Bienvenue {user.first_name} ! '
@@ -254,7 +256,7 @@ def connexion(request):
         form = ConnexionForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             messages.success(
                 request,
                 f'✅ Bienvenue {user.first_name or user.username} !'
@@ -511,7 +513,6 @@ def chat_ia(request):
     })
 
 
-@csrf_exempt
 @ratelimit(key='user_or_ip', rate='10/m', block=True)
 def api_chat_ia(request):
     """API endpoint pour le chat IA (AJAX) avec mémoire de conversation."""
@@ -582,7 +583,6 @@ def recommandations_ia(request):
 # ================================================
 @login_required
 @role_required('resp_academique', 'admin', 'super_admin')
-@csrf_exempt
 def api_generer_formation(request):
     """API pour générer le contenu d'une formation via l'IA."""
     if request.method == 'POST':
@@ -609,7 +609,6 @@ def api_generer_formation(request):
 
 @login_required
 @role_required('resp_academique', 'examinateur', 'admin', 'super_admin')
-@csrf_exempt
 def api_generer_quiz(request):
     """API pour générer un quiz via l'IA."""
     if request.method == 'POST':
@@ -693,7 +692,6 @@ def passer_quiz(request, quiz_id):
 
 @login_required
 @role_required('resp_academique', 'admin', 'super_admin')
-@csrf_exempt
 def api_generer_programme(request):
     """API pour générer un programme complet (modules+leçons) via l'IA."""
     if request.method == 'POST':
@@ -751,7 +749,6 @@ def api_generer_programme(request):
 # ================================================
 @login_required
 @role_required('formateur', 'resp_academique', 'admin', 'super_admin')
-@csrf_exempt
 def api_generer_contenu_lecon(request):
     """API pour générer le contenu d'UNE leçon via l'IA."""
     if request.method == 'POST':
@@ -789,7 +786,6 @@ def api_generer_contenu_lecon(request):
 
 @login_required
 @role_required('resp_academique', 'admin', 'super_admin')
-@csrf_exempt
 def api_generer_contenu_module(request):
     """API pour générer le contenu de TOUTES les leçons d'un module."""
     if request.method == 'POST':
@@ -830,12 +826,21 @@ def api_generer_contenu_module(request):
     return JsonResponse({'erreur': 'Méthode non autorisée'}, status=405)
 
 
+# ================================================
+# VIEWS.PY — lire_lecon() enrichie (préchargement + navigation clavier data)
+# ================================================
+
+from .models import Lecon, ProgressionLecon
+
 @login_required(login_url='/connexion/')
 def lire_lecon(request, lecon_id):
-    """Page de lecture d'une leçon (réservée aux connectés)."""
-    lecon = Lecon.objects.select_related('module__formation').get(id=lecon_id)
+    """Page de lecture immersive — VERSION ENTERPRISE."""
+    lecon = get_object_or_404(
+        Lecon.objects.select_related('module__formation__ecole'),
+        id=lecon_id
+    )
 
-    contenu_html = lecon.contenu
+    contenu_html = lecon.contenu if lecon.contenu else ''  # CKEditor génère déjà du HTML
 
     lecons_module = list(lecon.module.lecons.all())
     index_actuel = lecons_module.index(lecon)
@@ -843,13 +848,16 @@ def lire_lecon(request, lecon_id):
     lecon_suivante = lecons_module[index_actuel + 1] if index_actuel < len(lecons_module) - 1 else None
 
     progression = ProgressionLecon.objects.filter(
-        utilisateur=request.user,
-        lecon=lecon
+        utilisateur=request.user, lecon=lecon
     ).first()
     lecon_terminee = progression.terminee if progression else False
 
     formation = lecon.module.formation
     pourcentage_formation = formation.progression_pour(request.user)
+
+    # Table des matières complète (tous modules/leçons de la formation)
+    tous_modules = formation.modules.prefetch_related('lecons').all()
+
     return render(request, 'academie/lire_lecon.html', {
         'lecon': lecon,
         'contenu_html': contenu_html,
@@ -857,11 +865,11 @@ def lire_lecon(request, lecon_id):
         'lecon_suivante': lecon_suivante,
         'lecon_terminee': lecon_terminee,
         'pourcentage_formation': pourcentage_formation,
+        'tous_modules': tous_modules,
+        'formation': formation,
     })
 
-
 @login_required(login_url='/connexion/')
-@csrf_exempt
 def marquer_lecon_terminee(request, lecon_id):
     """Marque une leçon comme terminée (ou non) pour l'utilisateur connecté."""
     if request.method == 'POST':
@@ -1095,46 +1103,6 @@ def forum_detail(request, sujet_id):
     })
 
 @login_required(login_url='/connexion/')
-def forum_creer(request):
-    """Créer un nouveau sujet."""
-    if request.method == 'POST':
-        titre = request.POST.get('titre', '').strip()
-        contenu = request.POST.get('contenu', '').strip()
-        categorie = request.POST.get('categorie', 'general')
-        formation_id = request.POST.get('formation', '')
-
-        if not titre or not contenu:
-            messages.error(request, '❌ Titre et contenu sont obligatoires.')
-        else:
-            sujet = Sujet.objects.create(
-                titre=titre,
-                contenu=contenu,
-                categorie=categorie,
-                auteur=request.user,
-                formation_id=formation_id if formation_id else None,
-            )
-
-            attribuer_badges(request.user)
-            ajouter_xp(request.user, 'sujet_forum')                     # ← XP ajouté ici
-
-            notifications.creer_notification(
-                request.user,
-                "📝 Sujet créé",
-                f"Ton sujet \"{sujet.titre}\" a été publié avec succès.",
-                f"/forum/{sujet.id}/"
-            )
-            messages.success(request, '✅ Sujet créé avec succès !')
-            return redirect('forum_detail', sujet_id=sujet.id)
-
-    formations = Formation.objects.filter(actif=True)
-    return render(request, 'academie/forum/creer.html', {
-        'formations': formations,
-        'categories': Sujet.CATEGORIES,
-    })
-
-
-@login_required(login_url='/connexion/')
-@csrf_exempt
 def forum_liker(request, type_cible, cible_id):
     """Toggle like sur un sujet ou une réponse."""
     if request.method == 'POST':
@@ -1348,8 +1316,6 @@ def orientation_ia(request):
 # VUES API POUR LE BOUTON IA (6 fonctionnalités)
 # ================================================
 
-
-@csrf_exempt
 @require_POST
 def api_assistant_code(request):
     """API 1 : Assistant Code - Analyse et corrige le code"""
@@ -1370,7 +1336,6 @@ def api_assistant_code(request):
         return JsonResponse({'erreur': str(e)}, status=500)
 
 
-@csrf_exempt
 @require_POST
 def api_generateur_exercices(request):
     """API 2 : Générateur d'exercices personnalisés"""
@@ -1391,7 +1356,6 @@ def api_generateur_exercices(request):
         return JsonResponse({'erreur': str(e)}, status=500)
 
 
-@csrf_exempt
 @require_POST
 def api_explication_concept(request):
     """API 3 : Explication de concept"""
@@ -1411,7 +1375,6 @@ def api_explication_concept(request):
         return JsonResponse({'erreur': str(e)}, status=500)
 
 
-@csrf_exempt
 @require_POST
 def api_correction_automatique(request):
     """API 4 : Correction automatique d'exercice"""
@@ -1432,7 +1395,6 @@ def api_correction_automatique(request):
         return JsonResponse({'erreur': str(e)}, status=500)
 
 
-@csrf_exempt
 @require_POST
 def api_parcours_adaptatif(request):
     """API 5 : Recommandation de parcours adaptatif"""
@@ -1457,7 +1419,6 @@ def api_parcours_adaptatif(request):
         return JsonResponse({'erreur': str(e)}, status=500)
 
 
-@csrf_exempt
 @require_POST
 def api_chatbot_tuteur(request):
     """API 6 : Chatbot tuteur conversationnel"""
@@ -1741,7 +1702,14 @@ def mon_portfolio(request):
         image = request.FILES.get('image')
 
         if titre and description:
-            ProjetEtudiant.objects.create(
+            # Vérification du type d'image si présent
+            if image:
+                kind = filetype.guess(image)
+        if kind is None or kind.mime not in ['image/jpeg', 'image/png', 'image/gif']:
+                    messages.error(request, "❌ Format d'image non autorisé. Utilisez JPEG, PNG ou GIF.")
+                    return redirect('mon_portfolio')
+
+        ProjetEtudiant.objects.create(
                 auteur=request.user,
                 titre=titre,
                 description=description,
@@ -1749,9 +1717,10 @@ def mon_portfolio(request):
                 lien=lien if lien else None,
                 image=image,
             )
-            messages.success(request, '✅ Projet ajouté avec succès !')
-            return redirect('mon_portfolio')
-        else:
+            
+        messages.success(request, '✅ Projet ajouté avec succès !')
+        return redirect('mon_portfolio')
+    else:
             messages.error(request, '❌ Titre et description sont obligatoires.')
 
     projets = ProjetEtudiant.objects.filter(auteur=request.user)
@@ -1825,6 +1794,11 @@ def ressources(request):
     categorie = request.GET.get('categorie', '')
 
     articles = Article.objects.filter(publie=True)
+    # === Filtrage par Académie (multi-tenant) ===
+    if hasattr(request, 'academie_courante') and request.academie_courante:
+        articles = articles.filter(
+            Q(academie=request.academie_courante) | Q(academie__isnull=True)
+        )
     if categorie:
         articles = articles.filter(categorie=categorie)
 
@@ -1862,7 +1836,6 @@ def detail_article(request, slug):
 # ================================================
 @login_required
 @role_required('marketing', 'resp_academique', 'admin', 'super_admin')
-@csrf_exempt
 def api_generer_article(request):
     """API pour générer un article via l'IA."""
     if request.method == 'POST':
@@ -1935,7 +1908,6 @@ def api_assistant_backoffice(request):
 
 
 
-@csrf_exempt
 @require_POST
 def api_simuler_carriere(request):
     """API pour le simulateur de carrière (requêtes AJAX depuis le chatbot)."""
@@ -1944,7 +1916,7 @@ def api_simuler_carriere(request):
         metier = data.get('metier', '').strip()
         if not metier:
             return JsonResponse({'erreur': 'Le champ "metier" est requis.'}, status=400)
-        reponse = simuler_carriere(metier=metier)  # ← fonction IA dans ia.py
+        reponse = simuler_carriere_ia(metier=metier)  # ← fonction IA dans ia.py
         return JsonResponse({'reponse': reponse, 'metier': metier})
     except json.JSONDecodeError:
         return JsonResponse({'erreur': 'JSON invalide'}, status=400)
@@ -2110,13 +2082,17 @@ def admin_sync_import(request):
     if request.method == 'POST':
         fichier = request.FILES.get('fichier_import')
         if fichier:
-            chemin_temp = f"/tmp/{fichier.name}"
+            # Protection contre le Path Traversal
+            nom_secure = os.path.basename(fichier.name)
+            chemin_temp = os.path.join('/tmp', nom_secure)
             with open(chemin_temp, 'wb+') as dest:
                 for chunk in fichier.chunks():
                     dest.write(chunk)
             output = StringIO()
             call_command('import_content', chemin_temp, stdout=output)
             messages.success(request, "✅ Import terminé. " + output.getvalue().replace('\n', ' '))
+            # Nettoyage du fichier temporaire
+            os.remove(chemin_temp)
         else:
             messages.error(request, "❌ Aucun fichier fourni.")
     return redirect('/admin/synchronisation/')
@@ -2135,26 +2111,74 @@ def admin_sync_dashboard(request):
         'formations_liste': formations_liste,
     })
 
-#===============================================
-#Centre de Gestion de Formation (Workspace)
-#===============================================
+# ================================================
+# Workspace Formation enrichi avec onglets (Dashboard, Stats, Ventes)
+# ================================================
+
 @login_required
 @role_required('resp_academique', 'admin', 'super_admin')
 def workspace_formation(request, formation_id):
-    """Centre de gestion pédagogique — arbre + panneau d'édition."""
-    formation = Formation.objects.prefetch_related(
-        'modules__lecons', 'modules__lecons__module'
-    ).get(id=formation_id)
+    """Centre de gestion pédagogique complet — tabs + arbre + panneau."""
+    formation = get_object_or_404(
+        Formation.objects.prefetch_related(
+            'modules__lecons', 'quiz_set'
+        ).select_related('ecole', 'ecole__academie', 'workflow'),
+        id=formation_id
+    )
 
-    quiz_par_formation = Quiz.objects.filter(formation=formation)
+    onglet_actif = request.GET.get('onglet', 'dashboard')
+
+    # ---- Données pour l'onglet Dashboard ----
+    total_lecons = sum(m.lecons.count() for m in formation.modules.all())
+    lecons_avec_contenu = sum(
+    1 for m in formation.modules.all()
+    for lecon in m.lecons.all() if lecon.contenu
+    )
+
+    # ---- Données pour l'onglet Statistiques ----
+    nb_inscrits = 0
+    progression_moyenne = 0
+    try:
+        nb_inscrits = AccesFormationDebloque.objects.filter(formation=formation).count()
+        if nb_inscrits > 0:
+            etudiants = User.objects.filter(
+                acces_debloques__formation=formation
+            ).distinct()
+            total_pct = sum(formation.progression_pour(u) for u in etudiants)
+            progression_moyenne = round(total_pct / nb_inscrits)
+    except NameError:
+        pass
+
+    # ---- Données pour l'onglet Vente ----
+    ca_formation = 0
+    try:
+        ca_formation = OrderItem.objects.filter(
+            formation=formation, commande__statut='paye'
+        ).aggregate(t=Sum('prix_unitaire'))['t'] or 0
+    except NameError:
+        pass
+
+    # ---- Quiz et examens liés (existants) ----
+    quiz_liste = formation.quiz_set.all() if hasattr(formation, 'quiz_set') else Quiz.objects.filter(formation=formation)
+    examens = []
+    try:
+        examens = Examen.objects.filter(formation=formation)
+    except NameError:
+        pass
 
     return render(request, 'admin/workspace_formation.html', {
         'formation': formation,
-        'quiz_liste': quiz_par_formation,
-        'title': f'Centre de Gestion — {formation.nom}',
+        'onglet_actif': onglet_actif,
+        'quiz_liste': quiz_liste,
+        'examens': examens,
+        'total_lecons': total_lecons,
+        'lecons_avec_contenu': lecons_avec_contenu,
+        'nb_inscrits': nb_inscrits,
+        'progression_moyenne': progression_moyenne,
+        'ca_formation': ca_formation,
+        'title': f'Workspace — {formation.nom}',
         'site_header': admin.site.site_header,
     })
-
 
 # ================================================
 # VUES — Actions Workflow Formation (admin, formateur)
@@ -2202,10 +2226,6 @@ def mettre_a_jour_checklist(request, formation_id):
 # ================================================
 # VIEWS.PY — Payment Center
 # ================================================
-
-from decimal import Decimal
-from django.db import transaction as db_transaction
-
 
 def _prix_avec_promotion(formation):
     """Calcule le prix réel en tenant compte des promotions actives — dynamique, zéro duplication."""
@@ -2372,13 +2392,14 @@ def admin_valider_transaction(request, transaction_id):
             )
         except Exception:
             pass
-# === Journalisation ===
-    from .permissions import enregistrer_log
+
+    # Journalisation (hors transaction pour ne pas bloquer)
     enregistrer_log(
-    request, 'validation_paiement',
-    f"Transaction {trans.id} validée pour commande {commande.reference} ({commande.total}$)",
-    'Transaction', trans.id
-)
+        request, 'validation_paiement',
+        f"Transaction {trans.id} validée pour commande {commande.reference} ({commande.total}$)",
+        'Transaction', trans.id
+    )
+
     messages.success(request, f"✅ Transaction validée — Accès débloqué pour {commande.utilisateur.username}")
     return redirect('/admin/academie/transaction/')
 

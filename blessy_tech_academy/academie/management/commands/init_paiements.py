@@ -1,6 +1,8 @@
 # academie/management/commands/init_paiements.py
 from django.core.management.base import BaseCommand
+
 from academie.models import MoyenPaiement
+
 
 class Command(BaseCommand):
     def handle(self, *args, **options):

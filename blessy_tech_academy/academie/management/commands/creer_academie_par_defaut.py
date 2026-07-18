@@ -5,11 +5,12 @@
 # ================================================
 
 from django.core.management.base import BaseCommand
-from academie.models import Academie, Ecole, ProfilUtilisateur
+
+from academie.models import Academie, Article, Ecole, ProfilUtilisateur
 
 
 class Command(BaseCommand):
-    help = "Crée l'Academie par défaut et rattache toutes les écoles/utilisateurs existants"
+    help = "Crée l'Academie par défaut et rattache toutes les écoles/utilisateurs/articles existants"
 
     def handle(self, *args, **options):
         academie_defaut, cree = Academie.objects.get_or_create(
@@ -35,8 +36,13 @@ class Command(BaseCommand):
                 profil.academies.add(academie_defaut)
                 nb_utilisateurs += 1
 
+        # === Backfill des Articles ===
+        articles_orphelins = Article.objects.filter(academie__isnull=True)
+        nb_articles = articles_orphelins.update(academie=academie_defaut)
+
         self.stdout.write(self.style.SUCCESS(
             f"✅ Academie '{academie_defaut.nom}' {'créée' if cree else 'déjà existante'}\n"
             f"   • {nb_ecoles} école(s) rattachée(s)\n"
-            f"   • {nb_utilisateurs} utilisateur(s) rattaché(s)"
+            f"   • {nb_utilisateurs} utilisateur(s) rattaché(s)\n"
+            f"   • {nb_articles} article(s) rattaché(s)"
         ))

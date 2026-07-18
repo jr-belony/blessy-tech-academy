@@ -1,9 +1,11 @@
+import uuid
+
+from django.contrib.auth.models import User
 from django.db import models
+from django.utils import timezone
 from django_ckeditor_5.fields import CKEditor5Field
 from simple_history.models import HistoricalRecords
-from django.utils import timezone 
-from django.contrib.auth.models import User
-import uuid
+
 
 class Ecole(models.Model):
     """Représente une École (catégorie de formations)."""
@@ -430,6 +432,7 @@ class Lecon(models.Model):
 )
     duree_minutes = models.IntegerField(default=15)
     ordre = models.IntegerField(default=0)
+    history = HistoricalRecords()   # ← AJOUTE À LA FIN
 
     class Meta:
         ordering = ['ordre']
@@ -931,6 +934,11 @@ class Article(models.Model):
     formation_liee = models.ForeignKey(
         Formation, on_delete=models.SET_NULL, null=True, blank=True, related_name='articles'
     )
+    # === Lien racine Academie (multi-tenant) ===
+    academie = models.ForeignKey(
+        'Academie', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='articles', help_text="Académie propriétaire de cet article"
+    )
     auteur = models.ForeignKey(
         'auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='articles'
     )
@@ -1125,7 +1133,6 @@ class ConnexionUtilisateur(models.Model):
 # MODELS.PY — Système de Paiement (Payment Center)
 # ================================================
 
-import uuid
 
 
 class MoyenPaiement(models.Model):

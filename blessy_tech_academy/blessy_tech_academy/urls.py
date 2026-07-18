@@ -1,11 +1,20 @@
-from django.contrib import admin
-from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from academie import views as views_academie
+from django.contrib import admin
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-from academie.api_views import (FormationViewSet, ArticleViewSet, PartenaireEtudiantsFormesView,
-PartenaireFormationsView, MaProgressionViewSet, AcademieViewSet, obtenir_token_api)
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
+from academie.api_views import FormationV2ViewSet, ParcoursViewSet
+from academie import views as views_academie
+from academie.api_views import (
+    AcademieViewSet,
+    ArticleViewSet,
+    FormationViewSet,
+    MaProgressionViewSet,
+    PartenaireEtudiantsFormesView,
+    PartenaireFormationsView,
+    obtenir_token_api,
+)
 
 urlpatterns = [
     path('admin/api/generer-article/', views_academie.api_generer_article, name='api_generer_article'),
@@ -35,9 +44,6 @@ if settings.DEBUG:
 # ================================================
 # URLS — API v1 + v2 + Documentation Swagger
 # ================================================
-
-from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
-from academie.api_views import ParcoursViewSet, FormationV2ViewSet
 
 # --- v1 (rétrocompatibilité) ---
 router_v1 = DefaultRouter()

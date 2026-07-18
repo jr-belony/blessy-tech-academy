@@ -11,8 +11,9 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
-from decouple import config
+
 import dj_database_url
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -32,11 +33,21 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+# ================================================
+# ÉTAPE 1 — Verrouillage ALLOWED_HOSTS
+# ================================================
+# En développement : localhost et 127.0.0.1 sont autorisés par défaut.
+# En production (DJANGO_PRODUCTION=true) : ALLOWED_HOSTS doit être défini
+# explicitement dans l'environnement et ne doit pas contenir '*'.
 ALLOWED_HOSTS = config(
     'ALLOWED_HOSTS',
-    default='*',
+    default='localhost,127.0.0.1',
     cast=lambda v: [s.strip() for s in v.split(',')]
 )
+if config('DJANGO_PRODUCTION', default='False').lower() == 'true':
+    if '*' in ALLOWED_HOSTS:
+        raise ValueError("ALLOWED_HOSTS ne doit pas contenir '*' en production !")
+
 CSRF_TRUSTED_ORIGINS = config(
     'CSRF_TRUSTED_ORIGINS',
     default='',
@@ -56,8 +67,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'django_ckeditor_5',
-    'adminsortable2',   # ← AJOUTE ICI
-    'simple_history',   # ← AJOUTE ICI
+    'adminsortable2',
+    'simple_history',
     'rest_framework',
     'rest_framework.authtoken',
     'allauth',
@@ -67,6 +78,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.facebook',
     'academie',
     
+    
 ]
 # Debug Toolbar (développement uniquement)
 if DEBUG:
@@ -74,7 +86,7 @@ if DEBUG:
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'academie.middleware.SecurityHeadersMiddleware',   # ← Security Headers
+    'academie.middleware.SecurityHeadersMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -82,13 +94,11 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'simple_history.middleware.HistoryRequestMiddleware',  # ← AJOUTE ICI
-
+    'simple_history.middleware.HistoryRequestMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 MIDDLEWARE += ['academie.middleware.MonitoringPerformanceMiddleware']
-# SETTINGS.PY — Ajout middleware Academie courante
 MIDDLEWARE += ['academie.middleware.AcademieCouranteMiddleware']
 
 # Debug Toolbar (développement uniquement)
@@ -109,8 +119,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'academie.context_processors.notifications_non_lues',
-                'academie.context_processors.academie_courante',   # ← AJOUTER ICI
-
+                'academie.context_processors.academie_courante',
             ],
         },
     },
@@ -318,8 +327,6 @@ X_FRAME_OPTIONS = 'DENY'
 CSP_DEFAULT_SRC = ("'self'",)
 CSP_SCRIPT_SRC = (
     "'self'",
-    "'unsafe-inline'",
-    "'unsafe-eval'",
     "https://cdn.ckeditor.com",
     "https://cdn.jsdelivr.net",
     "https://www.googletagmanager.com",
@@ -327,7 +334,7 @@ CSP_SCRIPT_SRC = (
 )
 CSP_STYLE_SRC = (
     "'self'",
-    "'unsafe-inline'",
+    "'unsafe-inline'",   # CKEditor a besoin d'inline styles
     "https://cdn.ckeditor.com",
     "https://cdn.jsdelivr.net",
     "https://fonts.googleapis.com",
@@ -350,9 +357,8 @@ else:
     # En production, on renforce la sécurité
     CSP_UPGRADE_INSECURE_REQUESTS = True
 
-    # ================================================
-# SETTINGS.PY — Configuration Email BTA
-# (Ajoute ce bloc à la fin de settings.py)
+# ================================================
+# Configuration Email BTA
 # ================================================
 
 SITE_URL = config('SITE_URL', default='https://blessy-tech-academy-production.up.railway.app')
@@ -371,7 +377,7 @@ DEFAULT_FROM_EMAIL = EMAIL_NOREPLY
 
 # --- Backend SMTP (aujourd'hui) — bascule vers un provider en changeant UNIQUEMENT ici ---
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')       # ou smtp-relay.brevo.com, smtp.mailgun.org...
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
 EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 
@@ -390,8 +396,7 @@ LOGGING['loggers']['django.security'] = {
 
 
 # ================================================
-# SETTINGS.PY — Configuration passerelles de paiement
-# Ajoute à la fin (toutes optionnelles, lisent .env)
+# Configuration passerelles de paiement
 # ================================================
 
 STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='')
@@ -427,10 +432,9 @@ ADMIN_GROUPING = {
 
 
 # ================================================
-# SETTINGS.PY — Django REST Framework
+# Django REST Framework
 # ================================================
 
-# SETTINGS.PY — Configuration API v2 + Documentation
 INSTALLED_APPS += ['drf_spectacular', 'django_filters']
 
 REST_FRAMEWORK = {
@@ -465,4 +469,15 @@ SPECTACULAR_SETTINGS = {
         {'name': 'Progression', 'description': "Suivi d'apprentissage étudiant"},
         {'name': 'Auth', 'description': 'Authentification par token'},
     ],
+}
+
+
+# ================================================
+# Cache configuration (Sprint 2 — Baseline)
+# ================================================
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'bta-unique-cache',
+    }
 }

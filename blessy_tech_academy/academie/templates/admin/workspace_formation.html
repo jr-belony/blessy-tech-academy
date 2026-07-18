@@ -1,199 +1,144 @@
-{% extends "admin/base_site.html" %}
-{% block content %}
+<!-- ================================================
+     ADMIN/WORKSPACE_FORMATION.HTML — Workspace Enterprise
+     Réutilise l'arbre drag-drop existant + panneau iframe existant
+     Ajoute : barre de tabs, dashboard, stats, vente, SEO, paramètres
+     ================================================ -->
+{% extends "admin/base_backoffice.html" %}
+{% block bo_contenu %}
 
-<!-- Widget Workflow (Machine à États) -->
-{% load static %}
-
-<div style="background:white; border:1px solid #e2e8f0; border-radius:16px; padding:20px 24px; margin-bottom:16px;">
-
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+<!-- ---- HEADER FORMATION ---- -->
+<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+    <div style="display:flex; align-items:center; gap:14px;">
+        <div style="font-size:36px;">{{ formation.icone }}</div>
         <div>
-            <span style="font-size:11px; color:#a0aec0; text-transform:uppercase; font-weight:700;">Statut éditorial</span>
-            <h3 style="margin:4px 0 0; color:#0B2447;">{{ formation.workflow.get_etat_actuel_display }}</h3>
-        </div>
-        <div style="text-align:right;">
-            <span style="font-size:11px; color:#a0aec0;">Checklist qualité</span>
-            <div style="font-size:20px; font-weight:800; color:{% if formation.workflow.score_checklist == 100 %}#22c55e{% else %}#FF6B00{% endif %};">
-                {{ formation.workflow.score_checklist }}%
-            </div>
+            <h1 style="color:var(--bo-texte); margin:0; font-size:20px;">{{ formation.nom }}</h1>
+            <span style="font-size:12px; color:var(--bo-texte-secondaire);">
+                {{ formation.ecole.icone }} {{ formation.ecole.nom }}
+                {% if formation.ecole.academie %} · {{ formation.ecole.academie.nom }}{% endif %}
+                · {{ formation.workflow.get_etat_actuel_display }}
+            </span>
         </div>
     </div>
-
-    <!-- Checklist interactive -->
-    <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:16px;">
-        <form method="POST" action="{% url 'mettre_a_jour_checklist' formation.id %}" style="display:contents;">
-            {% csrf_token %}
-            <input type="hidden" name="champ" value="checklist_contenu_complet">
-            <input type="hidden" name="valeur" value="true">
-            <label style="display:flex; align-items:center; gap:8px; font-size:13px; padding:8px; background:#f8fafc; border-radius:8px; cursor:pointer;">
-                <input type="checkbox" {% if formation.workflow.checklist_contenu_complet %}checked{% endif %}
-                       onchange="this.previousElementSibling.previousElementSibling.value=this.checked; this.form.submit();">
-                📚 Contenu complet
-            </label>
-        </form>
-        <form method="POST" action="{% url 'mettre_a_jour_checklist' formation.id %}" style="display:contents;">
-            {% csrf_token %}
-            <input type="hidden" name="champ" value="checklist_seo_complet">
-            <input type="hidden" name="valeur" value="true">
-            <label style="display:flex; align-items:center; gap:8px; font-size:13px; padding:8px; background:#f8fafc; border-radius:8px; cursor:pointer;">
-                <input type="checkbox" {% if formation.workflow.checklist_seo_complet %}checked{% endif %}
-                       onchange="this.previousElementSibling.previousElementSibling.value=this.checked; this.form.submit();">
-                🔍 SEO rempli
-            </label>
-        </form>
-        <form method="POST" action="{% url 'mettre_a_jour_checklist' formation.id %}" style="display:contents;">
-            {% csrf_token %}
-            <input type="hidden" name="champ" value="checklist_prix_valide">
-            <input type="hidden" name="valeur" value="true">
-            <label style="display:flex; align-items:center; gap:8px; font-size:13px; padding:8px; background:#f8fafc; border-radius:8px; cursor:pointer;">
-                <input type="checkbox" {% if formation.workflow.checklist_prix_valide %}checked{% endif %}
-                       onchange="this.previousElementSibling.previousElementSibling.value=this.checked; this.form.submit();">
-                💰 Prix validé
-            </label>
-        </form>
-        <form method="POST" action="{% url 'mettre_a_jour_checklist' formation.id %}" style="display:contents;">
-            {% csrf_token %}
-            <input type="hidden" name="champ" value="checklist_quiz_present">
-            <input type="hidden" name="valeur" value="true">
-            <label style="display:flex; align-items:center; gap:8px; font-size:13px; padding:8px; background:#f8fafc; border-radius:8px; cursor:pointer;">
-                <input type="checkbox" {% if formation.workflow.checklist_quiz_present %}checked{% endif %}
-                       onchange="this.previousElementSibling.previousElementSibling.value=this.checked; this.form.submit();">
-                📝 Quiz présent
-            </label>
-        </form>
-    </div>
-
-    <!-- Boutons de transition -->
-    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        {% if formation.workflow.etat_actuel == 'brouillon' %}
-        <form method="POST" action="{% url 'transitionner_workflow' formation.id %}" style="display:inline;">
-            {% csrf_token %}<input type="hidden" name="nouvel_etat" value="en_revision">
-            <button type="submit" style="padding:8px 16px; background:#00B4D8; color:white; border:none; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">🔍 Envoyer en révision</button>
-        </form>
-        {% elif formation.workflow.etat_actuel == 'en_revision' %}
-        <form method="POST" action="{% url 'transitionner_workflow' formation.id %}" style="display:inline;">
-            {% csrf_token %}<input type="hidden" name="nouvel_etat" value="validee">
-            <button type="submit" style="padding:8px 16px; background:#22c55e; color:white; border:none; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">✅ Valider</button>
-        </form>
-        {% elif formation.workflow.etat_actuel == 'validee' %}
-        <form method="POST" action="{% url 'transitionner_workflow' formation.id %}" style="display:inline;">
-            {% csrf_token %}<input type="hidden" name="nouvel_etat" value="publiee">
-            <button type="submit" style="padding:8px 16px; background:#FF6B35; color:white; border:none; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">🌐 Publier maintenant</button>
-        </form>
-        {% elif formation.workflow.etat_actuel == 'publiee' %}
-        <form method="POST" action="{% url 'transitionner_workflow' formation.id %}" style="display:inline;">
-            {% csrf_token %}<input type="hidden" name="nouvel_etat" value="suspendue">
-            <button type="submit" style="padding:8px 16px; background:#ef4444; color:white; border:none; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">⏸️ Suspendre</button>
-        </form>
-        {% endif %}
-    </div>
-
+    <a href="/formation/{{ formation.id }}/" target="_blank" style="padding:8px 16px; background:var(--bo-bleu); color:white; border-radius:8px; text-decoration:none; font-size:12px; font-weight:700;">
+        👁️ Voir la page publique
+    </a>
 </div>
 
-<div class="workspace-conteneur">
-
-    <!-- COLONNE GAUCHE : ARBORESCENCE -->
-    <div class="workspace-sidebar">
-        <div class="ws-header">
-            <span>{{ formation.icone }}</span>
-            <div>
-                <h3>{{ formation.nom }}</h3>
-                <span style="font-size:11px; color:#a0aec0;">{{ formation.ecole }}</span>
-            </div>
-        </div>
-
-        <div class="ws-actions-rapides">
-            <a href="/admin/academie/formation/{{ formation.id }}/change/" class="ws-btn-mini" target="workspace-panel">⚙️ Infos générales</a>
-            <button class="ws-btn-mini" onclick="creerModule()">➕ Module</button>
-        </div>
-
-        <div class="ws-indicateurs">
-            <span>{{ formation.modules.count }} modules</span> ·
-            <span>{% with total=0 %}{% for m in formation.modules.all %}{{ total|add:m.lecons.count }}{% endfor %}{% endwith %} leçons</span> ·
-            <span>{{ quiz_liste.count }} quiz</span>
-        </div>
-
-        <div class="ws-arbre">
-            {% for module in formation.modules.all %}
-            <div class="ws-noeud-module">
-                <div class="ws-noeud-header" onclick="toggleNoeud(this)">
-                    <span class="ws-chevron">▶</span>
-                    <span>📦 {{ module.titre }}</span>
-                </div>
-                <div class="ws-enfants" style="display:none;">
-                    {% for lecon in module.lecons.all %}
-                    <a href="/admin/academie/lecon/{{ lecon.id }}/change/" target="workspace-panel" class="ws-noeud-lecon">
-                        📄 {{ lecon.titre }}
-                        {% if lecon.contenu %}<span class="ws-check">✓</span>{% else %}<span class="ws-vide">○</span>{% endif %}
-                    </a>
-                    {% endfor %}
-                    <a href="/admin/academie/module/{{ module.id }}/change/" target="workspace-panel" class="ws-noeud-lecon ws-ajouter">
-                        ➕ Ajouter une leçon
-                    </a>
-                </div>
-            </div>
-            {% empty %}
-            <p style="padding:16px; color:#a0aec0; font-size:13px;">Aucun module — clique "➕ Module" pour commencer.</p>
-            {% endfor %}
-
-            {% if quiz_liste %}
-            <div class="ws-noeud-module">
-                <div class="ws-noeud-header" onclick="toggleNoeud(this)">
-                    <span class="ws-chevron">▶</span>
-                    <span>📝 Quiz de la formation</span>
-                </div>
-                <div class="ws-enfants" style="display:none;">
-                    {% for quiz in quiz_liste %}
-                    <a href="/admin/academie/quiz/{{ quiz.id }}/change/" target="workspace-panel" class="ws-noeud-lecon">
-                        📝 {{ quiz.titre }}
-                    </a>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- COLONNE DROITE : PANNEAU D'ÉDITION (iframe = réutilise TOUS les formulaires admin existants) -->
-    <div class="workspace-panel">
-        <iframe name="workspace-panel" id="workspace-panel-frame"
-                src="/admin/academie/formation/{{ formation.id }}/change/"
-                style="width:100%; height:100%; border:none;"></iframe>
-    </div>
-
+<!-- ---- BARRE DE TABS ---- -->
+<div style="display:flex; gap:4px; overflow-x:auto; border-bottom:2px solid var(--bo-gris-bordure); margin-bottom:20px;">
+    <a href="?onglet=dashboard" class="wf-tab {% if onglet_actif == 'dashboard' %}wf-tab-actif{% endif %}">📊 Tableau de bord</a>
+    <a href="?onglet=programme" class="wf-tab {% if onglet_actif == 'programme' %}wf-tab-actif{% endif %}">📚 Programme</a>
+    <a href="?onglet=quiz" class="wf-tab {% if onglet_actif == 'quiz' %}wf-tab-actif{% endif %}">📝 Quiz</a>
+    <a href="?onglet=examens" class="wf-tab {% if onglet_actif == 'examens' %}wf-tab-actif{% endif %}">🎯 Examens</a>
+    <a href="?onglet=certificats" class="wf-tab {% if onglet_actif == 'certificats' %}wf-tab-actif{% endif %}">🏆 Certificats</a>
+    <a href="?onglet=ressources" class="wf-tab {% if onglet_actif == 'ressources' %}wf-tab-actif{% endif %}">📁 Ressources</a>
+    <a href="?onglet=stats" class="wf-tab {% if onglet_actif == 'stats' %}wf-tab-actif{% endif %}">📈 Statistiques</a>
+    <a href="?onglet=vente" class="wf-tab {% if onglet_actif == 'vente' %}wf-tab-actif{% endif %}">💰 Vente</a>
+    <a href="?onglet=seo" class="wf-tab {% if onglet_actif == 'seo' %}wf-tab-actif{% endif %}">🌍 SEO</a>
+    <a href="?onglet=parametres" class="wf-tab {% if onglet_actif == 'parametres' %}wf-tab-actif{% endif %}">⚙️ Paramètres</a>
 </div>
+
+<!-- ---- CONTENU SELON ONGLET ---- -->
+
+{% if onglet_actif == 'dashboard' %}
+<div class="bo-kpi-grille">
+    <div class="bo-kpi-card"><div class="bo-kpi-label">📦 Modules</div><div class="bo-kpi-valeur">{{ formation.modules.count }}</div></div>
+    <div class="bo-kpi-card"><div class="bo-kpi-label">📄 Leçons</div><div class="bo-kpi-valeur">{{ total_lecons }}</div></div>
+    <div class="bo-kpi-card"><div class="bo-kpi-label">✅ Contenu rédigé</div><div class="bo-kpi-valeur">{{ lecons_avec_contenu }}/{{ total_lecons }}</div></div>
+    <div class="bo-kpi-card"><div class="bo-kpi-label">👥 Étudiants inscrits</div><div class="bo-kpi-valeur">{{ nb_inscrits }}</div></div>
+    <div class="bo-kpi-card"><div class="bo-kpi-label">📊 Progression moyenne</div><div class="bo-kpi-valeur">{{ progression_moyenne }}%</div></div>
+    <div class="bo-kpi-card"><div class="bo-kpi-label">💰 Revenus générés</div><div class="bo-kpi-valeur">{{ ca_formation }} $</div></div>
+</div>
+<div class="bo-card">
+    {% include 'admin/_workflow_widget.html' %}
+</div>
+
+{% elif onglet_actif == 'programme' %}
+<!-- Réutilise EXACTEMENT l'arbre drag-drop + iframe déjà construits -->
+{% include 'admin/_workspace_arbre_panneau.html' %}
+
+{% elif onglet_actif == 'quiz' %}
+<div class="bo-card">
+    <h3>📝 Quiz de cette formation</h3>
+    {% for quiz in quiz_liste %}
+    <a href="/admin/academie/quiz/{{ quiz.id }}/change/" style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--bo-gris-bordure); text-decoration:none; color:var(--bo-texte);">
+        <span>📝 {{ quiz.titre }}</span><span style="color:var(--bo-texte-secondaire); font-size:12px;">{{ quiz.nombre_questions }} question(s)</span>
+    </a>
+    {% empty %}<p style="color:var(--bo-texte-secondaire);">Aucun quiz pour cette formation.</p>{% endfor %}
+    <a href="/admin/academie/quiz/add/?formation={{ formation.id }}" style="display:inline-block; margin-top:12px; padding:8px 16px; background:var(--bo-orange); color:white; border-radius:8px; text-decoration:none; font-size:12px; font-weight:700;">➕ Nouveau quiz</a>
+</div>
+
+{% elif onglet_actif == 'examens' %}
+<div class="bo-card">
+    <h3>🎯 Examens de cette formation</h3>
+    {% for examen in examens %}
+    <a href="/admin/academie/examen/{{ examen.id }}/change/" style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--bo-gris-bordure); text-decoration:none; color:var(--bo-texte);">
+        <span>🎯 {{ examen.titre }}</span><span style="color:var(--bo-texte-secondaire); font-size:12px;">{{ examen.duree_minutes }} min</span>
+    </a>
+    {% empty %}<p style="color:var(--bo-texte-secondaire);">Aucun examen pour cette formation.</p>{% endfor %}
+    <a href="/admin/academie/examen/add/?formation={{ formation.id }}" style="display:inline-block; margin-top:12px; padding:8px 16px; background:var(--bo-orange); color:white; border-radius:8px; text-decoration:none; font-size:12px; font-weight:700;">➕ Nouvel examen</a>
+</div>
+
+{% elif onglet_actif == 'certificats' %}
+<div class="bo-card">
+    <h3>🏆 Certificats délivrés</h3>
+    <p style="color:var(--bo-texte-secondaire); font-size:13px;">{{ nb_inscrits }} étudiant(s) inscrit(s), certificat auto-généré à 100% de progression.</p>
+    <a href="/admin/academie/certificat/?formation__id={{ formation.id }}" style="display:inline-block; margin-top:8px; padding:8px 16px; background:var(--bo-bleu); color:white; border-radius:8px; text-decoration:none; font-size:12px; font-weight:700;">Voir tous les certificats →</a>
+</div>
+
+{% elif onglet_actif == 'ressources' %}
+<div class="bo-card">
+    <h3>📁 Ressources & fichiers</h3>
+    <p style="color:var(--bo-texte-secondaire); font-size:13px;">Ajoute images, PDF et fichiers via l'éditeur CKEditor de chaque leçon (onglet Programme).</p>
+</div>
+
+{% elif onglet_actif == 'stats' %}
+<div class="bo-kpi-grille">
+    <div class="bo-kpi-card"><div class="bo-kpi-label">👥 Étudiants</div><div class="bo-kpi-valeur">{{ nb_inscrits }}</div></div>
+    <div class="bo-kpi-card"><div class="bo-kpi-label">📊 Progression moyenne</div><div class="bo-kpi-valeur">{{ progression_moyenne }}%</div></div>
+</div>
+<div class="bo-card"><canvas id="wf-chart-progression" height="80"></canvas></div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+new Chart(document.getElementById('wf-chart-progression'), {
+    type: 'doughnut',
+    data: { labels: ['Complété', 'Restant'], datasets: [{ data: [{{ progression_moyenne }}, {{ progression_moyenne|add:"-100"|cut:"-" }}], backgroundColor: ['#00B4D8', '#e2e8f0'] }] }
+});
+</script>
+
+{% elif onglet_actif == 'vente' %}
+<div class="bo-kpi-grille">
+    <div class="bo-kpi-card"><div class="bo-kpi-label">💰 Revenus totaux</div><div class="bo-kpi-valeur">{{ ca_formation }} $</div></div>
+    <div class="bo-kpi-card"><div class="bo-kpi-label">🏷️ Prix actuel</div><div class="bo-kpi-valeur">{{ formation.prix }} $</div></div>
+</div>
+<a href="/admin/academie/formation/{{ formation.id }}/change/" style="padding:8px 16px; background:var(--bo-orange); color:white; border-radius:8px; text-decoration:none; font-size:12px; font-weight:700;">✏️ Modifier le prix</a>
+<a href="/admin/academie/coupon/add/" style="margin-left:8px; padding:8px 16px; background:var(--bo-bleu); color:white; border-radius:8px; text-decoration:none; font-size:12px; font-weight:700;">🎟️ Créer un coupon</a>
+
+{% elif onglet_actif == 'seo' %}
+<div class="bo-card">
+    <h3>🌍 SEO de la formation</h3>
+    <p><strong>Description :</strong> {{ formation.description|truncatewords:25 }}</p>
+    <p style="font-size:12px; color:var(--bo-texte-secondaire); margin-top:8px;">
+        {% if formation.description|length > 50 %}✅ Description suffisamment détaillée{% else %}⚠️ Description trop courte pour le SEO{% endif %}
+    </p>
+    <a href="/admin/academie/formation/{{ formation.id }}/change/" style="display:inline-block; margin-top:12px; padding:8px 16px; background:var(--bo-bleu); color:white; border-radius:8px; text-decoration:none; font-size:12px; font-weight:700;">✏️ Modifier la description</a>
+</div>
+
+{% elif onglet_actif == 'parametres' %}
+<div class="bo-card">
+    <h3>⚙️ Paramètres généraux</h3>
+    <p><strong>École :</strong> {{ formation.ecole }}</p>
+    <p><strong>Niveau :</strong> {{ formation.get_niveau_display }}</p>
+    <p><strong>Gratuit :</strong> {{ formation.gratuit|yesno:"Oui,Non" }}</p>
+    <p><strong>Statut workflow :</strong> {{ formation.workflow.get_etat_actuel_display }}</p>
+    <a href="/admin/academie/formation/{{ formation.id }}/change/" target="workspace-panel" style="display:inline-block; margin-top:12px; padding:8px 16px; background:var(--bo-orange); color:white; border-radius:8px; text-decoration:none; font-size:12px; font-weight:700;">✏️ Tout modifier</a>
+</div>
+{% endif %}
 
 <style>
-.workspace-conteneur { display:flex; height:calc(100vh - 140px); gap:0; margin:-20px; }
-.workspace-sidebar { width:340px; background:#f8fafc; border-right:1px solid #e2e8f0; overflow-y:auto; flex-shrink:0; }
-.ws-header { display:flex; align-items:center; gap:12px; padding:20px; border-bottom:1px solid #e2e8f0; font-size:28px; }
-.ws-header h3 { font-size:14px; color:#0B2447; margin:0; }
-.ws-actions-rapides { display:flex; gap:8px; padding:12px 20px; flex-wrap:wrap; }
-.ws-btn-mini { font-size:11px; padding:6px 12px; background:white; border:1px solid #e2e8f0; border-radius:16px; text-decoration:none; color:#0B2447; cursor:pointer; font-weight:600; }
-.ws-indicateurs { padding:0 20px 16px; font-size:11px; color:#a0aec0; }
-.ws-arbre { padding:0 8px 20px; }
-.ws-noeud-header { display:flex; align-items:center; gap:8px; padding:10px 12px; cursor:pointer; font-size:13px; font-weight:600; color:#0B2447; border-radius:8px; }
-.ws-noeud-header:hover { background:white; }
-.ws-chevron { transition:transform 0.2s; font-size:10px; }
-.ws-noeud-header.ouvert .ws-chevron { transform:rotate(90deg); }
-.ws-enfants { padding-left:24px; }
-.ws-noeud-lecon { display:flex; justify-content:space-between; align-items:center; padding:8px 12px; font-size:12px; color:#4a5568; text-decoration:none; border-radius:6px; }
-.ws-noeud-lecon:hover { background:white; color:#00B4D8; }
-.ws-check { color:#22c55e; }
-.ws-vide { color:#cbd5e0; }
-.ws-ajouter { color:#00B4D8; font-style:italic; }
-.workspace-panel { flex:1; background:white; }
+.wf-tab { padding:10px 16px; text-decoration:none; color:var(--bo-texte-secondaire); font-size:13px; font-weight:600; white-space:nowrap; border-bottom:2px solid transparent; }
+.wf-tab:hover { color:var(--bo-bleu); }
+.wf-tab-actif { color:var(--bo-bleu); border-bottom-color:var(--bo-bleu); }
 </style>
-
-<script>
-function toggleNoeud(header) {
-    header.classList.toggle('ouvert');
-    const enfants = header.nextElementSibling;
-    enfants.style.display = enfants.style.display === 'none' ? 'block' : 'none';
-}
-function creerModule() {
-    window.open('/admin/academie/module/add/?formation={{ formation.id }}', 'workspace-panel');
-}
-</script>
 
 {% endblock %}

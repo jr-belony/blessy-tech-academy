@@ -1,5 +1,6 @@
 """Utilitaires pour la gestion des XP et niveaux."""
 from datetime import date
+
 from .models import ProfilUtilisateur
 
 XP_ACTIONS = {

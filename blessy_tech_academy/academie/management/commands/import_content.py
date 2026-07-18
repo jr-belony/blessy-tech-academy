@@ -5,11 +5,12 @@ Usage :
     python manage.py import_content bta_export.json --dry-run
 """
 
-import json
 import time
-from django.core.management.base import BaseCommand, CommandError
+
 from django.core import serializers
+from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
+
 
 class Command(BaseCommand):
     help = "Importe le contenu pédagogique BTA sans créer de doublons"
@@ -27,7 +28,7 @@ class Command(BaseCommand):
         dry_run = options['dry_run']
 
         try:
-            with open(fichier, 'r', encoding='utf-8') as f:
+            with open(fichier, encoding='utf-8') as f:
                 contenu_json = f.read()
         except FileNotFoundError:
             raise CommandError(f"❌ Fichier introuvable : {fichier}")

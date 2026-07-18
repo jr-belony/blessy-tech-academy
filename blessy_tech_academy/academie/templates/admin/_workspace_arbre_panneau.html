@@ -1,0 +1,36 @@
+<!-- ================================================
+     ADMIN/_WORKSPACE_ARBRE_PANNEAU.HTML — Extrait du Workspace original
+     Contenu identique à l'ancien bloc .workspace-conteneur — 
+     simplement isolé dans un include pour être appelé depuis l'onglet "programme"
+     ================================================ -->
+<div class="workspace-conteneur" style="height:70vh;">
+    <div class="workspace-sidebar">
+        <div class="ws-actions-rapides">
+            <button class="ws-btn-mini" onclick="creerModule()">➕ Module</button>
+        </div>
+        <div class="ws-arbre">
+            {% for module in formation.modules.all %}
+            <div class="ws-noeud-module">
+                <div class="ws-noeud-header" onclick="toggleNoeud(this)">
+                    <span class="ws-chevron">▶</span><span>📦 {{ module.titre }}</span>
+                </div>
+                <div class="ws-enfants" style="display:none;">
+                    {% for lecon in module.lecons.all %}
+                    <a href="/admin/academie/lecon/{{ lecon.id }}/change/" target="workspace-panel" class="ws-noeud-lecon">
+                        📄 {{ lecon.titre }} {% if lecon.contenu %}<span class="ws-check">✓</span>{% else %}<span class="ws-vide">○</span>{% endif %}
+                    </a>
+                    {% endfor %}
+                    <a href="/admin/academie/module/{{ module.id }}/change/" target="workspace-panel" class="ws-noeud-lecon ws-ajouter">➕ Ajouter une leçon</a>
+                </div>
+            </div>
+            {% empty %}<p style="padding:16px; color:#a0aec0; font-size:13px;">Aucun module.</p>{% endfor %}
+        </div>
+    </div>
+    <div class="workspace-panel">
+        <iframe name="workspace-panel" style="width:100%; height:100%; border:none;" src="/admin/academie/formation/{{ formation.id }}/change/"></iframe>
+    </div>
+</div>
+<script>
+function toggleNoeud(h){h.classList.toggle('ouvert');const e=h.nextElementSibling;e.style.display=e.style.display==='none'?'block':'none';}
+function creerModule(){window.open('/admin/academie/module/add/?formation={{ formation.id }}','workspace-panel');}
+</script>

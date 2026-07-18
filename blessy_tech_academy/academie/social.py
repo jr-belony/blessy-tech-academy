@@ -5,7 +5,6 @@ dans les logs Django. Pour activer le partage réel, décommentez les
 appels API correspondants.
 """
 import logging
-from .models import Formation
 
 logger = logging.getLogger(__name__)
 

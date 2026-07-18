@@ -1,19 +1,54 @@
-from django.urls import path
-from django.shortcuts import render
-from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib import admin
-from django.db.models import Count, Sum, Avg, Q
-from django.utils import timezone
 from datetime import timedelta
+from adminsortable2.admin import SortableAdminBase, SortableInlineAdminMixin
+from django.contrib import admin
+from django.db.models import Avg, Count, Q, Sum
+from django.shortcuts import get_object_or_404, render
+from django.urls import path
+from django.utils import timezone
 from simple_history.admin import SimpleHistoryAdmin
-from adminsortable2.admin import SortableAdminMixin, SortableInlineAdminMixin, SortableAdminBase
+from .models import PlanAbonnement, Subscription
+from django.conf import settings
+from django.utils.safestring import mark_safe
+from .models import Affilie, CommissionAffiliation
+from .models import Academie
+from .models import PartenaireAPI
 from academie import views
-from django.shortcuts import get_object_or_404
 from . import views
-from .models import (Formation, Inscription, Ecole, Quiz, Question, ResultatQuiz, Module, Lecon, ProgressionLecon,
-Parcours, Sujet, Reponse, Reaction, OutilRecommande, Article, Temoignage, MoyenPaiement, Coupon, Promotion, Order, OrderItem,
-Invoice, Transaction, Refund, AccesFormationDebloque, ChoixExamen, QuestionExamen, 
-TentativeExamen, Examen, ProfilUtilisateur, LogAudit, InteractionCRM, Enseignant,WorkflowFormation)
+from .models import (
+    AccesFormationDebloque,
+    Article,
+    ChoixExamen,
+    Coupon,
+    Ecole,
+    Enseignant,
+    Examen,
+    Formation,
+    Inscription,
+    InteractionCRM,
+    Invoice,
+    Lecon,
+    LogAudit,
+    Module,
+    MoyenPaiement,
+    Order,
+    OutilRecommande,
+    Parcours,
+    ProfilUtilisateur,
+    Promotion,
+    Question,
+    QuestionExamen,
+    Quiz,
+    Reaction,
+    Refund,
+    Reponse,
+    ResultatQuiz,
+    Sujet,
+    Temoignage,
+    TentativeExamen,
+    Transaction,
+    WorkflowFormation,
+)
+
 
 # ================================================
 # Thème CSS global pour tout l'admin
@@ -397,7 +432,7 @@ class ReactionAdmin(AdminThemeMixin, admin.ModelAdmin):
 class ArticleAdmin(AdminThemeMixin, SimpleHistoryAdmin):
     list_display = ['titre', 'categorie', 'auteur', 'en_vedette',
                     'badge_publie', 'temps_lecture', 'date_publication', 'bouton_apercu']
-    list_filter = ['categorie', 'publie', 'en_vedette', 'formation_liee']
+    list_filter = ['categorie', 'publie', 'en_vedette', 'formation_liee', 'academie']
     search_fields = ['titre', 'resume', 'contenu', 'mots_cles']
     list_editable = ['en_vedette']
     prepopulated_fields = {'slug': ('titre',)}
@@ -603,7 +638,6 @@ class GestionCoursAdminSite(AdminThemeMixin):
             path('synchronisation/export/', admin.site.admin_view(views.admin_sync_export), name='sync_export'),
             path('synchronisation/import/', admin.site.admin_view(views.admin_sync_import), name='sync_import'),
             path('formation/<int:formation_id>/workspace/', admin.site.admin_view(views.workspace_formation), name='workspace_formation'),
-            
             # === Centre d'administration des Emails (apercu + test) ===
             path('emails/', views.admin_emails_dashboard, name='admin_emails'),
             path('emails/preview/<str:template_name>/', views.admin_email_preview, name='email_preview'),
@@ -619,6 +653,7 @@ class GestionCoursAdminSite(AdminThemeMixin):
             path('crm/interaction/<int:inscription_id>/', views.ajouter_interaction_crm, name='ajouter_interaction_crm'),
             path('dashboard-seo/', admin.site.admin_view(self.vue_dashboard_seo), name='dashboard_seo'),
             path('dashboard-analytics/', admin.site.admin_view(self.vue_dashboard_analytics), name='dashboard_analytics'),
+            path('statistiques-academie/<int:academie_id>/', admin.site.admin_view(self.vue_statistiques_academie), name='statistiques_academie'),
             path('dashboard-executif/', admin.site.admin_view(self.vue_dashboard_executif), name='dashboard_executif'),            ]
         return custom_urls + original_urls
 
@@ -659,9 +694,8 @@ class GestionCoursAdminSite(AdminThemeMixin):
     # Vue Dashboard Exécutif (agrégation complète + filtrage multi‑académie)
     # ================================================
     def vue_dashboard_executif(self, request):
-        from datetime import timedelta
-        from django.db.models import Sum, Count, Avg
         from django.contrib.auth.models import User
+        from django.db.models import Sum
 
         maintenant = timezone.now()
         il_y_a_30j = maintenant - timedelta(days=30)
@@ -769,7 +803,6 @@ class GestionCoursAdminSite(AdminThemeMixin):
     # Vue Analytics Consolidé (agrégation multi-modules)
     # ================================================
     def vue_dashboard_analytics(self, request):
-        from django.db.models import Sum, Count
 
         return render(request, 'admin/dashboard_analytics.html', {
             'title': '📈 Analytics Global', 'site_header': admin.site.site_header,
@@ -782,7 +815,41 @@ class GestionCoursAdminSite(AdminThemeMixin):
         })
 
 
-from django.contrib.auth.models import User
+    # ================================================
+    # Vue Statistiques détaillées d'une Académie
+    # ================================================
+    def vue_statistiques_academie(self, request, academie_id):
+
+        academie = Academie.objects.get(id=academie_id)
+
+        ecoles = academie.ecoles.all()
+        formations = Formation.objects.filter(ecole__academie=academie)
+        enseignants = Enseignant.objects.filter(formations_attribuees__ecole__academie=academie).distinct()
+        articles = Article.objects.filter(academie=academie)
+
+        ca_total = Order.objects.filter(
+            items__formation__ecole__academie=academie, statut='paye'
+        ).distinct().aggregate(t=Sum('total'))['t'] or 0
+
+        tentatives_examens = TentativeExamen.objects.filter(
+            examen__formation__ecole__academie=academie
+        ).count()
+
+        return render(request, 'admin/statistiques_academie.html', {
+            'title': f'📊 Statistiques — {academie.nom}',
+            'site_header': admin.site.site_header,
+            'academie': academie,
+            'nb_ecoles': ecoles.count(),
+            'nb_formations': formations.filter(actif=True).count(),
+            'nb_enseignants': enseignants.count(),
+            'nb_articles': articles.filter(publie=True).count(),
+            'nb_etudiants': academie.nb_etudiants(),
+            'ca_total': ca_total,
+            'tentatives_examens': tentatives_examens,
+            'ecoles': ecoles,
+        })
+
+
 
 # Injecte les nouvelles URLs dans l'admin
 _original_get_urls = admin.site.get_urls
@@ -1024,8 +1091,6 @@ class AccesFormationDebloqueAdmin(admin.ModelAdmin):
 # ================================================
 # ADMIN.PY — Administration abonnements
 # ================================================
-from .models import PlanAbonnement, Subscription
-
 @admin.register(PlanAbonnement)
 class PlanAbonnementAdmin(admin.ModelAdmin):
     list_display = ['nom', 'prix', 'periodicite', 'actif']
@@ -1038,9 +1103,6 @@ class SubscriptionAdmin(admin.ModelAdmin):
 
 
     # === Réorganisation de l'admin par groupes ===
-from django.conf import settings
-from django.utils.safestring import mark_safe
-
 original_get_app_list = admin.site.get_app_list
 
 def grouped_app_list(request, app_label=None):
@@ -1089,7 +1151,6 @@ admin.site.get_app_list = grouped_app_list
 # ================================================
 # ADMIN — ProfilUtilisateur & LogAudit
 # ================================================
-
 @admin.register(ProfilUtilisateur)
 class ProfilUtilisateurAdmin(admin.ModelAdmin):
     list_display = ['utilisateur', 'role', 'telephone', 'date_creation']
@@ -1165,8 +1226,6 @@ class WorkflowFormationAdmin(admin.ModelAdmin):
 # ================================================
 # ADMIN — Affiliation (Finance, Admin, SuperAdmin)
 # ================================================
-from .models import Affilie, CommissionAffiliation
-
 @admin.register(Affilie)
 class AffilieAdmin(admin.ModelAdmin):
     list_display = ['utilisateur', 'code_affiliation', 'taux_commission', 'actif']
@@ -1201,11 +1260,12 @@ class CommissionAffiliationAdmin(admin.ModelAdmin):
 # ================================================
 # ADMIN — Académies (Direction, Admin, SuperAdmin)
 # ================================================
-from .models import Academie
-
 @admin.register(Academie)
 class AcademieAdmin(admin.ModelAdmin):
-    list_display = ['icone', 'nom', 'nb_ecoles', 'nb_formations', 'nb_etudiants', 'actif', 'est_academie_par_defaut']
+    list_display = [
+        'icone', 'nom', 'nb_ecoles', 'nb_formations', 'nb_etudiants',
+        'actif', 'est_academie_par_defaut', 'bouton_stats'
+    ]
     list_editable = ['actif', 'est_academie_par_defaut']
     prepopulated_fields = {'slug': ('nom',)}
 
@@ -1214,6 +1274,17 @@ class AcademieAdmin(admin.ModelAdmin):
         ('Charte graphique', {'fields': ['couleur_principale', 'couleur_accent']}),
         ('Configuration', {'fields': ['domaine_personnalise', 'actif', 'est_academie_par_defaut']}),
     ]
+
+    def bouton_stats(self, obj):
+        from django.utils.html import format_html
+        return format_html(
+            '<a href="/admin/statistiques-academie/{}/" '
+            'style="background:#00B4D8; color:white; padding:4px 12px; '
+            'border-radius:6px; text-decoration:none; font-size:11px; font-weight:700;">'
+            '📊 Statistiques</a>',
+            obj.id
+        )
+    bouton_stats.short_description = 'Stats'
 
     def has_module_permission(self, request):
         if request.user.is_superuser:
@@ -1227,7 +1298,6 @@ class AcademieAdmin(admin.ModelAdmin):
 # ================================================
 # ADMIN — Partenaires API (Direction, Admin, SuperAdmin)
 # ================================================
-from .models import PartenaireAPI
 @admin.register(PartenaireAPI)
 class PartenaireAPIAdmin(admin.ModelAdmin):
     list_display = ['nom', 'email_contact', 'type_partenaire', 'academie_associee', 'actif']

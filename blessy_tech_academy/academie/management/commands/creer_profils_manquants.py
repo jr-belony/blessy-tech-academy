@@ -3,8 +3,9 @@
 # Usage : python manage.py creer_profils_manquants
 # ================================================
 
-from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
+from django.core.management.base import BaseCommand
+
 from academie.models import ProfilUtilisateur
 
 

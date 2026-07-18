@@ -3,9 +3,11 @@
 # À exécuter quotidiennement via cron/Railway Scheduler
 # ================================================
 
+from datetime import timedelta
+
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from datetime import timedelta
+
 from academie.models import Subscription
 
 

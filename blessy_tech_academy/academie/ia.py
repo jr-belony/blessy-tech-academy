@@ -1,7 +1,8 @@
-import google.genai as genai
-from django.conf import settings
 import json
 import logging
+
+import google.genai as genai
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -278,7 +279,7 @@ def generer_parcours_oriente(profil, objectif, disponibilite, details, formation
 # ================================================
 def attribuer_badges(utilisateur):
     """Vérifie et attribue automatiquement TOUS les badges."""
-    from .models import BadgeForum, Sujet, Reponse, Reaction, ResultatQuiz, ProgressionLecon, Lecon, Formation
+    from .models import BadgeForum, Formation, ProgressionLecon, Reaction, Reponse, ResultatQuiz, Sujet
 
     nouveaux_badges = []
     badges_existants = set(BadgeForum.objects.filter(utilisateur=utilisateur).values_list('type_badge', flat=True))
@@ -577,8 +578,9 @@ Sois précis, orienté action, et base-toi UNIQUEMENT sur les chiffres fournis. 
 # ================================================
 def calculer_stats_etudiant(utilisateur):
     """Calcule les statistiques globales d'un étudiant."""
-    from .models import Formation, ProgressionLecon, ResultatQuiz, BadgeForum, Lecon
     from django.db.models import Avg, Sum
+
+    from .models import BadgeForum, Formation, Lecon, ProgressionLecon, ResultatQuiz
 
     total_lecons = Lecon.objects.count()
     lecons_terminees = ProgressionLecon.objects.filter(utilisateur=utilisateur, terminee=True).count()

@@ -1,8 +1,15 @@
+import logging
+import time
+
 from django.conf import settings
+from django.core.cache import cache
+
+logger = logging.getLogger('bta_performance')
+
 
 class SecurityHeadersMiddleware:
     """
-    Middleware qui ajoute les en-têtes de sécurité manquants :
+    Middleware qui ajoute les en-têtes de sécurité :
     - Content-Security-Policy
     - Permissions-Policy
     S'adapte automatiquement selon l'environnement (DEBUG).
@@ -16,10 +23,10 @@ class SecurityHeadersMiddleware:
         response = self.get_response(request)
 
         if self.debug:
-            # ========== DÉVELOPPEMENT : CSP assoupli ==========
+            # DÉVELOPPEMENT : CSP assoupli pour localhost
             response['Content-Security-Policy'] = (
                 "default-src 'self' http://127.0.0.1:8000 http://localhost:8000; "
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval' "
+                "script-src 'self' 'unsafe-inline' "
                 "https://cdn.ckeditor.com https://cdn.jsdelivr.net "
                 "https://www.googletagmanager.com https://www.google-analytics.com; "
                 "style-src 'self' 'unsafe-inline' "
@@ -36,10 +43,10 @@ class SecurityHeadersMiddleware:
                 "object-src 'none';"
             )
         else:
-            # ========== PRODUCTION : CSP strict ==========
+            # PRODUCTION : CSP strict (scripts inline autorisés temporairement)
             response['Content-Security-Policy'] = (
                 "default-src 'none'; "
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval' "
+                "script-src 'self' 'unsafe-inline' "
                 "https://cdn.ckeditor.com https://cdn.jsdelivr.net "
                 "https://www.googletagmanager.com https://www.google-analytics.com; "
                 "style-src 'self' 'unsafe-inline' "
@@ -75,18 +82,8 @@ class SecurityHeadersMiddleware:
             response['X-Frame-Options'] = 'DENY'
             response['X-XSS-Protection'] = '1; mode=block'
             response['Referrer-Policy'] = 'strict-origin-when-cross-origin'
-            # HSTS est géré par Django settings (SECURE_HSTS_SECONDS)
 
         return response
-    
-
-# ================================================
-# MIDDLEWARE — Monitoring requêtes lentes
-# ================================================
-import time
-import logging
-
-logger = logging.getLogger('bta_performance')
 
 
 class MonitoringPerformanceMiddleware:
@@ -104,11 +101,7 @@ class MonitoringPerformanceMiddleware:
             logger.warning(f"⚠️ Requête lente ({duree:.2f}s) : {request.path}")
 
         return response
-    
 
-# ================================================
-# MIDDLEWARE.PY — Détection Academie courante (multi-tenant)
-# ================================================
 
 class AcademieCouranteMiddleware:
     """
@@ -116,6 +109,7 @@ class AcademieCouranteMiddleware:
     1. Via sous-domaine personnalisé (business.blessytechacademy.com)
     2. Sinon via l'Academie par défaut (Blessy Tech Academy)
     Injecte request.academie_courante utilisable partout.
+    Utilise le cache pour éviter des requêtes DB à chaque hit.
     """
 
     def __init__(self, get_response):
@@ -125,10 +119,20 @@ class AcademieCouranteMiddleware:
         from .models import Academie
 
         host = request.get_host().split(':')[0]
-        academie = Academie.objects.filter(domaine_personnalise=host, actif=True).first()
 
-        if not academie:
-            academie = Academie.objects.filter(est_academie_par_defaut=True, actif=True).first()
+        # Clé de cache unique par domaine
+        cache_key = f'academie_courante:{host}'
+        academie = cache.get(cache_key)
+
+        if academie is None:
+            academie = Academie.objects.filter(domaine_personnalise=host, actif=True).first()
+
+            if not academie:
+                academie = Academie.objects.filter(est_academie_par_defaut=True, actif=True).first()
+
+            # Stocke dans le cache pour 1 heure (3600 secondes)
+            if academie:
+                cache.set(cache_key, academie, 3600)
 
         request.academie_courante = academie
         return self.get_response(request)

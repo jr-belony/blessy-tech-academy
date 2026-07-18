@@ -3,6 +3,7 @@
 # ================================================
 
 from django.core.management.base import BaseCommand
+
 from academie.models import Formation, WorkflowFormation
 
 

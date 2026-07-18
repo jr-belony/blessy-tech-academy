@@ -6,6 +6,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>{% block titre %}Blessy Tech Academy{% endblock %}</title>
+    <!-- ================================================
+    BASE.HTML — Surcharge CSS dynamique selon Academie active
+    ================================================ -->
+<style>
+    :root {
+        --bleu-principal: {{ couleur_principale_dynamique }};
+        --bleu-electrique: {{ couleur_accent_dynamique }};
+    }
+</style>
     <link rel="stylesheet" href="{% static 'academie/style.css' %}">
     <link rel="stylesheet" href="{% static 'academie/css/animations.css' %}">
     <link rel="stylesheet" href="{% static 'academie/css/dark-mode.css' %}">
@@ -67,11 +76,14 @@
 <header class="header-bta" id="header-bta">
     <div class="header-inner">
 
+        <!-- 1ère occurrence : logo principal dynamique -->
         <a href="{% url 'accueil' %}" class="header-logo">
-            <div class="logo-icon-wrapper"><span class="logo-emoji">⚡</span></div>
+            <div class="logo-icon-wrapper">
+                <span class="logo-emoji">{{ academie_courante.icone|default:"⚡" }}</span>
+            </div>
             <div class="logo-textes">
-                <span class="logo-principal">Blessy Tech</span>
-                <span class="logo-secondaire">Academy</span>
+                <span class="logo-principal">{{ academie_courante.nom|default:"Blessy Tech" }}</span>
+                <span class="logo-secondaire">{{ academie_courante.sous_titre|truncatechars:30|default:"Academy" }}</span>
             </div>
         </a>
 
@@ -235,9 +247,15 @@
 
 <div class="mobile-drawer" id="mobile-drawer">
     <div class="drawer-header">
+        <!-- 2ème occurrence : logo du drawer mobile, maintenant dynamique -->
         <a href="{% url 'accueil' %}" class="header-logo">
-            <div class="logo-icon-wrapper"><span class="logo-emoji">⚡</span></div>
-            <div class="logo-textes"><span class="logo-principal">Blessy Tech</span><span class="logo-secondaire">Academy</span></div>
+            <div class="logo-icon-wrapper">
+                <span class="logo-emoji">{{ academie_courante.icone|default:"⚡" }}</span>
+            </div>
+            <div class="logo-textes">
+                <span class="logo-principal">{{ academie_courante.nom|default:"Blessy Tech" }}</span>
+                <span class="logo-secondaire">{{ academie_courante.sous_titre|truncatechars:30|default:"Academy" }}</span>
+            </div>
         </a>
         <button class="drawer-fermer" onclick="fermerMenu()">✕</button>
     </div>

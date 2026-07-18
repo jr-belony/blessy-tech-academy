@@ -1,0 +1,15 @@
+<!-- ================================================
+     ADMIN/_WORKFLOW_WIDGET.HTML — Widget Workflow (copié depuis le workspace original)
+     ================================================ -->
+<div style="display:flex; justify-content:space-between; align-items:center;">
+    <div>
+        <span style="font-size:11px; color:#a0aec0; text-transform:uppercase;">Statut éditorial</span>
+        <h3 style="margin:4px 0 0;">{{ formation.workflow.get_etat_actuel_display }}</h3>
+    </div>
+    <div style="text-align:right;">
+        <span style="font-size:11px; color:#a0aec0;">Checklist</span>
+        <div style="font-size:20px; font-weight:800; color:{% if formation.workflow.score_checklist == 100 %}#22c55e{% else %}#FF6B00{% endif %};">
+            {{ formation.workflow.score_checklist }}%
+        </div>
+    </div>
+</div>

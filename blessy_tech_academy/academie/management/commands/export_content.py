@@ -1,9 +1,11 @@
 import json
 import time
-from io import StringIO
-from django.core.management.base import BaseCommand
+
 from django.core import serializers
-from academie.models import Ecole, Formation, Module, Lecon
+from django.core.management.base import BaseCommand
+
+from academie.models import Ecole, Formation, Lecon, Module
+
 
 class Command(BaseCommand):
     help = "Exporte le contenu pedagogique en JSON"

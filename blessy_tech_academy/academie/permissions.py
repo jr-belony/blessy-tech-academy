@@ -2,8 +2,7 @@
 # PERMISSIONS.PY — Décorateurs RBAC
 # ================================================
 
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.core.exceptions import PermissionDenied
+from django.contrib.auth.decorators import user_passes_test
 
 
 def role_required(*roles):

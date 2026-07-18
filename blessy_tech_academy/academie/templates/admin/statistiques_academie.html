@@ -1,0 +1,19 @@
+{% extends "admin/base_backoffice.html" %}
+{% block bo_contenu %}
+<h1>📊 Statistiques — {{ academie.nom }}</h1>
+
+<div class="bo-kpi-grille">
+    <div class="bo-kpi-card"><div class="bo-kpi-label">Écoles</div><div class="bo-kpi-valeur">{{ nb_ecoles }}</div></div>
+    <div class="bo-kpi-card"><div class="bo-kpi-label">Formations</div><div class="bo-kpi-valeur">{{ nb_formations }}</div></div>
+    <div class="bo-kpi-card"><div class="bo-kpi-label">Enseignants</div><div class="bo-kpi-valeur">{{ nb_enseignants }}</div></div>
+    <div class="bo-kpi-card"><div class="bo-kpi-label">Articles</div><div class="bo-kpi-valeur">{{ nb_articles }}</div></div>
+    <div class="bo-kpi-card"><div class="bo-kpi-label">Étudiants</div><div class="bo-kpi-valeur">{{ nb_etudiants }}</div></div>
+    <div class="bo-kpi-card"><div class="bo-kpi-label">CA</div><div class="bo-kpi-valeur">{{ ca_total }} $</div></div>
+    <div class="bo-kpi-card"><div class="bo-kpi-label">Examens</div><div class="bo-kpi-valeur">{{ tentatives_examens }}</div></div>
+</div>
+
+<h3>🏫 Écoles</h3>
+{% for ecole in ecoles %}
+    <div style="padding:12px; border-bottom:1px solid #e2e8f0;">{{ ecole.icone }} {{ ecole.nom }}</div>
+{% endfor %}
+{% endblock %}

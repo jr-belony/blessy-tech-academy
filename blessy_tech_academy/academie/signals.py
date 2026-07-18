@@ -6,15 +6,18 @@ Signaux Django pour Blessy Tech Academy.
 
 import os
 from io import BytesIO
-from PIL import Image
-from django.core.files.base import ContentFile
-from django.db.models.signals import pre_save
-from django.contrib.auth.signals import user_logged_in
-from django.dispatch import receiver
-from django.core.mail import send_mail
-from django.conf import settings
+
 import requests
-from .models import ProjetEtudiant, Formation, ConnexionUtilisateur
+from django.conf import settings
+from django.contrib.auth.signals import user_logged_in
+from django.core.files.base import ContentFile
+from django.core.mail import send_mail
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
+from PIL import Image
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from .models import ConnexionUtilisateur, Formation, ProjetEtudiant
 
 TAILLE_MAX = (1200, 1200)
 QUALITE_JPEG = 82
@@ -22,8 +25,6 @@ QUALITE_JPEG = 82
 
 # ================================================
 # FONCTION UTILITAIRE : Compression d'image
-# Rôle : Redimensionne et compresse une image en mémoire
-# Utilisée par : compresser_image_projet, compresser_illustration_formation
 # ================================================
 def compresser_image(image_field, taille_max=TAILLE_MAX, qualite=QUALITE_JPEG):
     """
@@ -114,7 +115,10 @@ def get_geo_info(ip):
 # ================================================
 @receiver(user_logged_in)
 def enregistrer_connexion(sender, request, user, **kwargs):
-    ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', '')).split(',')[0].strip()
+    # Correction : IP par défaut '0.0.0.0' si aucune IP réelle n'est trouvée
+    ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', '0.0.0.0')).split(',')[0].strip()
+    if not ip:
+        ip = '0.0.0.0'
     user_agent = request.META.get('HTTP_USER_AGENT', '')[:300]
     pays, ville = get_geo_info(ip)
 
@@ -158,8 +162,6 @@ def enregistrer_connexion(sender, request, user, **kwargs):
 # ================================================
 # SIGNAL — Auto-création ProfilUtilisateur à l'inscription
 # ================================================
-from django.contrib.auth.models import User
-from django.db.models.signals import post_save
 
 @receiver(post_save, sender=User)
 def creer_profil_utilisateur(sender, instance, created, **kwargs):
