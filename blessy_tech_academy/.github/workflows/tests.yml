@@ -1,14 +1,24 @@
-name: Tests BTA
+name: Tests & Lint BTA
 
 on: [push]
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
       - run: pip install -r requirements.txt
+      - run: pip install black isort ruff
+      - run: black --check academie/ --line-length 100
+      - run: isort --check-only academie/
+      - run: ruff check academie/
       - run: python manage.py test academie

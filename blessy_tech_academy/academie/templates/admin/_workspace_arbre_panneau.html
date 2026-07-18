@@ -15,6 +15,14 @@
                     <span class="ws-chevron">▶</span><span>📦 {{ module.titre }}</span>
                 </div>
                 <div class="ws-enfants" style="display:none;">
+                    <!-- ================================================
+                         Bouton quiz par module (Sprint 3)
+                         ================================================ -->
+                    <button onclick="genererQuizModule({{ module.id }})"
+                            style="font-size:11px; background:#f0f4f8; border:none; padding:4px 10px; border-radius:12px; cursor:pointer; margin:4px 0 8px; color:var(--bta-bleu);">
+                        📝 Générer un quiz pour ce module
+                    </button>
+
                     {% for lecon in module.lecons.all %}
                     <a href="/admin/academie/lecon/{{ lecon.id }}/change/" target="workspace-panel" class="ws-noeud-lecon">
                         📄 {{ lecon.titre }} {% if lecon.contenu %}<span class="ws-check">✓</span>{% else %}<span class="ws-vide">○</span>{% endif %}
@@ -33,4 +41,28 @@
 <script>
 function toggleNoeud(h){h.classList.toggle('ouvert');const e=h.nextElementSibling;e.style.display=e.style.display==='none'?'block':'none';}
 function creerModule(){window.open('/admin/academie/module/add/?formation={{ formation.id }}','workspace-panel');}
+
+// ================================================
+// JS — Génération quiz par module (Sprint 3)
+// ================================================
+async function genererQuizModule(moduleId) {
+    if (!confirm('Générer un quiz de 5 questions pour ce module ?')) return;
+    const match = document.cookie.match(/csrftoken=([^;]+)/);
+    const token = match ? match[1] : '';
+    const reponse = await fetch('/api/generer-quiz-module/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': token
+        },
+        body: JSON.stringify({ module_id: moduleId, nombre: 5 })
+    });
+    const data = await reponse.json();
+    if (data.succes) {
+        alert(`✅ Quiz créé (${data.nombre_questions} questions)`);
+        location.reload();
+    } else {
+        alert('❌ ' + (data.erreur || 'Erreur'));
+    }
+}
 </script>

@@ -55,6 +55,11 @@ class Ecole(models.Model):
         return round((terminees / total) * 100)
 
 
+# ================================================
+# MODELS.PY — Classe Formation
+# Représente une formation avec slug SEO auto-généré,
+# progression utilisateur et workflow éditorial.
+# ================================================
 class Formation(models.Model):
     """
     Représente une formation proposée par Blessy Tech Academy.
@@ -72,40 +77,27 @@ class Formation(models.Model):
     ecole = models.ForeignKey(
         Ecole, on_delete=models.SET_NULL, null=True, blank=True, related_name="formations"
     )
-
     nom = models.CharField(max_length=200)
-
+    slug = models.SlugField(max_length=250, unique=True, null=True, blank=True, db_index=True)
     icone = models.CharField(max_length=10, default="📚")
-
     illustration = models.CharField(
         max_length=10, blank=True, default="", help_text="Émoji d'illustration (💻 🤖 🔐 📈 ...)"
     )
-
     description = models.TextField()
-
     niveau = models.CharField(max_length=20, choices=NIVEAUX, default="debutant")
-
     duree_mois = models.IntegerField()
-
     prix = models.IntegerField()
-
     actif = models.BooleanField(default=True)
-
     gratuit = models.BooleanField(default=False, help_text="Formation gratuite (Lead Magnet)")
 
     # 3. PROGRAMME & CONTENU
     prerequis = models.TextField(blank=True)
-
     debouches = models.TextField(blank=True)
-
     certifications = models.TextField(blank=True)
     # 4. EMPLOYABILITÉ & CARRIÈRE
     metiers = models.TextField(blank=True, help_text="Un métier par ligne")
-
     competences_acquises = models.TextField(blank=True, help_text="Une compétence par ligne")
-
     competences_cles = models.TextField(blank=True, help_text="Compétences clés (une par ligne)")
-
     logiciels_maitrises = models.TextField(
         blank=True, help_text="Logiciels ou outils maîtrisés (un par ligne)"
     )
@@ -113,25 +105,18 @@ class Formation(models.Model):
     outils_utilises = models.TextField(
         blank=True, help_text="Technologies utilisées durant la formation"
     )
-
     projets_realises = models.TextField(blank=True, help_text="Un projet réalisé par ligne")
-
     certification_obtenue = models.CharField(
         max_length=255, blank=True, help_text="Nom du certificat délivré"
     )
-
     niveau_sortie = models.CharField(
         max_length=120, blank=True, help_text="Ex : Développeur Backend Junior"
     )
-
     temps_pour_emploi = models.CharField(max_length=120, blank=True, help_text="Ex : 3 à 6 mois")
-
     taux_employabilite = models.PositiveIntegerField(default=0, help_text="Pourcentage estimé")
-
     salaire_haiti = models.CharField(
         max_length=60, blank=True, help_text="Ex : 40 000 à 120 000 HTG/mois"
     )
-
     salaire_international = models.CharField(
         max_length=60, blank=True, help_text="Ex : 2 000 à 6 000 USD/mois"
     )
@@ -165,7 +150,6 @@ class Formation(models.Model):
             models.Index(fields=["niveau"]),
             models.Index(fields=["ecole", "actif"]),
         ]
-
     # 9. MÉTHODES
     def __str__(self):
         return f"{self.icone} {self.nom} ({self.duree_mois} mois)"
@@ -180,7 +164,6 @@ class Formation(models.Model):
 
         toutes_lecons = Lecon.objects.filter(module__formation=self)
         total = toutes_lecons.count()
-
         if total == 0:
             return 0
 
@@ -189,6 +172,18 @@ class Formation(models.Model):
         ).count()
 
         return round((terminees / total) * 100)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+            base_slug = slugify(self.nom)
+            slug_candidat = base_slug
+            compteur = 1
+            while Formation.objects.filter(slug=slug_candidat).exclude(pk=self.pk).exists():
+                slug_candidat = f"{base_slug}-{compteur}"
+                compteur += 1
+            self.slug = slug_candidat
+        super().save(*args, **kwargs)
 
     history = HistoricalRecords()
 
@@ -256,10 +251,22 @@ class Inscription(models.Model):
         return f"{self.prenom} {self.nom} — {self.get_sujet_display()}"
 
 
+# ================================================
+# MODELS.PY — Classe Quiz
+# Représente un quiz lié à une formation ou à un module spécifique.
+# ================================================
 class Quiz(models.Model):
     """Représente un quiz lié à une formation."""
 
     formation = models.ForeignKey(Formation, on_delete=models.CASCADE, related_name="quiz_set")
+    module = models.ForeignKey(
+        'Module',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='quiz_module',
+        help_text="Quiz spécifique à ce module. Si vide, le quiz reste rattaché à la formation entière."
+    )
     titre = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     actif = models.BooleanField(default=True)
@@ -280,6 +287,11 @@ class Quiz(models.Model):
     def nombre_questions(self):
         return self.questions.count()
 
+    def contexte(self):
+        """Retourne 'Module X' si rattaché à un module, sinon le nom de la formation."""
+        if self.module:
+            return f"{self.module.formation.nom} — Module: {self.module.titre}"
+        return self.formation.nom if self.formation else "—"
 
 class Question(models.Model):
     """Représente une question à choix multiples dans un quiz."""

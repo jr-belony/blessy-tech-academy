@@ -116,9 +116,7 @@ urlpatterns = [
         views.admin_valider_transaction,
         name="admin_valider_transaction",
     ),
-    # ================================================
     # URLS.PY — Routes passerelles de paiement
-    # ================================================
     path(
         "payer/<str:order_reference>/",
         views.rediriger_paiement_externe,
@@ -158,4 +156,5 @@ urlpatterns = [
     path(
         "api/assistant-backoffice/", views.api_assistant_backoffice, name="api_assistant_backoffice"
     ),
+    path('api/generer-quiz-module/', views.api_generer_quiz_module, name='api_generer_quiz_module'),
 ]

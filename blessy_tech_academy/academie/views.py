@@ -5,7 +5,6 @@ import random
 from datetime import timedelta
 from decimal import Decimal
 from io import StringIO
-
 import filetype
 import markdown as markdown_lib
 from django.conf import settings
@@ -75,6 +74,7 @@ from .models import (
     ProjetEtudiant,
     Promotion,
     Quiz,
+    Question,
     Reaction,
     Refund,
     Reponse,
@@ -725,6 +725,57 @@ def api_generer_quiz(request):
             return JsonResponse({"erreur": str(e)}, status=500)
 
     return JsonResponse({"erreur": "Méthode non autorisée"}, status=405)
+
+
+# ================================================
+# VIEWS.PY — Génération quiz au niveau Module (complète api_generer_quiz existante)
+# ================================================
+@login_required
+@role_required('resp_academique', 'admin', 'super_admin')
+def api_generer_quiz_module(request):
+    """
+    Génère un quiz rattaché à un MODULE spécifique (granularité fine).
+    Réutilise generer_quiz() existante — juste le rattachement diffère.
+    """
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            module_id = data.get('module_id')
+            nombre = int(data.get('nombre', 5))
+
+            module = Module.objects.select_related('formation').get(id=module_id)
+
+            questions = generer_quiz(module.titre, nombre)
+
+            if not questions:
+                return JsonResponse({'erreur': 'Génération échouée'}, status=500)
+
+            quiz = Quiz.objects.create(
+                formation=module.formation,
+                module=module,
+                titre=f"Quiz — {module.titre}",
+                actif=True,
+            )
+
+            for i, q_data in enumerate(questions, start=1):
+                Question.objects.create(
+                    quiz=quiz,
+                    texte=q_data.get('texte', ''),
+                    choix_a=q_data.get('choix_a', ''),
+                    choix_b=q_data.get('choix_b', ''),
+                    choix_c=q_data.get('choix_c', ''),
+                    choix_d=q_data.get('choix_d', ''),
+                    bonne_reponse=q_data.get('bonne_reponse', 'a'),
+                    explication=q_data.get('explication', ''),
+                    ordre=i,
+                )
+
+            return JsonResponse({'succes': True, 'quiz_id': quiz.id, 'nombre_questions': len(questions)})
+
+        except Exception as e:
+            return JsonResponse({'erreur': str(e)}, status=500)
+
+    return JsonResponse({'erreur': 'Méthode non autorisée'}, status=405)
 
 
 def liste_quiz(request, formation_id):

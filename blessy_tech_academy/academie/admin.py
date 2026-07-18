@@ -258,12 +258,13 @@ class QuizAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_display = [
         "titre",
         "formation",
+        "module",
         "nombre_questions",
         "limite_temps_minutes",
         "actif",
         "date_creation",
     ]
-    list_filter = ["actif", "formation"]
+    list_filter = ["actif", "formation", "module"]
     search_fields = ["titre"]
     list_editable = ["actif", "limite_temps_minutes"]
     inlines = [QuestionInline]
