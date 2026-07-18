@@ -492,3 +492,35 @@ else:
             'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
         }
     }
+
+
+# ================================================
+# SETTINGS.PY — Stockage média externalisé (S3-compatible)
+# CRITIQUE : Railway efface /media/ à chaque déploiement
+# Compatible AWS S3, Cloudflare R2 (moins cher), MinIO, Backblaze B2
+# ================================================
+
+INSTALLED_APPS += ['storages']
+
+USE_S3_STORAGE = config('USE_S3_STORAGE', default=False, cast=bool)
+
+if USE_S3_STORAGE:
+    AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default='')
+    AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default='')
+    AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default='')
+    AWS_S3_ENDPOINT_URL = config('AWS_S3_ENDPOINT_URL', default='')  # laisser vide pour AWS S3 natif, remplir pour R2/MinIO
+    AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME', default='auto')
+    AWS_DEFAULT_ACL = None
+    AWS_S3_FILE_OVERWRITE = False
+    AWS_QUERYSTRING_AUTH = True
+    AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
+
+    STORAGES = {
+        "default": {"BACKEND": "storages.backends.s3boto3.S3Boto3Storage"},
+        "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+    }
+    MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/" if not AWS_S3_ENDPOINT_URL else f"{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/"
+else:
+    # Fallback local (dev uniquement — NE PAS utiliser en production Railway)
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = BASE_DIR / 'media'
