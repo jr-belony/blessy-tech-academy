@@ -5,6 +5,12 @@
 {% extends 'academie/base.html' %}
 
 {% block titre %}{{ formation.nom }} — Blessy Tech Academy{% endblock %}
+<!-- ================================================
+    DETAIL_FORMATION.HTML — Meta SEO dynamiques
+================================================ -->
+{% block meta_description %}{{ formation.description|truncatewords:25 }}{% endblock %}
+{% block og_title %}{{ formation.nom }} — Blessy Tech Academy{% endblock %}
+{% block og_description %}{{ formation.description|truncatewords:25 }}{% endblock %}
 
 {% block contenu %}
 

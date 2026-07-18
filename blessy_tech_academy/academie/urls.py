@@ -157,4 +157,5 @@ urlpatterns = [
         "api/assistant-backoffice/", views.api_assistant_backoffice, name="api_assistant_backoffice"
     ),
     path('api/generer-quiz-module/', views.api_generer_quiz_module, name='api_generer_quiz_module'),
+    path('formation/<slug:formation_slug>/', views.detail_formation_slug, name='detail_formation_slug'),
 ]

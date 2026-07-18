@@ -262,6 +262,25 @@ def detail_formation(request, formation_id):
 
 
 # ================================================
+# VIEWS.PY — detail_formation_slug (SEO-friendly, réutilise detail_formation existante)
+# Insérer juste après la fonction detail_formation() existante
+# ================================================
+
+def detail_formation_slug(request, formation_slug):
+    """
+    Version SEO-friendly de detail_formation — même logique,
+    accessible via /formation/mon-slug-seo/ au lieu de /formation/42/.
+    """
+    formation = Formation.objects.filter(slug=formation_slug, actif=True).first()
+    if not formation:
+        from django.http import Http404
+        raise Http404("Formation introuvable")
+
+    # Délègue à la logique existante de detail_formation en interne
+    return detail_formation(request, formation.id)
+
+
+# ================================================
 # Authentification
 # ================================================
 
@@ -2251,9 +2270,11 @@ def apercu_article_admin(request, article_id):
 # Vues pour le sitemap et robots.txt
 def sitemap_xml(request):
     articles = Article.objects.filter(publie=True)
-    return render(
-        request, "academie/sitemap.xml", {"articles": articles}, content_type="application/xml"
-    )
+    formations = Formation.objects.filter(actif=True, slug__isnull=False)
+    return render(request, 'academie/sitemap.xml', {
+        'articles': articles,
+        'formations': formations,
+    }, content_type='application/xml')
 
 
 def robots_txt(request):

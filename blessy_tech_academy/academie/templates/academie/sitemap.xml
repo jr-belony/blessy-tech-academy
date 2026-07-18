@@ -9,4 +9,9 @@
     {% for article in articles %}
     <url><loc>{{ request.scheme }}://{{ request.get_host }}{% url 'detail_article' article.slug %}</loc><priority>0.6</priority></url>
     {% endfor %}
+    {% for formation in formations %}
+    {% if formation.slug %}
+    <url><loc>{{ request.scheme }}://{{ request.get_host }}{% url 'detail_formation_slug' formation.slug %}</loc><priority>0.8</priority></url>
+    {% endif %}
+    {% endfor %}
 </urlset>

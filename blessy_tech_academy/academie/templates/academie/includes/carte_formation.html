@@ -55,12 +55,21 @@
 
     <!-- CTAs — 2 boutons hiérarchisés -->
     <div class="cfv2-footer">
+        {% if formation.slug %}
+        <a href="{% url 'detail_formation_slug' formation.slug %}" class="cfv2-btn-secondaire">
+            📋 Voir le programme
+        </a>
+        <a href="{% url 'detail_formation_slug' formation.slug %}" class="cfv2-btn-principal">
+            🚀 Commencer maintenant
+        </a>
+        {% else %}
         <a href="{% url 'detail_formation' formation.id %}" class="cfv2-btn-secondaire">
             📋 Voir le programme
         </a>
         <a href="{% url 'detail_formation' formation.id %}" class="cfv2-btn-principal">
             🚀 Commencer maintenant
         </a>
+        {% endif %}
     </div>
 
 </article>

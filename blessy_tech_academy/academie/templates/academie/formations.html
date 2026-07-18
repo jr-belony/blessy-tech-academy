@@ -144,16 +144,29 @@
                     <span>⏱ {{ formation.duree_mois }} mois</span>
                     <span style="color: #22c55e; font-weight: 800;">GRATUIT</span>
                 </div>
+                {% if formation.slug %}
+                <a href="{% url 'detail_formation_slug' formation.slug %}"
+                class="btn-gratuite-page">
+                    Commencer maintenant →
+                </a>
+                {% else %}
                 <a href="{% url 'detail_formation' formation.id %}"
                 class="btn-gratuite-page">
                     Commencer maintenant →
                 </a>
+                {% endif %}
                 {% if formation.formation_upgrade %}
                 <div class="gratuite-page-upgrade">
                     <span>🚀 Formation complète :</span>
+                    {% if formation.formation_upgrade.slug %}
+                    <a href="{% url 'detail_formation_slug' formation.formation_upgrade.slug %}">
+                        {{ formation.formation_upgrade.nom }} →
+                    </a>
+                    {% else %}
                     <a href="{% url 'detail_formation' formation.formation_upgrade.id %}">
                         {{ formation.formation_upgrade.nom }} →
                     </a>
+                    {% endif %}
                 </div>
                 {% endif %}
             </div>
@@ -248,10 +261,17 @@
 
                 <!-- Footer -->
                 <div class="carte-moderne-footer">
+                    {% if formation.slug %}
+                    <a href="{% url 'detail_formation_slug' formation.slug %}"
+                    class="btn-carte-programme">
+                        📋 Programme
+                    </a>
+                    {% else %}
                     <a href="{% url 'detail_formation' formation.id %}"
                     class="btn-carte-programme">
                         📋 Programme
                     </a>
+                    {% endif %}
                     <a href="{% url 'contact' %}"
                     class="btn-carte-inscrire">
                         S'inscrire
@@ -1136,4 +1156,4 @@
 })();
 </script>
 
-{% endblock %}.
+{% endblock %}
