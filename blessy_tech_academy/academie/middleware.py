@@ -4,7 +4,7 @@ import time
 from django.conf import settings
 from django.core.cache import cache
 
-logger = logging.getLogger('bta_performance')
+logger = logging.getLogger("bta_performance")
 
 
 class SecurityHeadersMiddleware:
@@ -14,17 +14,17 @@ class SecurityHeadersMiddleware:
     - Permissions-Policy
     S'adapte automatiquement selon l'environnement (DEBUG).
     """
-    
+
     def __init__(self, get_response):
         self.get_response = get_response
-        self.debug = getattr(settings, 'DEBUG', False)
+        self.debug = getattr(settings, "DEBUG", False)
 
     def __call__(self, request):
         response = self.get_response(request)
 
         if self.debug:
             # DÉVELOPPEMENT : CSP assoupli pour localhost
-            response['Content-Security-Policy'] = (
+            response["Content-Security-Policy"] = (
                 "default-src 'self' http://127.0.0.1:8000 http://localhost:8000; "
                 "script-src 'self' 'unsafe-inline' "
                 "https://cdn.ckeditor.com https://cdn.jsdelivr.net "
@@ -44,7 +44,7 @@ class SecurityHeadersMiddleware:
             )
         else:
             # PRODUCTION : CSP strict (scripts inline autorisés temporairement)
-            response['Content-Security-Policy'] = (
+            response["Content-Security-Policy"] = (
                 "default-src 'none'; "
                 "script-src 'self' 'unsafe-inline' "
                 "https://cdn.ckeditor.com https://cdn.jsdelivr.net "
@@ -64,7 +64,7 @@ class SecurityHeadersMiddleware:
             )
 
         # Permissions-Policy (identique en dev et production)
-        response['Permissions-Policy'] = (
+        response["Permissions-Policy"] = (
             "camera=(), "
             "microphone=(), "
             "geolocation=(), "
@@ -78,10 +78,10 @@ class SecurityHeadersMiddleware:
 
         # En-têtes de sécurité supplémentaires (production uniquement)
         if not self.debug:
-            response['X-Content-Type-Options'] = 'nosniff'
-            response['X-Frame-Options'] = 'DENY'
-            response['X-XSS-Protection'] = '1; mode=block'
-            response['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+            response["X-Content-Type-Options"] = "nosniff"
+            response["X-Frame-Options"] = "DENY"
+            response["X-XSS-Protection"] = "1; mode=block"
+            response["Referrer-Policy"] = "strict-origin-when-cross-origin"
 
         return response
 
@@ -118,10 +118,10 @@ class AcademieCouranteMiddleware:
     def __call__(self, request):
         from .models import Academie
 
-        host = request.get_host().split(':')[0]
+        host = request.get_host().split(":")[0]
 
         # Clé de cache unique par domaine
-        cache_key = f'academie_courante:{host}'
+        cache_key = f"academie_courante:{host}"
         academie = cache.get(cache_key)
 
         if academie is None:

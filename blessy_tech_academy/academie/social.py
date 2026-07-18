@@ -4,6 +4,7 @@ En attendant les tokens définitifs, les fonctions affichent le message
 dans les logs Django. Pour activer le partage réel, décommentez les
 appels API correspondants.
 """
+
 import logging
 
 logger = logging.getLogger(__name__)

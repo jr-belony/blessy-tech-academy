@@ -16,8 +16,7 @@ class Command(BaseCommand):
         crees = 0
         for user in User.objects.all():
             profil, cree = ProfilUtilisateur.objects.get_or_create(
-                utilisateur=user,
-                defaults={'role': 'admin' if user.is_staff else 'etudiant'}
+                utilisateur=user, defaults={"role": "admin" if user.is_staff else "etudiant"}
             )
             if cree:
                 crees += 1

@@ -4,106 +4,158 @@ from . import views
 
 urlpatterns = [
     # Pages principales
-    path('', views.accueil, name='accueil'),
-    path('formations/', views.formations, name='formations'),
-    path('apropos/', views.apropos, name='apropos'),
-    path('contact/', views.contact, name='contact'),
-
+    path("", views.accueil, name="accueil"),
+    path("formations/", views.formations, name="formations"),
+    path("apropos/", views.apropos, name="apropos"),
+    path("contact/", views.contact, name="contact"),
     # Authentification
-    path('inscription/', views.inscription_compte, name='inscription_compte'),
-    path('connexion/', views.connexion, name='connexion'),
-    path('deconnexion/', views.deconnexion, name='deconnexion'),
-    path('dashboard/', views.dashboard, name='dashboard'),
-    path('recherche/', views.recherche_formations, name='recherche'),
-
+    path("inscription/", views.inscription_compte, name="inscription_compte"),
+    path("connexion/", views.connexion, name="connexion"),
+    path("deconnexion/", views.deconnexion, name="deconnexion"),
+    path("dashboard/", views.dashboard, name="dashboard"),
+    path("recherche/", views.recherche_formations, name="recherche"),
     # Statistiques admin
-    path('statistiques/', views.statistiques, name='statistiques'),
-
+    path("statistiques/", views.statistiques, name="statistiques"),
     # Intelligence Artificielle
-    path('chat/', views.chat_ia, name='chat_ia'),
-    path('api/chat/', views.api_chat_ia, name='api_chat_ia'),
-    path('recommandations/', views.recommandations_ia, name='recommandations_ia'),
-    path('api/generer-formation/', views.api_generer_formation, name='api_generer_formation'),
-    path('api/generer-quiz/', views.api_generer_quiz, name='api_generer_quiz'),
-    path('formation/<int:formation_id>/quiz/', views.liste_quiz, name='liste_quiz'),
-    path('formation/<int:formation_id>/', views.detail_formation, name='detail_formation'),
-    path('quiz/<int:quiz_id>/', views.passer_quiz, name='passer_quiz'),
-    path('api/generer-programme/', views.api_generer_programme, name='api_generer_programme'),
-    path('api/generer-contenu-lecon/', views.api_generer_contenu_lecon, name='api_generer_contenu_lecon'),
-    path('lecon/<int:lecon_id>/', views.lire_lecon, name='lire_lecon'),
-    path('api/generer-contenu-module/', views.api_generer_contenu_module, name='api_generer_contenu_module'),
-    path('lecon/<int:lecon_id>/terminer/', views.marquer_lecon_terminee, name='marquer_lecon_terminee'),
-    path('formation/<int:formation_id>/certificat/', views.telecharger_certificat, name='telecharger_certificat'),
-    
+    path("chat/", views.chat_ia, name="chat_ia"),
+    path("api/chat/", views.api_chat_ia, name="api_chat_ia"),
+    path("recommandations/", views.recommandations_ia, name="recommandations_ia"),
+    path("api/generer-formation/", views.api_generer_formation, name="api_generer_formation"),
+    path("api/generer-quiz/", views.api_generer_quiz, name="api_generer_quiz"),
+    path("formation/<int:formation_id>/quiz/", views.liste_quiz, name="liste_quiz"),
+    path("formation/<int:formation_id>/", views.detail_formation, name="detail_formation"),
+    path("quiz/<int:quiz_id>/", views.passer_quiz, name="passer_quiz"),
+    path("api/generer-programme/", views.api_generer_programme, name="api_generer_programme"),
+    path(
+        "api/generer-contenu-lecon/",
+        views.api_generer_contenu_lecon,
+        name="api_generer_contenu_lecon",
+    ),
+    path("lecon/<int:lecon_id>/", views.lire_lecon, name="lire_lecon"),
+    path(
+        "api/generer-contenu-module/",
+        views.api_generer_contenu_module,
+        name="api_generer_contenu_module",
+    ),
+    path(
+        "lecon/<int:lecon_id>/terminer/",
+        views.marquer_lecon_terminee,
+        name="marquer_lecon_terminee",
+    ),
+    path(
+        "formation/<int:formation_id>/certificat/",
+        views.telecharger_certificat,
+        name="telecharger_certificat",
+    ),
     # Routes API pour les 6 fonctions IA
-    path('api/ia/assistant-code/', views.api_assistant_code, name='api-assistant-code'),
-    path('api/ia/generateur-exercices/', views.api_generateur_exercices, name='api-generateur-exercices'),
-    path('api/ia/explication-concept/', views.api_explication_concept, name='api-explication-concept'),
-    path('api/ia/correction/', views.api_correction_automatique, name='api-correction'),
-    path('api/ia/parcours-adaptatif/', views.api_parcours_adaptatif, name='api-parcours-adaptatif'),
-    path('api/ia/chatbot/', views.api_chatbot_tuteur, name='api-chatbot'),
-    path('api/ia/simuler-carriere/', views.simuler_carriere, name='api-simuler-carriere'),
-    
+    path("api/ia/assistant-code/", views.api_assistant_code, name="api-assistant-code"),
+    path(
+        "api/ia/generateur-exercices/",
+        views.api_generateur_exercices,
+        name="api-generateur-exercices",
+    ),
+    path(
+        "api/ia/explication-concept/", views.api_explication_concept, name="api-explication-concept"
+    ),
+    path("api/ia/correction/", views.api_correction_automatique, name="api-correction"),
+    path("api/ia/parcours-adaptatif/", views.api_parcours_adaptatif, name="api-parcours-adaptatif"),
+    path("api/ia/chatbot/", views.api_chatbot_tuteur, name="api-chatbot"),
+    path("api/ia/simuler-carriere/", views.simuler_carriere, name="api-simuler-carriere"),
     # Simulateur de carrière
-    path('simulateur-carriere/', views.simuler_carriere, name='simulateur_carriere'),
-    path('simulateur/', views.simuler_carriere, name='simulateur'),
-    
+    path("simulateur-carriere/", views.simuler_carriere, name="simulateur_carriere"),
+    path("simulateur/", views.simuler_carriere, name="simulateur"),
     # Espace recrutement / Portfolio
-    path('recrutement/', views.espace_recrutement, name='espace_recrutement'),
-    path('mon-portfolio/', views.mon_portfolio, name='mon_portfolio'),
-    
+    path("recrutement/", views.espace_recrutement, name="espace_recrutement"),
+    path("mon-portfolio/", views.mon_portfolio, name="mon_portfolio"),
     # Forum Communautaire
-    path('forum/', views.forum_liste, name='forum_liste'),
-    path('forum/nouveau/', views.forum_creer, name='forum_creer'),
-    path('forum/<int:sujet_id>/', views.forum_detail, name='forum_detail'),
-    path('forum/liker/<str:type_cible>/<int:cible_id>/', views.forum_liker, name='forum_liker'),
-    path('forum/accepter/<int:reponse_id>/', views.forum_accepter_reponse, name='forum_accepter_reponse'),
-    path('orientation/', views.orientation_ia, name='orientation_ia'),
-    path('forum/membres/', views.forum_membres, name='forum_membres'),
-
-    path('certificat/<str:numero>/', views.verifier_certificat, name='verifier_certificat'),
-    path('notifications/', views.notifications_liste, name='notifications_liste'),
-    path('classement/', views.classement, name='classement'),
-    path('setlang/fr/', views.set_lang_fr, name='set_lang_fr'),
-    path('setlang/ht/', views.set_lang_ht, name='set_lang_ht'),
-    path('ressources/', views.ressources, name='ressources'),
-    path('ressources/<slug:slug>/', views.detail_article, name='detail_article'),
-    path('admin/apercu-article/<int:article_id>/', views.apercu_article_admin, name='apercu_article_admin'),
-    path('parcours/', views.parcours_professionnels, name='parcours'),
-    path('admin/formation/<int:formation_id>/workspace/', views.workspace_formation, name='workspace_formation'),
-    
+    path("forum/", views.forum_liste, name="forum_liste"),
+    path("forum/nouveau/", views.forum_creer, name="forum_creer"),
+    path("forum/<int:sujet_id>/", views.forum_detail, name="forum_detail"),
+    path("forum/liker/<str:type_cible>/<int:cible_id>/", views.forum_liker, name="forum_liker"),
+    path(
+        "forum/accepter/<int:reponse_id>/",
+        views.forum_accepter_reponse,
+        name="forum_accepter_reponse",
+    ),
+    path("orientation/", views.orientation_ia, name="orientation_ia"),
+    path("forum/membres/", views.forum_membres, name="forum_membres"),
+    path("certificat/<str:numero>/", views.verifier_certificat, name="verifier_certificat"),
+    path("notifications/", views.notifications_liste, name="notifications_liste"),
+    path("classement/", views.classement, name="classement"),
+    path("setlang/fr/", views.set_lang_fr, name="set_lang_fr"),
+    path("setlang/ht/", views.set_lang_ht, name="set_lang_ht"),
+    path("ressources/", views.ressources, name="ressources"),
+    path("ressources/<slug:slug>/", views.detail_article, name="detail_article"),
+    path(
+        "admin/apercu-article/<int:article_id>/",
+        views.apercu_article_admin,
+        name="apercu_article_admin",
+    ),
+    path("parcours/", views.parcours_professionnels, name="parcours"),
+    path(
+        "admin/formation/<int:formation_id>/workspace/",
+        views.workspace_formation,
+        name="workspace_formation",
+    ),
     # === Synchronisation export/import ===
-    path('admin/synchronisation/export/', views.admin_sync_export, name='admin_sync_export'),
-    path('admin/synchronisation/import/', views.admin_sync_import, name='admin_sync_import'),
+    path("admin/synchronisation/export/", views.admin_sync_export, name="admin_sync_export"),
+    path("admin/synchronisation/import/", views.admin_sync_import, name="admin_sync_import"),
     # ================================================
     # URLS.PY — Payment Center
     # ================================================
-
-    path('acheter/<int:formation_id>/', views.initier_achat, name='initier_achat'),
-    path('checkout/<str:order_reference>/', views.checkout, name='checkout'),
-    path('confirmer-paiement/<str:order_reference>/', views.confirmer_paiement, name='confirmer_paiement'),
-    path('mes-commandes/', views.mes_commandes, name='mes_commandes'),
-    path('admin/valider-transaction/<int:transaction_id>/', views.admin_valider_transaction, name='admin_valider_transaction'),
+    path("acheter/<int:formation_id>/", views.initier_achat, name="initier_achat"),
+    path("checkout/<str:order_reference>/", views.checkout, name="checkout"),
+    path(
+        "confirmer-paiement/<str:order_reference>/",
+        views.confirmer_paiement,
+        name="confirmer_paiement",
+    ),
+    path("mes-commandes/", views.mes_commandes, name="mes_commandes"),
+    path(
+        "admin/valider-transaction/<int:transaction_id>/",
+        views.admin_valider_transaction,
+        name="admin_valider_transaction",
+    ),
     # ================================================
     # URLS.PY — Routes passerelles de paiement
     # ================================================
-    path('payer/<str:order_reference>/', views.rediriger_paiement_externe, name='rediriger_paiement_externe'),
-    path('paiement-succes/<str:order_reference>/', views.paiement_succes, name='paiement_succes'),
-    path('webhooks/stripe/', views.stripe_webhook, name='stripe_webhook'),
+    path(
+        "payer/<str:order_reference>/",
+        views.rediriger_paiement_externe,
+        name="rediriger_paiement_externe",
+    ),
+    path("paiement-succes/<str:order_reference>/", views.paiement_succes, name="paiement_succes"),
+    path("webhooks/stripe/", views.stripe_webhook, name="stripe_webhook"),
     # === Plateforme d'examens officiels ===
-    path('examen/<int:examen_id>/preparation/', views.preparation_examen, name='preparation_examen'),
-    path('examen/<int:examen_id>/', views.passer_examen, name='passer_examen'),
-    path('examen/<int:examen_id>/soumettre/', views.soumettre_examen, name='soumettre_examen'),
+    path(
+        "examen/<int:examen_id>/preparation/", views.preparation_examen, name="preparation_examen"
+    ),
+    path("examen/<int:examen_id>/", views.passer_examen, name="passer_examen"),
+    path("examen/<int:examen_id>/soumettre/", views.soumettre_examen, name="soumettre_examen"),
     # URLs..py — Page offline (fallback PWA)
-    path('offline/', views.page_offline, name='offline'),
+    path("offline/", views.page_offline, name="offline"),
     # === Dashboard Enseignant ===
-    path('dashboard-enseignant/', views.dashboard_enseignant, name='dashboard_enseignant'),
+    path("dashboard-enseignant/", views.dashboard_enseignant, name="dashboard_enseignant"),
     # === CRM ===
-    path('admin/dashboard-crm/', views.dashboard_crm, name='dashboard_crm'),
-    path('admin/crm/interaction/<int:inscription_id>/', views.ajouter_interaction_crm, name='ajouter_interaction_crm'),
+    path("admin/dashboard-crm/", views.dashboard_crm, name="dashboard_crm"),
+    path(
+        "admin/crm/interaction/<int:inscription_id>/",
+        views.ajouter_interaction_crm,
+        name="ajouter_interaction_crm",
+    ),
     # === Workflow Formation (machine à états) ===
-    path('admin/workflow/<int:formation_id>/transition/', views.transitionner_workflow_formation, name='transitionner_workflow'),
-    path('admin/workflow/<int:formation_id>/checklist/', views.mettre_a_jour_checklist, name='mettre_a_jour_checklist'),
+    path(
+        "admin/workflow/<int:formation_id>/transition/",
+        views.transitionner_workflow_formation,
+        name="transitionner_workflow",
+    ),
+    path(
+        "admin/workflow/<int:formation_id>/checklist/",
+        views.mettre_a_jour_checklist,
+        name="mettre_a_jour_checklist",
+    ),
     # === Assistant IA Back Office ===
-    path('api/assistant-backoffice/', views.api_assistant_backoffice, name='api_assistant_backoffice'),
+    path(
+        "api/assistant-backoffice/", views.api_assistant_backoffice, name="api_assistant_backoffice"
+    ),
 ]

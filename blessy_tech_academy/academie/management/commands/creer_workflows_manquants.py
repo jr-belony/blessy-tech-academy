@@ -14,16 +14,18 @@ class Command(BaseCommand):
         crees = 0
         for formation in Formation.objects.all():
             # Les formations déjà actif=True sont considérées comme "publiées"
-            etat_initial = 'publiee' if formation.actif else 'brouillon'
+            etat_initial = "publiee" if formation.actif else "brouillon"
             workflow, cree = WorkflowFormation.objects.get_or_create(
                 formation=formation,
                 defaults={
-                    'etat_actuel': etat_initial,
-                    'checklist_contenu_complet': formation.modules.exists(),
-                    'checklist_seo_complet': bool(formation.description),
-                    'checklist_prix_valide': True,
-                    'checklist_quiz_present': formation.quiz_set.exists() if hasattr(formation, 'quiz_set') else False,
-                }
+                    "etat_actuel": etat_initial,
+                    "checklist_contenu_complet": formation.modules.exists(),
+                    "checklist_seo_complet": bool(formation.description),
+                    "checklist_prix_valide": True,
+                    "checklist_quiz_present": (
+                        formation.quiz_set.exists() if hasattr(formation, "quiz_set") else False
+                    ),
+                },
             )
             if cree:
                 crees += 1

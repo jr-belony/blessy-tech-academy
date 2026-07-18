@@ -9,14 +9,14 @@ from io import BytesIO
 
 import requests
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.contrib.auth.signals import user_logged_in
 from django.core.files.base import ContentFile
 from django.core.mail import send_mail
-from django.db.models.signals import pre_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from PIL import Image
-from django.contrib.auth.models import User
-from django.db.models.signals import post_save
+
 from .models import ConnexionUtilisateur, Formation, ProjetEtudiant
 
 TAILLE_MAX = (1200, 1200)
@@ -34,13 +34,13 @@ def compresser_image(image_field, taille_max=TAILLE_MAX, qualite=QUALITE_JPEG):
     try:
         img = Image.open(image_field)
 
-        if img.mode in ('RGBA', 'P'):
-            img = img.convert('RGB')
+        if img.mode in ("RGBA", "P"):
+            img = img.convert("RGB")
 
         img.thumbnail(taille_max, Image.Resampling.LANCZOS)
 
         buffer = BytesIO()
-        img.save(buffer, format='JPEG', quality=qualite, optimize=True)
+        img.save(buffer, format="JPEG", quality=qualite, optimize=True)
         buffer.seek(0)
 
         nom_original = os.path.splitext(image_field.name)[0]
@@ -68,7 +68,7 @@ def compresser_image_projet(sender, instance, **kwargs):
         except ProjetEtudiant.DoesNotExist:
             pass
 
-    if hasattr(instance.image, 'file'):
+    if hasattr(instance.image, "file"):
         image_compressee = compresser_image(instance.image)
         if image_compressee:
             instance.image.save(image_compressee.name, image_compressee, save=False)
@@ -90,7 +90,7 @@ def compresser_illustration_formation(sender, instance, **kwargs):
         except Formation.DoesNotExist:
             pass
 
-    if hasattr(instance.illustration, 'file'):
+    if hasattr(instance.illustration, "file"):
         image_compressee = compresser_image(instance.illustration, taille_max=(1600, 900))
         if image_compressee:
             instance.illustration.save(image_compressee.name, image_compressee, save=False)
@@ -101,13 +101,13 @@ def compresser_illustration_formation(sender, instance, **kwargs):
 # ================================================
 def get_geo_info(ip):
     try:
-        response = requests.get(f'http://ip-api.com/json/{ip}', timeout=3)
+        response = requests.get(f"http://ip-api.com/json/{ip}", timeout=3)
         if response.status_code == 200:
             data = response.json()
-            return data.get('country', ''), data.get('city', '')
+            return data.get("country", ""), data.get("city", "")
     except Exception:
         pass
-    return '', ''
+    return "", ""
 
 
 # ================================================
@@ -116,13 +116,19 @@ def get_geo_info(ip):
 @receiver(user_logged_in)
 def enregistrer_connexion(sender, request, user, **kwargs):
     # Correction : IP par défaut '0.0.0.0' si aucune IP réelle n'est trouvée
-    ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', '0.0.0.0')).split(',')[0].strip()
+    ip = (
+        request.META.get("HTTP_X_FORWARDED_FOR", request.META.get("REMOTE_ADDR", "0.0.0.0"))
+        .split(",")[0]
+        .strip()
+    )
     if not ip:
-        ip = '0.0.0.0'
-    user_agent = request.META.get('HTTP_USER_AGENT', '')[:300]
+        ip = "0.0.0.0"
+    user_agent = request.META.get("HTTP_USER_AGENT", "")[:300]
     pays, ville = get_geo_info(ip)
 
-    derniere = ConnexionUtilisateur.objects.filter(utilisateur=user).order_by('-date_connexion').first()
+    derniere = (
+        ConnexionUtilisateur.objects.filter(utilisateur=user).order_by("-date_connexion").first()
+    )
     suspecte = False
     if derniere and (derniere.pays != pays or derniere.adresse_ip != ip):
         suspecte = True
@@ -140,16 +146,16 @@ def enregistrer_connexion(sender, request, user, **kwargs):
     if suspecte and user.email:
         try:
             send_mail(
-                subject='🔐 Nouvelle connexion détectée sur votre compte BTA',
+                subject="🔐 Nouvelle connexion détectée sur votre compte BTA",
                 message=(
-                    f'Bonjour {user.first_name or user.username},\n\n'
-                    f'Une nouvelle connexion à votre compte Blessy Tech Academy a été détectée :\n\n'
-                    f'📍 Adresse IP : {ip}\n'
-                    f'🌍 Pays : {pays}\n'
-                    f'🏙️ Ville : {ville}\n'
-                    f'🖥️ Navigateur : {user_agent[:100]}\n\n'
-                    f'Si vous n\'êtes pas à l\'origine de cette connexion, changez immédiatement votre mot de passe.\n\n'
-                    f'L\'équipe BTA'
+                    f"Bonjour {user.first_name or user.username},\n\n"
+                    f"Une nouvelle connexion à votre compte Blessy Tech Academy a été détectée :\n\n"
+                    f"📍 Adresse IP : {ip}\n"
+                    f"🌍 Pays : {pays}\n"
+                    f"🏙️ Ville : {ville}\n"
+                    f"🖥️ Navigateur : {user_agent[:100]}\n\n"
+                    f"Si vous n'êtes pas à l'origine de cette connexion, changez immédiatement votre mot de passe.\n\n"
+                    f"L'équipe BTA"
                 ),
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[user.email],
@@ -163,12 +169,14 @@ def enregistrer_connexion(sender, request, user, **kwargs):
 # SIGNAL — Auto-création ProfilUtilisateur à l'inscription
 # ================================================
 
+
 @receiver(post_save, sender=User)
 def creer_profil_utilisateur(sender, instance, created, **kwargs):
     """Crée automatiquement un ProfilUtilisateur pour chaque nouveau User."""
     if created:
         from .models import ProfilUtilisateur
-        ProfilUtilisateur.objects.get_or_create(utilisateur=instance, defaults={'role': 'etudiant'})
+
+        ProfilUtilisateur.objects.get_or_create(utilisateur=instance, defaults={"role": "etudiant"})
 
 
 # ================================================
@@ -179,4 +187,7 @@ def creer_workflow_formation(sender, instance, created, **kwargs):
     """Crée automatiquement un WorkflowFormation pour chaque nouvelle Formation."""
     if created:
         from .models import WorkflowFormation
-        WorkflowFormation.objects.get_or_create(formation=instance, defaults={'etat_actuel': 'brouillon'})
+
+        WorkflowFormation.objects.get_or_create(
+            formation=instance, defaults={"etat_actuel": "brouillon"}
+        )

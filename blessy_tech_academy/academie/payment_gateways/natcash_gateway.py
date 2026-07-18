@@ -1,10 +1,11 @@
 # ================================================
 # PAYMENT_GATEWAYS/NATCASH_GATEWAY.PY
 # NatCash n'a pas d'API publique standardisée comme MonCash.
-# Structure prête pour intégration dès que Natcom fournit leurs 
+# Structure prête pour intégration dès que Natcom fournit leurs
 # identifiants d'API (contact : partenariat.natcom@natcom.ht)
 # En attendant : fonctionne en mode "manuel avec référence"
 # ================================================
+
 
 def creer_paiement(commande):
     """

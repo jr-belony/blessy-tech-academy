@@ -18,1057 +18,2739 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Academie',
+            name="Academie",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nom', models.CharField(max_length=150, unique=True)),
-                ('slug', models.SlugField(blank=True, max_length=150, unique=True)),
-                ('sous_titre', models.CharField(blank=True, help_text="Ex: L'école de la haute technologie moderne d'Haïti", max_length=250)),
-                ('icone', models.CharField(default='🎓', max_length=10)),
-                ('logo', models.ImageField(blank=True, null=True, upload_to='academies/logos/')),
-                ('couleur_principale', models.CharField(default='#0B2447', max_length=7)),
-                ('couleur_accent', models.CharField(default='#00B4D8', max_length=7)),
-                ('domaine_personnalise', models.CharField(blank=True, help_text='Ex: business.blessytechacademy.com (optionnel — sous-domaine dédié)', max_length=200)),
-                ('actif', models.BooleanField(default=True)),
-                ('est_academie_par_defaut', models.BooleanField(default=False, help_text='Une seule Academie doit avoir ce champ à True — utilisée en fallback')),
-                ('date_creation', models.DateTimeField(auto_now_add=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("nom", models.CharField(max_length=150, unique=True)),
+                ("slug", models.SlugField(blank=True, max_length=150, unique=True)),
+                (
+                    "sous_titre",
+                    models.CharField(
+                        blank=True,
+                        help_text="Ex: L'école de la haute technologie moderne d'Haïti",
+                        max_length=250,
+                    ),
+                ),
+                ("icone", models.CharField(default="🎓", max_length=10)),
+                ("logo", models.ImageField(blank=True, null=True, upload_to="academies/logos/")),
+                ("couleur_principale", models.CharField(default="#0B2447", max_length=7)),
+                ("couleur_accent", models.CharField(default="#00B4D8", max_length=7)),
+                (
+                    "domaine_personnalise",
+                    models.CharField(
+                        blank=True,
+                        help_text="Ex: business.blessytechacademy.com (optionnel — sous-domaine dédié)",
+                        max_length=200,
+                    ),
+                ),
+                ("actif", models.BooleanField(default=True)),
+                (
+                    "est_academie_par_defaut",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Une seule Academie doit avoir ce champ à True — utilisée en fallback",
+                    ),
+                ),
+                ("date_creation", models.DateTimeField(auto_now_add=True)),
             ],
             options={
-                'verbose_name': 'Académie',
-                'verbose_name_plural': 'Académies',
-                'ordering': ['nom'],
+                "verbose_name": "Académie",
+                "verbose_name_plural": "Académies",
+                "ordering": ["nom"],
             },
         ),
         migrations.CreateModel(
-            name='MoyenPaiement',
+            name="MoyenPaiement",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('code', models.CharField(choices=[('manuel', 'Paiement manuel (validation admin)'), ('moncash', 'MonCash'), ('natcash', 'NatCash'), ('stripe', 'Carte bancaire (Stripe)'), ('paypal', 'PayPal'), ('virement', 'Virement bancaire')], max_length=20, unique=True)),
-                ('nom_affiche', models.CharField(max_length=100)),
-                ('icone', models.CharField(default='💳', max_length=10)),
-                ('actif', models.BooleanField(default=True)),
-                ('instructions', models.TextField(blank=True, help_text="Instructions affichées à l'étudiant (ex: numéro MonCash à utiliser)")),
-                ('ordre', models.IntegerField(default=0)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "code",
+                    models.CharField(
+                        choices=[
+                            ("manuel", "Paiement manuel (validation admin)"),
+                            ("moncash", "MonCash"),
+                            ("natcash", "NatCash"),
+                            ("stripe", "Carte bancaire (Stripe)"),
+                            ("paypal", "PayPal"),
+                            ("virement", "Virement bancaire"),
+                        ],
+                        max_length=20,
+                        unique=True,
+                    ),
+                ),
+                ("nom_affiche", models.CharField(max_length=100)),
+                ("icone", models.CharField(default="💳", max_length=10)),
+                ("actif", models.BooleanField(default=True)),
+                (
+                    "instructions",
+                    models.TextField(
+                        blank=True,
+                        help_text="Instructions affichées à l'étudiant (ex: numéro MonCash à utiliser)",
+                    ),
+                ),
+                ("ordre", models.IntegerField(default=0)),
             ],
             options={
-                'verbose_name': 'Moyen de paiement',
-                'verbose_name_plural': 'Moyens de paiement',
-                'ordering': ['ordre'],
+                "verbose_name": "Moyen de paiement",
+                "verbose_name_plural": "Moyens de paiement",
+                "ordering": ["ordre"],
             },
         ),
         migrations.CreateModel(
-            name='OutilRecommande',
+            name="OutilRecommande",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nom', models.CharField(max_length=200)),
-                ('description', models.TextField(max_length=400)),
-                ('url', models.URLField()),
-                ('icone', models.CharField(default='🛠️', max_length=10)),
-                ('categorie', models.CharField(choices=[('developpement', '💻 Développement'), ('design', '🎨 Design'), ('ia', '🤖 Intelligence Artificielle'), ('productivite', '⚡ Productivité'), ('collaboration', '👥 Collaboration'), ('securite', '🔐 Sécurité')], default='developpement', max_length=20)),
-                ('gratuit', models.BooleanField(default=True)),
-                ('recommande_par_bta', models.BooleanField(default=True)),
-                ('ordre', models.IntegerField(default=0)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("nom", models.CharField(max_length=200)),
+                ("description", models.TextField(max_length=400)),
+                ("url", models.URLField()),
+                ("icone", models.CharField(default="🛠️", max_length=10)),
+                (
+                    "categorie",
+                    models.CharField(
+                        choices=[
+                            ("developpement", "💻 Développement"),
+                            ("design", "🎨 Design"),
+                            ("ia", "🤖 Intelligence Artificielle"),
+                            ("productivite", "⚡ Productivité"),
+                            ("collaboration", "👥 Collaboration"),
+                            ("securite", "🔐 Sécurité"),
+                        ],
+                        default="developpement",
+                        max_length=20,
+                    ),
+                ),
+                ("gratuit", models.BooleanField(default=True)),
+                ("recommande_par_bta", models.BooleanField(default=True)),
+                ("ordre", models.IntegerField(default=0)),
             ],
             options={
-                'verbose_name': 'Outil recommandé',
-                'verbose_name_plural': 'Outils recommandés',
-                'ordering': ['ordre', 'nom'],
+                "verbose_name": "Outil recommandé",
+                "verbose_name_plural": "Outils recommandés",
+                "ordering": ["ordre", "nom"],
             },
         ),
         migrations.CreateModel(
-            name='PlanAbonnement',
+            name="PlanAbonnement",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nom', models.CharField(max_length=100)),
-                ('description', models.TextField(blank=True)),
-                ('prix', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('periodicite', models.CharField(choices=[('mensuel', 'Mensuel'), ('annuel', 'Annuel')], default='mensuel', max_length=10)),
-                ('avantages', models.TextField(help_text='Un avantage par ligne')),
-                ('actif', models.BooleanField(default=True)),
-                ('stripe_price_id', models.CharField(blank=True, help_text='ID prix Stripe (price_xxx)', max_length=100)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("nom", models.CharField(max_length=100)),
+                ("description", models.TextField(blank=True)),
+                ("prix", models.DecimalField(decimal_places=2, max_digits=10)),
+                (
+                    "periodicite",
+                    models.CharField(
+                        choices=[("mensuel", "Mensuel"), ("annuel", "Annuel")],
+                        default="mensuel",
+                        max_length=10,
+                    ),
+                ),
+                ("avantages", models.TextField(help_text="Un avantage par ligne")),
+                ("actif", models.BooleanField(default=True)),
+                (
+                    "stripe_price_id",
+                    models.CharField(
+                        blank=True, help_text="ID prix Stripe (price_xxx)", max_length=100
+                    ),
+                ),
             ],
             options={
-                'verbose_name': "Plan d'abonnement",
-                'verbose_name_plural': "Plans d'abonnement",
+                "verbose_name": "Plan d'abonnement",
+                "verbose_name_plural": "Plans d'abonnement",
             },
         ),
         migrations.CreateModel(
-            name='Affilie',
+            name="Affilie",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('code_affiliation', models.CharField(max_length=20, unique=True)),
-                ('taux_commission', models.DecimalField(decimal_places=2, default=10, help_text='% de commission', max_digits=5)),
-                ('actif', models.BooleanField(default=True)),
-                ('date_creation', models.DateTimeField(auto_now_add=True)),
-                ('utilisateur', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='affiliation', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("code_affiliation", models.CharField(max_length=20, unique=True)),
+                (
+                    "taux_commission",
+                    models.DecimalField(
+                        decimal_places=2, default=10, help_text="% de commission", max_digits=5
+                    ),
+                ),
+                ("actif", models.BooleanField(default=True)),
+                ("date_creation", models.DateTimeField(auto_now_add=True)),
+                (
+                    "utilisateur",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="affiliation",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Affilié',
-                'verbose_name_plural': 'Affiliés',
+                "verbose_name": "Affilié",
+                "verbose_name_plural": "Affiliés",
             },
         ),
         migrations.CreateModel(
-            name='ConnexionUtilisateur',
+            name="ConnexionUtilisateur",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('adresse_ip', models.GenericIPAddressField()),
-                ('navigateur', models.CharField(max_length=300)),
-                ('pays', models.CharField(blank=True, max_length=100)),
-                ('ville', models.CharField(blank=True, max_length=100)),
-                ('suspecte', models.BooleanField(default=False)),
-                ('date_connexion', models.DateTimeField(auto_now_add=True)),
-                ('utilisateur', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='connexions', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("adresse_ip", models.GenericIPAddressField()),
+                ("navigateur", models.CharField(max_length=300)),
+                ("pays", models.CharField(blank=True, max_length=100)),
+                ("ville", models.CharField(blank=True, max_length=100)),
+                ("suspecte", models.BooleanField(default=False)),
+                ("date_connexion", models.DateTimeField(auto_now_add=True)),
+                (
+                    "utilisateur",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="connexions",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Connexion utilisateur',
-                'verbose_name_plural': 'Connexions utilisateurs',
-                'ordering': ['-date_connexion'],
+                "verbose_name": "Connexion utilisateur",
+                "verbose_name_plural": "Connexions utilisateurs",
+                "ordering": ["-date_connexion"],
             },
         ),
         migrations.CreateModel(
-            name='Ecole',
+            name="Ecole",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nom', models.CharField(max_length=200)),
-                ('icone', models.CharField(default='🏫', max_length=10)),
-                ('description', models.TextField()),
-                ('ordre', models.IntegerField(default=0)),
-                ('academie', models.ForeignKey(blank=True, help_text='Académie mère de cette école', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='ecoles', to='academie.academie')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("nom", models.CharField(max_length=200)),
+                ("icone", models.CharField(default="🏫", max_length=10)),
+                ("description", models.TextField()),
+                ("ordre", models.IntegerField(default=0)),
+                (
+                    "academie",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Académie mère de cette école",
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="ecoles",
+                        to="academie.academie",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'École',
-                'verbose_name_plural': 'Écoles',
-                'ordering': ['ordre', 'nom'],
+                "verbose_name": "École",
+                "verbose_name_plural": "Écoles",
+                "ordering": ["ordre", "nom"],
             },
         ),
         migrations.CreateModel(
-            name='Formation',
+            name="Formation",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nom', models.CharField(max_length=200)),
-                ('icone', models.CharField(default='📚', max_length=10)),
-                ('illustration', models.CharField(blank=True, default='', help_text="Émoji d'illustration (💻 🤖 🔐 📈 ...)", max_length=10)),
-                ('description', models.TextField()),
-                ('niveau', models.CharField(choices=[('debutant', 'Débutant'), ('intermediaire', 'Intermédiaire'), ('avance', 'Avancé'), ('professionnel', 'Professionnel')], default='debutant', max_length=20)),
-                ('duree_mois', models.IntegerField()),
-                ('prix', models.IntegerField()),
-                ('actif', models.BooleanField(default=True)),
-                ('gratuit', models.BooleanField(default=False, help_text='Formation gratuite (Lead Magnet)')),
-                ('prerequis', models.TextField(blank=True)),
-                ('debouches', models.TextField(blank=True)),
-                ('certifications', models.TextField(blank=True)),
-                ('metiers', models.TextField(blank=True, help_text='Un métier par ligne')),
-                ('competences_acquises', models.TextField(blank=True, help_text='Une compétence par ligne')),
-                ('competences_cles', models.TextField(blank=True, help_text='Compétences clés (une par ligne)')),
-                ('logiciels_maitrises', models.TextField(blank=True, help_text='Logiciels ou outils maîtrisés (un par ligne)')),
-                ('outils_utilises', models.TextField(blank=True, help_text='Technologies utilisées durant la formation')),
-                ('projets_realises', models.TextField(blank=True, help_text='Un projet réalisé par ligne')),
-                ('certification_obtenue', models.CharField(blank=True, help_text='Nom du certificat délivré', max_length=255)),
-                ('niveau_sortie', models.CharField(blank=True, help_text='Ex : Développeur Backend Junior', max_length=120)),
-                ('temps_pour_emploi', models.CharField(blank=True, help_text='Ex : 3 à 6 mois', max_length=120)),
-                ('taux_employabilite', models.PositiveIntegerField(default=0, help_text='Pourcentage estimé')),
-                ('salaire_haiti', models.CharField(blank=True, help_text='Ex : 40 000 à 120 000 HTG/mois', max_length=60)),
-                ('salaire_international', models.CharField(blank=True, help_text='Ex : 2 000 à 6 000 USD/mois', max_length=60)),
-                ('message_partage', models.CharField(blank=True, default='', help_text='Message utilisé lors du partage automatique.', max_length=500)),
-                ('date_creation', models.DateTimeField(auto_now_add=True)),
-                ('ecole', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='formations', to='academie.ecole')),
-                ('formation_upgrade', models.ForeignKey(blank=True, help_text='Formation premium recommandée après cette formation gratuite', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='formations_gratuites', to='academie.formation')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("nom", models.CharField(max_length=200)),
+                ("icone", models.CharField(default="📚", max_length=10)),
+                (
+                    "illustration",
+                    models.CharField(
+                        blank=True,
+                        default="",
+                        help_text="Émoji d'illustration (💻 🤖 🔐 📈 ...)",
+                        max_length=10,
+                    ),
+                ),
+                ("description", models.TextField()),
+                (
+                    "niveau",
+                    models.CharField(
+                        choices=[
+                            ("debutant", "Débutant"),
+                            ("intermediaire", "Intermédiaire"),
+                            ("avance", "Avancé"),
+                            ("professionnel", "Professionnel"),
+                        ],
+                        default="debutant",
+                        max_length=20,
+                    ),
+                ),
+                ("duree_mois", models.IntegerField()),
+                ("prix", models.IntegerField()),
+                ("actif", models.BooleanField(default=True)),
+                (
+                    "gratuit",
+                    models.BooleanField(
+                        default=False, help_text="Formation gratuite (Lead Magnet)"
+                    ),
+                ),
+                ("prerequis", models.TextField(blank=True)),
+                ("debouches", models.TextField(blank=True)),
+                ("certifications", models.TextField(blank=True)),
+                ("metiers", models.TextField(blank=True, help_text="Un métier par ligne")),
+                (
+                    "competences_acquises",
+                    models.TextField(blank=True, help_text="Une compétence par ligne"),
+                ),
+                (
+                    "competences_cles",
+                    models.TextField(blank=True, help_text="Compétences clés (une par ligne)"),
+                ),
+                (
+                    "logiciels_maitrises",
+                    models.TextField(
+                        blank=True, help_text="Logiciels ou outils maîtrisés (un par ligne)"
+                    ),
+                ),
+                (
+                    "outils_utilises",
+                    models.TextField(
+                        blank=True, help_text="Technologies utilisées durant la formation"
+                    ),
+                ),
+                (
+                    "projets_realises",
+                    models.TextField(blank=True, help_text="Un projet réalisé par ligne"),
+                ),
+                (
+                    "certification_obtenue",
+                    models.CharField(
+                        blank=True, help_text="Nom du certificat délivré", max_length=255
+                    ),
+                ),
+                (
+                    "niveau_sortie",
+                    models.CharField(
+                        blank=True, help_text="Ex : Développeur Backend Junior", max_length=120
+                    ),
+                ),
+                (
+                    "temps_pour_emploi",
+                    models.CharField(blank=True, help_text="Ex : 3 à 6 mois", max_length=120),
+                ),
+                (
+                    "taux_employabilite",
+                    models.PositiveIntegerField(default=0, help_text="Pourcentage estimé"),
+                ),
+                (
+                    "salaire_haiti",
+                    models.CharField(
+                        blank=True, help_text="Ex : 40 000 à 120 000 HTG/mois", max_length=60
+                    ),
+                ),
+                (
+                    "salaire_international",
+                    models.CharField(
+                        blank=True, help_text="Ex : 2 000 à 6 000 USD/mois", max_length=60
+                    ),
+                ),
+                (
+                    "message_partage",
+                    models.CharField(
+                        blank=True,
+                        default="",
+                        help_text="Message utilisé lors du partage automatique.",
+                        max_length=500,
+                    ),
+                ),
+                ("date_creation", models.DateTimeField(auto_now_add=True)),
+                (
+                    "ecole",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="formations",
+                        to="academie.ecole",
+                    ),
+                ),
+                (
+                    "formation_upgrade",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Formation premium recommandée après cette formation gratuite",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="formations_gratuites",
+                        to="academie.formation",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Formation',
-                'verbose_name_plural': 'Formations',
-                'ordering': ['nom'],
+                "verbose_name": "Formation",
+                "verbose_name_plural": "Formations",
+                "ordering": ["nom"],
             },
         ),
         migrations.CreateModel(
-            name='Examen',
+            name="Examen",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('titre', models.CharField(max_length=200)),
-                ('description', models.TextField(blank=True)),
-                ('duree_minutes', models.IntegerField(default=60)),
-                ('seuil_reussite', models.IntegerField(default=70, help_text='Pourcentage minimum pour réussir')),
-                ('tentatives_max', models.IntegerField(default=3)),
-                ('actif', models.BooleanField(default=True)),
-                ('date_creation', models.DateTimeField(auto_now_add=True)),
-                ('competences_evaluees', models.TextField(blank=True, help_text='Compétences évaluées (une par ligne)')),
-                ('prerequis_examen', models.TextField(blank=True, help_text="Prérequis pour passer l'examen")),
-                ('conditions_utilisation', models.TextField(blank=True, help_text="Conditions à accepter avant l'examen")),
-                ('date_disponibilite', models.DateTimeField(blank=True, help_text="Date d'ouverture", null=True)),
-                ('date_expiration', models.DateTimeField(blank=True, help_text='Date de fermeture', null=True)),
-                ('xp_recompense', models.IntegerField(default=100, help_text='XP gagnés si réussite')),
-                ('certificat_auto', models.BooleanField(default=True, help_text='Générer certificat si réussite')),
-                ('formation', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='examens', to='academie.formation')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("titre", models.CharField(max_length=200)),
+                ("description", models.TextField(blank=True)),
+                ("duree_minutes", models.IntegerField(default=60)),
+                (
+                    "seuil_reussite",
+                    models.IntegerField(default=70, help_text="Pourcentage minimum pour réussir"),
+                ),
+                ("tentatives_max", models.IntegerField(default=3)),
+                ("actif", models.BooleanField(default=True)),
+                ("date_creation", models.DateTimeField(auto_now_add=True)),
+                (
+                    "competences_evaluees",
+                    models.TextField(blank=True, help_text="Compétences évaluées (une par ligne)"),
+                ),
+                (
+                    "prerequis_examen",
+                    models.TextField(blank=True, help_text="Prérequis pour passer l'examen"),
+                ),
+                (
+                    "conditions_utilisation",
+                    models.TextField(blank=True, help_text="Conditions à accepter avant l'examen"),
+                ),
+                (
+                    "date_disponibilite",
+                    models.DateTimeField(blank=True, help_text="Date d'ouverture", null=True),
+                ),
+                (
+                    "date_expiration",
+                    models.DateTimeField(blank=True, help_text="Date de fermeture", null=True),
+                ),
+                (
+                    "xp_recompense",
+                    models.IntegerField(default=100, help_text="XP gagnés si réussite"),
+                ),
+                (
+                    "certificat_auto",
+                    models.BooleanField(default=True, help_text="Générer certificat si réussite"),
+                ),
+                (
+                    "formation",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="examens",
+                        to="academie.formation",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Examen',
-                'verbose_name_plural': 'Examens',
+                "verbose_name": "Examen",
+                "verbose_name_plural": "Examens",
             },
         ),
         migrations.CreateModel(
-            name='Coupon',
+            name="Coupon",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('code', models.CharField(max_length=30, unique=True)),
-                ('type_reduction', models.CharField(choices=[('fixe', 'Montant fixe'), ('pourcentage', 'Pourcentage')], default='pourcentage', max_length=15)),
-                ('valeur', models.DecimalField(decimal_places=2, help_text='Montant $ ou % selon le type', max_digits=10)),
-                ('utilisations_max', models.IntegerField(default=0, help_text='0 = illimité')),
-                ('utilisations_actuelles', models.IntegerField(default=0)),
-                ('date_debut', models.DateTimeField(default=django.utils.timezone.now)),
-                ('date_fin', models.DateTimeField(blank=True, null=True)),
-                ('actif', models.BooleanField(default=True)),
-                ('ecole_specifique', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='coupons', to='academie.ecole')),
-                ('formation_specifique', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='coupons', to='academie.formation')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("code", models.CharField(max_length=30, unique=True)),
+                (
+                    "type_reduction",
+                    models.CharField(
+                        choices=[("fixe", "Montant fixe"), ("pourcentage", "Pourcentage")],
+                        default="pourcentage",
+                        max_length=15,
+                    ),
+                ),
+                (
+                    "valeur",
+                    models.DecimalField(
+                        decimal_places=2, help_text="Montant $ ou % selon le type", max_digits=10
+                    ),
+                ),
+                ("utilisations_max", models.IntegerField(default=0, help_text="0 = illimité")),
+                ("utilisations_actuelles", models.IntegerField(default=0)),
+                ("date_debut", models.DateTimeField(default=django.utils.timezone.now)),
+                ("date_fin", models.DateTimeField(blank=True, null=True)),
+                ("actif", models.BooleanField(default=True)),
+                (
+                    "ecole_specifique",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="coupons",
+                        to="academie.ecole",
+                    ),
+                ),
+                (
+                    "formation_specifique",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="coupons",
+                        to="academie.formation",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Coupon',
-                'verbose_name_plural': 'Coupons',
+                "verbose_name": "Coupon",
+                "verbose_name_plural": "Coupons",
             },
         ),
         migrations.CreateModel(
-            name='Certificat',
+            name="Certificat",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('numero', models.CharField(max_length=20, unique=True)),
-                ('date_emission', models.DateTimeField(auto_now_add=True)),
-                ('verifie', models.BooleanField(default=False)),
-                ('utilisateur', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='certificats', to=settings.AUTH_USER_MODEL)),
-                ('formation', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='certificats', to='academie.formation')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("numero", models.CharField(max_length=20, unique=True)),
+                ("date_emission", models.DateTimeField(auto_now_add=True)),
+                ("verifie", models.BooleanField(default=False)),
+                (
+                    "utilisateur",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="certificats",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "formation",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="certificats",
+                        to="academie.formation",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Certificat',
-                'verbose_name_plural': 'Certificats',
-                'ordering': ['-date_emission'],
+                "verbose_name": "Certificat",
+                "verbose_name_plural": "Certificats",
+                "ordering": ["-date_emission"],
             },
         ),
         migrations.CreateModel(
-            name='Article',
+            name="Article",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('titre', models.CharField(max_length=300)),
-                ('slug', models.SlugField(blank=True, max_length=300, unique=True)),
-                ('resume', models.TextField(max_length=500)),
-                ('contenu', django_ckeditor_5.fields.CKEditor5Field(blank=True)),
-                ('categorie', models.CharField(choices=[('guide', '📖 Guide'), ('tutoriel', '🎓 Tutoriel'), ('actualite', '📰 Actualité'), ('conseil', '💡 Conseil'), ('outil', '🛠️ Outil')], default='guide', max_length=20)),
-                ('en_vedette', models.BooleanField(default=False)),
-                ('publie', models.BooleanField(default=False)),
-                ('temps_lecture', models.IntegerField(default=5, help_text='Temps de lecture estimé en minutes')),
-                ('date_publication', models.DateTimeField(auto_now_add=True)),
-                ('date_modification', models.DateTimeField(auto_now=True)),
-                ('meta_titre', models.CharField(blank=True, help_text='Titre SEO (60-70 caractères recommandés)', max_length=70)),
-                ('meta_description', models.CharField(blank=True, help_text='Description SEO (150-160 caractères recommandés)', max_length=160)),
-                ('mots_cles', models.CharField(blank=True, help_text='Mots-clés séparés par des virgules', max_length=255)),
-                ('noindex', models.BooleanField(default=False, help_text="Empêcher l'indexation Google")),
-                ('type_contenu', models.CharField(choices=[('article', '📝 Article'), ('guide', '📖 Guide'), ('tutoriel', '🎓 Tutoriel'), ('etude_cas', '📊 Étude de cas'), ('actualite', '📰 Actualité Tech'), ('livre_blanc', '📄 Livre blanc'), ('faq', '❓ FAQ')], default='article', max_length=20)),
-                ('fichier_telechargeable', models.FileField(blank=True, null=True, upload_to='knowledge_center/')),
-                ('nb_vues', models.IntegerField(default=0)),
-                ('nb_partages', models.IntegerField(default=0)),
-                ('academie', models.ForeignKey(blank=True, help_text='Académie propriétaire de cet article', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='articles', to='academie.academie')),
-                ('articles_associes', models.ManyToManyField(blank=True, to='academie.article')),
-                ('auteur', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='articles', to=settings.AUTH_USER_MODEL)),
-                ('formation_liee', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='articles', to='academie.formation')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("titre", models.CharField(max_length=300)),
+                ("slug", models.SlugField(blank=True, max_length=300, unique=True)),
+                ("resume", models.TextField(max_length=500)),
+                ("contenu", django_ckeditor_5.fields.CKEditor5Field(blank=True)),
+                (
+                    "categorie",
+                    models.CharField(
+                        choices=[
+                            ("guide", "📖 Guide"),
+                            ("tutoriel", "🎓 Tutoriel"),
+                            ("actualite", "📰 Actualité"),
+                            ("conseil", "💡 Conseil"),
+                            ("outil", "🛠️ Outil"),
+                        ],
+                        default="guide",
+                        max_length=20,
+                    ),
+                ),
+                ("en_vedette", models.BooleanField(default=False)),
+                ("publie", models.BooleanField(default=False)),
+                (
+                    "temps_lecture",
+                    models.IntegerField(default=5, help_text="Temps de lecture estimé en minutes"),
+                ),
+                ("date_publication", models.DateTimeField(auto_now_add=True)),
+                ("date_modification", models.DateTimeField(auto_now=True)),
+                (
+                    "meta_titre",
+                    models.CharField(
+                        blank=True,
+                        help_text="Titre SEO (60-70 caractères recommandés)",
+                        max_length=70,
+                    ),
+                ),
+                (
+                    "meta_description",
+                    models.CharField(
+                        blank=True,
+                        help_text="Description SEO (150-160 caractères recommandés)",
+                        max_length=160,
+                    ),
+                ),
+                (
+                    "mots_cles",
+                    models.CharField(
+                        blank=True, help_text="Mots-clés séparés par des virgules", max_length=255
+                    ),
+                ),
+                (
+                    "noindex",
+                    models.BooleanField(default=False, help_text="Empêcher l'indexation Google"),
+                ),
+                (
+                    "type_contenu",
+                    models.CharField(
+                        choices=[
+                            ("article", "📝 Article"),
+                            ("guide", "📖 Guide"),
+                            ("tutoriel", "🎓 Tutoriel"),
+                            ("etude_cas", "📊 Étude de cas"),
+                            ("actualite", "📰 Actualité Tech"),
+                            ("livre_blanc", "📄 Livre blanc"),
+                            ("faq", "❓ FAQ"),
+                        ],
+                        default="article",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "fichier_telechargeable",
+                    models.FileField(blank=True, null=True, upload_to="knowledge_center/"),
+                ),
+                ("nb_vues", models.IntegerField(default=0)),
+                ("nb_partages", models.IntegerField(default=0)),
+                (
+                    "academie",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Académie propriétaire de cet article",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="articles",
+                        to="academie.academie",
+                    ),
+                ),
+                ("articles_associes", models.ManyToManyField(blank=True, to="academie.article")),
+                (
+                    "auteur",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="articles",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "formation_liee",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="articles",
+                        to="academie.formation",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Article',
-                'verbose_name_plural': 'Articles',
-                'ordering': ['-en_vedette', '-date_publication'],
+                "verbose_name": "Article",
+                "verbose_name_plural": "Articles",
+                "ordering": ["-en_vedette", "-date_publication"],
             },
         ),
         migrations.CreateModel(
-            name='HistoricalArticle',
+            name="HistoricalArticle",
             fields=[
-                ('id', models.BigIntegerField(auto_created=True, blank=True, db_index=True, verbose_name='ID')),
-                ('titre', models.CharField(max_length=300)),
-                ('slug', models.SlugField(blank=True, max_length=300)),
-                ('resume', models.TextField(max_length=500)),
-                ('contenu', django_ckeditor_5.fields.CKEditor5Field(blank=True)),
-                ('categorie', models.CharField(choices=[('guide', '📖 Guide'), ('tutoriel', '🎓 Tutoriel'), ('actualite', '📰 Actualité'), ('conseil', '💡 Conseil'), ('outil', '🛠️ Outil')], default='guide', max_length=20)),
-                ('en_vedette', models.BooleanField(default=False)),
-                ('publie', models.BooleanField(default=False)),
-                ('temps_lecture', models.IntegerField(default=5, help_text='Temps de lecture estimé en minutes')),
-                ('date_publication', models.DateTimeField(blank=True, editable=False)),
-                ('date_modification', models.DateTimeField(blank=True, editable=False)),
-                ('meta_titre', models.CharField(blank=True, help_text='Titre SEO (60-70 caractères recommandés)', max_length=70)),
-                ('meta_description', models.CharField(blank=True, help_text='Description SEO (150-160 caractères recommandés)', max_length=160)),
-                ('mots_cles', models.CharField(blank=True, help_text='Mots-clés séparés par des virgules', max_length=255)),
-                ('noindex', models.BooleanField(default=False, help_text="Empêcher l'indexation Google")),
-                ('type_contenu', models.CharField(choices=[('article', '📝 Article'), ('guide', '📖 Guide'), ('tutoriel', '🎓 Tutoriel'), ('etude_cas', '📊 Étude de cas'), ('actualite', '📰 Actualité Tech'), ('livre_blanc', '📄 Livre blanc'), ('faq', '❓ FAQ')], default='article', max_length=20)),
-                ('fichier_telechargeable', models.TextField(blank=True, max_length=100, null=True)),
-                ('nb_vues', models.IntegerField(default=0)),
-                ('nb_partages', models.IntegerField(default=0)),
-                ('history_id', models.AutoField(primary_key=True, serialize=False)),
-                ('history_date', models.DateTimeField(db_index=True)),
-                ('history_change_reason', models.CharField(max_length=100, null=True)),
-                ('history_type', models.CharField(choices=[('+', 'Created'), ('~', 'Changed'), ('-', 'Deleted')], max_length=1)),
-                ('academie', models.ForeignKey(blank=True, db_constraint=False, help_text='Académie propriétaire de cet article', null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='+', to='academie.academie')),
-                ('auteur', models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='+', to=settings.AUTH_USER_MODEL)),
-                ('formation_liee', models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='+', to='academie.formation')),
-                ('history_user', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigIntegerField(
+                        auto_created=True, blank=True, db_index=True, verbose_name="ID"
+                    ),
+                ),
+                ("titre", models.CharField(max_length=300)),
+                ("slug", models.SlugField(blank=True, max_length=300)),
+                ("resume", models.TextField(max_length=500)),
+                ("contenu", django_ckeditor_5.fields.CKEditor5Field(blank=True)),
+                (
+                    "categorie",
+                    models.CharField(
+                        choices=[
+                            ("guide", "📖 Guide"),
+                            ("tutoriel", "🎓 Tutoriel"),
+                            ("actualite", "📰 Actualité"),
+                            ("conseil", "💡 Conseil"),
+                            ("outil", "🛠️ Outil"),
+                        ],
+                        default="guide",
+                        max_length=20,
+                    ),
+                ),
+                ("en_vedette", models.BooleanField(default=False)),
+                ("publie", models.BooleanField(default=False)),
+                (
+                    "temps_lecture",
+                    models.IntegerField(default=5, help_text="Temps de lecture estimé en minutes"),
+                ),
+                ("date_publication", models.DateTimeField(blank=True, editable=False)),
+                ("date_modification", models.DateTimeField(blank=True, editable=False)),
+                (
+                    "meta_titre",
+                    models.CharField(
+                        blank=True,
+                        help_text="Titre SEO (60-70 caractères recommandés)",
+                        max_length=70,
+                    ),
+                ),
+                (
+                    "meta_description",
+                    models.CharField(
+                        blank=True,
+                        help_text="Description SEO (150-160 caractères recommandés)",
+                        max_length=160,
+                    ),
+                ),
+                (
+                    "mots_cles",
+                    models.CharField(
+                        blank=True, help_text="Mots-clés séparés par des virgules", max_length=255
+                    ),
+                ),
+                (
+                    "noindex",
+                    models.BooleanField(default=False, help_text="Empêcher l'indexation Google"),
+                ),
+                (
+                    "type_contenu",
+                    models.CharField(
+                        choices=[
+                            ("article", "📝 Article"),
+                            ("guide", "📖 Guide"),
+                            ("tutoriel", "🎓 Tutoriel"),
+                            ("etude_cas", "📊 Étude de cas"),
+                            ("actualite", "📰 Actualité Tech"),
+                            ("livre_blanc", "📄 Livre blanc"),
+                            ("faq", "❓ FAQ"),
+                        ],
+                        default="article",
+                        max_length=20,
+                    ),
+                ),
+                ("fichier_telechargeable", models.TextField(blank=True, max_length=100, null=True)),
+                ("nb_vues", models.IntegerField(default=0)),
+                ("nb_partages", models.IntegerField(default=0)),
+                ("history_id", models.AutoField(primary_key=True, serialize=False)),
+                ("history_date", models.DateTimeField(db_index=True)),
+                ("history_change_reason", models.CharField(max_length=100, null=True)),
+                (
+                    "history_type",
+                    models.CharField(
+                        choices=[("+", "Created"), ("~", "Changed"), ("-", "Deleted")], max_length=1
+                    ),
+                ),
+                (
+                    "academie",
+                    models.ForeignKey(
+                        blank=True,
+                        db_constraint=False,
+                        help_text="Académie propriétaire de cet article",
+                        null=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="+",
+                        to="academie.academie",
+                    ),
+                ),
+                (
+                    "auteur",
+                    models.ForeignKey(
+                        blank=True,
+                        db_constraint=False,
+                        null=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "formation_liee",
+                    models.ForeignKey(
+                        blank=True,
+                        db_constraint=False,
+                        null=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="+",
+                        to="academie.formation",
+                    ),
+                ),
+                (
+                    "history_user",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'historical Article',
-                'verbose_name_plural': 'historical Articles',
-                'ordering': ('-history_date', '-history_id'),
-                'get_latest_by': ('history_date', 'history_id'),
+                "verbose_name": "historical Article",
+                "verbose_name_plural": "historical Articles",
+                "ordering": ("-history_date", "-history_id"),
+                "get_latest_by": ("history_date", "history_id"),
             },
             bases=(simple_history.models.HistoricalChanges, models.Model),
         ),
         migrations.CreateModel(
-            name='HistoricalEcole',
+            name="HistoricalEcole",
             fields=[
-                ('id', models.BigIntegerField(auto_created=True, blank=True, db_index=True, verbose_name='ID')),
-                ('nom', models.CharField(max_length=200)),
-                ('icone', models.CharField(default='🏫', max_length=10)),
-                ('description', models.TextField()),
-                ('ordre', models.IntegerField(default=0)),
-                ('history_id', models.AutoField(primary_key=True, serialize=False)),
-                ('history_date', models.DateTimeField(db_index=True)),
-                ('history_change_reason', models.CharField(max_length=100, null=True)),
-                ('history_type', models.CharField(choices=[('+', 'Created'), ('~', 'Changed'), ('-', 'Deleted')], max_length=1)),
-                ('academie', models.ForeignKey(blank=True, db_constraint=False, help_text='Académie mère de cette école', null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='+', to='academie.academie')),
-                ('history_user', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigIntegerField(
+                        auto_created=True, blank=True, db_index=True, verbose_name="ID"
+                    ),
+                ),
+                ("nom", models.CharField(max_length=200)),
+                ("icone", models.CharField(default="🏫", max_length=10)),
+                ("description", models.TextField()),
+                ("ordre", models.IntegerField(default=0)),
+                ("history_id", models.AutoField(primary_key=True, serialize=False)),
+                ("history_date", models.DateTimeField(db_index=True)),
+                ("history_change_reason", models.CharField(max_length=100, null=True)),
+                (
+                    "history_type",
+                    models.CharField(
+                        choices=[("+", "Created"), ("~", "Changed"), ("-", "Deleted")], max_length=1
+                    ),
+                ),
+                (
+                    "academie",
+                    models.ForeignKey(
+                        blank=True,
+                        db_constraint=False,
+                        help_text="Académie mère de cette école",
+                        null=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="+",
+                        to="academie.academie",
+                    ),
+                ),
+                (
+                    "history_user",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'historical École',
-                'verbose_name_plural': 'historical Écoles',
-                'ordering': ('-history_date', '-history_id'),
-                'get_latest_by': ('history_date', 'history_id'),
+                "verbose_name": "historical École",
+                "verbose_name_plural": "historical Écoles",
+                "ordering": ("-history_date", "-history_id"),
+                "get_latest_by": ("history_date", "history_id"),
             },
             bases=(simple_history.models.HistoricalChanges, models.Model),
         ),
         migrations.CreateModel(
-            name='HistoricalFormation',
+            name="HistoricalFormation",
             fields=[
-                ('id', models.BigIntegerField(auto_created=True, blank=True, db_index=True, verbose_name='ID')),
-                ('nom', models.CharField(max_length=200)),
-                ('icone', models.CharField(default='📚', max_length=10)),
-                ('illustration', models.CharField(blank=True, default='', help_text="Émoji d'illustration (💻 🤖 🔐 📈 ...)", max_length=10)),
-                ('description', models.TextField()),
-                ('niveau', models.CharField(choices=[('debutant', 'Débutant'), ('intermediaire', 'Intermédiaire'), ('avance', 'Avancé'), ('professionnel', 'Professionnel')], default='debutant', max_length=20)),
-                ('duree_mois', models.IntegerField()),
-                ('prix', models.IntegerField()),
-                ('actif', models.BooleanField(default=True)),
-                ('gratuit', models.BooleanField(default=False, help_text='Formation gratuite (Lead Magnet)')),
-                ('prerequis', models.TextField(blank=True)),
-                ('debouches', models.TextField(blank=True)),
-                ('certifications', models.TextField(blank=True)),
-                ('metiers', models.TextField(blank=True, help_text='Un métier par ligne')),
-                ('competences_acquises', models.TextField(blank=True, help_text='Une compétence par ligne')),
-                ('competences_cles', models.TextField(blank=True, help_text='Compétences clés (une par ligne)')),
-                ('logiciels_maitrises', models.TextField(blank=True, help_text='Logiciels ou outils maîtrisés (un par ligne)')),
-                ('outils_utilises', models.TextField(blank=True, help_text='Technologies utilisées durant la formation')),
-                ('projets_realises', models.TextField(blank=True, help_text='Un projet réalisé par ligne')),
-                ('certification_obtenue', models.CharField(blank=True, help_text='Nom du certificat délivré', max_length=255)),
-                ('niveau_sortie', models.CharField(blank=True, help_text='Ex : Développeur Backend Junior', max_length=120)),
-                ('temps_pour_emploi', models.CharField(blank=True, help_text='Ex : 3 à 6 mois', max_length=120)),
-                ('taux_employabilite', models.PositiveIntegerField(default=0, help_text='Pourcentage estimé')),
-                ('salaire_haiti', models.CharField(blank=True, help_text='Ex : 40 000 à 120 000 HTG/mois', max_length=60)),
-                ('salaire_international', models.CharField(blank=True, help_text='Ex : 2 000 à 6 000 USD/mois', max_length=60)),
-                ('message_partage', models.CharField(blank=True, default='', help_text='Message utilisé lors du partage automatique.', max_length=500)),
-                ('date_creation', models.DateTimeField(blank=True, editable=False)),
-                ('history_id', models.AutoField(primary_key=True, serialize=False)),
-                ('history_date', models.DateTimeField(db_index=True)),
-                ('history_change_reason', models.CharField(max_length=100, null=True)),
-                ('history_type', models.CharField(choices=[('+', 'Created'), ('~', 'Changed'), ('-', 'Deleted')], max_length=1)),
-                ('ecole', models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='+', to='academie.ecole')),
-                ('formation_upgrade', models.ForeignKey(blank=True, db_constraint=False, help_text='Formation premium recommandée après cette formation gratuite', null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='+', to='academie.formation')),
-                ('history_user', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigIntegerField(
+                        auto_created=True, blank=True, db_index=True, verbose_name="ID"
+                    ),
+                ),
+                ("nom", models.CharField(max_length=200)),
+                ("icone", models.CharField(default="📚", max_length=10)),
+                (
+                    "illustration",
+                    models.CharField(
+                        blank=True,
+                        default="",
+                        help_text="Émoji d'illustration (💻 🤖 🔐 📈 ...)",
+                        max_length=10,
+                    ),
+                ),
+                ("description", models.TextField()),
+                (
+                    "niveau",
+                    models.CharField(
+                        choices=[
+                            ("debutant", "Débutant"),
+                            ("intermediaire", "Intermédiaire"),
+                            ("avance", "Avancé"),
+                            ("professionnel", "Professionnel"),
+                        ],
+                        default="debutant",
+                        max_length=20,
+                    ),
+                ),
+                ("duree_mois", models.IntegerField()),
+                ("prix", models.IntegerField()),
+                ("actif", models.BooleanField(default=True)),
+                (
+                    "gratuit",
+                    models.BooleanField(
+                        default=False, help_text="Formation gratuite (Lead Magnet)"
+                    ),
+                ),
+                ("prerequis", models.TextField(blank=True)),
+                ("debouches", models.TextField(blank=True)),
+                ("certifications", models.TextField(blank=True)),
+                ("metiers", models.TextField(blank=True, help_text="Un métier par ligne")),
+                (
+                    "competences_acquises",
+                    models.TextField(blank=True, help_text="Une compétence par ligne"),
+                ),
+                (
+                    "competences_cles",
+                    models.TextField(blank=True, help_text="Compétences clés (une par ligne)"),
+                ),
+                (
+                    "logiciels_maitrises",
+                    models.TextField(
+                        blank=True, help_text="Logiciels ou outils maîtrisés (un par ligne)"
+                    ),
+                ),
+                (
+                    "outils_utilises",
+                    models.TextField(
+                        blank=True, help_text="Technologies utilisées durant la formation"
+                    ),
+                ),
+                (
+                    "projets_realises",
+                    models.TextField(blank=True, help_text="Un projet réalisé par ligne"),
+                ),
+                (
+                    "certification_obtenue",
+                    models.CharField(
+                        blank=True, help_text="Nom du certificat délivré", max_length=255
+                    ),
+                ),
+                (
+                    "niveau_sortie",
+                    models.CharField(
+                        blank=True, help_text="Ex : Développeur Backend Junior", max_length=120
+                    ),
+                ),
+                (
+                    "temps_pour_emploi",
+                    models.CharField(blank=True, help_text="Ex : 3 à 6 mois", max_length=120),
+                ),
+                (
+                    "taux_employabilite",
+                    models.PositiveIntegerField(default=0, help_text="Pourcentage estimé"),
+                ),
+                (
+                    "salaire_haiti",
+                    models.CharField(
+                        blank=True, help_text="Ex : 40 000 à 120 000 HTG/mois", max_length=60
+                    ),
+                ),
+                (
+                    "salaire_international",
+                    models.CharField(
+                        blank=True, help_text="Ex : 2 000 à 6 000 USD/mois", max_length=60
+                    ),
+                ),
+                (
+                    "message_partage",
+                    models.CharField(
+                        blank=True,
+                        default="",
+                        help_text="Message utilisé lors du partage automatique.",
+                        max_length=500,
+                    ),
+                ),
+                ("date_creation", models.DateTimeField(blank=True, editable=False)),
+                ("history_id", models.AutoField(primary_key=True, serialize=False)),
+                ("history_date", models.DateTimeField(db_index=True)),
+                ("history_change_reason", models.CharField(max_length=100, null=True)),
+                (
+                    "history_type",
+                    models.CharField(
+                        choices=[("+", "Created"), ("~", "Changed"), ("-", "Deleted")], max_length=1
+                    ),
+                ),
+                (
+                    "ecole",
+                    models.ForeignKey(
+                        blank=True,
+                        db_constraint=False,
+                        null=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="+",
+                        to="academie.ecole",
+                    ),
+                ),
+                (
+                    "formation_upgrade",
+                    models.ForeignKey(
+                        blank=True,
+                        db_constraint=False,
+                        help_text="Formation premium recommandée après cette formation gratuite",
+                        null=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="+",
+                        to="academie.formation",
+                    ),
+                ),
+                (
+                    "history_user",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'historical Formation',
-                'verbose_name_plural': 'historical Formations',
-                'ordering': ('-history_date', '-history_id'),
-                'get_latest_by': ('history_date', 'history_id'),
+                "verbose_name": "historical Formation",
+                "verbose_name_plural": "historical Formations",
+                "ordering": ("-history_date", "-history_id"),
+                "get_latest_by": ("history_date", "history_id"),
             },
             bases=(simple_history.models.HistoricalChanges, models.Model),
         ),
         migrations.CreateModel(
-            name='Inscription',
+            name="Inscription",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('prenom', models.CharField(max_length=100)),
-                ('nom', models.CharField(max_length=100)),
-                ('email', models.EmailField(max_length=254)),
-                ('telephone', models.CharField(blank=True, max_length=20)),
-                ('sujet', models.CharField(choices=[('inscription', "S'inscrire à une formation"), ('information', "Demande d'information"), ('partenariat', 'Partenariat'), ('autre', 'Autre')], default='information', max_length=20)),
-                ('message', models.TextField()),
-                ('date_inscription', models.DateTimeField(auto_now_add=True)),
-                ('traite', models.BooleanField(default=False)),
-                ('statut_lead', models.CharField(choices=[('nouveau', '🆕 Nouveau'), ('contacte', '📞 Contacté'), ('interesse', '💬 Intéressé'), ('converti', '✅ Converti'), ('perdu', '❌ Perdu')], default='nouveau', max_length=15)),
-                ('source_lead', models.CharField(blank=True, choices=[('site', 'Site web'), ('forum', 'Forum'), ('reseaux', 'Réseaux sociaux'), ('bouche_oreille', 'Bouche-à-oreille'), ('autre', 'Autre')], default='site', max_length=50)),
-                ('notes_internes', models.TextField(blank=True, help_text="Notes visibles uniquement par l'équipe")),
-                ('assigne_a', models.ForeignKey(blank=True, help_text="Membre de l'équipe responsable de ce lead", null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='leads_assignes', to=settings.AUTH_USER_MODEL)),
-                ('formation', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='inscriptions', to='academie.formation')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("prenom", models.CharField(max_length=100)),
+                ("nom", models.CharField(max_length=100)),
+                ("email", models.EmailField(max_length=254)),
+                ("telephone", models.CharField(blank=True, max_length=20)),
+                (
+                    "sujet",
+                    models.CharField(
+                        choices=[
+                            ("inscription", "S'inscrire à une formation"),
+                            ("information", "Demande d'information"),
+                            ("partenariat", "Partenariat"),
+                            ("autre", "Autre"),
+                        ],
+                        default="information",
+                        max_length=20,
+                    ),
+                ),
+                ("message", models.TextField()),
+                ("date_inscription", models.DateTimeField(auto_now_add=True)),
+                ("traite", models.BooleanField(default=False)),
+                (
+                    "statut_lead",
+                    models.CharField(
+                        choices=[
+                            ("nouveau", "🆕 Nouveau"),
+                            ("contacte", "📞 Contacté"),
+                            ("interesse", "💬 Intéressé"),
+                            ("converti", "✅ Converti"),
+                            ("perdu", "❌ Perdu"),
+                        ],
+                        default="nouveau",
+                        max_length=15,
+                    ),
+                ),
+                (
+                    "source_lead",
+                    models.CharField(
+                        blank=True,
+                        choices=[
+                            ("site", "Site web"),
+                            ("forum", "Forum"),
+                            ("reseaux", "Réseaux sociaux"),
+                            ("bouche_oreille", "Bouche-à-oreille"),
+                            ("autre", "Autre"),
+                        ],
+                        default="site",
+                        max_length=50,
+                    ),
+                ),
+                (
+                    "notes_internes",
+                    models.TextField(
+                        blank=True, help_text="Notes visibles uniquement par l'équipe"
+                    ),
+                ),
+                (
+                    "assigne_a",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Membre de l'équipe responsable de ce lead",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="leads_assignes",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "formation",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="inscriptions",
+                        to="academie.formation",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Inscription',
-                'verbose_name_plural': 'Inscriptions',
-                'ordering': ['-date_inscription'],
+                "verbose_name": "Inscription",
+                "verbose_name_plural": "Inscriptions",
+                "ordering": ["-date_inscription"],
             },
         ),
         migrations.CreateModel(
-            name='InteractionCRM',
+            name="InteractionCRM",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('type_interaction', models.CharField(choices=[('appel', '📞 Appel'), ('email', '📧 Email'), ('whatsapp', '💬 WhatsApp'), ('rencontre', '🤝 Rencontre'), ('note', '📝 Note')], default='note', max_length=15)),
-                ('contenu', models.TextField()),
-                ('date_creation', models.DateTimeField(auto_now_add=True)),
-                ('auteur', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
-                ('inscription', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='interactions', to='academie.inscription')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "type_interaction",
+                    models.CharField(
+                        choices=[
+                            ("appel", "📞 Appel"),
+                            ("email", "📧 Email"),
+                            ("whatsapp", "💬 WhatsApp"),
+                            ("rencontre", "🤝 Rencontre"),
+                            ("note", "📝 Note"),
+                        ],
+                        default="note",
+                        max_length=15,
+                    ),
+                ),
+                ("contenu", models.TextField()),
+                ("date_creation", models.DateTimeField(auto_now_add=True)),
+                (
+                    "auteur",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "inscription",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="interactions",
+                        to="academie.inscription",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Interaction CRM',
-                'verbose_name_plural': 'Interactions CRM',
-                'ordering': ['-date_creation'],
+                "verbose_name": "Interaction CRM",
+                "verbose_name_plural": "Interactions CRM",
+                "ordering": ["-date_creation"],
             },
         ),
         migrations.CreateModel(
-            name='LogAudit',
+            name="LogAudit",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('action', models.CharField(choices=[('validation_paiement', 'Validation de paiement'), ('suppression', 'Suppression'), ('modification_role', 'Modification de rôle'), ('remboursement', 'Remboursement'), ('publication', 'Publication de contenu'), ('connexion_admin', 'Connexion admin')], max_length=30)),
-                ('description', models.TextField()),
-                ('objet_type', models.CharField(blank=True, help_text='Ex: Order, Formation', max_length=100)),
-                ('objet_id', models.IntegerField(blank=True, null=True)),
-                ('adresse_ip', models.GenericIPAddressField(blank=True, null=True)),
-                ('date_creation', models.DateTimeField(auto_now_add=True)),
-                ('utilisateur', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='logs_audit', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "action",
+                    models.CharField(
+                        choices=[
+                            ("validation_paiement", "Validation de paiement"),
+                            ("suppression", "Suppression"),
+                            ("modification_role", "Modification de rôle"),
+                            ("remboursement", "Remboursement"),
+                            ("publication", "Publication de contenu"),
+                            ("connexion_admin", "Connexion admin"),
+                        ],
+                        max_length=30,
+                    ),
+                ),
+                ("description", models.TextField()),
+                (
+                    "objet_type",
+                    models.CharField(blank=True, help_text="Ex: Order, Formation", max_length=100),
+                ),
+                ("objet_id", models.IntegerField(blank=True, null=True)),
+                ("adresse_ip", models.GenericIPAddressField(blank=True, null=True)),
+                ("date_creation", models.DateTimeField(auto_now_add=True)),
+                (
+                    "utilisateur",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="logs_audit",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': "Log d'audit",
-                'verbose_name_plural': "Logs d'audit",
-                'ordering': ['-date_creation'],
+                "verbose_name": "Log d'audit",
+                "verbose_name_plural": "Logs d'audit",
+                "ordering": ["-date_creation"],
             },
         ),
         migrations.CreateModel(
-            name='Module',
+            name="Module",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('titre', models.CharField(max_length=200)),
-                ('description', models.TextField(blank=True)),
-                ('ordre', models.IntegerField(default=0)),
-                ('formation', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='modules', to='academie.formation')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("titre", models.CharField(max_length=200)),
+                ("description", models.TextField(blank=True)),
+                ("ordre", models.IntegerField(default=0)),
+                (
+                    "formation",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="modules",
+                        to="academie.formation",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Module',
-                'verbose_name_plural': 'Modules',
-                'ordering': ['ordre'],
+                "verbose_name": "Module",
+                "verbose_name_plural": "Modules",
+                "ordering": ["ordre"],
             },
         ),
         migrations.CreateModel(
-            name='Lecon',
+            name="Lecon",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('titre', models.CharField(max_length=200)),
-                ('resume', models.CharField(blank=True, help_text='Court résumé visible publiquement (sans connexion)', max_length=300)),
-                ('contenu', django_ckeditor_5.fields.CKEditor5Field(blank=True, help_text='Contenu complet du cours — visible uniquement aux étudiants connectés')),
-                ('duree_minutes', models.IntegerField(default=15)),
-                ('ordre', models.IntegerField(default=0)),
-                ('module', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='lecons', to='academie.module')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("titre", models.CharField(max_length=200)),
+                (
+                    "resume",
+                    models.CharField(
+                        blank=True,
+                        help_text="Court résumé visible publiquement (sans connexion)",
+                        max_length=300,
+                    ),
+                ),
+                (
+                    "contenu",
+                    django_ckeditor_5.fields.CKEditor5Field(
+                        blank=True,
+                        help_text="Contenu complet du cours — visible uniquement aux étudiants connectés",
+                    ),
+                ),
+                ("duree_minutes", models.IntegerField(default=15)),
+                ("ordre", models.IntegerField(default=0)),
+                (
+                    "module",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="lecons",
+                        to="academie.module",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Leçon',
-                'verbose_name_plural': 'Leçons',
-                'ordering': ['ordre'],
+                "verbose_name": "Leçon",
+                "verbose_name_plural": "Leçons",
+                "ordering": ["ordre"],
             },
         ),
         migrations.CreateModel(
-            name='HistoricalLecon',
+            name="HistoricalLecon",
             fields=[
-                ('id', models.BigIntegerField(auto_created=True, blank=True, db_index=True, verbose_name='ID')),
-                ('titre', models.CharField(max_length=200)),
-                ('resume', models.CharField(blank=True, help_text='Court résumé visible publiquement (sans connexion)', max_length=300)),
-                ('contenu', django_ckeditor_5.fields.CKEditor5Field(blank=True, help_text='Contenu complet du cours — visible uniquement aux étudiants connectés')),
-                ('duree_minutes', models.IntegerField(default=15)),
-                ('ordre', models.IntegerField(default=0)),
-                ('history_id', models.AutoField(primary_key=True, serialize=False)),
-                ('history_date', models.DateTimeField(db_index=True)),
-                ('history_change_reason', models.CharField(max_length=100, null=True)),
-                ('history_type', models.CharField(choices=[('+', 'Created'), ('~', 'Changed'), ('-', 'Deleted')], max_length=1)),
-                ('history_user', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL)),
-                ('module', models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='+', to='academie.module')),
+                (
+                    "id",
+                    models.BigIntegerField(
+                        auto_created=True, blank=True, db_index=True, verbose_name="ID"
+                    ),
+                ),
+                ("titre", models.CharField(max_length=200)),
+                (
+                    "resume",
+                    models.CharField(
+                        blank=True,
+                        help_text="Court résumé visible publiquement (sans connexion)",
+                        max_length=300,
+                    ),
+                ),
+                (
+                    "contenu",
+                    django_ckeditor_5.fields.CKEditor5Field(
+                        blank=True,
+                        help_text="Contenu complet du cours — visible uniquement aux étudiants connectés",
+                    ),
+                ),
+                ("duree_minutes", models.IntegerField(default=15)),
+                ("ordre", models.IntegerField(default=0)),
+                ("history_id", models.AutoField(primary_key=True, serialize=False)),
+                ("history_date", models.DateTimeField(db_index=True)),
+                ("history_change_reason", models.CharField(max_length=100, null=True)),
+                (
+                    "history_type",
+                    models.CharField(
+                        choices=[("+", "Created"), ("~", "Changed"), ("-", "Deleted")], max_length=1
+                    ),
+                ),
+                (
+                    "history_user",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "module",
+                    models.ForeignKey(
+                        blank=True,
+                        db_constraint=False,
+                        null=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="+",
+                        to="academie.module",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'historical Leçon',
-                'verbose_name_plural': 'historical Leçons',
-                'ordering': ('-history_date', '-history_id'),
-                'get_latest_by': ('history_date', 'history_id'),
+                "verbose_name": "historical Leçon",
+                "verbose_name_plural": "historical Leçons",
+                "ordering": ("-history_date", "-history_id"),
+                "get_latest_by": ("history_date", "history_id"),
             },
             bases=(simple_history.models.HistoricalChanges, models.Model),
         ),
         migrations.CreateModel(
-            name='Notification',
+            name="Notification",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('titre', models.CharField(max_length=200)),
-                ('message', models.TextField()),
-                ('lien', models.URLField(blank=True, default='')),
-                ('lue', models.BooleanField(default=False)),
-                ('date_creation', models.DateTimeField(auto_now_add=True)),
-                ('utilisateur', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='notifications', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("titre", models.CharField(max_length=200)),
+                ("message", models.TextField()),
+                ("lien", models.URLField(blank=True, default="")),
+                ("lue", models.BooleanField(default=False)),
+                ("date_creation", models.DateTimeField(auto_now_add=True)),
+                (
+                    "utilisateur",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="notifications",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Notification',
-                'verbose_name_plural': 'Notifications',
-                'ordering': ['-date_creation'],
+                "verbose_name": "Notification",
+                "verbose_name_plural": "Notifications",
+                "ordering": ["-date_creation"],
             },
         ),
         migrations.CreateModel(
-            name='Order',
+            name="Order",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('reference', models.CharField(editable=False, max_length=20, unique=True)),
-                ('sous_total', models.DecimalField(decimal_places=2, default=0, max_digits=10)),
-                ('reduction_totale', models.DecimalField(decimal_places=2, default=0, max_digits=10)),
-                ('total', models.DecimalField(decimal_places=2, default=0, max_digits=10)),
-                ('devise', models.CharField(choices=[('USD', 'USD'), ('HTG', 'HTG')], default='USD', max_length=3)),
-                ('statut', models.CharField(choices=[('en_attente', '⏳ En attente de paiement'), ('paye', '✅ Payée'), ('annule', '❌ Annulée'), ('rembourse', '↩️ Remboursée')], default='en_attente', max_length=15)),
-                ('date_creation', models.DateTimeField(auto_now_add=True)),
-                ('date_paiement', models.DateTimeField(blank=True, null=True)),
-                ('affilie_origine', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='commandes_generees', to='academie.affilie')),
-                ('coupon_applique', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='academie.coupon')),
-                ('moyen_paiement', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='academie.moyenpaiement')),
-                ('utilisateur', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='commandes', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("reference", models.CharField(editable=False, max_length=20, unique=True)),
+                ("sous_total", models.DecimalField(decimal_places=2, default=0, max_digits=10)),
+                (
+                    "reduction_totale",
+                    models.DecimalField(decimal_places=2, default=0, max_digits=10),
+                ),
+                ("total", models.DecimalField(decimal_places=2, default=0, max_digits=10)),
+                (
+                    "devise",
+                    models.CharField(
+                        choices=[("USD", "USD"), ("HTG", "HTG")], default="USD", max_length=3
+                    ),
+                ),
+                (
+                    "statut",
+                    models.CharField(
+                        choices=[
+                            ("en_attente", "⏳ En attente de paiement"),
+                            ("paye", "✅ Payée"),
+                            ("annule", "❌ Annulée"),
+                            ("rembourse", "↩️ Remboursée"),
+                        ],
+                        default="en_attente",
+                        max_length=15,
+                    ),
+                ),
+                ("date_creation", models.DateTimeField(auto_now_add=True)),
+                ("date_paiement", models.DateTimeField(blank=True, null=True)),
+                (
+                    "affilie_origine",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="commandes_generees",
+                        to="academie.affilie",
+                    ),
+                ),
+                (
+                    "coupon_applique",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="academie.coupon",
+                    ),
+                ),
+                (
+                    "moyen_paiement",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="academie.moyenpaiement",
+                    ),
+                ),
+                (
+                    "utilisateur",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="commandes",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Commande',
-                'verbose_name_plural': 'Commandes',
-                'ordering': ['-date_creation'],
+                "verbose_name": "Commande",
+                "verbose_name_plural": "Commandes",
+                "ordering": ["-date_creation"],
             },
         ),
         migrations.CreateModel(
-            name='Invoice',
+            name="Invoice",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('numero_facture', models.CharField(editable=False, max_length=30, unique=True)),
-                ('date_emission', models.DateTimeField(auto_now_add=True)),
-                ('fichier_pdf', models.FileField(blank=True, null=True, upload_to='factures/')),
-                ('commande', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='facture', to='academie.order')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("numero_facture", models.CharField(editable=False, max_length=30, unique=True)),
+                ("date_emission", models.DateTimeField(auto_now_add=True)),
+                ("fichier_pdf", models.FileField(blank=True, null=True, upload_to="factures/")),
+                (
+                    "commande",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="facture",
+                        to="academie.order",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Facture',
-                'verbose_name_plural': 'Factures',
+                "verbose_name": "Facture",
+                "verbose_name_plural": "Factures",
             },
         ),
         migrations.CreateModel(
-            name='CommissionAffiliation',
+            name="CommissionAffiliation",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('montant', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('statut', models.CharField(choices=[('en_attente', 'En attente'), ('payee', 'Payée')], default='en_attente', max_length=15)),
-                ('date_creation', models.DateTimeField(auto_now_add=True)),
-                ('affilie', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='commissions', to='academie.affilie')),
-                ('commande', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='academie.order')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("montant", models.DecimalField(decimal_places=2, max_digits=10)),
+                (
+                    "statut",
+                    models.CharField(
+                        choices=[("en_attente", "En attente"), ("payee", "Payée")],
+                        default="en_attente",
+                        max_length=15,
+                    ),
+                ),
+                ("date_creation", models.DateTimeField(auto_now_add=True)),
+                (
+                    "affilie",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="commissions",
+                        to="academie.affilie",
+                    ),
+                ),
+                (
+                    "commande",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="academie.order"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Commission affiliation',
-                'verbose_name_plural': 'Commissions affiliation',
+                "verbose_name": "Commission affiliation",
+                "verbose_name_plural": "Commissions affiliation",
             },
         ),
         migrations.CreateModel(
-            name='AccesFormationDebloque',
+            name="AccesFormationDebloque",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nom_formation_snapshot', models.CharField(max_length=200)),
-                ('date_deblocage', models.DateTimeField(auto_now_add=True)),
-                ('utilisateur', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='acces_debloques', to=settings.AUTH_USER_MODEL)),
-                ('formation', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='academie.formation')),
-                ('commande_origine', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='academie.order')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("nom_formation_snapshot", models.CharField(max_length=200)),
+                ("date_deblocage", models.DateTimeField(auto_now_add=True)),
+                (
+                    "utilisateur",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="acces_debloques",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "formation",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="academie.formation",
+                    ),
+                ),
+                (
+                    "commande_origine",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="academie.order",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Accès formation débloqué',
-                'verbose_name_plural': 'Accès formations débloqués',
+                "verbose_name": "Accès formation débloqué",
+                "verbose_name_plural": "Accès formations débloqués",
             },
         ),
         migrations.CreateModel(
-            name='Parcours',
+            name="Parcours",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('titre', models.CharField(max_length=200)),
-                ('icone', models.CharField(default='🎓', max_length=10)),
-                ('description', models.TextField(blank=True)),
-                ('duree_mois', models.IntegerField()),
-                ('prix', models.IntegerField()),
-                ('actif', models.BooleanField(default=True)),
-                ('ordre', models.IntegerField(default=0)),
-                ('formations', models.ManyToManyField(blank=True, related_name='parcours', to='academie.formation')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("titre", models.CharField(max_length=200)),
+                ("icone", models.CharField(default="🎓", max_length=10)),
+                ("description", models.TextField(blank=True)),
+                ("duree_mois", models.IntegerField()),
+                ("prix", models.IntegerField()),
+                ("actif", models.BooleanField(default=True)),
+                ("ordre", models.IntegerField(default=0)),
+                (
+                    "formations",
+                    models.ManyToManyField(
+                        blank=True, related_name="parcours", to="academie.formation"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Parcours professionnel',
-                'verbose_name_plural': 'Parcours professionnels',
-                'ordering': ['ordre', 'titre'],
+                "verbose_name": "Parcours professionnel",
+                "verbose_name_plural": "Parcours professionnels",
+                "ordering": ["ordre", "titre"],
             },
         ),
         migrations.CreateModel(
-            name='OrderItem',
+            name="OrderItem",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('type_produit', models.CharField(choices=[('formation', 'Formation'), ('parcours', 'Parcours Professionnel')], max_length=15)),
-                ('nom_produit_snapshot', models.CharField(max_length=200)),
-                ('icone_produit_snapshot', models.CharField(default='📚', max_length=10)),
-                ('ecole_nom_snapshot', models.CharField(blank=True, max_length=200)),
-                ('prix_unitaire', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('commande', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='academie.order')),
-                ('formation', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='academie.formation')),
-                ('parcours', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='academie.parcours')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "type_produit",
+                    models.CharField(
+                        choices=[
+                            ("formation", "Formation"),
+                            ("parcours", "Parcours Professionnel"),
+                        ],
+                        max_length=15,
+                    ),
+                ),
+                ("nom_produit_snapshot", models.CharField(max_length=200)),
+                ("icone_produit_snapshot", models.CharField(default="📚", max_length=10)),
+                ("ecole_nom_snapshot", models.CharField(blank=True, max_length=200)),
+                ("prix_unitaire", models.DecimalField(decimal_places=2, max_digits=10)),
+                (
+                    "commande",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="items",
+                        to="academie.order",
+                    ),
+                ),
+                (
+                    "formation",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="academie.formation",
+                    ),
+                ),
+                (
+                    "parcours",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="academie.parcours",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Article de commande',
-                'verbose_name_plural': 'Articles de commande',
+                "verbose_name": "Article de commande",
+                "verbose_name_plural": "Articles de commande",
             },
         ),
         migrations.AddField(
-            model_name='coupon',
-            name='parcours_specifique',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='coupons', to='academie.parcours'),
+            model_name="coupon",
+            name="parcours_specifique",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="coupons",
+                to="academie.parcours",
+            ),
         ),
         migrations.CreateModel(
-            name='PartenaireAPI',
+            name="PartenaireAPI",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nom', models.CharField(max_length=150)),
-                ('email_contact', models.EmailField(max_length=254)),
-                ('cle_api', models.CharField(max_length=64, unique=True)),
-                ('type_partenaire', models.CharField(choices=[('universite', 'Université'), ('entreprise', 'Entreprise'), ('ong', 'ONG'), ('gouvernement', 'Gouvernement')], default='entreprise', max_length=30)),
-                ('actif', models.BooleanField(default=True)),
-                ('date_creation', models.DateTimeField(auto_now_add=True)),
-                ('academie_associee', models.ForeignKey(blank=True, help_text="Si défini, ce partenaire n'accède qu'aux données de cette académie. Vide = accès toutes académies.", null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='partenaires_api', to='academie.academie')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("nom", models.CharField(max_length=150)),
+                ("email_contact", models.EmailField(max_length=254)),
+                ("cle_api", models.CharField(max_length=64, unique=True)),
+                (
+                    "type_partenaire",
+                    models.CharField(
+                        choices=[
+                            ("universite", "Université"),
+                            ("entreprise", "Entreprise"),
+                            ("ong", "ONG"),
+                            ("gouvernement", "Gouvernement"),
+                        ],
+                        default="entreprise",
+                        max_length=30,
+                    ),
+                ),
+                ("actif", models.BooleanField(default=True)),
+                ("date_creation", models.DateTimeField(auto_now_add=True)),
+                (
+                    "academie_associee",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Si défini, ce partenaire n'accède qu'aux données de cette académie. Vide = accès toutes académies.",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="partenaires_api",
+                        to="academie.academie",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Partenaire API',
-                'verbose_name_plural': 'Partenaires API',
+                "verbose_name": "Partenaire API",
+                "verbose_name_plural": "Partenaires API",
             },
         ),
         migrations.CreateModel(
-            name='ProfilUtilisateur',
+            name="ProfilUtilisateur",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('xp', models.IntegerField(default=0)),
-                ('streak', models.IntegerField(default=0)),
-                ('derniere_activite', models.DateField(blank=True, null=True)),
-                ('role', models.CharField(choices=[('etudiant', 'Étudiant'), ('parent', 'Parent'), ('formateur', 'Formateur'), ('asst_formateur', 'Assistant Formateur'), ('resp_academique', 'Responsable Académique'), ('examinateur', 'Examinateur'), ('correcteur', 'Correcteur'), ('marketing', 'Marketing'), ('support', 'Support'), ('finance', 'Finance'), ('direction', 'Direction'), ('admin', 'Administrateur'), ('super_admin', 'Super Administrateur'), ('api_client', 'API Client')], default='etudiant', max_length=30)),
-                ('bio_formateur', models.TextField(blank=True)),
-                ('specialites', models.CharField(blank=True, help_text='Séparées par des virgules', max_length=300)),
-                ('taux_remuneration', models.DecimalField(decimal_places=2, default=0, help_text='% des ventes reversé', max_digits=5)),
-                ('telephone', models.CharField(blank=True, max_length=20)),
-                ('date_creation', models.DateTimeField(auto_now_add=True)),
-                ('academies', models.ManyToManyField(blank=True, help_text='Académies auxquelles cet utilisateur a accès (étudiant multi-académie ou formateur multi-académie)', related_name='membres', to='academie.academie')),
-                ('utilisateur', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='profil', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("xp", models.IntegerField(default=0)),
+                ("streak", models.IntegerField(default=0)),
+                ("derniere_activite", models.DateField(blank=True, null=True)),
+                (
+                    "role",
+                    models.CharField(
+                        choices=[
+                            ("etudiant", "Étudiant"),
+                            ("parent", "Parent"),
+                            ("formateur", "Formateur"),
+                            ("asst_formateur", "Assistant Formateur"),
+                            ("resp_academique", "Responsable Académique"),
+                            ("examinateur", "Examinateur"),
+                            ("correcteur", "Correcteur"),
+                            ("marketing", "Marketing"),
+                            ("support", "Support"),
+                            ("finance", "Finance"),
+                            ("direction", "Direction"),
+                            ("admin", "Administrateur"),
+                            ("super_admin", "Super Administrateur"),
+                            ("api_client", "API Client"),
+                        ],
+                        default="etudiant",
+                        max_length=30,
+                    ),
+                ),
+                ("bio_formateur", models.TextField(blank=True)),
+                (
+                    "specialites",
+                    models.CharField(
+                        blank=True, help_text="Séparées par des virgules", max_length=300
+                    ),
+                ),
+                (
+                    "taux_remuneration",
+                    models.DecimalField(
+                        decimal_places=2, default=0, help_text="% des ventes reversé", max_digits=5
+                    ),
+                ),
+                ("telephone", models.CharField(blank=True, max_length=20)),
+                ("date_creation", models.DateTimeField(auto_now_add=True)),
+                (
+                    "academies",
+                    models.ManyToManyField(
+                        blank=True,
+                        help_text="Académies auxquelles cet utilisateur a accès (étudiant multi-académie ou formateur multi-académie)",
+                        related_name="membres",
+                        to="academie.academie",
+                    ),
+                ),
+                (
+                    "utilisateur",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="profil",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Profil utilisateur',
-                'verbose_name_plural': 'Profils utilisateurs',
+                "verbose_name": "Profil utilisateur",
+                "verbose_name_plural": "Profils utilisateurs",
             },
         ),
         migrations.CreateModel(
-            name='Enseignant',
+            name="Enseignant",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('statut', models.CharField(choices=[('actif', '✅ Actif'), ('en_attente', '⏳ En attente validation'), ('suspendu', '⛔ Suspendu')], default='en_attente', max_length=15)),
-                ('date_recrutement', models.DateTimeField(auto_now_add=True)),
-                ('numero_contrat', models.CharField(blank=True, max_length=50)),
-                ('document_cv', models.FileField(blank=True, null=True, upload_to='enseignants/cv/')),
-                ('formations_attribuees', models.ManyToManyField(blank=True, related_name='enseignants', to='academie.formation')),
-                ('profil', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='enseignant', to='academie.profilutilisateur')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "statut",
+                    models.CharField(
+                        choices=[
+                            ("actif", "✅ Actif"),
+                            ("en_attente", "⏳ En attente validation"),
+                            ("suspendu", "⛔ Suspendu"),
+                        ],
+                        default="en_attente",
+                        max_length=15,
+                    ),
+                ),
+                ("date_recrutement", models.DateTimeField(auto_now_add=True)),
+                ("numero_contrat", models.CharField(blank=True, max_length=50)),
+                (
+                    "document_cv",
+                    models.FileField(blank=True, null=True, upload_to="enseignants/cv/"),
+                ),
+                (
+                    "formations_attribuees",
+                    models.ManyToManyField(
+                        blank=True, related_name="enseignants", to="academie.formation"
+                    ),
+                ),
+                (
+                    "profil",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="enseignant",
+                        to="academie.profilutilisateur",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Enseignant',
-                'verbose_name_plural': 'Enseignants',
+                "verbose_name": "Enseignant",
+                "verbose_name_plural": "Enseignants",
             },
         ),
         migrations.CreateModel(
-            name='ProgressionLecon',
+            name="ProgressionLecon",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('terminee', models.BooleanField(default=False)),
-                ('date_completion', models.DateTimeField(blank=True, null=True)),
-                ('lecon', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='progressions', to='academie.lecon')),
-                ('utilisateur', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='progressions', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("terminee", models.BooleanField(default=False)),
+                ("date_completion", models.DateTimeField(blank=True, null=True)),
+                (
+                    "lecon",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="progressions",
+                        to="academie.lecon",
+                    ),
+                ),
+                (
+                    "utilisateur",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="progressions",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Progression de leçon',
-                'verbose_name_plural': 'Progressions de leçons',
+                "verbose_name": "Progression de leçon",
+                "verbose_name_plural": "Progressions de leçons",
             },
         ),
         migrations.CreateModel(
-            name='ProjetEtudiant',
+            name="ProjetEtudiant",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('titre', models.CharField(max_length=200)),
-                ('description', models.TextField()),
-                ('image', models.ImageField(blank=True, null=True, upload_to='projets/')),
-                ('lien', models.URLField(blank=True, null=True)),
-                ('technologies', models.CharField(blank=True, help_text='Ex: Python, Django, React', max_length=300)),
-                ('niveau_difficulte', models.CharField(blank=True, choices=[('debutant', 'Débutant'), ('intermediaire', 'Intermédiaire'), ('avance', 'Avancé')], default='debutant', max_length=20)),
-                ('competences_developpees', models.CharField(blank=True, max_length=300)),
-                ('date_creation', models.DateTimeField(auto_now_add=True)),
-                ('auteur', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='projets', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("titre", models.CharField(max_length=200)),
+                ("description", models.TextField()),
+                ("image", models.ImageField(blank=True, null=True, upload_to="projets/")),
+                ("lien", models.URLField(blank=True, null=True)),
+                (
+                    "technologies",
+                    models.CharField(
+                        blank=True, help_text="Ex: Python, Django, React", max_length=300
+                    ),
+                ),
+                (
+                    "niveau_difficulte",
+                    models.CharField(
+                        blank=True,
+                        choices=[
+                            ("debutant", "Débutant"),
+                            ("intermediaire", "Intermédiaire"),
+                            ("avance", "Avancé"),
+                        ],
+                        default="debutant",
+                        max_length=20,
+                    ),
+                ),
+                ("competences_developpees", models.CharField(blank=True, max_length=300)),
+                ("date_creation", models.DateTimeField(auto_now_add=True)),
+                (
+                    "auteur",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="projets",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Projet étudiant',
-                'verbose_name_plural': 'Projets étudiants',
-                'ordering': ['-date_creation'],
+                "verbose_name": "Projet étudiant",
+                "verbose_name_plural": "Projets étudiants",
+                "ordering": ["-date_creation"],
             },
         ),
         migrations.CreateModel(
-            name='Promotion',
+            name="Promotion",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nom', models.CharField(max_length=150)),
-                ('description', models.TextField(blank=True)),
-                ('pourcentage_reduction', models.IntegerField(help_text='Ex: 30 pour -30%')),
-                ('date_debut', models.DateTimeField()),
-                ('date_fin', models.DateTimeField()),
-                ('actif', models.BooleanField(default=True)),
-                ('bandeau_texte', models.CharField(blank=True, help_text="Ex: 🔥 -30% jusqu'au 30 novembre", max_length=200)),
-                ('ecoles_concernees', models.ManyToManyField(blank=True, related_name='promotions', to='academie.ecole')),
-                ('formations_concernees', models.ManyToManyField(blank=True, related_name='promotions', to='academie.formation')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("nom", models.CharField(max_length=150)),
+                ("description", models.TextField(blank=True)),
+                ("pourcentage_reduction", models.IntegerField(help_text="Ex: 30 pour -30%")),
+                ("date_debut", models.DateTimeField()),
+                ("date_fin", models.DateTimeField()),
+                ("actif", models.BooleanField(default=True)),
+                (
+                    "bandeau_texte",
+                    models.CharField(
+                        blank=True, help_text="Ex: 🔥 -30% jusqu'au 30 novembre", max_length=200
+                    ),
+                ),
+                (
+                    "ecoles_concernees",
+                    models.ManyToManyField(
+                        blank=True, related_name="promotions", to="academie.ecole"
+                    ),
+                ),
+                (
+                    "formations_concernees",
+                    models.ManyToManyField(
+                        blank=True, related_name="promotions", to="academie.formation"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Promotion',
-                'verbose_name_plural': 'Promotions',
+                "verbose_name": "Promotion",
+                "verbose_name_plural": "Promotions",
             },
         ),
         migrations.CreateModel(
-            name='QuestionExamen',
+            name="QuestionExamen",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('texte', models.TextField()),
-                ('type_question', models.CharField(choices=[('qcm', 'QCM'), ('vrai_faux', 'Vrai/Faux'), ('texte', 'Réponse texte')], default='qcm', max_length=20)),
-                ('ordre', models.IntegerField(default=0)),
-                ('points', models.IntegerField(default=1)),
-                ('examen', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='questions', to='academie.examen')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("texte", models.TextField()),
+                (
+                    "type_question",
+                    models.CharField(
+                        choices=[
+                            ("qcm", "QCM"),
+                            ("vrai_faux", "Vrai/Faux"),
+                            ("texte", "Réponse texte"),
+                        ],
+                        default="qcm",
+                        max_length=20,
+                    ),
+                ),
+                ("ordre", models.IntegerField(default=0)),
+                ("points", models.IntegerField(default=1)),
+                (
+                    "examen",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="questions",
+                        to="academie.examen",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': "Question d'examen",
-                'verbose_name_plural': "Questions d'examen",
-                'ordering': ['ordre'],
+                "verbose_name": "Question d'examen",
+                "verbose_name_plural": "Questions d'examen",
+                "ordering": ["ordre"],
             },
         ),
         migrations.CreateModel(
-            name='ChoixExamen',
+            name="ChoixExamen",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('texte', models.CharField(max_length=300)),
-                ('est_correct', models.BooleanField(default=False)),
-                ('ordre', models.IntegerField(default=0)),
-                ('question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='choix', to='academie.questionexamen')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("texte", models.CharField(max_length=300)),
+                ("est_correct", models.BooleanField(default=False)),
+                ("ordre", models.IntegerField(default=0)),
+                (
+                    "question",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="choix",
+                        to="academie.questionexamen",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Choix',
-                'verbose_name_plural': 'Choix',
-                'ordering': ['ordre'],
+                "verbose_name": "Choix",
+                "verbose_name_plural": "Choix",
+                "ordering": ["ordre"],
             },
         ),
         migrations.CreateModel(
-            name='Quiz',
+            name="Quiz",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('titre', models.CharField(max_length=200)),
-                ('description', models.TextField(blank=True)),
-                ('actif', models.BooleanField(default=True)),
-                ('limite_temps_minutes', models.IntegerField(default=0, help_text='0 = pas de limite')),
-                ('tentatives_max', models.IntegerField(default=0, help_text='0 = illimité')),
-                ('melanger_questions', models.BooleanField(default=True)),
-                ('melanger_reponses', models.BooleanField(default=True)),
-                ('date_creation', models.DateTimeField(auto_now_add=True)),
-                ('formation', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='quiz_set', to='academie.formation')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("titre", models.CharField(max_length=200)),
+                ("description", models.TextField(blank=True)),
+                ("actif", models.BooleanField(default=True)),
+                (
+                    "limite_temps_minutes",
+                    models.IntegerField(default=0, help_text="0 = pas de limite"),
+                ),
+                ("tentatives_max", models.IntegerField(default=0, help_text="0 = illimité")),
+                ("melanger_questions", models.BooleanField(default=True)),
+                ("melanger_reponses", models.BooleanField(default=True)),
+                ("date_creation", models.DateTimeField(auto_now_add=True)),
+                (
+                    "formation",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="quiz_set",
+                        to="academie.formation",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Quiz',
-                'verbose_name_plural': 'Quiz',
-                'ordering': ['-date_creation'],
+                "verbose_name": "Quiz",
+                "verbose_name_plural": "Quiz",
+                "ordering": ["-date_creation"],
             },
         ),
         migrations.CreateModel(
-            name='Question',
+            name="Question",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('texte', models.TextField()),
-                ('choix_a', models.CharField(max_length=300)),
-                ('choix_b', models.CharField(max_length=300)),
-                ('choix_c', models.CharField(max_length=300)),
-                ('choix_d', models.CharField(max_length=300)),
-                ('bonne_reponse', models.CharField(choices=[('a', 'A'), ('b', 'B'), ('c', 'C'), ('d', 'D')], max_length=1)),
-                ('explication', models.TextField(blank=True)),
-                ('ordre', models.IntegerField(default=0)),
-                ('quiz', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='questions', to='academie.quiz')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("texte", models.TextField()),
+                ("choix_a", models.CharField(max_length=300)),
+                ("choix_b", models.CharField(max_length=300)),
+                ("choix_c", models.CharField(max_length=300)),
+                ("choix_d", models.CharField(max_length=300)),
+                (
+                    "bonne_reponse",
+                    models.CharField(
+                        choices=[("a", "A"), ("b", "B"), ("c", "C"), ("d", "D")], max_length=1
+                    ),
+                ),
+                ("explication", models.TextField(blank=True)),
+                ("ordre", models.IntegerField(default=0)),
+                (
+                    "quiz",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="questions",
+                        to="academie.quiz",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Question',
-                'verbose_name_plural': 'Questions',
-                'ordering': ['ordre'],
+                "verbose_name": "Question",
+                "verbose_name_plural": "Questions",
+                "ordering": ["ordre"],
             },
         ),
         migrations.CreateModel(
-            name='Refund',
+            name="Refund",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('montant', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('raison', models.TextField()),
-                ('date_demande', models.DateTimeField(auto_now_add=True)),
-                ('date_traitement', models.DateTimeField(blank=True, null=True)),
-                ('statut', models.CharField(choices=[('demande', 'Demandé'), ('approuve', 'Approuvé'), ('rejete', 'Rejeté')], default='demande', max_length=15)),
-                ('approuve_par', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
-                ('commande', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='remboursements', to='academie.order')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("montant", models.DecimalField(decimal_places=2, max_digits=10)),
+                ("raison", models.TextField()),
+                ("date_demande", models.DateTimeField(auto_now_add=True)),
+                ("date_traitement", models.DateTimeField(blank=True, null=True)),
+                (
+                    "statut",
+                    models.CharField(
+                        choices=[
+                            ("demande", "Demandé"),
+                            ("approuve", "Approuvé"),
+                            ("rejete", "Rejeté"),
+                        ],
+                        default="demande",
+                        max_length=15,
+                    ),
+                ),
+                (
+                    "approuve_par",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "commande",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="remboursements",
+                        to="academie.order",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Remboursement',
-                'verbose_name_plural': 'Remboursements',
+                "verbose_name": "Remboursement",
+                "verbose_name_plural": "Remboursements",
             },
         ),
         migrations.CreateModel(
-            name='ResultatQuiz',
+            name="ResultatQuiz",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('score', models.IntegerField()),
-                ('total_questions', models.IntegerField()),
-                ('date_passage', models.DateTimeField(auto_now_add=True)),
-                ('quiz', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='resultats', to='academie.quiz')),
-                ('utilisateur', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='resultats_quiz', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("score", models.IntegerField()),
+                ("total_questions", models.IntegerField()),
+                ("date_passage", models.DateTimeField(auto_now_add=True)),
+                (
+                    "quiz",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="resultats",
+                        to="academie.quiz",
+                    ),
+                ),
+                (
+                    "utilisateur",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="resultats_quiz",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Résultat de quiz',
-                'verbose_name_plural': 'Résultats de quiz',
-                'ordering': ['-date_passage'],
+                "verbose_name": "Résultat de quiz",
+                "verbose_name_plural": "Résultats de quiz",
+                "ordering": ["-date_passage"],
             },
         ),
         migrations.CreateModel(
-            name='Subscription',
+            name="Subscription",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('plan_nom_snapshot', models.CharField(max_length=100)),
-                ('prix_snapshot', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('stripe_subscription_id', models.CharField(blank=True, max_length=100)),
-                ('stripe_customer_id', models.CharField(blank=True, max_length=100)),
-                ('statut', models.CharField(choices=[('actif', 'Actif'), ('annule', 'Annulé'), ('expire', 'Expiré'), ('en_echec', 'Paiement échoué')], default='actif', max_length=15)),
-                ('date_debut', models.DateTimeField(auto_now_add=True)),
-                ('date_prochain_renouvellement', models.DateTimeField()),
-                ('date_annulation', models.DateTimeField(blank=True, null=True)),
-                ('renouvellement_auto', models.BooleanField(default=True)),
-                ('plan', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='academie.planabonnement')),
-                ('utilisateur', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='abonnements', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("plan_nom_snapshot", models.CharField(max_length=100)),
+                ("prix_snapshot", models.DecimalField(decimal_places=2, max_digits=10)),
+                ("stripe_subscription_id", models.CharField(blank=True, max_length=100)),
+                ("stripe_customer_id", models.CharField(blank=True, max_length=100)),
+                (
+                    "statut",
+                    models.CharField(
+                        choices=[
+                            ("actif", "Actif"),
+                            ("annule", "Annulé"),
+                            ("expire", "Expiré"),
+                            ("en_echec", "Paiement échoué"),
+                        ],
+                        default="actif",
+                        max_length=15,
+                    ),
+                ),
+                ("date_debut", models.DateTimeField(auto_now_add=True)),
+                ("date_prochain_renouvellement", models.DateTimeField()),
+                ("date_annulation", models.DateTimeField(blank=True, null=True)),
+                ("renouvellement_auto", models.BooleanField(default=True)),
+                (
+                    "plan",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="academie.planabonnement",
+                    ),
+                ),
+                (
+                    "utilisateur",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="abonnements",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Abonnement',
-                'verbose_name_plural': 'Abonnements',
+                "verbose_name": "Abonnement",
+                "verbose_name_plural": "Abonnements",
             },
         ),
         migrations.CreateModel(
-            name='Sujet',
+            name="Sujet",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('titre', models.CharField(max_length=300)),
-                ('contenu', django_ckeditor_5.fields.CKEditor5Field()),
-                ('categorie', models.CharField(choices=[('general', 'Général'), ('question', 'Question'), ('partage', 'Partage de projet'), ('aide', "Demande d'aide"), ('annonce', 'Annonce')], default='general', max_length=20)),
-                ('vues', models.IntegerField(default=0)),
-                ('epingle', models.BooleanField(default=False)),
-                ('resolu', models.BooleanField(default=False)),
-                ('date_creation', models.DateTimeField(auto_now_add=True)),
-                ('date_modification', models.DateTimeField(auto_now=True)),
-                ('auteur', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sujets_forum', to=settings.AUTH_USER_MODEL)),
-                ('formation', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='sujets_forum', to='academie.formation')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("titre", models.CharField(max_length=300)),
+                ("contenu", django_ckeditor_5.fields.CKEditor5Field()),
+                (
+                    "categorie",
+                    models.CharField(
+                        choices=[
+                            ("general", "Général"),
+                            ("question", "Question"),
+                            ("partage", "Partage de projet"),
+                            ("aide", "Demande d'aide"),
+                            ("annonce", "Annonce"),
+                        ],
+                        default="general",
+                        max_length=20,
+                    ),
+                ),
+                ("vues", models.IntegerField(default=0)),
+                ("epingle", models.BooleanField(default=False)),
+                ("resolu", models.BooleanField(default=False)),
+                ("date_creation", models.DateTimeField(auto_now_add=True)),
+                ("date_modification", models.DateTimeField(auto_now=True)),
+                (
+                    "auteur",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="sujets_forum",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "formation",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="sujets_forum",
+                        to="academie.formation",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Sujet',
-                'verbose_name_plural': 'Sujets',
-                'ordering': ['-epingle', '-date_creation'],
+                "verbose_name": "Sujet",
+                "verbose_name_plural": "Sujets",
+                "ordering": ["-epingle", "-date_creation"],
             },
         ),
         migrations.CreateModel(
-            name='Reponse',
+            name="Reponse",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('contenu', models.TextField()),
-                ('acceptee', models.BooleanField(default=False)),
-                ('date_creation', models.DateTimeField(auto_now_add=True)),
-                ('date_modification', models.DateTimeField(auto_now=True)),
-                ('auteur', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reponses_forum', to=settings.AUTH_USER_MODEL)),
-                ('sujet', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reponses', to='academie.sujet')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("contenu", models.TextField()),
+                ("acceptee", models.BooleanField(default=False)),
+                ("date_creation", models.DateTimeField(auto_now_add=True)),
+                ("date_modification", models.DateTimeField(auto_now=True)),
+                (
+                    "auteur",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="reponses_forum",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "sujet",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="reponses",
+                        to="academie.sujet",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Réponse',
-                'verbose_name_plural': 'Réponses',
-                'ordering': ['date_creation'],
+                "verbose_name": "Réponse",
+                "verbose_name_plural": "Réponses",
+                "ordering": ["date_creation"],
             },
         ),
         migrations.CreateModel(
-            name='Reaction',
+            name="Reaction",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date_creation', models.DateTimeField(auto_now_add=True)),
-                ('utilisateur', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reactions_forum', to=settings.AUTH_USER_MODEL)),
-                ('reponse', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='reactions', to='academie.reponse')),
-                ('sujet', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='reactions', to='academie.sujet')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("date_creation", models.DateTimeField(auto_now_add=True)),
+                (
+                    "utilisateur",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="reactions_forum",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "reponse",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="reactions",
+                        to="academie.reponse",
+                    ),
+                ),
+                (
+                    "sujet",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="reactions",
+                        to="academie.sujet",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Réaction',
-                'verbose_name_plural': 'Réactions',
+                "verbose_name": "Réaction",
+                "verbose_name_plural": "Réactions",
             },
         ),
         migrations.CreateModel(
-            name='Temoignage',
+            name="Temoignage",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('prenom_nom', models.CharField(max_length=200)),
-                ('texte', models.TextField()),
-                ('note', models.IntegerField(choices=[(1, '1 étoile'), (2, '2 étoiles'), (3, '3 étoiles'), (4, '4 étoiles'), (5, '5 étoiles')], default=5)),
-                ('initiales', models.CharField(help_text='Ex: JRB pour Jean Raymond BELONY', max_length=3)),
-                ('titre_professionnel', models.CharField(blank=True, help_text='Ex: Développeur Web Freelance', max_length=200)),
-                ('en_vedette', models.BooleanField(default=False)),
-                ('approuve', models.BooleanField(default=False)),
-                ('date_creation', models.DateTimeField(auto_now_add=True)),
-                ('formation_suivie', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='temoignages', to='academie.formation')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("prenom_nom", models.CharField(max_length=200)),
+                ("texte", models.TextField()),
+                (
+                    "note",
+                    models.IntegerField(
+                        choices=[
+                            (1, "1 étoile"),
+                            (2, "2 étoiles"),
+                            (3, "3 étoiles"),
+                            (4, "4 étoiles"),
+                            (5, "5 étoiles"),
+                        ],
+                        default=5,
+                    ),
+                ),
+                (
+                    "initiales",
+                    models.CharField(help_text="Ex: JRB pour Jean Raymond BELONY", max_length=3),
+                ),
+                (
+                    "titre_professionnel",
+                    models.CharField(
+                        blank=True, help_text="Ex: Développeur Web Freelance", max_length=200
+                    ),
+                ),
+                ("en_vedette", models.BooleanField(default=False)),
+                ("approuve", models.BooleanField(default=False)),
+                ("date_creation", models.DateTimeField(auto_now_add=True)),
+                (
+                    "formation_suivie",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="temoignages",
+                        to="academie.formation",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Témoignage',
-                'verbose_name_plural': 'Témoignages',
-                'ordering': ['-en_vedette', '-date_creation'],
+                "verbose_name": "Témoignage",
+                "verbose_name_plural": "Témoignages",
+                "ordering": ["-en_vedette", "-date_creation"],
             },
         ),
         migrations.CreateModel(
-            name='TentativeExamen',
+            name="TentativeExamen",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date_debut', models.DateTimeField(auto_now_add=True)),
-                ('date_fin', models.DateTimeField(blank=True, null=True)),
-                ('score', models.FloatField(blank=True, null=True)),
-                ('reussi', models.BooleanField(blank=True, null=True)),
-                ('evenements_suspects', models.JSONField(default=list)),
-                ('temps_utilise_secondes', models.IntegerField(blank=True, help_text='Temps total utilisé', null=True)),
-                ('questions_repondues', models.IntegerField(default=0)),
-                ('bonnes_reponses', models.IntegerField(default=0)),
-                ('mauvaises_reponses', models.IntegerField(default=0)),
-                ('examen', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tentatives', to='academie.examen')),
-                ('utilisateur', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tentatives_examens', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("date_debut", models.DateTimeField(auto_now_add=True)),
+                ("date_fin", models.DateTimeField(blank=True, null=True)),
+                ("score", models.FloatField(blank=True, null=True)),
+                ("reussi", models.BooleanField(blank=True, null=True)),
+                ("evenements_suspects", models.JSONField(default=list)),
+                (
+                    "temps_utilise_secondes",
+                    models.IntegerField(blank=True, help_text="Temps total utilisé", null=True),
+                ),
+                ("questions_repondues", models.IntegerField(default=0)),
+                ("bonnes_reponses", models.IntegerField(default=0)),
+                ("mauvaises_reponses", models.IntegerField(default=0)),
+                (
+                    "examen",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="tentatives",
+                        to="academie.examen",
+                    ),
+                ),
+                (
+                    "utilisateur",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="tentatives_examens",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': "Tentative d'examen",
-                'verbose_name_plural': "Tentatives d'examens",
+                "verbose_name": "Tentative d'examen",
+                "verbose_name_plural": "Tentatives d'examens",
             },
         ),
         migrations.CreateModel(
-            name='Transaction',
+            name="Transaction",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('reference_externe', models.CharField(blank=True, help_text='ID transaction MonCash/Stripe/etc.', max_length=100)),
-                ('preuve_paiement', models.ImageField(blank=True, null=True, upload_to='preuves_paiement/')),
-                ('montant', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('statut', models.CharField(choices=[('initiee', 'Initiée'), ('reussie', 'Réussie'), ('echouee', 'Échouée'), ('en_verification', 'En vérification manuelle')], default='initiee', max_length=20)),
-                ('notes_admin', models.TextField(blank=True)),
-                ('date_creation', models.DateTimeField(auto_now_add=True)),
-                ('commande', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='transactions', to='academie.order')),
-                ('moyen_paiement', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='academie.moyenpaiement')),
-                ('valide_par', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='transactions_validees', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "reference_externe",
+                    models.CharField(
+                        blank=True, help_text="ID transaction MonCash/Stripe/etc.", max_length=100
+                    ),
+                ),
+                (
+                    "preuve_paiement",
+                    models.ImageField(blank=True, null=True, upload_to="preuves_paiement/"),
+                ),
+                ("montant", models.DecimalField(decimal_places=2, max_digits=10)),
+                (
+                    "statut",
+                    models.CharField(
+                        choices=[
+                            ("initiee", "Initiée"),
+                            ("reussie", "Réussie"),
+                            ("echouee", "Échouée"),
+                            ("en_verification", "En vérification manuelle"),
+                        ],
+                        default="initiee",
+                        max_length=20,
+                    ),
+                ),
+                ("notes_admin", models.TextField(blank=True)),
+                ("date_creation", models.DateTimeField(auto_now_add=True)),
+                (
+                    "commande",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="transactions",
+                        to="academie.order",
+                    ),
+                ),
+                (
+                    "moyen_paiement",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="academie.moyenpaiement",
+                    ),
+                ),
+                (
+                    "valide_par",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="transactions_validees",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Transaction',
-                'verbose_name_plural': 'Transactions',
-                'ordering': ['-date_creation'],
+                "verbose_name": "Transaction",
+                "verbose_name_plural": "Transactions",
+                "ordering": ["-date_creation"],
             },
         ),
         migrations.CreateModel(
-            name='WorkflowFormation',
+            name="WorkflowFormation",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('etat_actuel', models.CharField(choices=[('brouillon', '📝 Brouillon'), ('en_revision', '🔍 En révision'), ('validee', '✅ Validée — prête à publier'), ('publiee', '🌐 Publiée'), ('suspendue', '⏸️ Suspendue temporairement'), ('archivee', '📦 Archivée')], default='brouillon', max_length=20)),
-                ('checklist_contenu_complet', models.BooleanField(default=False, help_text='Modules et leçons rédigés')),
-                ('checklist_seo_complet', models.BooleanField(default=False, help_text='Description et mots-clés renseignés')),
-                ('checklist_prix_valide', models.BooleanField(default=False, help_text='Prix et promotions vérifiés')),
-                ('checklist_quiz_present', models.BooleanField(default=False, help_text='Au moins un quiz créé')),
-                ('commentaire_revision', models.TextField(blank=True, help_text='Retours du réviseur si refus')),
-                ('date_creation', models.DateTimeField(auto_now_add=True)),
-                ('date_derniere_transition', models.DateTimeField(auto_now=True)),
-                ('demande_par', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='workflows_demandes', to=settings.AUTH_USER_MODEL)),
-                ('formation', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='workflow', to='academie.formation')),
-                ('valide_par', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='workflows_valides', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "etat_actuel",
+                    models.CharField(
+                        choices=[
+                            ("brouillon", "📝 Brouillon"),
+                            ("en_revision", "🔍 En révision"),
+                            ("validee", "✅ Validée — prête à publier"),
+                            ("publiee", "🌐 Publiée"),
+                            ("suspendue", "⏸️ Suspendue temporairement"),
+                            ("archivee", "📦 Archivée"),
+                        ],
+                        default="brouillon",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "checklist_contenu_complet",
+                    models.BooleanField(default=False, help_text="Modules et leçons rédigés"),
+                ),
+                (
+                    "checklist_seo_complet",
+                    models.BooleanField(
+                        default=False, help_text="Description et mots-clés renseignés"
+                    ),
+                ),
+                (
+                    "checklist_prix_valide",
+                    models.BooleanField(default=False, help_text="Prix et promotions vérifiés"),
+                ),
+                (
+                    "checklist_quiz_present",
+                    models.BooleanField(default=False, help_text="Au moins un quiz créé"),
+                ),
+                (
+                    "commentaire_revision",
+                    models.TextField(blank=True, help_text="Retours du réviseur si refus"),
+                ),
+                ("date_creation", models.DateTimeField(auto_now_add=True)),
+                ("date_derniere_transition", models.DateTimeField(auto_now=True)),
+                (
+                    "demande_par",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="workflows_demandes",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "formation",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="workflow",
+                        to="academie.formation",
+                    ),
+                ),
+                (
+                    "valide_par",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="workflows_valides",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Workflow de formation',
-                'verbose_name_plural': 'Workflows de formations',
+                "verbose_name": "Workflow de formation",
+                "verbose_name_plural": "Workflows de formations",
             },
         ),
         migrations.CreateModel(
-            name='BadgeForum',
+            name="BadgeForum",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('type_badge', models.CharField(choices=[('premier_post', '✍️ Premier Post'), ('premiere_reponse', '💬 Première Réponse'), ('solution_acceptee', '✅ Solution Acceptée'), ('dix_reponses', '🔥 10 Réponses'), ('cinquante_reponses', '⭐ 50 Réponses'), ('cent_likes', '❤️ 100 Likes reçus'), ('sujet_populaire', '🏆 Sujet Populaire'), ('premier_quiz', '🏅 Premier Quiz Réussi'), ('cinq_quiz', '📝 5 Quiz Réussis'), ('dix_heures', "⏰ 10 Heures d'Apprentissage"), ('cinquante_heures', "🎯 50 Heures d'Apprentissage"), ('premiere_formation', '🎓 Première Formation Complétée'), ('trois_formations', '🏆 3 Formations Complétées'), ('premier_cours_termine', '🏅 Premier cours terminé'), ('cinq_lecons', '📚 5 leçons terminées'), ('dix_lecons', '📘 10 leçons terminées'), ('expert_python', '🐍 Expert Python'), ('expert_web', '🌐 Expert Web'), ('expert_data', '📊 Expert Données'), ('expert_cyber', '🔒 Expert Cybersécurité'), ('expert_design', '🎨 Expert Design'), ('expert_excel', '📊 Expert Excel'), ('expert_ia', '🤖 Expert IA'), ('projet_termine', '🚀 Projet Terminé'), ('trois_projets', '💼 3 Projets Livrés'), ('profile_complet', '👤 Profil Complété'), ('premier_certificat', '📜 Premier Certificat'), ('membre_actif', '🌟 Membre Actif'), ('membre_actif_forum', '💬 Membre actif du forum')], max_length=30)),
-                ('date_obtention', models.DateTimeField(auto_now_add=True)),
-                ('utilisateur', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='badges_forum', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "type_badge",
+                    models.CharField(
+                        choices=[
+                            ("premier_post", "✍️ Premier Post"),
+                            ("premiere_reponse", "💬 Première Réponse"),
+                            ("solution_acceptee", "✅ Solution Acceptée"),
+                            ("dix_reponses", "🔥 10 Réponses"),
+                            ("cinquante_reponses", "⭐ 50 Réponses"),
+                            ("cent_likes", "❤️ 100 Likes reçus"),
+                            ("sujet_populaire", "🏆 Sujet Populaire"),
+                            ("premier_quiz", "🏅 Premier Quiz Réussi"),
+                            ("cinq_quiz", "📝 5 Quiz Réussis"),
+                            ("dix_heures", "⏰ 10 Heures d'Apprentissage"),
+                            ("cinquante_heures", "🎯 50 Heures d'Apprentissage"),
+                            ("premiere_formation", "🎓 Première Formation Complétée"),
+                            ("trois_formations", "🏆 3 Formations Complétées"),
+                            ("premier_cours_termine", "🏅 Premier cours terminé"),
+                            ("cinq_lecons", "📚 5 leçons terminées"),
+                            ("dix_lecons", "📘 10 leçons terminées"),
+                            ("expert_python", "🐍 Expert Python"),
+                            ("expert_web", "🌐 Expert Web"),
+                            ("expert_data", "📊 Expert Données"),
+                            ("expert_cyber", "🔒 Expert Cybersécurité"),
+                            ("expert_design", "🎨 Expert Design"),
+                            ("expert_excel", "📊 Expert Excel"),
+                            ("expert_ia", "🤖 Expert IA"),
+                            ("projet_termine", "🚀 Projet Terminé"),
+                            ("trois_projets", "💼 3 Projets Livrés"),
+                            ("profile_complet", "👤 Profil Complété"),
+                            ("premier_certificat", "📜 Premier Certificat"),
+                            ("membre_actif", "🌟 Membre Actif"),
+                            ("membre_actif_forum", "💬 Membre actif du forum"),
+                        ],
+                        max_length=30,
+                    ),
+                ),
+                ("date_obtention", models.DateTimeField(auto_now_add=True)),
+                (
+                    "utilisateur",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="badges_forum",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Badge Forum',
-                'verbose_name_plural': 'Badges Forum',
-                'ordering': ['-date_obtention'],
-                'unique_together': {('utilisateur', 'type_badge')},
+                "verbose_name": "Badge Forum",
+                "verbose_name_plural": "Badges Forum",
+                "ordering": ["-date_obtention"],
+                "unique_together": {("utilisateur", "type_badge")},
             },
         ),
         migrations.AddIndex(
-            model_name='formation',
-            index=models.Index(fields=['actif'], name='academie_fo_actif_2bdec4_idx'),
+            model_name="formation",
+            index=models.Index(fields=["actif"], name="academie_fo_actif_2bdec4_idx"),
         ),
         migrations.AddIndex(
-            model_name='formation',
-            index=models.Index(fields=['niveau'], name='academie_fo_niveau_41a267_idx'),
+            model_name="formation",
+            index=models.Index(fields=["niveau"], name="academie_fo_niveau_41a267_idx"),
         ),
         migrations.AddIndex(
-            model_name='formation',
-            index=models.Index(fields=['ecole', 'actif'], name='academie_fo_ecole_i_77c2e2_idx'),
+            model_name="formation",
+            index=models.Index(fields=["ecole", "actif"], name="academie_fo_ecole_i_77c2e2_idx"),
         ),
         migrations.AlterUniqueTogether(
-            name='certificat',
-            unique_together={('utilisateur', 'formation')},
+            name="certificat",
+            unique_together={("utilisateur", "formation")},
         ),
         migrations.AddIndex(
-            model_name='order',
-            index=models.Index(fields=['statut', 'date_creation'], name='academie_or_statut_0b234d_idx'),
+            model_name="order",
+            index=models.Index(
+                fields=["statut", "date_creation"], name="academie_or_statut_0b234d_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='order',
-            index=models.Index(fields=['utilisateur', 'statut'], name='academie_or_utilisa_cbea9d_idx'),
+            model_name="order",
+            index=models.Index(
+                fields=["utilisateur", "statut"], name="academie_or_utilisa_cbea9d_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='accesformationdebloque',
-            index=models.Index(fields=['utilisateur'], name='academie_ac_utilisa_8555a8_idx'),
+            model_name="accesformationdebloque",
+            index=models.Index(fields=["utilisateur"], name="academie_ac_utilisa_8555a8_idx"),
         ),
         migrations.AddIndex(
-            model_name='accesformationdebloque',
-            index=models.Index(fields=['formation'], name='academie_ac_formati_2b5639_idx'),
+            model_name="accesformationdebloque",
+            index=models.Index(fields=["formation"], name="academie_ac_formati_2b5639_idx"),
         ),
         migrations.AlterUniqueTogether(
-            name='accesformationdebloque',
-            unique_together={('utilisateur', 'nom_formation_snapshot')},
+            name="accesformationdebloque",
+            unique_together={("utilisateur", "nom_formation_snapshot")},
         ),
         migrations.AddIndex(
-            model_name='progressionlecon',
-            index=models.Index(fields=['utilisateur', 'terminee'], name='academie_pr_utilisa_09e569_idx'),
+            model_name="progressionlecon",
+            index=models.Index(
+                fields=["utilisateur", "terminee"], name="academie_pr_utilisa_09e569_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='progressionlecon',
-            index=models.Index(fields=['lecon', 'terminee'], name='academie_pr_lecon_i_d94662_idx'),
+            model_name="progressionlecon",
+            index=models.Index(fields=["lecon", "terminee"], name="academie_pr_lecon_i_d94662_idx"),
         ),
         migrations.AlterUniqueTogether(
-            name='progressionlecon',
-            unique_together={('utilisateur', 'lecon')},
+            name="progressionlecon",
+            unique_together={("utilisateur", "lecon")},
         ),
         migrations.AddIndex(
-            model_name='sujet',
-            index=models.Index(fields=['categorie', 'date_creation'], name='academie_su_categor_a8dcbb_idx'),
+            model_name="sujet",
+            index=models.Index(
+                fields=["categorie", "date_creation"], name="academie_su_categor_a8dcbb_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='sujet',
-            index=models.Index(fields=['formation'], name='academie_su_formati_e4eaae_idx'),
+            model_name="sujet",
+            index=models.Index(fields=["formation"], name="academie_su_formati_e4eaae_idx"),
         ),
         migrations.AlterUniqueTogether(
-            name='reaction',
-            unique_together={('utilisateur', 'reponse'), ('utilisateur', 'sujet')},
+            name="reaction",
+            unique_together={("utilisateur", "reponse"), ("utilisateur", "sujet")},
         ),
         migrations.AddIndex(
-            model_name='transaction',
-            index=models.Index(fields=['statut'], name='academie_tr_statut_bd45aa_idx'),
+            model_name="transaction",
+            index=models.Index(fields=["statut"], name="academie_tr_statut_bd45aa_idx"),
         ),
         migrations.AddIndex(
-            model_name='transaction',
-            index=models.Index(fields=['commande', 'statut'], name='academie_tr_command_9cfd95_idx'),
+            model_name="transaction",
+            index=models.Index(
+                fields=["commande", "statut"], name="academie_tr_command_9cfd95_idx"
+            ),
         ),
     ]

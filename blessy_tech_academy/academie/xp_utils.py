@@ -1,16 +1,17 @@
 """Utilitaires pour la gestion des XP et niveaux."""
+
 from datetime import date
 
 from .models import ProfilUtilisateur
 
 XP_ACTIONS = {
-    'lecon_terminee': 10,
-    'module_termine': 50,      # sera déclenché manuellement ou par logique
-    'formation_terminee': 200,
-    'certificat_obtenu': 500,
-    'sujet_forum': 20,
-    'reponse_forum': 10,
-    'reponse_acceptee': 50,
+    "lecon_terminee": 10,
+    "module_termine": 50,  # sera déclenché manuellement ou par logique
+    "formation_terminee": 200,
+    "certificat_obtenu": 500,
+    "sujet_forum": 20,
+    "reponse_forum": 10,
+    "reponse_acceptee": 50,
 }
 
 

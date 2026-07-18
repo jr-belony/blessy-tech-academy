@@ -13,7 +13,7 @@ from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 
-logger = logging.getLogger('bta_emails')
+logger = logging.getLogger("bta_emails")
 
 
 # ================================================
@@ -25,7 +25,7 @@ def _envoyer_email(template_path, contexte, destinataire, sujet, from_email=None
     Toutes les fonctions publiques ci-dessous l'utilisent.
     """
     try:
-        contexte.setdefault('site_url', getattr(settings, 'SITE_URL', ''))
+        contexte.setdefault("site_url", getattr(settings, "SITE_URL", ""))
         html_content = render_to_string(template_path, contexte)
 
         email = EmailMultiAlternatives(
@@ -50,10 +50,10 @@ def _envoyer_email(template_path, contexte, destinataire, sujet, from_email=None
 # ================================================
 def send_welcome_email(user):
     return _envoyer_email(
-        'emails/notifications/welcome.html',
+        "emails/notifications/welcome.html",
         {
-            'prenom': user.first_name or user.username,
-            'lien_dashboard': f"{settings.SITE_URL}/dashboard/",
+            "prenom": user.first_name or user.username,
+            "lien_dashboard": f"{settings.SITE_URL}/dashboard/",
         },
         destinataire=user.email,
         sujet="🎉 Bienvenue chez Blessy Tech Academy !",
@@ -66,11 +66,11 @@ def send_welcome_email(user):
 # ================================================
 def send_certificate_email(user, formation, lien_certificat):
     return _envoyer_email(
-        'emails/notifications/certificate.html',
+        "emails/notifications/certificate.html",
         {
-            'prenom': user.first_name or user.username,
-            'formation_nom': formation.nom,
-            'lien_certificat': lien_certificat,
+            "prenom": user.first_name or user.username,
+            "formation_nom": formation.nom,
+            "lien_certificat": lien_certificat,
         },
         destinataire=user.email,
         sujet=f"🎓 Félicitations ! Ton certificat {formation.nom} est prêt",
@@ -83,12 +83,12 @@ def send_certificate_email(user, formation, lien_certificat):
 # ================================================
 def send_badge_email(user, badge):
     return _envoyer_email(
-        'emails/notifications/badge.html',
+        "emails/notifications/badge.html",
         {
-            'prenom': user.first_name or user.username,
-            'badge_nom': badge.get_type_badge_display(),
-            'badge_icone': '🏅',
-            'lien_classement': f"{settings.SITE_URL}/forum/membres/",
+            "prenom": user.first_name or user.username,
+            "badge_nom": badge.get_type_badge_display(),
+            "badge_icone": "🏅",
+            "lien_classement": f"{settings.SITE_URL}/forum/membres/",
         },
         destinataire=user.email,
         sujet=f"🏅 Nouveau badge débloqué : {badge.get_type_badge_display()}",
@@ -102,19 +102,23 @@ def send_badge_email(user, badge):
 def send_quiz_result_email(user, resultat_quiz):
     pourcentage = resultat_quiz.pourcentage()
     message = (
-        "🎉 Excellent travail !" if pourcentage >= 70 else
-        "👍 Continue tes efforts !" if pourcentage >= 50 else
-        "💪 Retente le quiz après avoir révisé !"
+        "🎉 Excellent travail !"
+        if pourcentage >= 70
+        else (
+            "👍 Continue tes efforts !"
+            if pourcentage >= 50
+            else "💪 Retente le quiz après avoir révisé !"
+        )
     )
     return _envoyer_email(
-        'emails/notifications/quiz_result.html',
+        "emails/notifications/quiz_result.html",
         {
-            'prenom': user.first_name or user.username,
-            'quiz_titre': resultat_quiz.quiz.titre,
-            'score_texte': f"{resultat_quiz.score}/{resultat_quiz.total_questions}",
-            'pourcentage_texte': f"{pourcentage}%",
-            'message_feedback': message,
-            'lien_formation': f"{settings.SITE_URL}/formation/{resultat_quiz.quiz.formation.id}/",
+            "prenom": user.first_name or user.username,
+            "quiz_titre": resultat_quiz.quiz.titre,
+            "score_texte": f"{resultat_quiz.score}/{resultat_quiz.total_questions}",
+            "pourcentage_texte": f"{pourcentage}%",
+            "message_feedback": message,
+            "lien_formation": f"{settings.SITE_URL}/formation/{resultat_quiz.quiz.formation.id}/",
         },
         destinataire=user.email,
         sujet=f"📝 Résultat de ton quiz — {resultat_quiz.quiz.titre}",
@@ -127,10 +131,10 @@ def send_quiz_result_email(user, resultat_quiz):
 # ================================================
 def send_reset_password_email(user, lien_reset):
     return _envoyer_email(
-        'emails/notifications/reset_password.html',
+        "emails/notifications/reset_password.html",
         {
-            'prenom': user.first_name or user.username,
-            'lien_reset': lien_reset,
+            "prenom": user.first_name or user.username,
+            "lien_reset": lien_reset,
         },
         destinataire=user.email,
         sujet="🔐 Réinitialise ton mot de passe Blessy Tech Academy",
@@ -143,12 +147,12 @@ def send_reset_password_email(user, lien_reset):
 # ================================================
 def send_forum_reply_email(destinataire_user, auteur_reponse, sujet_obj, extrait):
     return _envoyer_email(
-        'emails/notifications/forum_reply.html',
+        "emails/notifications/forum_reply.html",
         {
-            'auteur_reponse': auteur_reponse,
-            'sujet_titre': sujet_obj.titre,
-            'extrait_reponse': extrait[:200],
-            'lien_sujet': f"{settings.SITE_URL}/forum/{sujet_obj.id}/",
+            "auteur_reponse": auteur_reponse,
+            "sujet_titre": sujet_obj.titre,
+            "extrait_reponse": extrait[:200],
+            "lien_sujet": f"{settings.SITE_URL}/forum/{sujet_obj.id}/",
         },
         destinataire=destinataire_user.email,
         sujet=f"💬 {auteur_reponse} a répondu à ton sujet",
@@ -164,12 +168,14 @@ def send_newsletter(destinataires_emails, sujet, template_path, contexte):
     Envoie une newsletter à une liste de destinataires.
     destinataires_emails : liste d'adresses email (queryset.values_list('email', flat=True))
     """
-    resultats = {'envoyes': 0, 'echecs': 0}
+    resultats = {"envoyes": 0, "echecs": 0}
     for email_dest in destinataires_emails:
         succes = _envoyer_email(
-            template_path, contexte.copy(),
-            destinataire=email_dest, sujet=sujet,
+            template_path,
+            contexte.copy(),
+            destinataire=email_dest,
+            sujet=sujet,
             from_email=settings.EMAIL_NEWSLETTER,
         )
-        resultats['envoyes' if succes else 'echecs'] += 1
+        resultats["envoyes" if succes else "echecs"] += 1
     return resultats

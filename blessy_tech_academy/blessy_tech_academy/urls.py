@@ -2,15 +2,17 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from rest_framework.routers import DefaultRouter
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
-from academie.api_views import FormationV2ViewSet, ParcoursViewSet
+from rest_framework.routers import DefaultRouter
+
 from academie import views as views_academie
 from academie.api_views import (
     AcademieViewSet,
     ArticleViewSet,
+    FormationV2ViewSet,
     FormationViewSet,
     MaProgressionViewSet,
+    ParcoursViewSet,
     PartenaireEtudiantsFormesView,
     PartenaireFormationsView,
     obtenir_token_api,
