@@ -116,6 +116,37 @@
                 {% endfor %}
             {% endif %}
         </div>
+
+<!-- ================================================
+     DETAIL_FORMATION.HTML — Compétences structurées + Objectifs
+     ================================================ -->
+{% if formation.competences.all %}
+<div style="margin-top:16px;">
+    <p style="font-size:12px; font-weight:700; color:var(--bleu-electrique); text-transform:uppercase; margin-bottom:10px;">
+        Compétences validées
+    </p>
+    <div style="display:flex; flex-wrap:wrap; gap:8px;">
+        {% for comp in formation.competences.all %}
+        <span style="background:rgba(0,180,216,0.1); color:var(--bleu-electrique); padding:6px 14px; border-radius:16px; font-size:12px; font-weight:600;">
+            {{ comp.icone }} {{ comp.nom }}
+        </span>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if formation.learning_outcomes.all %}
+<div style="margin-top:16px;">
+    <p style="font-size:12px; font-weight:700; color:var(--bleu-electrique); text-transform:uppercase; margin-bottom:10px;">
+        Objectifs pédagogiques
+    </p>
+    {% for outcome in formation.learning_outcomes.all %}
+    <div style="display:flex; gap:8px; padding:6px 0; font-size:13px; color:var(--gris-texte);">
+        <span style="color:#22c55e;">✓</span> {{ outcome.description }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
     </section>
 
     <!-- ================================================
@@ -219,8 +250,8 @@
     </section>
 
     <!-- ================================================
-         8. POURQUOI CHOISIR BTA
-         ================================================ -->
+        8. POURQUOI CHOISIR BTA
+        ================================================ -->
     <section class="pv-section">
         <h2 class="pv-section-titre">💡 Pourquoi choisir Blessy Tech Academy ?</h2>
         <div class="pv-pourquoi-grille">
@@ -244,8 +275,8 @@
     {% endif %}
 
     <!-- ================================================
-         9. FAQ
-         ================================================ -->
+        9. FAQ
+    ================================================ -->
     <section class="pv-section">
         <h2 class="pv-section-titre">❓ Questions fréquentes</h2>
         <div class="pv-faq-liste">

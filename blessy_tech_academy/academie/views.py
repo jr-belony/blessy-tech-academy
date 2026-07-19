@@ -33,7 +33,7 @@ from rest_framework.response import Response
 
 from . import notifications
 from .forms import ConnexionForm, InscriptionCompteForm, SujetForm
-from .ia import (
+from .services.ia_service import (
     assistant_code,
     attribuer_badges,
     blessy_ai_repondre,
@@ -49,7 +49,7 @@ from .ia import (
     parcours_adaptatif,
     recommander_formations,
 )
-from .ia import simuler_carriere as simuler_carriere_ia
+from .services.ia_service import simuler_carriere as simuler_carriere_ia
 from .models import (
     AccesFormationDebloque,
     Article,
@@ -87,8 +87,8 @@ from .models import (
 )
 from .permissions import enregistrer_log, role_required
 from .xp_utils import ajouter_xp
-from .async_tasks import executer_en_arriere_plan
-from .email_service import _envoyer_email
+from .services.async_tasks import executer_en_arriere_plan
+from .services.email_service import _envoyer_email
 
 
 def _construire_contexte_utilisateur(request):
@@ -350,7 +350,7 @@ def deconnexion(request):
 @login_required(login_url="/connexion/")
 def dashboard(request):
     """Tableau de bord étudiant moderne."""
-    from .ia import attribuer_badges, calculer_stats_etudiant
+    from .services.ia_service import attribuer_badges, calculer_stats_etudiant
 
     user = request.user
     stats = calculer_stats_etudiant(user)
@@ -433,7 +433,7 @@ Chiffre d'affaires : {Order.objects.filter(statut="paye").aggregate(t=Sum("total
 
     analyse_ia = None
     if request.GET.get("lancer_analyse"):
-        from .ia import analyser_plateforme_ia
+        from .services.ia_service import analyser_plateforme_ia
 
         analyse_ia = analyser_plateforme_ia(contexte_donnees)
     if analyse_ia:
@@ -1863,7 +1863,7 @@ def simuler_carriere(request):
         if profil and interet and objectif and niveau:
             formations = Formation.objects.filter(actif=True).select_related("ecole")
 
-            from .ia import generer_parcours_oriente
+            from .services.ia_service import generer_parcours_oriente
 
             resultat_ia = generer_parcours_oriente(
                 profil=profil,
@@ -1978,6 +1978,9 @@ def espace_recrutement(request):
     )
 
 
+# ================================================
+# VIEWS.PY — mon_portfolio() avec formation_liee
+# ================================================
 @login_required(login_url="/connexion/")
 def mon_portfolio(request):
     """Page où l'étudiant gère ses projets."""
@@ -1987,38 +1990,42 @@ def mon_portfolio(request):
         technologies = request.POST.get("technologies", "").strip()
         lien = request.POST.get("lien", "").strip()
         image = request.FILES.get("image")
+        formation_liee_id = request.POST.get("formation_liee") or None
 
         if titre and description:
             # Vérification du type d'image si présent
             if image:
                 kind = filetype.guess(image)
-        if kind is None or kind.mime not in ["image/jpeg", "image/png", "image/gif"]:
-            messages.error(request, "❌ Format d'image non autorisé. Utilisez JPEG, PNG ou GIF.")
+                if kind is None or kind.mime not in ["image/jpeg", "image/png", "image/gif"]:
+                    messages.error(request, "❌ Format d'image non autorisé. Utilisez JPEG, PNG ou GIF.")
+                    return redirect("mon_portfolio")
+
+            ProjetEtudiant.objects.create(
+                auteur=request.user,
+                titre=titre,
+                description=description,
+                technologies=technologies,
+                lien=lien if lien else None,
+                image=image,
+                formation_liee_id=formation_liee_id,
+            )
+
+            messages.success(request, "✅ Projet ajouté avec succès !")
             return redirect("mon_portfolio")
-
-        ProjetEtudiant.objects.create(
-            auteur=request.user,
-            titre=titre,
-            description=description,
-            technologies=technologies,
-            lien=lien if lien else None,
-            image=image,
-        )
-
-        messages.success(request, "✅ Projet ajouté avec succès !")
-        return redirect("mon_portfolio")
-    else:
-        messages.error(request, "❌ Titre et description sont obligatoires.")
+        else:
+            messages.error(request, "❌ Titre et description sont obligatoires.")
 
     projets = ProjetEtudiant.objects.filter(auteur=request.user)
+    formations_disponibles = Formation.objects.filter(actif=True)
+
     return render(
         request,
         "academie/portfolio.html",
         {
             "projets": projets,
+            "formations_disponibles": formations_disponibles,
         },
     )
-
 
 def verifier_certificat(request, numero):
     """Page publique de vérification d'un certificat."""
@@ -2154,7 +2161,7 @@ def api_generer_article(request):
             if not titre:
                 return JsonResponse({"erreur": "Titre requis"}, status=400)
 
-            from .ia import generer_article
+            from .services.ia_service import generer_article
 
             resultat = generer_article(titre, tags)
             return JsonResponse(resultat)
@@ -2219,7 +2226,7 @@ def api_assistant_backoffice(request):
         f"Rôle: {request.user.profil.get_role_display()}, Utilisateur: {request.user.username}"
     )
 
-    from .ia import assistant_backoffice_ia
+    from .services.ia_service import assistant_backoffice_ia
 
     reponse_brute = assistant_backoffice_ia(question, contexte)
 
@@ -2333,7 +2340,7 @@ def admin_email_test(request):
     """Envoie un email de test à l'admin connecté."""
     if request.method == "POST":
         template_name = request.POST.get("template")
-        from .email_service import _envoyer_email
+        from .services.email_service import _envoyer_email
 
         contextes_demo = {
             "welcome": {"prenom": request.user.first_name or "Testeur", "lien_dashboard": "#"},
@@ -3244,7 +3251,7 @@ def soumettre_examen(request, examen_id):
         contexte_feedback = f"L'étudiant a réussi l'examen {examen.titre} avec {score}%. Félicite-le brièvement en 2 phrases."
 
     try:
-        from .ia import initialiser_ia
+        from .services.ia_service import initialiser_ia
 
         client = initialiser_ia()
         response = client.models.generate_content(

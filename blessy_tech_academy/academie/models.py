@@ -623,6 +623,7 @@ class ProjetEtudiant(models.Model):
     description = models.TextField()
     image = models.ImageField(upload_to="projets/", blank=True, null=True)
     lien = models.URLField(blank=True, null=True)
+    
     technologies = models.CharField(
         max_length=300, blank=True, help_text="Ex: Python, Django, React"
     )
@@ -639,6 +640,14 @@ class ProjetEtudiant(models.Model):
     competences_developpees = models.CharField(max_length=300, blank=True)
     date_creation = models.DateTimeField(auto_now_add=True)
 
+    # ================================================
+    # MODELS.PY — Ajout traçabilité pédagogique
+    # ================================================
+    formation_liee = models.ForeignKey(
+    Formation, on_delete=models.SET_NULL, null=True, blank=True,
+    related_name='projets_etudiants',
+    help_text="Formation dans le cadre de laquelle ce projet a été réalisé"
+)
     class Meta:
         ordering = ["-date_creation"]
         verbose_name = "Projet étudiant"
@@ -1682,8 +1691,6 @@ class Enseignant(models.Model):
 # ================================================
 # MODELS.PY — Machine à États : Workflow de publication Formation
 # ================================================
-
-
 class WorkflowFormation(models.Model):
     """
     Machine à états pour le cycle de vie d'une formation.
@@ -1804,8 +1811,6 @@ class WorkflowFormation(models.Model):
 # ================================================
 # MODELS.PY — Système d'Affiliation
 # ================================================
-
-
 class Affilie(models.Model):
     """Partenaire affilié — génère des ventes via son lien unique."""
 
@@ -1864,8 +1869,6 @@ class CommissionAffiliation(models.Model):
 # ================================================
 # MODELS.PY — Academie (racine Enterprise Multi-Academy)
 # ================================================
-
-
 class Academie(models.Model):
     """
     Racine de la plateforme Enterprise. Chaque Academie est une
@@ -1996,3 +1999,77 @@ class LogRequetePartenaire(models.Model):
 
     def __str__(self):
         return f"{self.partenaire.nom} — {self.statut_reponse} ({self.date_creation})"
+    
+
+# ================================================
+# MODELS.PY — Modèle Competence/Skill (normalisation pédagogique)
+# Corrige le point audit : "compétences en TextField non structuré"
+# ================================================
+
+class Competence(models.Model):
+    """
+    Compétence normalisée — remplace progressivement les TextField 
+    libres (competences_acquises, debouches) par des entités structurées, 
+    requêtables et analysables.
+    """
+
+    CATEGORIES = [
+        ('technique', '💻 Technique'), ('soft_skill', '🤝 Soft Skill'),
+        ('outil', '🛠️ Outil/Logiciel'), ('methode', '📐 Méthodologie'),
+    ]
+
+    nom = models.CharField(max_length=150, unique=True)
+    slug = models.SlugField(max_length=150, unique=True, blank=True)
+    categorie = models.CharField(max_length=15, choices=CATEGORIES, default='technique')
+    description = models.TextField(blank=True)
+    icone = models.CharField(max_length=10, default='⚡')
+
+    formations = models.ManyToManyField(Formation, blank=True, related_name='competences')
+    modules = models.ManyToManyField(Module, blank=True, related_name='competences')
+    lecons = models.ManyToManyField(Lecon, blank=True, related_name='competences')
+    examens = models.ManyToManyField('Examen', blank=True, related_name='competences') if 'Examen' in dir() else None
+
+    class Meta:
+        verbose_name = 'Compétence'
+        verbose_name_plural = 'Compétences'
+        ordering = ['categorie', 'nom']
+
+    def __str__(self):
+        return f"{self.icone} {self.nom}"
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+            self.slug = slugify(self.nom)
+        super().save(*args, **kwargs)
+
+    def nb_formations(self):
+        return self.formations.count()
+
+    def nb_etudiants_maitrisant(self):
+        """Étudiants ayant complété au moins 1 formation liée à cette compétence."""
+        from django.contrib.auth.models import User
+        return User.objects.filter(
+            acces_debloques__formation__in=self.formations.all()
+        ).distinct().count()
+
+
+class LearningOutcome(models.Model):
+    """
+    Résultat d'apprentissage — objectif pédagogique mesurable, 
+    rattaché à une formation. Complète Competence (le "quoi") 
+    avec un objectif clair (le "ce que tu sauras faire").
+    """
+
+    formation = models.ForeignKey(Formation, on_delete=models.CASCADE, related_name='learning_outcomes')
+    description = models.CharField(max_length=300, help_text="Ex: Être capable de créer une API REST avec Django")
+    competence_associee = models.ForeignKey(Competence, on_delete=models.SET_NULL, null=True, blank=True)
+    ordre = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['ordre']
+        verbose_name = "Résultat d'apprentissage"
+        verbose_name_plural = "Résultats d'apprentissage"
+
+    def __str__(self):
+        return f"{self.formation.nom} — {self.description[:50]}"

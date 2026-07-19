@@ -19,6 +19,7 @@ from .models import (
     Article,
     ChoixExamen,
     CommissionAffiliation,
+    Competence,
     Coupon,
     Ecole,
     Enseignant,
@@ -27,6 +28,7 @@ from .models import (
     Inscription,
     InteractionCRM,
     Invoice,
+    LearningOutcome,
     Lecon,
     LogAudit,
     Module,
@@ -146,6 +148,10 @@ class ModuleInline(SortableInlineAdminMixin, admin.TabularInline):
 #   - modification : resp_academique, admin
 #   - suppression  : admin uniquement
 # ================================================
+
+class LearningOutcomeInline(admin.TabularInline):
+    model = LearningOutcome
+    extra = 2
 @admin.register(Formation)
 class FormationAdmin(RolePermissionMixin, AdminThemeMixin, SortableAdminBase, SimpleHistoryAdmin):
     roles_autorises = ['formateur', 'resp_academique', 'admin']  # pour voir le module
@@ -164,7 +170,7 @@ class FormationAdmin(RolePermissionMixin, AdminThemeMixin, SortableAdminBase, Si
     search_fields = ["nom", "description"]
     autocomplete_fields = ["formation_upgrade"]
     list_editable = ["actif"]
-    inlines = [ModuleInline]
+    inlines = [ModuleInline, LearningOutcomeInline]
 
     fieldsets = [
         (
@@ -1677,5 +1683,30 @@ def get_app_list_reorganise(self, request, app_label=None):
 
     return nouveau_app_list
 
-
 admin.site.get_app_list = get_app_list_reorganise.__get__(admin.site)
+
+
+# ================================================
+# ADMIN.PY — Administration Compétences & Résultats d'apprentissage
+# ================================================
+
+from .models import Competence, LearningOutcome
+
+@admin.register(Competence)
+class CompetenceAdmin(RolePermissionMixin, admin.ModelAdmin):
+    roles_autorises = ['admin', 'formateur']
+    list_display = ['icone', 'nom', 'categorie', 'nb_formations', 'nb_etudiants_maitrisant']
+    list_filter = ['categorie']
+    filter_horizontal = ['formations', 'modules', 'lecons']
+    search_fields = ['nom']
+
+
+class LearningOutcomeInline(admin.TabularInline):
+    model = LearningOutcome
+    extra = 2
+
+@admin.register(LearningOutcome)
+class LearningOutcomeAdmin(RolePermissionMixin, admin.ModelAdmin):
+    roles_autorises = ['admin', 'formateur']
+    list_display = ['formation', 'description', 'competence_associee', 'ordre']
+    list_filter = ['formation']

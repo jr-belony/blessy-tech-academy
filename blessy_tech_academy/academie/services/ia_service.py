@@ -116,7 +116,7 @@ def repondre_chat_ia(
         )
     except Exception:
         logger.exception("Échec de l'appel à Gemini")
-        from .knowledge_base import rechercher_reponse_locale
+        from ..knowledge_base import rechercher_reponse_locale
 
         reponse_locale = rechercher_reponse_locale(question)
         if reponse_locale:
@@ -359,7 +359,7 @@ def generer_parcours_oriente(profil, objectif, disponibilite, details, formation
 # ================================================
 def attribuer_badges(utilisateur):
     """Vérifie et attribue automatiquement TOUS les badges, et notifie par email (asynchrone)."""
-    from .models import (
+    from ..models import (
         BadgeForum,
         Formation,
         ProgressionLecon,
@@ -690,7 +690,7 @@ def calculer_stats_etudiant(utilisateur):
     """Calcule les statistiques globales d'un étudiant."""
     from django.db.models import Avg, Sum
 
-    from .models import BadgeForum, Formation, Lecon, ProgressionLecon, ResultatQuiz
+    from ..models import BadgeForum, Formation, Lecon, ProgressionLecon, ResultatQuiz
 
     total_lecons = Lecon.objects.count()
     lecons_terminees = ProgressionLecon.objects.filter(

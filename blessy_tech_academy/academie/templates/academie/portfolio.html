@@ -79,6 +79,19 @@
                            class="pf-input">
                 </div>
 
+                <!-- ================================================
+                     PORTFOLIO.HTML — Champ formation_liee
+                     ================================================ -->
+                <div class="pf-field">
+                    <label>Formation liée <span class="pf-optionnel">(optionnel)</span></label>
+                    <select name="formation_liee" class="pf-input">
+                        <option value="">-- Aucune --</option>
+                        {% for f in formations_disponibles %}
+                        <option value="{{ f.id }}">{{ f.icone }} {{ f.nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
                 <div class="pf-field">
                     <label>Lien du projet <span class="pf-optionnel">(optionnel)</span></label>
                     <input type="url" name="lien"
