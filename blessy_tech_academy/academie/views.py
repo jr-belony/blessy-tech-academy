@@ -30,7 +30,7 @@ from rest_framework import serializers
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
+from .services.payment_gateways import stripe_gateway, moncash_gateway, paypal_gateway
 from . import notifications
 from .forms import ConnexionForm, InscriptionCompteForm, SujetForm
 from .services.ia_service import (
@@ -53,6 +53,7 @@ from .services.ia_service import simuler_carriere as simuler_carriere_ia
 from .models import (
     AccesFormationDebloque,
     Article,
+    BadgeForum,
     Certificat,
     ChoixExamen,
     Coupon,
@@ -60,10 +61,12 @@ from .models import (
     Enseignant,
     Examen,
     Formation,
+    HistoriqueConversationIA,
     Inscription,
     InteractionCRM,
     Invoice,
     Lecon,
+    LogAudit, 
     Module,
     MoyenPaiement,
     Order,
@@ -158,9 +161,12 @@ def apropos(request):
     return render(request, "academie/apropos.html")
 
 
+# ================================================
+# VIEWS.PY — Rate limiting sur contact() (anti-spam)
+# ================================================
+@ratelimit(key='ip', rate='3/m', method='POST', block=True)
 def contact(request):
     from django import forms
-
     class ContactForm(forms.Form):
         prenom = forms.CharField(max_length=100, label="Prénom")
         nom = forms.CharField(max_length=100, label="Nom")
@@ -176,6 +182,7 @@ def contact(request):
     else:
         form = ContactForm()
     return render(request, "academie/contact.html", {"form": form})
+
 
 
 @cache_page(60 * 15)  # 15 minutes
@@ -287,7 +294,7 @@ def detail_formation_slug(request, formation_slug):
 # ================================================
 
 
-@ratelimit(key="ip", rate="3/m", block=True)
+@ratelimit(key='ip', rate='3/h', method='POST', block=True)
 def inscription_compte(request):
     """Créer un nouveau compte étudiant."""
     if request.user.is_authenticated:
@@ -354,11 +361,8 @@ def dashboard(request):
 
     user = request.user
     stats = calculer_stats_etudiant(user)
-
     tous_badges = stats["badges"]
-
     formations_actives = sorted(stats["en_cours"], key=lambda f: f["pourcentage"], reverse=True)[:4]
-
     nouveaux_badges = attribuer_badges(user)
     if nouveaux_badges:
         messages.success(request, f"🎉 Nouveau(x) badge(s) : {', '.join(nouveaux_badges)} !")
@@ -370,7 +374,6 @@ def dashboard(request):
     connexions = ConnexionUtilisateur.objects.filter(utilisateur=user).order_by("-date_connexion")[
         :5
     ]
-
     examens_passes = (
         TentativeExamen.objects.filter(utilisateur=user)
         .select_related("examen")
@@ -504,14 +507,12 @@ def statistiques(request):
     # --- IA Analytics (Phase 3) ---
     quiz_generees = Quiz.objects.count()
     contenus_generes = Lecon.objects.filter(contenu__isnull=False).exclude(contenu="").count()
-
     # --- Formations populaires ---
     formations_populaires = (
         Formation.objects.filter(actif=True)
         .annotate(nb_inscriptions=Count("inscriptions"))
         .order_by("-nb_inscriptions")[:5]
     )
-
     # --- Inscriptions par mois ---
     douze_mois = timezone.now() - timedelta(days=365)
     inscriptions_mensuelles = (
@@ -523,7 +524,6 @@ def statistiques(request):
     )
     mois_labels = [item["mois"].strftime("%b %Y") for item in inscriptions_mensuelles]
     mois_data = [item["total"] for item in inscriptions_mensuelles]
-
     # --- Activité forum ---
     total_sujets = Sujet.objects.count()
     total_reponses = Reponse.objects.count()
@@ -534,7 +534,6 @@ def statistiques(request):
         .filter(nb_actions__gt=0)
         .count()
     )
-
     # --- Centre d'alertes ---
     alertes = []
     inscriptions_non_traitees = Inscription.objects.filter(traite=False).count()
@@ -625,7 +624,7 @@ def chat_ia(request):
     )
 
 
-@ratelimit(key="user_or_ip", rate="10/m", block=True)
+@ratelimit(key="user_or_ip", rate="20/m", block=True)
 def api_chat_ia(request):
     """API endpoint pour le chat IA (AJAX) avec mémoire de conversation."""
     if request.method == "POST":
@@ -763,9 +762,7 @@ def api_generer_quiz_module(request):
             data = json.loads(request.body)
             module_id = data.get('module_id')
             nombre = int(data.get('nombre', 5))
-
             module = Module.objects.select_related('formation').get(id=module_id)
-
             questions = generer_quiz(module.titre, nombre)
 
             if not questions:
@@ -933,7 +930,6 @@ def api_generer_contenu_lecon(request):
                 return JsonResponse({"erreur": "ID de leçon requis"}, status=400)
 
             lecon = Lecon.objects.select_related("module__formation").get(id=lecon_id)
-
             contenu = generer_contenu_lecon(
                 titre_lecon=lecon.titre,
                 resume_lecon=lecon.resume,
@@ -1025,10 +1021,8 @@ def lire_lecon(request, lecon_id):
     lecon_suivante = (
         lecons_module[index_actuel + 1] if index_actuel < len(lecons_module) - 1 else None
     )
-
     progression = ProgressionLecon.objects.filter(utilisateur=request.user, lecon=lecon).first()
     lecon_terminee = progression.terminee if progression else False
-
     formation = lecon.module.formation
     pourcentage_formation = formation.progression_pour(request.user)
 
@@ -1057,7 +1051,6 @@ def marquer_lecon_terminee(request, lecon_id):
     if request.method == "POST":
         try:
             lecon = Lecon.objects.get(id=lecon_id)
-
             progression, cree = ProgressionLecon.objects.get_or_create(
                 utilisateur=request.user,
                 lecon=lecon,
@@ -1136,16 +1129,13 @@ def telecharger_certificat(request, formation_id):
     # Si déjà existant, utiliser le numéro existant
     if not created:
         numero = certificat.numero
-
     # URL de vérification
     url_verification = request.build_absolute_uri(f"/certificat/{numero}/")
-
     # Génère le QR code
     qr = qrcode.QRCode(version=1, box_size=10, border=2)
     qr.add_data(url_verification)
     qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white")
-
     # Convertit l'image en base64 pour l'insérer dans le HTML
     buffer = BytesIO()
     img.save(buffer, format="PNG")
@@ -1369,6 +1359,12 @@ def forum_accepter_reponse(request, reponse_id):
     return redirect("forum_liste")
 
 
+
+# ================================================
+# VIEWS.PY — forum_creer (création d'un sujet)
+# Protégé par : rate limiting (10/h) + filtre anti-spam basique
+# ================================================
+@ratelimit(key='user', rate='10/h', method='POST', block=True)
 @login_required(login_url="/connexion/")
 def forum_creer(request):
     """Créer un nouveau sujet."""
@@ -1390,6 +1386,16 @@ def forum_creer(request):
                     "categories": Sujet.CATEGORIES,
                 },
             )
+        # Vérification anti-spam
+        from .validators import detecter_spam_probable
+        if detecter_spam_probable(contenu):
+            messages.error(request, "❌ Ton message a été détecté comme potentiellement indésirable. Contacte le support si c'est une erreur.")
+            LogAudit.objects.create(
+                utilisateur=request.user,
+                action='suppression',
+                description=f"Sujet forum bloqué (spam suspecté) : {titre[:50]}",
+            )
+            return redirect('forum_creer')
 
         sujet = Sujet.objects.create(
             titre=titre,
@@ -1419,6 +1425,7 @@ def forum_creer(request):
             "categories": Sujet.CATEGORIES,
         },
     )
+
 
 
 def forum_membres(request):
@@ -2092,6 +2099,64 @@ def set_lang_ht(request):
     return response
 
 
+
+# ================================================
+# VIEWS.PY — Moteur de recherche full-text PostgreSQL
+# Remplace une éventuelle version simplifiée existante de recherche()
+# ================================================
+
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
+
+def recherche(request):
+    """Recherche globale — formations, articles, forum — via PostgreSQL full-text search."""
+    terme = request.GET.get('q', '').strip()
+
+    resultats_formations = []
+    resultats_articles = []
+    resultats_forum = []
+
+    if terme:
+        query = SearchQuery(terme, config='french')
+
+        resultats_formations = Formation.objects.filter(actif=True).annotate(
+            rang=SearchRank(SearchVector('nom', weight='A', config='french') + SearchVector('description', weight='B', config='french'), query)
+        ).filter(rang__gt=0.01).order_by('-rang')[:10]
+
+        # Fallback si le full-text ne trouve rien (ex: recherche partielle/typo)
+        if not resultats_formations:
+            resultats_formations = Formation.objects.filter(
+                actif=True
+            ).filter(Q(nom__icontains=terme) | Q(description__icontains=terme))[:10]
+
+        resultats_articles = Article.objects.filter(publie=True).annotate(
+            rang=SearchRank(SearchVector('titre', weight='A', config='french') + SearchVector('resume', weight='B', config='french'), query)
+        ).filter(rang__gt=0.01).order_by('-rang')[:10]
+
+        if not resultats_articles:
+            resultats_articles = Article.objects.filter(
+                publie=True
+            ).filter(Q(titre__icontains=terme) | Q(resume__icontains=terme))[:10]
+
+        resultats_forum = Sujet.objects.annotate(
+            rang=SearchRank(SearchVector('titre', weight='A', config='french') + SearchVector('contenu', weight='B', config='french'), query)
+        ).filter(rang__gt=0.01).order_by('-rang')[:10]
+
+        if not resultats_forum:
+            resultats_forum = Sujet.objects.filter(
+                Q(titre__icontains=terme) | Q(contenu__icontains=terme)
+            )[:10]
+
+    nb_total = len(resultats_formations) + len(resultats_articles) + len(resultats_forum)
+
+    return render(request, 'academie/recherche.html', {
+        'terme': terme,
+        'resultats_formations': resultats_formations,
+        'resultats_articles': resultats_articles,
+        'resultats_forum': resultats_forum,
+        'nb_total': nb_total,
+    })
+
+
 # ================================================
 # Page Ressources
 # ================================================
@@ -2758,54 +2823,98 @@ def confirmer_paiement(request, order_reference):
 
 
 # ================================================
-# VUE — Valider transaction (finance, admin)
+# VUE — Valider transaction (Enterprise)
+# Compatible Dramatiq + ancien système
 # ================================================
+
 @login_required
 @role_required("finance", "admin", "super_admin")
 def admin_valider_transaction(request, transaction_id):
-    """Admin — valide manuellement un paiement et débloque l'accès automatiquement."""
+    """Admin — valide un paiement et débloque automatiquement les accès."""
+
     trans = Transaction.objects.select_related("commande").get(id=transaction_id)
     with db_transaction.atomic():
         trans.statut = "reussie"
         trans.valide_par = request.user
         trans.save()
-
         commande = trans.commande
         commande.statut = "paye"
         commande.date_paiement = timezone.now()
         commande.save()
 
-        # Débloque l'accès pour CHAQUE item de la commande
+        # Débloquer toutes les formations achetées
         for item in commande.items.all():
             if item.formation:
                 AccesFormationDebloque.objects.get_or_create(
                     utilisateur=commande.utilisateur,
                     nom_formation_snapshot=item.nom_produit_snapshot,
-                    defaults={"formation": item.formation, "commande_origine": commande},
+                    defaults={
+                        "formation": item.formation,
+                        "commande_origine": commande,
+                    },
                 )
 
-        # Génère la facture automatiquement
-        facture, _ = Invoice.objects.get_or_create(commande=commande)
-
-        # Incrémente l'usage du coupon si utilisé
+        # Génération automatique de la facture
+        facture, _ = Invoice.objects.get_or_create(
+            commande=commande
+        )
+        # Mise à jour du coupon
         if commande.coupon_applique:
             commande.coupon_applique.utilisations_actuelles += 1
             commande.coupon_applique.save()
 
-        # Envoie email de confirmation en arrière-plan (non bloquant)
-        executer_en_arriere_plan(
-            _envoyer_email,
-            "emails/notifications/payment_confirmed.html",
-            {
-                "prenom": commande.utilisateur.first_name or commande.utilisateur.username,
-                "commande": commande,
-                "facture_numero": facture.numero_facture,
-            },
-            destinataire=commande.utilisateur.email,
-            sujet=f"✅ Paiement confirmé — Commande {commande.reference}",
-        )
+        # ======================================
+        # Traitement asynchrone
+        # ======================================
 
-    # Journalisation (hors transaction pour ne pas bloquer)
+        try:
+
+            from .tasks import (
+                tache_envoyer_email,
+                tache_generer_facture_pdf,
+            )
+
+            # Génération PDF
+            tache_generer_facture_pdf.send(
+                commande.id
+            )
+
+            # Email
+            tache_envoyer_email.send(
+                "emails/notifications/payment_confirmed.html",
+                {
+                    "prenom": (
+                        commande.utilisateur.first_name
+                        or commande.utilisateur.username
+                    ),
+                    "commande": commande,
+                    "facture_numero": facture.numero_facture,
+                },
+                destinataire=commande.utilisateur.email,
+                sujet=f"✅ Paiement confirmé — Commande {commande.reference}",
+            )
+
+        except Exception:
+            # Fallback ancien système
+            executer_en_arriere_plan(
+                _envoyer_email,
+                "emails/notifications/payment_confirmed.html",
+                {
+                    "prenom": (
+                        commande.utilisateur.first_name
+                        or commande.utilisateur.username
+                    ),
+                    "commande": commande,
+                    "facture_numero": facture.numero_facture,
+                },
+                destinataire=commande.utilisateur.email,
+                sujet=f"✅ Paiement confirmé — Commande {commande.reference}",
+            )
+
+    # ======================================
+    # Journalisation
+    # ======================================
+
     enregistrer_log(
         request,
         "validation_paiement",
@@ -2813,9 +2922,9 @@ def admin_valider_transaction(request, transaction_id):
         "Transaction",
         trans.id,
     )
-
     messages.success(
-        request, f"✅ Transaction validée — Accès débloqué pour {commande.utilisateur.username}"
+        request,
+        f"✅ Transaction validée — Accès débloqué pour {commande.utilisateur.username}",
     )
     return redirect("/admin/academie/transaction/")
 
@@ -2857,7 +2966,7 @@ def rediriger_paiement_externe(request, order_reference):
     url_annulation = request.build_absolute_uri(f"/checkout/{order_reference}/")
 
     if code_moyen == "stripe":
-        from academie.payment_gateways import stripe_gateway
+        from .payment_gateways import stripe_gateway as sg
 
         url, session_id = stripe_gateway.creer_session_paiement(
             commande, url_succes, url_annulation
@@ -2874,7 +2983,7 @@ def rediriger_paiement_externe(request, order_reference):
         messages.error(request, f"Erreur Stripe : {session_id}")
 
     elif code_moyen == "moncash":
-        from academie.payment_gateways import moncash_gateway
+        from .services.payment_gateways import moncash_gateway
 
         url, erreur = moncash_gateway.creer_paiement(commande)
         if url:
@@ -2882,7 +2991,7 @@ def rediriger_paiement_externe(request, order_reference):
         messages.error(request, erreur)
 
     elif code_moyen == "paypal":
-        from academie.payment_gateways import paypal_gateway
+        from .services.payment_gateways import paypal_gateway
 
         url, payment_id = paypal_gateway.creer_paiement(commande, url_succes, url_annulation)
         if url:
@@ -2925,17 +3034,16 @@ def paiement_succes(request, order_reference):
 @csrf_exempt
 def stripe_webhook(request):
     """Endpoint webhook Stripe — confirmation asynchrone officielle."""
-    from academie.payment_gateways import stripe_gateway
+    from .services.payment_gateways.stripe_gateway import traiter_webhook  # type: ignore
+    event = traiter_webhook(request.body, request.META.get('HTTP_STRIPE_SIGNATURE'))
 
-    event = stripe_gateway.traiter_webhook(request.body, request.META.get("HTTP_STRIPE_SIGNATURE"))
-
-    if event and event["type"] == "checkout.session.completed":
-        session = event["data"]["object"]
-        reference = session.get("client_reference_id")
+    if event and event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        reference = session.get('client_reference_id')
         try:
             commande = Order.objects.get(reference=reference)
-            if commande.statut != "paye":
-                commande.statut = "paye"
+            if commande.statut != 'paye':
+                commande.statut = 'paye'
                 commande.date_paiement = timezone.now()
                 commande.save()
                 for item in commande.items.all():
@@ -2943,14 +3051,13 @@ def stripe_webhook(request):
                         AccesFormationDebloque.objects.get_or_create(
                             utilisateur=commande.utilisateur,
                             nom_formation_snapshot=item.nom_produit_snapshot,
-                            defaults={"formation": item.formation, "commande_origine": commande},
+                            defaults={'formation': item.formation, 'commande_origine': commande}
                         )
                 Invoice.objects.get_or_create(commande=commande)
         except Order.DoesNotExist:
             pass
 
     return HttpResponse(status=200)
-
 
 # ================================================
 # VUE — Dashboard Business (finance, direction, admin)
@@ -3367,3 +3474,251 @@ def dashboard_enseignant(request):
 
 def page_offline(request):
     return render(request, "academie/offline.html")
+
+
+# ================================================
+# VIEWS.PY — Page de dépassement de limite (rate limiting)
+# ================================================
+def vue_limite_depassee(request, exception=None):
+    """Page affichée quand l'utilisateur dépasse la limite de requêtes autorisées."""
+    return render(request, 'academie/limite_depassee.html', status=429)
+
+
+# ================================================
+# VIEWS.PY — Récupération historique IA persisté (pour rechargement chat)
+# ================================================
+
+@login_required(login_url='/connexion/')
+def api_historique_ia(request):
+    """Retourne les 20 derniers échanges de l'utilisateur — pour restaurer le chat au rechargement."""
+    historique = HistoriqueConversationIA.objects.filter(
+        utilisateur=request.user
+    ).order_by('-date_creation')[:20]
+
+    data = [{'role': h.role, 'contenu': h.contenu} for h in reversed(historique)]
+    return JsonResponse({'historique': data})
+
+# ================================================
+# VIEWS.PY — Health Check (standard industriel, requis pour uptime monitoring)
+# ================================================
+
+def health_check(request):
+    """
+    Endpoint de santé — utilisé par Railway, UptimeRobot, ou tout 
+    service de monitoring externe pour vérifier que la plateforme fonctionne.
+    """
+    from django.db import connection
+    from django.core.cache import cache
+
+    statut = {'statut': 'ok', 'verifications': {}}
+    code_http = 200
+
+    # Vérifie la base de données
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+        statut['verifications']['database'] = 'ok'
+    except Exception as e:
+        statut['verifications']['database'] = f'erreur: {str(e)}'
+        statut['statut'] = 'degrade'
+        code_http = 503
+
+    # Vérifie le cache
+    try:
+        cache.set('health_check_test', 'ok', 10)
+        statut['verifications']['cache'] = 'ok' if cache.get('health_check_test') == 'ok' else 'erreur'
+    except Exception:
+        statut['verifications']['cache'] = 'indisponible (fallback local actif)'
+
+    # Vérifie le circuit breaker Gemini
+    from .services.ia_service import _circuit_ouvert
+    statut['verifications']['ia_gemini'] = 'circuit_ouvert' if _circuit_ouvert() else 'ok'
+
+    return JsonResponse(statut, status=code_http)
+
+
+
+# ================================================
+# VIEWS.PY — Toggle like générique via GFK (nouvelle voie, remplace progressivement)
+# ================================================
+from django.contrib.contenttypes.models import ContentType
+
+@require_POST
+@login_required(login_url="/connexion/")
+def toggle_reaction_generique(request, type_cible, objet_id):
+    """
+    Toggle universel des réactions (GenericForeignKey).
+
+    Exemples :
+        /reaction/sujet/42/
+        /reaction/reponse/17/
+    """
+
+    MODELES = {
+        "sujet": Sujet,
+        "reponse": Reponse,
+    }
+
+    modele = MODELES.get(type_cible)
+
+    if modele is None:
+        return JsonResponse(
+            {"success": False, "message": "Type de contenu invalide."},
+            status=400,
+        )
+
+    objet = get_object_or_404(modele, pk=objet_id)
+
+    content_type = ContentType.objects.get_for_model(modele)
+
+    reaction = Reaction.objects.filter(
+        utilisateur=request.user,
+        content_type=content_type,
+        object_id=objet.pk,
+    ).first()
+
+    if reaction:
+        reaction.delete()
+        aime = False
+    else:
+        Reaction.objects.create(
+            utilisateur=request.user,
+            content_type=content_type,
+            object_id=objet.pk,
+        )
+        aime = True
+
+    nb_likes = Reaction.objects.filter(
+        content_type=content_type,
+        object_id=objet.pk,
+    ).count()
+
+    return JsonResponse(
+        {
+            "success": True,
+            "aime": aime,
+            "nb_likes": nb_likes,
+            "type": type_cible,
+            "objet_id": objet.pk,
+        }
+    )
+
+
+# ================================================
+# VIEWS.PY — Déclenchement backup complet depuis l'admin
+# ================================================
+
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib import messages
+from django.shortcuts import redirect
+
+
+@staff_member_required
+def admin_backup_complet(request):
+    if request.method == "POST":
+
+        from io import StringIO
+        from django.core.management import call_command
+
+        output = StringIO()
+        try:
+            call_command(
+                "backup_database",
+                stdout=output
+            )
+
+            messages.success(
+                request,
+                "✅ Sauvegarde lancée. " +
+                output.getvalue().replace("\n", " ")
+            )
+        except Exception as e:
+            messages.error(
+                request,
+                f"❌ Erreur pendant la sauvegarde : {str(e)}"
+            )
+    return redirect("/admin/synchronisation/")
+
+
+# ================================================
+# VIEWS.PY — Export données personnelles (droit d'accès RGPD-like)
+# Bonne pratique EdTech : transparence envers étudiants/parents
+# ================================================
+
+@login_required(login_url='/connexion/')
+def exporter_mes_donnees(request):
+    """Génère un export JSON complet des données de l'utilisateur connecté."""
+    user = request.user
+
+    donnees = {
+        'profil': {
+            'username': user.username, 'email': user.email,
+            'prenom': user.first_name, 'nom': user.last_name,
+            'date_inscription': user.date_joined.isoformat(),
+        },
+        'formations_suivies': list(
+            AccesFormationDebloque.objects.filter(utilisateur=user).values('nom_formation_snapshot', 'date_deblocage')
+        ),
+        'progressions': list(
+            ProgressionLecon.objects.filter(utilisateur=user).values('lecon__titre', 'terminee', 'date_completion')
+        ),
+        'commandes': list(
+            Order.objects.filter(utilisateur=user).values('reference', 'total', 'statut', 'date_creation')
+        ),
+        'badges': list(BadgeForum.objects.filter(utilisateur=user).values('type_badge', 'date_obtention')),
+        'projets_portfolio': list(ProjetEtudiant.objects.filter(auteur=user).values('titre', 'description', 'date_creation')),
+        'conversations_ia': list(
+            HistoriqueConversationIA.objects.filter(utilisateur=user).values('role', 'contenu', 'date_creation')
+        ),
+    }
+
+    import json
+    reponse = HttpResponse(
+        json.dumps(donnees, indent=2, default=str, ensure_ascii=False),
+        content_type='application/json'
+    )
+    reponse['Content-Disposition'] = f'attachment; filename="mes_donnees_bta_{user.username}.json"'
+    return reponse
+
+
+# ================================================
+# VIEWS.PY — Suppression de compte (droit à l'oubli)
+# Anonymise plutôt que supprimer brutalement — préserve l'intégrité 
+# des données comptables (Order/Invoice doivent rester pour la loi fiscale)
+# ================================================
+
+@login_required(login_url='/connexion/')
+def supprimer_mon_compte(request):
+    """Anonymise le compte utilisateur — conserve les données comptables légalement requises."""
+    if request.method == 'POST':
+        confirmation = request.POST.get('confirmation', '')
+        if confirmation != 'SUPPRIMER':
+            messages.error(request, "❌ Confirmation incorrecte.")
+            return redirect('dashboard')
+
+        user = request.user
+        user_id = user.id
+
+        # Anonymisation (pas suppression physique) — préserve l'historique comptable/légal
+        user.username = f"utilisateur_supprime_{user_id}"
+        user.email = f"supprime_{user_id}@anonyme.local"
+        user.first_name = "Utilisateur"
+        user.last_name = "Supprimé"
+        user.is_active = False
+        user.set_unusable_password()
+        user.save()
+
+        # Supprime les données non-légalement-requises
+        ProjetEtudiant.objects.filter(auteur=user).delete()
+        HistoriqueConversationIA.objects.filter(utilisateur=user).delete()
+        LogAudit.objects.create(
+            utilisateur=None, action='suppression',
+            description=f"Compte utilisateur #{user_id} anonymisé (demande RGPD)",
+        )
+
+        from django.contrib.auth import logout
+        logout(request)
+        messages.success(request, "✅ Ton compte a été supprimé et tes données anonymisées.")
+        return redirect('accueil')
+
+    return render(request, 'academie/confirmer_suppression_compte.html')

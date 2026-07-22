@@ -205,6 +205,22 @@
         </form>
     </div>
 
+<!-- ================================================
+     SYNCHRONISATION.HTML — Section Sauvegarde/Restauration complète
+     Insérer après le bloc "📥 Importer" existant
+     ================================================ -->
+<div class="bta-dash-card" style="margin-top:24px; border-left:4px solid #ef4444;">
+    <h3 style="color:var(--bta-bleu);">💾 Sauvegarde complète base de données</h3>
+    <p style="font-size:13px; color:#718096;">Sauvegarde TOUTE la base (pas seulement le contenu pédagogique).</p>
+    <form method="POST" action="/admin/synchronisation/backup-complet/">
+        {% csrf_token %}
+        <button type="submit" style="background:#003B8E; color:white; border:none; padding:12px 24px; border-radius:8px; font-weight:700; cursor:pointer;">
+            💾 Lancer la sauvegarde complète
+        </button>
+    </form>
+    <p style="font-size:11px; color:#a0aec0; margin-top:8px;">⚠️ La restauration se fait uniquement en ligne de commande (opération destructive) : <code>python manage.py restore_database fichier.sql</code></p>
+</div>
+
 </div>
 {% endblock %}
 

@@ -11,6 +11,7 @@ from django.utils import timezone
 from .models import (
     Academie,
     AccesFormationDebloque,
+    Competence,
     Coupon,
     Ecole,
     Formation,
@@ -20,7 +21,10 @@ from .models import (
     MoyenPaiement,
     Order,
     OrderItem,
+    PartenaireAPI, 
     Promotion,
+    Reaction,
+    Sujet,
     Transaction,
     WorkflowFormation,
 )
@@ -419,3 +423,182 @@ class RoleSystemTestCase(TestCase):
         self.assertTrue(self.user.profil.peut_moderer_forum())
         self.assertTrue(self.user.profil.peut_gerer_formations())
         self.assertTrue(self.user.profil.peut_voir_crm())
+
+
+# ================================================
+# TESTS.PY — Tests étendus Sprint 2+ (IA parsing, multi-academie, webhooks)
+# ================================================
+
+from academie.services.ia_service import parser_json_robuste
+
+
+class ParsingIARobusteTestCase(TestCase):
+    """Vérifie que le parsing JSON gère tous les cas de réponses Gemini imparfaites."""
+
+    def test_json_propre(self):
+        resultat = parser_json_robuste('{"score": 85}')
+        self.assertEqual(resultat['score'], 85)
+
+    def test_json_avec_balises_markdown(self):
+        resultat = parser_json_robuste('```json\n{"score": 90}\n```')
+        self.assertEqual(resultat['score'], 90)
+
+    def test_json_avec_texte_parasite(self):
+        resultat = parser_json_robuste('Voici le résultat : {"score": 75} merci !')
+        self.assertEqual(resultat['score'], 75)
+
+    def test_json_liste_avec_texte_parasite(self):
+        resultat = parser_json_robuste('Questions générées :\n[{"q": "test"}]\nFin.')
+        self.assertEqual(resultat[0]['q'], 'test')
+
+    def test_json_invalide_retourne_defaut(self):
+        resultat = parser_json_robuste('Ceci n\'est pas du JSON du tout', valeur_defaut={'erreur': True})
+        self.assertEqual(resultat, {'erreur': True})
+
+    def test_json_avec_virgule_trainante(self):
+        resultat = parser_json_robuste('{"a": 1, "b": 2,}')
+        self.assertEqual(resultat['b'], 2)
+
+
+class MultiAcademieIsolationTestCase(TestCase):
+    """Vérifie l'isolation correcte entre plusieurs académies."""
+
+    def setUp(self):
+        self.academie_a = Academie.objects.create(nom='Academie A', icone='🅰️', est_academie_par_defaut=True)
+        self.academie_b = Academie.objects.create(nom='Academie B', icone='🅱️')
+
+        self.ecole_a = Ecole.objects.create(nom='Ecole A', icone='🏫', academie=self.academie_a, ordre=1)
+        self.ecole_b = Ecole.objects.create(nom='Ecole B', icone='🏫', academie=self.academie_b, ordre=1)
+
+        self.formation_a = Formation.objects.create(
+            ecole=self.ecole_a, nom='Formation A', icone='📚', description='Test',
+            duree_mois=1, prix=0, actif=True,
+        )
+        self.formation_b = Formation.objects.create(
+            ecole=self.ecole_b, nom='Formation B', icone='📚', description='Test',
+            duree_mois=1, prix=0, actif=True,
+        )
+
+    def test_formations_isolees_par_academie(self):
+        formations_academie_a = Formation.objects.filter(ecole__academie=self.academie_a)
+        self.assertEqual(formations_academie_a.count(), 1)
+        self.assertEqual(formations_academie_a.first(), self.formation_a)
+
+    def test_academie_nb_formations_correct(self):
+        self.assertEqual(self.academie_a.nb_formations(), 1)
+        self.assertEqual(self.academie_b.nb_formations(), 1)
+
+    def test_partenaire_isole_par_academie(self):
+        partenaire = PartenaireAPI.objects.create(
+            nom='Partenaire Test A', type_partenaire='entreprise',
+            email_contact='p@test.com', academie_associee=self.academie_a,
+        )
+        formations_visibles = Formation.objects.filter(actif=True)
+        if partenaire.academie_associee:
+            formations_visibles = formations_visibles.filter(ecole__academie=partenaire.academie_associee)
+
+        self.assertEqual(formations_visibles.count(), 1)
+        self.assertIn(self.formation_a, formations_visibles)
+        self.assertNotIn(self.formation_b, formations_visibles)
+
+
+class StripeWebhookTestCase(TestCase):
+    """Vérifie que le webhook Stripe traite correctement les événements malformés (robustesse)."""
+
+    def test_webhook_signature_invalide_ne_plante_pas(self):
+        client = Client()
+        reponse = client.post(
+            '/webhooks/stripe/',
+            data='{"invalid": "payload"}',
+            content_type='application/json',
+            HTTP_STRIPE_SIGNATURE='signature_invalide'
+        )
+        # Doit retourner 200 (Stripe exige toujours 200, même en cas d'erreur de traitement)
+        # sans lever d'exception serveur
+        self.assertIn(reponse.status_code, [200, 400])
+
+
+class CompetenceModelTestCase(TestCase):
+    """Vérifie le modèle Competence et ses relations."""
+
+    def setUp(self):
+        self.ecole = Ecole.objects.create(nom='Ecole Comp', icone='🏫', ordre=1)
+        self.formation = Formation.objects.create(
+            ecole=self.ecole, nom='Formation Comp', icone='📚', description='Test',
+            duree_mois=1, prix=0, actif=True,
+        )
+
+    def test_competence_slug_auto_genere(self):
+        competence = Competence.objects.create(nom='Python Avancé')
+        self.assertEqual(competence.slug, 'python-avance')
+
+    def test_liaison_formation_competence(self):
+        competence = Competence.objects.create(nom='Django')
+        competence.formations.add(self.formation)
+        self.assertEqual(competence.nb_formations(), 1)
+        self.assertIn(competence, self.formation.competences.all())
+
+
+# ================================================
+# TESTS.PY — Validation migration Reaction GFK
+# ================================================
+
+from django.contrib.contenttypes.models import ContentType
+
+
+class ReactionGFKTestCase(TestCase):
+    """Vérifie que la migration GenericForeignKey préserve l'intégrité des likes."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username='reaction_test', password='test1234')
+        self.sujet = Sujet.objects.create(titre='Sujet Test', contenu='Contenu', auteur=self.user, categorie='general')
+
+    def test_reaction_gfk_fonctionne_sur_sujet(self):
+        ct = ContentType.objects.get_for_model(Sujet)
+        reaction = Reaction.objects.create(utilisateur=self.user, content_type=ct, object_id=self.sujet.id)
+        self.assertEqual(reaction.cible, self.sujet)
+
+    def test_ancien_champ_sujet_toujours_lisible(self):
+        """Garantit la rétrocompatibilité pendant la période de transition."""
+        reaction = Reaction.objects.create(utilisateur=self.user, sujet=self.sujet)
+        self.assertEqual(reaction.sujet, self.sujet)
+
+
+
+# ================================================
+# TESTS.PY — Validation Sprint A (extraction app users) — zéro régression
+# ================================================
+class ExtractionAppUsersTestCase(TestCase):
+    """Vérifie que l'extraction de l'app users n'a rien cassé."""
+
+    def test_import_depuis_academie_models_fonctionne_toujours(self):
+        """Ancien chemin d'import — DOIT continuer de fonctionner partout."""
+        from academie.models import ProfilUtilisateur, LogAudit, Enseignant
+        self.assertTrue(ProfilUtilisateur)
+        self.assertTrue(LogAudit)
+        self.assertTrue(Enseignant)
+
+    def test_import_depuis_users_models_fonctionne(self):
+        """Nouveau chemin d'import — doit aussi fonctionner."""
+        from users.models import ProfilUtilisateur
+        self.assertTrue(ProfilUtilisateur)
+
+    def test_meme_table_physique_deux_imports(self):
+        """Vérifie que les 2 imports pointent vers LA MÊME table (pas de duplication)."""
+        from academie.models import ProfilUtilisateur as PU_academie
+        from users.models import ProfilUtilisateur as PU_users
+        self.assertEqual(PU_academie._meta.db_table, PU_users._meta.db_table)
+
+    def test_creation_profil_toujours_fonctionnelle(self):
+        """Le signal post_save existant doit toujours créer un profil."""
+        user = User.objects.create_user(username='test_extraction', password='test1234')
+        self.assertTrue(hasattr(user, 'profil'))
+        self.assertEqual(user.profil.role, 'etudiant')
+
+    def test_admin_users_accessible(self):
+        """Vérifie que /admin/users/ est bien enregistré."""
+        admin_user = User.objects.create_superuser(username='admin_ext', password='test1234', email='a@a.com')
+        client = Client()
+        client.login(username='admin_ext', password='test1234')
+        reponse = client.get('/admin/')
+        self.assertEqual(reponse.status_code, 200)

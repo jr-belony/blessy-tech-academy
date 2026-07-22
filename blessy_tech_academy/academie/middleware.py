@@ -136,3 +136,33 @@ class AcademieCouranteMiddleware:
 
         request.academie_courante = academie
         return self.get_response(request)
+    
+
+# ================================================
+# MIDDLEWARE.PY — Request ID (traçabilité debug production)
+# Complète Sentry — permet de retrouver TOUS les logs d'une même requête
+# ================================================
+
+import uuid
+import logging
+
+logger = logging.getLogger('academie')
+
+class RequestIDMiddleware:
+    """Attache un ID unique à chaque requête — visible dans les logs et Sentry."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        request.request_id = str(uuid.uuid4())[:8]
+
+        try:
+            import sentry_sdk
+            sentry_sdk.set_tag("request_id", request.request_id)
+        except ImportError:
+            pass
+
+        response = self.get_response(request)
+        response['X-Request-ID'] = request.request_id
+        return response

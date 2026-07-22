@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
-
 import dj_database_url
 from decouple import config
 
@@ -76,9 +75,8 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.facebook',
-    'academie',
-    
-    
+    'academie', 
+    'users'
 ]
 # Debug Toolbar (développement uniquement)
 if DEBUG:
@@ -98,6 +96,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+MIDDLEWARE.insert(0, 'academie.middleware.RequestIDMiddleware')
 MIDDLEWARE += ['academie.middleware.MonitoringPerformanceMiddleware']
 MIDDLEWARE += ['academie.middleware.AcademieCouranteMiddleware']
 
@@ -140,7 +139,6 @@ DATABASES = {
         conn_max_age=600
     )
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -524,3 +522,67 @@ else:
     # Fallback local (dev uniquement — NE PAS utiliser en production Railway)
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media'
+
+
+# ================================================
+# SETTINGS.PY — Configuration django-ratelimit
+# ================================================
+RATELIMIT_VIEW = 'academie.views.vue_limite_depassee'
+
+
+# ================================================
+# SETTINGS.PY — CORS pour API partenaires/apps mobiles
+# ================================================
+
+INSTALLED_APPS += ['corsheaders']
+MIDDLEWARE.insert(1, 'corsheaders.middleware.CorsMiddleware')  # doit être haut dans la liste
+
+CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='').split(',') if config('CORS_ALLOWED_ORIGINS', default='') else []
+CORS_URLS_REGEX = r'^/api/.*$'  # CORS uniquement sur les routes API, pas sur le site public
+
+
+# ================================================
+# SETTINGS.PY — Sentry (tracking erreurs production)
+# Variable Railway : SENTRY_DSN=https://xxx@sentry.io/xxx
+# Créer un projet gratuit sur sentry.io (5000 erreurs/mois gratuit)
+# ================================================
+
+SENTRY_DSN = config('SENTRY_DSN', default='')
+
+if SENTRY_DSN and not DEBUG:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+    from sentry_sdk.integrations.logging import LoggingIntegration
+
+    sentry_logging = LoggingIntegration(level=None, event_level='ERROR')
+
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[DjangoIntegration(), sentry_logging],
+        traces_sample_rate=0.1,  # 10% des requêtes tracées pour performance (évite surcharge quota gratuit)
+        send_default_pii=False,  # ne jamais envoyer de données personnelles étudiantes
+        environment='production',
+    )
+
+
+# ================================================
+# SETTINGS.PY — Configuration Dramatiq (file d'attente réelle)
+# Réutilise REDIS_URL déjà configuré précédemment
+# ================================================
+
+INSTALLED_APPS += ['django_dramatiq']
+
+DRAMATIQ_BROKER = {
+    "BROKER": "dramatiq.brokers.redis.RedisBroker",
+    "OPTIONS": {"url": REDIS_URL} if REDIS_URL else {"url": "redis://localhost:6379"},
+    "MIDDLEWARE": [
+        "dramatiq.middleware.AgeLimit",
+        "dramatiq.middleware.TimeLimit",
+        "dramatiq.middleware.Callbacks",
+        "dramatiq.middleware.Retries",
+        "django_dramatiq.middleware.DbConnectionsMiddleware",
+        "django_dramatiq.middleware.AdminMiddleware",
+    ],
+}
+
+DRAMATIQ_TASKS_DATABASE = "default"

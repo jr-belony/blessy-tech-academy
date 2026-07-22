@@ -158,4 +158,9 @@ urlpatterns = [
     ),
     path('api/generer-quiz-module/', views.api_generer_quiz_module, name='api_generer_quiz_module'),
     path('formation/<slug:formation_slug>/', views.detail_formation_slug, name='detail_formation_slug'),
+    path('api/ia/historique/', views.api_historique_ia, name='api_historique_ia'),
+    path('health/', views.health_check, name='health_check'),
+    path('mes-donnees/exporter/', views.exporter_mes_donnees, name='exporter_mes_donnees'),
+    path('mon-compte/supprimer/', views.supprimer_mon_compte, name='supprimer_mon_compte'),
+    path('reaction/<str:type_cible>/<int:objet_id>/', views.toggle_reaction_generique, name='toggle_reaction_generique'),
 ]

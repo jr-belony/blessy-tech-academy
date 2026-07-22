@@ -1,0 +1,40 @@
+<!-- ================================================
+     ADMIN/DASHBOARD_QUOTAS_IA.HTML — Suivi coûts/quotas Gemini
+     ================================================ -->
+{% extends "admin/base_backoffice.html" %}
+{% block bo_contenu %}
+<h1 style="color:var(--bo-texte);">🤖 Quotas & Coûts Blessy AI</h1>
+
+{% if circuit_ouvert %}
+<div style="background:#ef4444; color:white; padding:16px; border-radius:12px; margin-bottom:20px; font-weight:700;">
+    ⚡ Circuit breaker OUVERT — Blessy AI temporairement indisponible (échecs répétés détectés)
+</div>
+{% endif %}
+
+<div class="bo-kpi-grille">
+    <div class="bo-kpi-card">
+        <div class="bo-kpi-label">Quota quotidien utilisé</div>
+        <div class="bo-kpi-valeur" style="color:{% if pourcentage_utilise >= 80 %}#ef4444{% elif pourcentage_utilise >= 50 %}#FF6B00{% else %}#22c55e{% endif %};">
+            {{ utilisation_actuelle }} / {{ quota_max }}
+        </div>
+        <div class="bo-kpi-tendance">{{ pourcentage_utilise }}% utilisé aujourd'hui</div>
+    </div>
+    <div class="bo-kpi-card">
+        <div class="bo-kpi-label">Conversations totales</div>
+        <div class="bo-kpi-valeur">{{ conversations_totales }}</div>
+    </div>
+    <div class="bo-kpi-card">
+        <div class="bo-kpi-label">Conversations (24h)</div>
+        <div class="bo-kpi-valeur">{{ conversations_24h }}</div>
+    </div>
+</div>
+
+<div class="bo-card">
+    <div style="height:20px; background:var(--bo-gris-fond); border-radius:10px; overflow:hidden;">
+        <div style="height:100%; width:{{ pourcentage_utilise }}%; background:{% if pourcentage_utilise >= 80 %}#ef4444{% else %}var(--bo-cyan){% endif %};"></div>
+    </div>
+    <p style="font-size:12px; color:var(--bo-texte-secondaire); margin-top:8px;">
+        Le quota se réinitialise chaque jour à minuit. Marge de sécurité conservée sous la limite gratuite Gemini.
+    </p>
+</div>
+{% endblock %}

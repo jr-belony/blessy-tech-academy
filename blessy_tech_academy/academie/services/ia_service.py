@@ -5,9 +5,95 @@ import google.genai as genai
 from django.conf import settings
 from .async_tasks import executer_en_arriere_plan
 from .email_service import send_badge_email, send_certificate_email
-
+import time
+from django.core.cache import cache
+from django.utils import timezone
 logger = logging.getLogger(__name__)
 
+
+
+QUOTA_QUOTIDIEN_GEMINI = 1400  # marge de sécurité sous la limite gratuite (souvent 1500/jour)
+CIRCUIT_BREAKER_CACHE_KEY = 'gemini_circuit_breaker_ouvert'
+CIRCUIT_BREAKER_DUREE_OUVERT = 60  # secondes avant retry après échecs répétés
+
+
+def _quota_disponible():
+    """Vérifie si le quota quotidien Gemini n'est pas dépassé."""
+    aujourdhui = timezone.now().strftime('%Y-%m-%d')
+    cle = f"gemini_quota_{aujourdhui}"
+    compteur = cache.get(cle, 0)
+    return compteur < QUOTA_QUOTIDIEN_GEMINI
+
+
+def _incrementer_quota():
+    aujourdhui = timezone.now().strftime('%Y-%m-%d')
+    cle = f"gemini_quota_{aujourdhui}"
+    compteur = cache.get(cle, 0)
+    cache.set(cle, compteur + 1, 86400)  # expire après 24h
+    return compteur + 1
+
+
+def _circuit_ouvert():
+    """Si trop d'échecs récents, on arrête temporairement d'appeler Gemini (fail-fast)."""
+    return cache.get(CIRCUIT_BREAKER_CACHE_KEY, False)
+
+
+def _signaler_echec():
+    """Ouvre le circuit après 3 échecs consécutifs."""
+    compteur_echecs = cache.get('gemini_echecs_consecutifs', 0) + 1
+    cache.set('gemini_echecs_consecutifs', compteur_echecs, 120)
+    if compteur_echecs >= 3:
+        cache.set(
+            CIRCUIT_BREAKER_CACHE_KEY,
+            True,
+            CIRCUIT_BREAKER_DUREE_OUVERT
+        )
+        logger.error(
+            f"⚡ Circuit breaker OUVERT — Gemini indisponible pendant {CIRCUIT_BREAKER_DUREE_OUVERT}s"
+        )
+        # --- Notification Sentry (optionnelle) ---
+        try:
+            import sentry_sdk
+            sentry_sdk.capture_message(
+                "⚡ Circuit breaker Gemini ouvert — service IA dégradé",
+                level="error",
+            )
+        except Exception:
+            # Sentry non installé ou indisponible
+            pass
+
+def _signaler_succes():
+    cache.delete('gemini_echecs_consecutifs')
+
+
+def appeler_gemini_resilient(client, prompt, tentatives_max=2):
+    """
+    Wrapper résilient pour tout appel Gemini — à utiliser dans TOUTES 
+    les fonctions IA existantes (chatbot, exercices, correction, etc.)
+    """
+    if _circuit_ouvert():
+        logger.warning("⚡ Circuit ouvert — appel Gemini court-circuité")
+        raise Exception("Blessy AI temporairement surchargé — réessaie dans une minute.")
+
+    if not _quota_disponible():
+        logger.warning("📊 Quota Gemini quotidien atteint")
+        raise Exception("Quota d'utilisation IA atteint pour aujourd'hui — réessaie demain.")
+
+    derniere_erreur = None
+    for tentative in range(tentatives_max):
+        try:
+            response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
+            _incrementer_quota()
+            _signaler_succes()
+            return response
+        except Exception as e:
+            derniere_erreur = e
+            logger.warning(f"⚠️ Tentative {tentative + 1}/{tentatives_max} échouée : {e}")
+            if tentative < tentatives_max - 1:
+                time.sleep(1.5 * (tentative + 1))  # backoff progressif
+
+    _signaler_echec()
+    raise derniere_erreur
 
 # ================================================
 # IA.PY — Parsing JSON robuste pour réponses Gemini
@@ -18,45 +104,40 @@ logger = logging.getLogger(__name__)
 logger = logging.getLogger('academie')
 
 def parser_json_robuste(texte_brut, valeur_defaut=None):
-    """
-    Extrait et parse du JSON depuis une réponse Gemini de façon tolérante.
-    Gère : balises markdown ```json, texte parasite avant/après, 
-    guillemets mal échappés, JSON tronqué.
-    """
+    import re, json
     if not texte_brut:
         return valeur_defaut
 
     texte = texte_brut.strip()
-
-    # Étape 1 : retire les balises markdown
     texte = re.sub(r'```(?:json)?\s*', '', texte)
     texte = texte.replace('```', '').strip()
 
-    # Étape 2 : tentative directe
+    # tentative directe
     try:
         return json.loads(texte)
     except json.JSONDecodeError:
         pass
 
-    # Étape 3 : extrait le premier bloc {...} ou [...] valide via regex
-    match_objet = re.search(r'\{.*\}', texte, re.DOTALL)
-    match_liste = re.search(r'\[.*\]', texte, re.DOTALL)
-
-    for match in [match_objet, match_liste]:
-        if match:
+    # Toujours privilégier un tableau JSON lorsqu'il est présent
+    for start_char, end_char in [('[', ']'), ('{', '}')]:
+        start_idx = texte.find(start_char)
+        if start_idx == -1:
+            continue
+        end_idx = texte.rfind(end_char)
+        if end_idx > start_idx:
             try:
-                return json.loads(match.group(0))
+                candidat = texte[start_idx:end_idx + 1]
+                return json.loads(candidat)
             except json.JSONDecodeError:
                 continue
 
-    # Étape 4 : dernier recours — nettoie les virgules trainantes courantes
+    # dernier recours : virgules trainantes
     try:
         texte_nettoye = re.sub(r',(\s*[}\]])', r'\1', texte)
         return json.loads(texte_nettoye)
     except json.JSONDecodeError:
-        logger.warning(f"⚠️ Parsing JSON impossible malgré tentatives — réponse brute : {texte_brut[:200]}")
+        logger.warning(f"⚠️ Parsing JSON impossible : {texte_brut[:200]}")
         return valeur_defaut
-
 
 def initialiser_ia():
     """Configure et retourne le client Gemini."""
@@ -128,16 +209,30 @@ def repondre_chat_ia(
 
 
 def blessy_ai_repondre(
-    question, contexte_formations=None, historique=None, contexte_utilisateur=None
+    question,
+    contexte_formations=None,
+    historique=None,
+    contexte_utilisateur=None,
 ):
-    """Compatibilité avec l'ancienne signature et support mémoire/personnalisation."""
+    """
+    Point d'entrée officiel de Blessy AI.
+
+    Cette fonction conserve la compatibilité avec l'ancienne API
+    tout en déléguant toute la logique métier à repondre_chat_ia().
+
+    Toute évolution future (Gemini, OpenAI, RAG, base de connaissances,
+    analytics IA, mémoire, personnalisation, etc.) doit être réalisée
+    dans repondre_chat_ia() et ses services associés.
+    """
+
     return repondre_chat_ia(
         question=question,
         historique=historique,
         contexte_utilisateur=contexte_utilisateur,
-        formations_disponibles=list(contexte_formations) if contexte_formations else None,
+        formations_disponibles=list(contexte_formations)
+        if contexte_formations
+        else None,
     )
-
 
 def recommander_formations(interets, formations_disponibles):
     """Recommande des formations selon les intérêts de l'étudiant."""

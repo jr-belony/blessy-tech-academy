@@ -367,7 +367,15 @@
             </a>
             </div>
 
-        </div>
+            <!-- ================================================
+                 DASHBOARD.HTML — Liens gestion données personnelles
+                 ================================================ -->
+            <div style="margin-top:20px; padding-top:20px; border-top:1px solid #e2e8f0;">
+                <a href="{% url 'exporter_mes_donnees' %}" style="color:var(--bleu-electrique); font-size:13px; text-decoration:none; margin-right:16px;">📥 Exporter mes données</a>
+                <a href="{% url 'supprimer_mon_compte' %}" style="color:#ef4444; font-size:13px; text-decoration:none;">🗑️ Supprimer mon compte</a>
+            </div>
+
+        </div>  <!-- fin de la div "👤 Mes informations" -->
 
     </div>
 </section>

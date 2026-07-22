@@ -1,0 +1,15 @@
+{% extends 'academie/base.html' %}
+{% block titre %}Limite atteinte — Blessy Tech Academy{% endblock %}
+{% block contenu %}
+<div style="text-align:center; padding:80px 20px; max-width:500px; margin:0 auto;">
+    <span style="font-size:64px;">⏳</span>
+    <h1 style="color:var(--bleu-principal); margin:16px 0;">Limite de requêtes atteinte</h1>
+    <p style="color:var(--gris-texte); font-size:16px; line-height:1.6;">
+        Pour protéger nos services, nous limitons le nombre de requêtes par minute.
+        Merci de patienter quelques instants avant de réessayer.
+    </p>
+    <a href="/" style="display:inline-block; margin-top:20px; background:var(--bleu-principal); color:white; padding:12px 24px; border-radius:8px; text-decoration:none; font-weight:700;">
+        Retour à l'accueil
+    </a>
+</div>
+{% endblock %}

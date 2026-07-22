@@ -1,0 +1,25 @@
+<!-- ================================================
+     CONFIRMER_SUPPRESSION_COMPTE.HTML — Droit à l'oubli
+     ================================================ -->
+{% extends 'academie/base.html' %}
+{% block titre %}Supprimer mon compte{% endblock %}
+{% block contenu %}
+<section style="max-width:500px; margin:60px auto; padding:0 20px;">
+    <div style="background:white; border:2px solid #ef4444; border-radius:16px; padding:32px;">
+        <h1 style="color:#ef4444;">⚠️ Supprimer mon compte</h1>
+        <p style="color:var(--gris-texte); margin:16px 0;">
+            Cette action est <strong>irréversible</strong>. Ton profil sera anonymisé, 
+            ton portfolio et ton historique IA supprimés. Tes commandes restent 
+            conservées de façon anonyme (obligation légale comptable).
+        </p>
+        <form method="POST">
+            {% csrf_token %}
+            <input type="text" name="confirmation" placeholder="Tape SUPPRIMER pour confirmer"
+                   style="width:100%; padding:12px; border:1.5px solid #e2e8f0; border-radius:8px; margin-bottom:16px;">
+            <button type="submit" style="width:100%; padding:14px; background:#ef4444; color:white; border:none; border-radius:10px; font-weight:800; cursor:pointer;">
+                Supprimer définitivement mon compte
+            </button>
+        </form>
+    </div>
+</section>
+{% endblock %}

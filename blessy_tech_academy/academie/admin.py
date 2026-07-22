@@ -12,6 +12,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from .models import LogRequetePartenaire
 from academie import views
 from . import views
+from users.models import ProfilUtilisateur, LogAudit, Enseignant, HistoriqueConversationIA, PushSubscription, NotificationPushEnvoyee
 from .models import (
     Academie,
     AccesFormationDebloque,
@@ -22,7 +23,6 @@ from .models import (
     Competence,
     Coupon,
     Ecole,
-    Enseignant,
     Examen,
     Formation,
     Inscription,
@@ -30,7 +30,6 @@ from .models import (
     Invoice,
     LearningOutcome,
     Lecon,
-    LogAudit,
     Module,
     MoyenPaiement,
     Order,
@@ -38,7 +37,6 @@ from .models import (
     Parcours,
     PartenaireAPI,
     PlanAbonnement,
-    ProfilUtilisateur,
     Promotion,
     Question,
     QuestionExamen,
@@ -794,6 +792,7 @@ class GestionCoursAdminSite(AdminThemeMixin):
                 admin.site.admin_view(self.vue_dashboard_editorial),
                 name="dashboard_editorial",
             ),
+            # ROUTE — Dashboard Business (via views.py)
             path("dashboard-business/", views.vue_dashboard_business, name="dashboard_business"),
             path(
                 "synchronisation/",
@@ -811,6 +810,11 @@ class GestionCoursAdminSite(AdminThemeMixin):
                 name="sync_import",
             ),
             path(
+                "synchronisation/backup-complet/",
+                admin.site.admin_view(views.admin_backup_complet),
+                name="backup_complet",
+            ),
+            path(
                 "formation/<int:formation_id>/workspace/",
                 admin.site.admin_view(views.workspace_formation),
                 name="workspace_formation",
@@ -824,11 +828,13 @@ class GestionCoursAdminSite(AdminThemeMixin):
             ),
             path("emails/test/", views.admin_email_test, name="email_test"),
             path("dashboard-ia/", views.vue_dashboard_ia, name="dashboard_ia"),
+            # Dashboard IA — Quotas & Coûts Gemini
+            path("dashboard-ia/quotas/", admin.site.admin_view(self.vue_dashboard_quotas_ia),
+                name="dashboard_quotas_ia",
+            ),
             # === Export Ventes (Excel / PDF) ===
             path("export/ventes-excel/", views.export_ventes_excel, name="export_ventes_excel"),
             path("export/ventes-pdf/", views.export_ventes_pdf, name="export_ventes_pdf"),
-            # ROUTE — Dashboard Business (via views.py)
-            path("dashboard-business/", views.vue_dashboard_business, name="dashboard_business"),
             # === CRM ===
             path("dashboard-crm/", views.dashboard_crm, name="dashboard_crm"),
             path(
@@ -856,7 +862,8 @@ class GestionCoursAdminSite(AdminThemeMixin):
                 admin.site.admin_view(self.vue_dashboard_executif),
                 name="dashboard_executif",
             ),
-            path('monitoring-partenaires/', admin.site.admin_view(self.vue_monitoring_partenaires), name='monitoring-partenaires'),
+            path('monitoring-partenaires/', admin.site.admin_view(self.vue_monitoring_partenaires), 
+                name='monitoring-partenaires'),
         ]
         return custom_urls + original_urls
 
@@ -876,7 +883,6 @@ class GestionCoursAdminSite(AdminThemeMixin):
         articles_total = Article.objects.count()
         articles_publies = Article.objects.filter(publie=True).count()
         articles_brouillon = articles_total - articles_publies
-
         formations_sans_programme = Formation.objects.filter(
             actif=True, modules__isnull=True
         ).distinct()
@@ -884,7 +890,6 @@ class GestionCoursAdminSite(AdminThemeMixin):
         lecons_sans_contenu = Lecon.objects.filter(
             Q(contenu__isnull=True) | Q(contenu="")
         ).select_related("module__formation")[:15]
-
         derniers_articles = Article.objects.order_by("-date_publication")[:8]
 
         return render(
@@ -1043,6 +1048,8 @@ class GestionCoursAdminSite(AdminThemeMixin):
                 "academie_selectionnee": academie_selectionnee,
             },
         )
+    
+
 
     # ================================================
     # Vue Dashboard Suite SEO
@@ -1097,16 +1104,13 @@ class GestionCoursAdminSite(AdminThemeMixin):
     # Vue Statistiques détaillées d'une Académie
     # ================================================
     def vue_statistiques_academie(self, request, academie_id):
-
         academie = Academie.objects.get(id=academie_id)
-
         ecoles = academie.ecoles.all()
         formations = Formation.objects.filter(ecole__academie=academie)
         enseignants = Enseignant.objects.filter(
             formations_attribuees__ecole__academie=academie
         ).distinct()
         articles = Article.objects.filter(academie=academie)
-
         ca_total = (
             Order.objects.filter(items__formation__ecole__academie=academie, statut="paye")
             .distinct()
@@ -1135,7 +1139,7 @@ class GestionCoursAdminSite(AdminThemeMixin):
                 "ecoles": ecoles,
             },
         )
-    
+
 
     # ================================================
     # ADMIN.PY — Dashboard Monitoring Partenaires API
@@ -1171,6 +1175,40 @@ class GestionCoursAdminSite(AdminThemeMixin):
             'site_header': admin.site.site_header,
             'partenaires_data': partenaires_data,
         })
+    
+        # ==========================================================
+    # Dashboard IA V1 — Quotas & Coûts Gemini
+    # ==========================================================
+    def vue_dashboard_quotas_ia(self, request):
+        from django.core.cache import cache
+        from django.utils import timezone
+        from .services.ia_service import (
+            QUOTA_QUOTIDIEN_GEMINI,
+            _circuit_ouvert,
+        )
+
+        aujourdhui = timezone.now().strftime("%Y-%m-%d")
+        cle_quota = f"gemini_quota_{aujourdhui}"
+        utilisation_actuelle = cache.get(cle_quota, 0)
+        quota_max = QUOTA_QUOTIDIEN_GEMINI
+        quota_restant = max(quota_max - utilisation_actuelle, 0)
+        pourcentage_utilise = (
+            round(utilisation_actuelle / quota_max * 100, 1)
+            if quota_max
+            else 0
+        )
+
+        context = {
+            "title": "🤖 Dashboard IA — Quotas Gemini",
+            "site_header": admin.site.site_header,
+            "utilisation_actuelle": utilisation_actuelle,
+            "quota_max": quota_max,
+            "quota_restant": quota_restant,
+            "pourcentage_utilise": pourcentage_utilise,
+            "circuit_ouvert": _circuit_ouvert(),
+        }
+
+        return render(request, "admin/dashboard_quotas_ia.html", context)
 
 # Injecte les nouvelles URLs dans l'admin
 _original_get_urls = admin.site.get_urls
@@ -1447,75 +1485,6 @@ def grouped_app_list(request, app_label=None):
 admin.site.get_app_list = grouped_app_list
 
 
-# ================================================
-# ADMIN — ProfilUtilisateur & LogAudit
-# ================================================
-@admin.register(ProfilUtilisateur)
-class ProfilUtilisateurAdmin(admin.ModelAdmin):
-    list_display = ["utilisateur", "role", "telephone", "date_creation"]
-    list_filter = ["role"]
-    list_editable = ["role"]
-    search_fields = ["utilisateur__username", "utilisateur__email"]
-
-
-@admin.register(LogAudit)
-class LogAuditAdmin(admin.ModelAdmin):
-    list_display = ["action", "utilisateur", "description_courte", "adresse_ip", "date_creation"]
-    list_filter = ["action"]
-    readonly_fields = [
-        "utilisateur",
-        "action",
-        "description",
-        "objet_type",
-        "objet_id",
-        "adresse_ip",
-        "date_creation",
-    ]
-    search_fields = ["description", "utilisateur__username"]
-
-    def description_courte(self, obj):
-        return obj.description[:80]
-
-    description_courte.short_description = "Description"
-
-    def has_add_permission(self, request):
-        return False
-
-
-# ================================================
-# ADMIN — Enseignants (Admin, SuperAdmin)
-# ================================================
-@admin.register(Enseignant)
-class EnseignantAdmin(admin.ModelAdmin):
-    list_display = [
-        "profil",
-        "statut",
-        "nb_formations",
-        "revenus_generes_affiche",
-        "nb_etudiants_formes",
-    ]
-    list_filter = ["statut"]
-    filter_horizontal = ["formations_attribuees"]
-    list_editable = ["statut"]
-
-    def nb_formations(self, obj):
-        return obj.formations_attribuees.count()
-
-    nb_formations.short_description = "Formations"
-
-    def revenus_generes_affiche(self, obj):
-        return f"{obj.revenus_generes()} $"
-
-    revenus_generes_affiche.short_description = "Revenus générés"
-
-    def has_module_permission(self, request):
-        if request.user.is_superuser:
-            return True
-        try:
-            return request.user.profil.role in ["admin"]
-        except Exception:
-            return False
-
 
 # ================================================
 # ADMIN — Workflow Formation (Admin, SuperAdmin)
@@ -1710,3 +1679,5 @@ class LearningOutcomeAdmin(RolePermissionMixin, admin.ModelAdmin):
     roles_autorises = ['admin', 'formateur']
     list_display = ['formation', 'description', 'competence_associee', 'ordre']
     list_filter = ['formation']
+
+

@@ -1,59 +1,49 @@
+<!-- ================================================
+     RECHERCHE.HTML — Résultats de recherche full-text
+     ================================================ -->
 {% extends 'academie/base.html' %}
-
-{% block titre %}Recherche — Blessy Tech Academy{% endblock %}
-
+{% block titre %}Recherche : {{ terme }} — Blessy Tech Academy{% endblock %}
 {% block contenu %}
 
-<section class="page-hero">
-    <h2>🔍 Rechercher une formation</h2>
-    <p>Trouve la formation qui correspond à tes objectifs.</p>
+<section style="max-width:800px; margin:0 auto; padding:60px 20px;">
+    <h1 style="color:var(--bleu-principal);">🔍 Résultats pour « {{ terme }} »</h1>
+    <p style="color:var(--gris-texte); margin-bottom:32px;">{{ nb_total }} résultat{{ nb_total|pluralize }} trouvé{{ nb_total|pluralize }}</p>
 
-    <form method="GET" style="margin-top: 28px;
-                              display: flex;
-                              gap: 12px;
-                              justify-content: center;
-                              flex-wrap: wrap;">
-        <input type="text"
-               name="q"
-               value="{{ terme }}"
-               placeholder="Ex: Python, design, IA..."
-               style="padding: 12px 20px;
-                      border-radius: 8px;
-                      border: none;
-                      font-size: 16px;
-                      flex: 1;
-                      min-width: 200px;">
-        <button type="submit" class="btn btn-principal" style="white-space: nowrap;">
-            🔍 Rechercher
-        </button>
-    </form>
-</section>
-
-<section class="apercu-formations">
-
-    {% if terme %}
-        <p class="sous-titre">
-            {% if resultats %}
-                {{ resultats|length }} résultat(s) pour
-                <strong>"{{ terme }}"</strong>
-            {% else %}
-                Aucune formation trouvée pour
-                <strong>"{{ terme }}"</strong> —
-                essaie un autre mot-clé.
-            {% endif %}
-        </p>
-    {% else %}
-        <p class="sous-titre">
-            Tape un mot-clé pour commencer ta recherche.
-        </p>
-    {% endif %}
-
-    <div class="formations-grille">
-        {% for formation in resultats %}
-            {% include 'academie/includes/carte_formation.html' with formation=formation %}
+    {% if resultats_formations %}
+    <div style="margin-bottom:32px;">
+        <h3 style="color:var(--bleu-electrique); font-size:14px; text-transform:uppercase;">📚 Formations</h3>
+        {% for f in resultats_formations %}
+        <a href="{% url 'detail_formation' f.id %}" style="display:block; padding:14px; background:white; border:1px solid #e2e8f0; border-radius:10px; margin-bottom:8px; text-decoration:none; color:var(--bleu-principal); font-weight:600;">
+            {{ f.icone }} {{ f.nom }}
+        </a>
         {% endfor %}
     </div>
+    {% endif %}
 
+    {% if resultats_articles %}
+    <div style="margin-bottom:32px;">
+        <h3 style="color:var(--bleu-electrique); font-size:14px; text-transform:uppercase;">📝 Articles</h3>
+        {% for a in resultats_articles %}
+        <a href="{% url 'detail_article' a.slug %}" style="display:block; padding:14px; background:white; border:1px solid #e2e8f0; border-radius:10px; margin-bottom:8px; text-decoration:none; color:var(--bleu-principal); font-weight:600;">
+            📄 {{ a.titre }}
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if resultats_forum %}
+    <div style="margin-bottom:32px;">
+        <h3 style="color:var(--bleu-electrique); font-size:14px; text-transform:uppercase;">💬 Forum</h3>
+        {% for s in resultats_forum %}
+        <a href="{% url 'forum_detail' s.id %}" style="display:block; padding:14px; background:white; border:1px solid #e2e8f0; border-radius:10px; margin-bottom:8px; text-decoration:none; color:var(--bleu-principal); font-weight:600;">
+            💬 {{ s.titre }}
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if nb_total == 0 and terme %}
+    <p style="text-align:center; color:var(--gris-texte); padding:40px;">Aucun résultat. Essaie d'autres mots-clés.</p>
+    {% endif %}
 </section>
-
 {% endblock %}
