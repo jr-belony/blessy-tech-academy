@@ -602,3 +602,50 @@ class ExtractionAppUsersTestCase(TestCase):
         client.login(username='admin_ext', password='test1234')
         reponse = client.get('/admin/')
         self.assertEqual(reponse.status_code, 200)
+
+
+# ================================================
+# TESTS.PY — Validation Sprint B (extraction app billing) — zéro régression
+# ================================================
+
+class ExtractionAppBillingTestCase(TestCase):
+    """Vérifie que l'extraction de l'app billing n'a rien cassé."""
+
+    def test_import_depuis_academie_models_fonctionne_toujours(self):
+        from academie.models import Order, Coupon, Transaction, Invoice, Affilie
+        self.assertTrue(Order)
+        self.assertTrue(Coupon)
+        self.assertTrue(Transaction)
+
+    def test_import_depuis_billing_models_fonctionne(self):
+        from billing.models import Order
+        self.assertTrue(Order)
+
+    def test_meme_table_physique_order(self):
+        from academie.models import Order as Order_academie
+        from billing.models import Order as Order_billing
+        self.assertEqual(Order_academie._meta.db_table, Order_billing._meta.db_table)
+        self.assertEqual(Order_academie._meta.db_table, 'academie_order')
+
+    def test_payment_center_toujours_fonctionnel(self):
+        """Ré-exécute le test critique du Payment Center après extraction."""
+        user = User.objects.create_user(username='billing_test', password='test1234')
+        ecole = Ecole.objects.create(nom='Ecole Billing', icone='🏫', ordre=1)
+        formation = Formation.objects.create(
+            ecole=ecole, nom='Formation Billing', icone='📚', description='Test',
+            duree_mois=1, prix=100, actif=True,
+        )
+        commande = Order.objects.create(utilisateur=user, total=0)
+        OrderItem.objects.create(
+            commande=commande, formation=formation, type_produit='formation',
+            nom_produit_snapshot=formation.nom, prix_unitaire=100,
+        )
+        commande.recalculer_total()
+        self.assertEqual(commande.total, 100)
+
+    def test_admin_billing_accessible(self):
+        admin_user = User.objects.create_superuser(username='admin_billing', password='test1234', email='b@b.com')
+        client = Client()
+        client.login(username='admin_billing', password='test1234')
+        reponse = client.get('/admin/academie/order/')
+        self.assertEqual(reponse.status_code, 200)

@@ -24,7 +24,7 @@ class Command(BaseCommand):
 
         for abo in a_renouveler:
             try:
-                from .services.payment_gateways import stripe_gateway
+                from .payment_gateways import stripe_gateway
 
                 succes = stripe_gateway.charger_renouvellement(abo)
 

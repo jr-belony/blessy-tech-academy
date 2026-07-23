@@ -52,43 +52,7 @@ from .models import (
     Transaction,
     WorkflowFormation,
 )
-
-# ================================================
-# ADMIN.PY — Mixin centralisé de permissions par rôle
-# Remplace la logique dupliquée has_module_permission dans chaque ModelAdmin
-# Usage : class MonAdmin(RolePermissionMixin, admin.ModelAdmin):
-#             roles_autorises = ['admin', 'comptable']
-# ================================================
-
-class RolePermissionMixin:
-    """
-    Centralise la vérification de rôle pour l'admin Django.
-    Définir roles_autorises = [...] dans chaque classe héritante.
-    """
-    roles_autorises = ['admin']  # défaut restrictif
-
-    def _verifier_role(self, request):
-        if request.user.is_superuser:
-            return True
-        profil = getattr(request.user, 'profil', None)
-        return profil and profil.role in self.roles_autorises
-
-    def has_module_permission(self, request):
-        return self._verifier_role(request)
-
-    def has_view_permission(self, request, obj=None):
-        return self._verifier_role(request)
-
-    def has_add_permission(self, request):
-        return self._verifier_role(request)
-
-    def has_change_permission(self, request, obj=None):
-        return self._verifier_role(request)
-
-    def has_delete_permission(self, request, obj=None):
-        return self._verifier_role(request)
-    
-
+from users.admin import RolePermissionMixin
 
 # ================================================
 # Thème CSS global pour tout l'admin
@@ -141,18 +105,14 @@ class ModuleInline(SortableInlineAdminMixin, admin.TabularInline):
 
 # ================================================
 # ADMIN.PY — FormationAdmin (gestion des formations)
-# Rôles :
-#   - consultation : formateur, resp_academique, admin
-#   - modification : resp_academique, admin
-#   - suppression  : admin uniquement
 # ================================================
-
 class LearningOutcomeInline(admin.TabularInline):
     model = LearningOutcome
     extra = 2
+
 @admin.register(Formation)
 class FormationAdmin(RolePermissionMixin, AdminThemeMixin, SortableAdminBase, SimpleHistoryAdmin):
-    roles_autorises = ['formateur', 'resp_academique', 'admin']  # pour voir le module
+    roles_autorises = ['formateur', 'resp_academique', 'admin']
 
     list_display = [
         "icone",
@@ -224,7 +184,6 @@ class FormationAdmin(RolePermissionMixin, AdminThemeMixin, SortableAdminBase, Si
 
     bouton_workspace.short_description = "Workspace"
 
-    # Restrictions supplémentaires pour modification et suppression
     def has_change_permission(self, request, obj=None):
         if request.user.is_superuser:
             return True
@@ -289,7 +248,6 @@ class QuestionInline(admin.TabularInline):
 
 # ================================================
 # ADMIN.PY — QuizAdmin (gestion des quiz)
-# Rôle : Formateur, Examinateur, Resp. Académique, Admin
 # ================================================
 @admin.register(Quiz)
 class QuizAdmin(RolePermissionMixin, AdminThemeMixin, admin.ModelAdmin):
@@ -345,10 +303,6 @@ class ResultatQuizAdmin(AdminThemeMixin, admin.ModelAdmin):
 
 # ================================================
 # ADMIN.PY — ModuleAdmin (gestion des modules)
-# Rôles :
-#   - consultation : formateur, resp_academique, admin
-#   - modification : resp_academique, admin
-#   - suppression  : admin uniquement
 # ================================================
 @admin.register(Module)
 class ModuleAdmin(RolePermissionMixin, AdminThemeMixin, SortableAdminBase, admin.ModelAdmin):
@@ -366,7 +320,6 @@ class ModuleAdmin(RolePermissionMixin, AdminThemeMixin, SortableAdminBase, admin
     get_ecole.short_description = "École"
     get_ecole.admin_order_field = "formation__ecole"
 
-    # Restrictions supplémentaires pour modification et suppression
     def has_change_permission(self, request, obj=None):
         if request.user.is_superuser:
             return True
@@ -385,10 +338,6 @@ class ModuleAdmin(RolePermissionMixin, AdminThemeMixin, SortableAdminBase, admin
 
 # ================================================
 # ADMIN.PY — LeconAdmin (gestion des leçons)
-# Rôles :
-#   - consultation : formateur, resp_academique, admin
-#   - modification : resp_academique, admin
-#   - suppression  : admin uniquement
 # ================================================
 @admin.register(Lecon)
 class LeconAdmin(RolePermissionMixin, AdminThemeMixin, SimpleHistoryAdmin):
@@ -411,7 +360,6 @@ class LeconAdmin(RolePermissionMixin, AdminThemeMixin, SimpleHistoryAdmin):
     get_formation.short_description = "Formation"
     get_formation.admin_order_field = "module__formation"
 
-    # Restrictions supplémentaires pour modification et suppression
     def has_change_permission(self, request, obj=None):
         if request.user.is_superuser:
             return True
@@ -464,7 +412,6 @@ class ParcoursAdmin(AdminThemeMixin, admin.ModelAdmin):
 
 # ================================================
 # ADMIN.PY — SujetAdmin (gestion des sujets du forum)
-# Rôle : Support et Admin
 # ================================================
 @admin.register(Sujet)
 class SujetAdmin(RolePermissionMixin, AdminThemeMixin, admin.ModelAdmin):
@@ -489,7 +436,6 @@ class SujetAdmin(RolePermissionMixin, AdminThemeMixin, admin.ModelAdmin):
 
 # ================================================
 # ADMIN.PY — ReponseAdmin (gestion des réponses du forum)
-# Rôle : Support et Admin
 # ================================================
 @admin.register(Reponse)
 class ReponseAdmin(RolePermissionMixin, AdminThemeMixin, admin.ModelAdmin):
@@ -498,7 +444,6 @@ class ReponseAdmin(RolePermissionMixin, AdminThemeMixin, admin.ModelAdmin):
     list_filter = ["acceptee"]
     search_fields = ["contenu", "auteur__username"]
     readonly_fields = ["date_creation"]
-
 
 
 # ================================================
@@ -521,8 +466,6 @@ class ReactionAdmin(AdminThemeMixin, admin.ModelAdmin):
 # ==============================================================
 # Articles de blog (Marketing, RespAcademique, Admin, SuperAdmin)
 # ==============================================================
-
-
 @admin.register(Article)
 class ArticleAdmin(AdminThemeMixin, SimpleHistoryAdmin):
     list_display = [
@@ -699,8 +642,6 @@ class TemoignageAdmin(AdminThemeMixin, admin.ModelAdmin):
 # ================================================
 # ADMIN — Plateforme d'examens officiels
 # ================================================
-
-
 class ChoixExamenInline(admin.TabularInline):
     model = ChoixExamen
     extra = 2
@@ -777,8 +718,6 @@ class TentativeExamenAdmin(admin.ModelAdmin):
 # ================================================
 # Vue personnalisée — Gestion organisée par École
 # ================================================
-
-
 class GestionCoursAdminSite(AdminThemeMixin):
     def get_urls(self, original_urls):
         custom_urls = [
@@ -926,7 +865,6 @@ class GestionCoursAdminSite(AdminThemeMixin):
             academie_selectionnee = getattr(request, "academie_courante", None)
 
         if academie_selectionnee:
-            # Filtres adaptés à chaque modèle
             filtre_order = Q(items__formation__ecole__academie=academie_selectionnee)
             filtre_transaction = Q(
                 commande__items__formation__ecole__academie=academie_selectionnee
@@ -943,7 +881,6 @@ class GestionCoursAdminSite(AdminThemeMixin):
             filtre_examen = Q()
             filtre_formation = Q()
 
-        # ---- REVENUS (utilise filtre_order) ----
         ca_total = (
             Order.objects.filter(statut="paye").filter(filtre_order).aggregate(t=Sum("total"))["t"]
             or 0
@@ -968,7 +905,6 @@ class GestionCoursAdminSite(AdminThemeMixin):
             else 0
         )
 
-        # ---- ÉTUDIANTS ----
         if academie_selectionnee:
             total_etudiants = User.objects.filter(
                 is_staff=False, profil__academies=academie_selectionnee
@@ -982,7 +918,6 @@ class GestionCoursAdminSite(AdminThemeMixin):
                 is_staff=False, date_joined__gte=il_y_a_30j
             ).count()
 
-        # ---- ALERTES ----
         paiements_en_attente = (
             Transaction.objects.filter(statut="en_verification").filter(filtre_transaction).count()
         )
@@ -995,7 +930,6 @@ class GestionCoursAdminSite(AdminThemeMixin):
             Inscription.objects.filter(statut_lead="nouveau").filter(filtre_inscription).count()
         )
 
-        # ---- EXAMENS ----
         tentatives_30j = (
             TentativeExamen.objects.filter(date_debut__gte=il_y_a_30j).filter(filtre_examen).count()
         )
@@ -1007,13 +941,10 @@ class GestionCoursAdminSite(AdminThemeMixin):
         taux_reussite_examens_pct = (
             round(taux_reussite_examens * 100, 1) if taux_reussite_examens else None
         )
-        # ---- Total tentatives d'examen (académie) ----
         tentatives_academie = TentativeExamen.objects.filter(filtre_examen).count()
-        # ---- ARTICLES / SEO (global, pas de filtre académie) ----
         articles_publies = Article.objects.filter(publie=True).count()
         articles_sans_seo = Article.objects.filter(publie=True, meta_description="").count()
 
-        # ---- PERFORMANCE ----
         formations_actives = Formation.objects.filter(actif=True).filter(filtre_formation).count()
         formations_brouillon = (
             WorkflowFormation.objects.filter(etat_actuel="brouillon")
@@ -1021,7 +952,6 @@ class GestionCoursAdminSite(AdminThemeMixin):
             .count()
         )
 
-        # ---- Toutes les académies pour le sélecteur ----
         toutes_academies = Academie.objects.filter(actif=True)
 
         return render(
@@ -1039,7 +969,7 @@ class GestionCoursAdminSite(AdminThemeMixin):
                 "formations_en_revision": formations_en_revision,
                 "leads_non_traites": leads_non_traites,
                 "tentatives_30j": tentatives_30j,
-                "tentatives_academie": tentatives_academie,  # ← nouvelle ligne
+                "tentatives_academie": tentatives_academie,
                 "articles_publies": articles_publies,
                 "articles_sans_seo": articles_sans_seo,
                 "formations_actives": formations_actives,
@@ -1048,8 +978,6 @@ class GestionCoursAdminSite(AdminThemeMixin):
                 "academie_selectionnee": academie_selectionnee,
             },
         )
-    
-
 
     # ================================================
     # Vue Dashboard Suite SEO
@@ -1140,11 +1068,9 @@ class GestionCoursAdminSite(AdminThemeMixin):
             },
         )
 
-
     # ================================================
     # ADMIN.PY — Dashboard Monitoring Partenaires API
     # ================================================
-
     def vue_monitoring_partenaires(self, request):
         from django.utils import timezone
         from datetime import timedelta
@@ -1175,8 +1101,8 @@ class GestionCoursAdminSite(AdminThemeMixin):
             'site_header': admin.site.site_header,
             'partenaires_data': partenaires_data,
         })
-    
-        # ==========================================================
+
+    # ==========================================================
     # Dashboard IA V1 — Quotas & Coûts Gemini
     # ==========================================================
     def vue_dashboard_quotas_ia(self, request):
@@ -1210,6 +1136,7 @@ class GestionCoursAdminSite(AdminThemeMixin):
 
         return render(request, "admin/dashboard_quotas_ia.html", context)
 
+
 # Injecte les nouvelles URLs dans l'admin
 _original_get_urls = admin.site.get_urls
 _gestion = GestionCoursAdminSite()
@@ -1225,265 +1152,6 @@ admin.site.get_urls = get_urls_avec_gestion
 admin.site.site_header = "Blessy Tech Academy — Back Office"
 admin.site.site_title = "BTA Admin"
 admin.site.index_title = "Tableau de bord"
-
-
-# ================================================
-# ADMIN.PY — Payment Center (Finance, Admin, SuperAdmin)
-# ================================================
-@admin.register(MoyenPaiement)
-class MoyenPaiementAdmin(admin.ModelAdmin):
-    list_display = ["icone", "nom_affiche", "code", "actif", "ordre"]
-    list_editable = ["actif", "ordre"]
-
-    def has_module_permission(self, request):
-        if request.user.is_superuser:
-            return True
-        try:
-            return request.user.profil.role in ["finance", "admin"]
-        except Exception:
-            return False
-
-    # === RBAC : permissions de modification/suppression ===
-    def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        try:
-            return request.user.profil.role in ["admin"]
-        except Exception:
-            return False
-
-    def has_delete_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        try:
-            return request.user.profil.role in ["admin"]
-        except Exception:
-            return False
-
-
-# ================================================
-# ADMIN.PY — CouponAdmin (gestion des coupons)
-# Rôle : Finance (consultation) et Admin (tous droits)
-# ================================================
-@admin.register(Coupon)
-class CouponAdmin(RolePermissionMixin, admin.ModelAdmin):
-    roles_autorises = ['finance', 'admin']  # pour voir le module et les objets
-    list_display = [
-        "code",
-        "type_reduction",
-        "valeur",
-        "utilisations_actuelles",
-        "utilisations_max",
-        "actif",
-    ]
-    list_editable = ["actif"]
-    search_fields = ["code"]
-
-    # Seul l'admin peut modifier ou supprimer
-    def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        profil = getattr(request.user, 'profil', None)
-        return profil and profil.role == 'admin'
-
-    def has_delete_permission(self, request, obj=None):
-        return self.has_change_permission(request, obj)
-
-
-
-# ================================================
-# ADMIN.PY — PromotionAdmin (gestion des promotions)
-# Rôle : Finance (consultation) et Admin (tous droits)
-# ================================================
-@admin.register(Promotion)
-class PromotionAdmin(RolePermissionMixin, admin.ModelAdmin):
-    roles_autorises = ['finance', 'admin']
-    list_display = ["nom", "pourcentage_reduction", "date_debut", "date_fin", "actif"]
-    list_editable = ["actif"]
-    filter_horizontal = ["ecoles_concernees", "formations_concernees"]
-
-    # Seul l'admin peut modifier ou supprimer
-    def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        profil = getattr(request.user, 'profil', None)
-        return profil and profil.role == 'admin'
-
-    def has_delete_permission(self, request, obj=None):
-        return self.has_change_permission(request, obj)
-    
-
-
-# ================================================
-# ADMIN.PY — OrderAdmin (gestion des commandes)
-# Rôle : Finance et Admin uniquement
-# ================================================
-@admin.register(Order)
-class OrderAdmin(RolePermissionMixin, admin.ModelAdmin):
-    roles_autorises = ['finance', 'admin']
-    list_display = ['reference', 'utilisateur', 'total', 'statut', 'date_creation']
-    list_filter = ['statut', 'moyen_paiement']
-    search_fields = ['reference', 'utilisateur__username']
-
-
-# ================================================
-# ADMIN.PY — TransactionAdmin (validation des paiements)
-# Rôle : Finance et Admin uniquement
-# ================================================
-@admin.register(Transaction)
-class TransactionAdmin(RolePermissionMixin, admin.ModelAdmin):
-    roles_autorises = ['finance', 'admin']
-    list_display = [
-        "commande",
-        "moyen_paiement",
-        "montant",
-        "statut",
-        "date_creation",
-        "bouton_valider",
-    ]
-    list_filter = ["statut", "moyen_paiement"]
-
-    def bouton_valider(self, obj):
-        from django.utils.html import format_html
-
-        if obj.statut == "en_verification":
-            return format_html(
-                '<a href="/admin/valider-transaction/{}/" style="background:#22c55e; color:white; padding:4px 12px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:700;">✅ Valider le paiement</a>',
-                obj.id,
-            )
-        return "—"
-
-    bouton_valider.short_description = "Action"
-
-
-# ================================================
-# ADMIN.PY — RefundAdmin (gestion des remboursements)
-# Rôle : Finance et Admin uniquement
-# ================================================
-@admin.register(Refund)
-class RefundAdmin(RolePermissionMixin, admin.ModelAdmin):
-    roles_autorises = ['finance', 'admin']
-    list_display = ["commande", "montant", "statut", "date_demande"]
-    list_editable = ["statut"]
-
-@admin.register(Invoice)
-class InvoiceAdmin(admin.ModelAdmin):
-    list_display = ["numero_facture", "commande", "date_emission"]
-    search_fields = ["numero_facture"]
-
-    def has_module_permission(self, request):
-        if request.user.is_superuser:
-            return True
-        try:
-            return request.user.profil.role in ["finance", "admin"]
-        except Exception:
-            return False
-
-    # === RBAC : factures non modifiables ===
-    def has_change_permission(self, request, obj=None):
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        try:
-            return request.user.profil.role in ["admin"]
-        except Exception:
-            return False
-
-
-@admin.register(AccesFormationDebloque)
-class AccesFormationDebloqueAdmin(admin.ModelAdmin):
-    list_display = ["utilisateur", "nom_formation_snapshot", "date_deblocage"]
-    search_fields = ["utilisateur__username", "nom_formation_snapshot"]
-
-    def has_module_permission(self, request):
-        if request.user.is_superuser:
-            return True
-        try:
-            return request.user.profil.role in ["finance", "admin"]
-        except Exception:
-            return False
-
-    # === RBAC : lecture seule ===
-    def has_change_permission(self, request, obj=None):
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        try:
-            return request.user.profil.role in ["admin"]
-        except Exception:
-            return False
-
-
-# ================================================
-# ADMIN.PY — Administration abonnements
-# ================================================
-@admin.register(PlanAbonnement)
-class PlanAbonnementAdmin(admin.ModelAdmin):
-    list_display = ["nom", "prix", "periodicite", "actif"]
-    list_editable = ["actif"]
-
-
-@admin.register(Subscription)
-class SubscriptionAdmin(admin.ModelAdmin):
-    list_display = ["utilisateur", "plan_nom_snapshot", "statut", "date_prochain_renouvellement"]
-    list_filter = ["statut"]
-
-    # === Réorganisation de l'admin par groupes ===
-
-
-original_get_app_list = admin.site.get_app_list
-
-
-def grouped_app_list(request, app_label=None):
-    app_list = original_get_app_list(request)
-    grouping = getattr(settings, "ADMIN_GROUPING", {})
-
-    academie_app = None
-    for app in app_list:
-        if app["app_label"] == "academie":
-            academie_app = app
-            break
-
-    if academie_app:
-        new_models = []
-        seen = set()
-
-        for group_name, model_names in grouping.items():
-            group_models = []
-            for model in academie_app["models"]:
-                model_name = model["object_name"]
-                if model_name in model_names and model_name not in seen:
-                    group_models.append(model)
-                    seen.add(model_name)
-            if group_models:
-                # Ajouter un séparateur de catégorie stylisé
-                group_models.insert(
-                    0,
-                    {
-                        "name": mark_safe(
-                            f'<div style="background:#407690;color:white;padding:8px 12px;'
-                            f'border-radius:6px;margin:8px 0 4px;font-weight:700;font-size:13px;">'
-                            f"{group_name}</div>"
-                        ),
-                        "object_name": None,
-                        "admin_url": None,
-                        "add_url": None,
-                        "perms": {"add": False, "change": False, "delete": False, "view": False},
-                    },
-                )
-                new_models.extend(group_models)
-
-        academie_app["models"] = new_models
-
-    return app_list
-
-
-admin.site.get_app_list = grouped_app_list
-
 
 
 # ================================================
@@ -1512,40 +1180,6 @@ class WorkflowFormationAdmin(admin.ModelAdmin):
             return True
         try:
             return request.user.profil.role in ["admin"]
-        except Exception:
-            return False
-
-
-# ================================================
-# ADMIN — Affiliation (Finance, Admin, SuperAdmin)
-# ================================================
-@admin.register(Affilie)
-class AffilieAdmin(admin.ModelAdmin):
-    list_display = ["utilisateur", "code_affiliation", "taux_commission", "actif"]
-    list_filter = ["actif"]
-    search_fields = ["utilisateur__username", "code_affiliation"]
-    list_editable = ["taux_commission", "actif"]
-
-    def has_module_permission(self, request):
-        if request.user.is_superuser:
-            return True
-        try:
-            return request.user.profil.role in ["finance", "admin"]
-        except Exception:
-            return False
-
-
-@admin.register(CommissionAffiliation)
-class CommissionAffiliationAdmin(admin.ModelAdmin):
-    list_display = ["affilie", "commande", "montant", "statut", "date_creation"]
-    list_filter = ["statut"]
-    readonly_fields = ["date_creation"]
-
-    def has_module_permission(self, request):
-        if request.user.is_superuser:
-            return True
-        try:
-            return request.user.profil.role in ["finance", "admin"]
         except Exception:
             return False
 
@@ -1615,13 +1249,9 @@ class PartenaireAPIAdmin(admin.ModelAdmin):
             return False
 
 
-
 # ================================================
 # ADMIN.PY — Réorganisation visuelle admin par section métier
-# Ajoute à la toute fin du fichier admin.py
-# Réorganise l'affichage SANS déplacer aucun modèle physiquement
 # ================================================
-
 def get_app_list_reorganise(self, request, app_label=None):
     """Surcharge l'affichage de la page d'accueil admin par sections métier logiques."""
     app_list = admin.AdminSite.get_app_list(admin.site, request, app_label)
@@ -1644,7 +1274,6 @@ def get_app_list_reorganise(self, request, app_label=None):
         if modeles_section:
             nouveau_app_list.append({'name': nom_section, 'app_label': nom_section, 'app_url': '#', 'models': modeles_section})
 
-    # Ajoute les modèles non classés dans une section "Autres"
     noms_classes = [n for liste in sections.values() for n in liste]
     modeles_restants = [m for m in modeles_tous if m['object_name'] not in noms_classes]
     if modeles_restants:
@@ -1658,7 +1287,6 @@ admin.site.get_app_list = get_app_list_reorganise.__get__(admin.site)
 # ================================================
 # ADMIN.PY — Administration Compétences & Résultats d'apprentissage
 # ================================================
-
 from .models import Competence, LearningOutcome
 
 @admin.register(Competence)
@@ -1679,5 +1307,3 @@ class LearningOutcomeAdmin(RolePermissionMixin, admin.ModelAdmin):
     roles_autorises = ['admin', 'formateur']
     list_display = ['formation', 'description', 'competence_associee', 'ordre']
     list_filter = ['formation']
-
-

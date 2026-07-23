@@ -76,7 +76,8 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.facebook',
     'academie', 
-    'users'
+    'users',
+    'billing',
 ]
 # Debug Toolbar (développement uniquement)
 if DEBUG:

@@ -30,7 +30,7 @@ from rest_framework import serializers
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from .services.payment_gateways import stripe_gateway, moncash_gateway, paypal_gateway
+from .payment_gateways import stripe_gateway, moncash_gateway, paypal_gateway
 from . import notifications
 from .forms import ConnexionForm, InscriptionCompteForm, SujetForm
 from .services.ia_service import (
@@ -2983,7 +2983,7 @@ def rediriger_paiement_externe(request, order_reference):
         messages.error(request, f"Erreur Stripe : {session_id}")
 
     elif code_moyen == "moncash":
-        from .services.payment_gateways import moncash_gateway
+        from .payment_gateways import moncash_gateway
 
         url, erreur = moncash_gateway.creer_paiement(commande)
         if url:
@@ -2991,7 +2991,7 @@ def rediriger_paiement_externe(request, order_reference):
         messages.error(request, erreur)
 
     elif code_moyen == "paypal":
-        from .services.payment_gateways import paypal_gateway
+        from .payment_gateways import paypal_gateway
 
         url, payment_id = paypal_gateway.creer_paiement(commande, url_succes, url_annulation)
         if url:
@@ -3034,7 +3034,7 @@ def paiement_succes(request, order_reference):
 @csrf_exempt
 def stripe_webhook(request):
     """Endpoint webhook Stripe — confirmation asynchrone officielle."""
-    from .services.payment_gateways.stripe_gateway import traiter_webhook  # type: ignore
+    from .payment_gateways.stripe_gateway import traiter_webhook  # type: ignore
     event = traiter_webhook(request.body, request.META.get('HTTP_STRIPE_SIGNATURE'))
 
     if event and event['type'] == 'checkout.session.completed':
