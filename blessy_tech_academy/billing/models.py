@@ -1,4 +1,4 @@
-# ================================================
+﻿# ================================================
 # BILLING/MODELS.PY — Modèles commerce/paiement extraits d'academie
 # app_label='academie' + db_table explicite préserve toutes les tables
 # ================================================
@@ -16,7 +16,7 @@ class MoyenPaiement(models.Model):
     ]
     code = models.CharField(max_length=20, choices=CODES, unique=True)
     nom_affiche = models.CharField(max_length=100)
-    icone = models.CharField(max_length=10, default='💳')
+    icone = models.CharField(max_length=10, default='ðŸ’³')
     actif = models.BooleanField(default=True)
     instructions = models.TextField(blank=True)
     ordre = models.IntegerField(default=0)
@@ -37,7 +37,7 @@ class Coupon(models.Model):
     code = models.CharField(max_length=30, unique=True)
     type_reduction = models.CharField(max_length=15, choices=TYPES, default='pourcentage')
     valeur = models.DecimalField(max_digits=10, decimal_places=2)
-    formation_specifique = models.ForeignKey('academie.Formation', on_delete=models.SET_NULL, null=True, blank=True, related_name='coupons')
+    formation_specifique = models.ForeignKey("academie.Formation", on_delete=models.SET_NULL, null=True, blank=True, related_name='coupons')
     ecole_specifique = models.ForeignKey('academie.Ecole', on_delete=models.SET_NULL, null=True, blank=True, related_name='coupons')
     parcours_specifique = models.ForeignKey('academie.Parcours', on_delete=models.SET_NULL, null=True, blank=True, related_name='coupons')
     utilisations_max = models.IntegerField(default=0)
@@ -60,7 +60,7 @@ class Coupon(models.Model):
         if not self.actif:
             return False, "Ce coupon n'est plus actif."
         if self.date_fin and maintenant > self.date_fin:
-            return False, "Ce coupon a expiré."
+            return False, "ce coupon a expiré."
         if self.utilisations_max > 0 and self.utilisations_actuelles >= self.utilisations_max:
             return False, "Ce coupon a atteint sa limite d'utilisation."
         return True, ""
@@ -71,7 +71,7 @@ class Promotion(models.Model):
     description = models.TextField(blank=True)
     pourcentage_reduction = models.IntegerField()
     ecoles_concernees = models.ManyToManyField('academie.Ecole', blank=True, related_name='promotions')
-    formations_concernees = models.ManyToManyField('academie.Formation', blank=True, related_name='promotions')
+    formations_concernees = models.ManyToManyField("academie.Formation", blank=True, related_name='promotions')
     date_debut = models.DateTimeField()
     date_fin = models.DateTimeField()
     actif = models.BooleanField(default=True)
@@ -102,8 +102,10 @@ class Promotion(models.Model):
 
 class Order(models.Model):
     STATUTS = [
-        ('en_attente', '⏳ En attente de paiement'), ('paye', '✅ Payée'),
-        ('annule', '❌ Annulée'), ('rembourse', '↩️ Remboursée'),
+        ('en_attente', '⏳ En attente de paiement'),
+        ('paye', '✅ Payée'),
+        ('annule', '❌ Annulée'),
+        ('rembourse', '↩️ Remboursée'),
     ]
     reference = models.CharField(max_length=20, unique=True, editable=False, db_index=True)
     utilisateur = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='commandes')
@@ -155,11 +157,11 @@ class Order(models.Model):
 class OrderItem(models.Model):
     TYPES_PRODUIT = [('formation', 'Formation'), ('parcours', 'Parcours Professionnel')]
     commande = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
-    formation = models.ForeignKey('academie.Formation', on_delete=models.SET_NULL, null=True, blank=True)
+    formation = models.ForeignKey("academie.Formation", on_delete=models.SET_NULL, null=True, blank=True)
     parcours = models.ForeignKey('academie.Parcours', on_delete=models.SET_NULL, null=True, blank=True)
     type_produit = models.CharField(max_length=15, choices=TYPES_PRODUIT)
     nom_produit_snapshot = models.CharField(max_length=200)
-    icone_produit_snapshot = models.CharField(max_length=10, default='📚')
+    icone_produit_snapshot = models.CharField(max_length=10, default='ðŸ“š')
     ecole_nom_snapshot = models.CharField(max_length=200, blank=True)
     prix_unitaire = models.DecimalField(max_digits=10, decimal_places=2)
 
@@ -202,8 +204,10 @@ class Invoice(models.Model):
 
 class Transaction(models.Model):
     STATUTS = [
-        ('initiee', 'Initiée'), ('reussie', 'Réussie'),
-        ('echouee', 'Échouée'), ('en_verification', 'En vérification manuelle'),
+        ('initiee', 'Initiée'),
+        ('reussie', 'Réussie'),
+        ('echouee', 'Échouée'),
+        ('en_verification', 'En vérification manuelle'),
     ]
     commande = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='transactions')
     moyen_paiement = models.ForeignKey(MoyenPaiement, on_delete=models.SET_NULL, null=True)
@@ -237,8 +241,8 @@ class Refund(models.Model):
     approuve_par = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True)
     date_demande = models.DateTimeField(auto_now_add=True)
     date_traitement = models.DateTimeField(null=True, blank=True)
-    statut = models.CharField(max_length=15, choices=[('demande', 'Demandé'), ('approuve', 'Approuvé'), ('rejete', 'Rejeté')], default='demande')
-
+    statut = models.CharField(max_length=15, choices=[('demande', 'Demandé'), ('approuve', 'Approuvé'), 
+            ('rejete', 'Rejeté')], default='demande')
     class Meta:
         app_label = 'academie'
         db_table = 'academie_refund'
@@ -251,7 +255,7 @@ class Refund(models.Model):
 
 class AccesFormationDebloque(models.Model):
     utilisateur = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='acces_debloques')
-    formation = models.ForeignKey('academie.Formation', on_delete=models.SET_NULL, null=True, blank=True)
+    formation = models.ForeignKey("academie.Formation", on_delete=models.SET_NULL, null=True, blank=True)
     nom_formation_snapshot = models.CharField(max_length=200)
     commande_origine = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True, blank=True)
     date_deblocage = models.DateTimeField(auto_now_add=True)
@@ -263,10 +267,8 @@ class AccesFormationDebloque(models.Model):
         verbose_name = "Accès formation débloqué"
         verbose_name_plural = "Accès formations débloqués"
         indexes = [models.Index(fields=['utilisateur']), models.Index(fields=['formation'])]
-
     def __str__(self):
         return f"{self.utilisateur.username} → {self.nom_formation_snapshot}"
-
 
 class PlanAbonnement(models.Model):
     PERIODICITES = [('mensuel', 'Mensuel'), ('annuel', 'Annuel')]
@@ -289,7 +291,12 @@ class PlanAbonnement(models.Model):
 
 
 class Subscription(models.Model):
-    STATUTS = [('actif', 'Actif'), ('annule', 'Annulé'), ('expire', 'Expiré'), ('en_echec', 'Paiement échoué')]
+    STATUTS = [
+    ('actif', 'Actif'),
+    ('annule', 'Annulé'),
+    ('expire', 'Expiré'),
+    ('en_echec', 'Paiement échoué'),
+]
     utilisateur = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='abonnements')
     plan = models.ForeignKey(PlanAbonnement, on_delete=models.SET_NULL, null=True)
     plan_nom_snapshot = models.CharField(max_length=100)
@@ -343,7 +350,10 @@ class Affilie(models.Model):
 
 
 class CommissionAffiliation(models.Model):
-    STATUTS = [('en_attente', 'En attente'), ('payee', 'Payée')]
+    STATUTS = [
+    ('en_attente', 'En attente'),
+    ('payee', 'Payée'),
+]
     affilie = models.ForeignKey(Affilie, on_delete=models.CASCADE, related_name='commissions')
     commande = models.ForeignKey(Order, on_delete=models.CASCADE)
     montant = models.DecimalField(max_digits=10, decimal_places=2)

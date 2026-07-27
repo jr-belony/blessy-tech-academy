@@ -11,9 +11,7 @@ logger = logging.getLogger('academie')
 def envoyer_push(utilisateur, titre, message, lien, categorie='general'):
     """
     Envoie une notification push à un utilisateur via Firebase Cloud Messaging.
-    Pour l'instant, cette fonction est un placeholder — elle logge simplement
-    la notification. Elle sera connectée à Firebase ultérieurement.
+    Pour l'instant, cette fonction logue simplement la notification.
     """
     logger.info(f"📲 [PUSH] {utilisateur.username} — {titre} : {message}")
-    # TODO: Intégrer Firebase Admin SDK pour envoyer une vraie notification push
-    pass
+    return {"status": "logged", "user": getattr(utilisateur, "username", None), "link": lien}

@@ -17,7 +17,8 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from PIL import Image
 
-from .models import ConnexionUtilisateur, Formation, ProjetEtudiant
+from .models import ConnexionUtilisateur, ProjetEtudiant
+from .models import Formation
 
 TAILLE_MAX = (1200, 1200)
 QUALITE_JPEG = 82

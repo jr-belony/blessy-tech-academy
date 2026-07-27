@@ -9,26 +9,38 @@ from django.urls import reverse
 from django.utils import timezone
 
 from .models import (
-    Academie,
-    AccesFormationDebloque,
-    Competence,
-    Coupon,
     Ecole,
     Formation,
-    Invoice,
-    Lecon,
     Module,
+    Lecon,
+    ProgressionLecon,
+    Quiz,
+    Question,
+    ResultatQuiz,
+    Parcours,
+    Competence,
+    LearningOutcome,
+    WorkflowFormation,
+    Examen,
+    QuestionExamen,
+    ChoixExamen,
+    TentativeExamen,
+)
+
+from .models import (
+    Academie,
+    AccesFormationDebloque,
+    Coupon,
+    Invoice,
     MoyenPaiement,
     Order,
     OrderItem,
-    PartenaireAPI, 
+    PartenaireAPI,
     Promotion,
     Reaction,
     Sujet,
     Transaction,
-    WorkflowFormation,
 )
-
 
 class BaseTestCase(TestCase):
     """Configure les données de base partagées entre plusieurs classes de test."""
@@ -649,3 +661,22 @@ class ExtractionAppBillingTestCase(TestCase):
         client.login(username='admin_billing', password='test1234')
         reponse = client.get('/admin/academie/order/')
         self.assertEqual(reponse.status_code, 200)
+
+
+# ================================================
+# TESTS.PY — Validation Sprint C (extraction learning)
+# ================================================
+
+class ExtractionAppLearningTestCase(TestCase):
+    def test_import_academie_et_learning_identiques(self):
+        from .models import Formation as F1, Examen as E1
+        from .models import Formation as F2, Examen as E2
+        self.assertEqual(F1._meta.db_table, F2._meta.db_table)
+        self.assertEqual(E1._meta.db_table, E2._meta.db_table)
+
+    def test_hierarchie_pedagogique_intacte(self):
+        ecole = Ecole.objects.create(nom='Test Learning', icone='🏫', ordre=1)
+        formation = Formation.objects.create(ecole=ecole, nom='Test', icone='📚', description='x', duree_mois=1, prix=0, actif=True)
+        module = Module.objects.create(formation=formation, titre='M1', ordre=1)
+        Lecon.objects.create(module=module, titre='L1', ordre=1)
+        self.assertEqual(module.nombre_lecons(), 1)

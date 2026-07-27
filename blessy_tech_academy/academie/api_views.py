@@ -21,9 +21,12 @@ from .models import (
     Academie,
     AccesFormationDebloque,
     Article,
+    PartenaireAPI,
+)
+
+from .models import (
     Formation,
     Parcours,
-    PartenaireAPI,
     ProgressionLecon,
 )
 
@@ -267,3 +270,4 @@ class PartenaireEtudiantsFormesView(APIView):
         ]
         journaliser_requete_partenaire(request, partenaire, 200)
         return Response({"partenaire": partenaire.nom, "etudiants_certifies": data})
+

@@ -46,7 +46,8 @@ def tache_generer_facture_pdf(commande_id):
 def tache_backfill_stats_academie(academie_id):
     """Recalcul de statistiques lourdes en arrière-plan (évite de bloquer le Dashboard Exécutif)."""
     from django.core.cache import cache
-    from .models import Academie, Formation, Order
+    from .models import Academie, Order
+    from .models import Formation
     from django.db.models import Sum
 
     academie = Academie.objects.get(id=academie_id)

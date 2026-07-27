@@ -910,3 +910,110 @@ oriente vers le bon dashboard plutôt que d'inventer."""
         return response.text
     except Exception as e:
         return f"❌ Assistant indisponible : {str(e)}"
+    
+
+# ================================================
+# SERVICES/IA_SERVICE.PY — Génération Examen complet (questions + choix)
+# ================================================
+
+def generer_examen_complet(formation_nom, niveau="intermediaire", nombre_questions=10):
+    """Génère un examen complet avec questions et choix pour une formation."""
+    try:
+        client = initialiser_ia()
+        prompt = f"""Tu es un concepteur d'examens certifiants pour Blessy Tech Academy.
+
+Crée un examen officiel pour la formation : {formation_nom}
+Niveau : {niveau}
+Nombre de questions : {nombre_questions}
+
+Réponds UNIQUEMENT en JSON valide, structure exacte :
+{{
+    "titre": "Examen officiel — [nom]",
+    "duree_minutes": 45,
+    "seuil_reussite": 70,
+    "competences_evaluees": "compétence1, compétence2, compétence3",
+    "questions": [
+        {{
+            "texte": "Question ici",
+            "type": "qcm",
+            "choix": [
+                {{"texte": "Réponse A", "correct": true}},
+                {{"texte": "Réponse B", "correct": false}},
+                {{"texte": "Réponse C", "correct": false}},
+                {{"texte": "Réponse D", "correct": false}}
+            ],
+            "points": 10
+        }}
+    ]
+}}
+
+Génère exactement {nombre_questions} questions variées et pertinentes. Réponds en français."""
+
+        response = appeler_gemini_resilient(client, prompt)
+        return parser_json_robuste(response.text, valeur_defaut={'erreur': 'Génération échouée'})
+    except Exception as e:
+        logger.error(f"Erreur generer_examen_complet : {e}")
+        return {'erreur': str(e)}
+
+
+def generer_ecole_description(nom_ecole, domaine=""):
+    """Génère la description et les suggestions de formations pour une nouvelle École."""
+    try:
+        client = initialiser_ia()
+        prompt = f"""Tu es un architecte pédagogique pour Blessy Tech Academy.
+
+Une nouvelle école va être créée : {nom_ecole}
+Domaine visé : {domaine or "à déterminer selon le nom"}
+
+Réponds UNIQUEMENT en JSON valide :
+{{
+    "description": "Description accrocheuse de l'école en 2-3 phrases",
+    "icone_suggeree": "emoji pertinent",
+    "formations_suggerees": [
+        {{"nom": "Nom formation 1", "niveau": "debutant", "duree_mois": 3}},
+        {{"nom": "Nom formation 2", "niveau": "intermediaire", "duree_mois": 4}},
+        {{"nom": "Nom formation 3", "niveau": "avance", "duree_mois": 6}}
+    ]
+}}
+
+Propose 3 à 5 formations cohérentes avec cette école. Réponds en français."""
+
+        response = appeler_gemini_resilient(client, prompt)
+        return parser_json_robuste(response.text, valeur_defaut={'erreur': 'Génération échouée'})
+    except Exception as e:
+        logger.error(f"Erreur generer_ecole_description : {e}")
+        return {'erreur': str(e)}
+
+
+def generer_parcours_professionnel_admin(titre_metier, niveau="intermediaire"):
+    """
+    Génère un Parcours Professionnel complet (admin) — différent de 
+    generer_parcours_oriente() qui sert à l'orientation étudiante.
+    """
+    try:
+        client = initialiser_ia()
+        prompt = f"""Tu es un concepteur de parcours professionnels pour Blessy Tech Academy.
+
+Crée un parcours professionnel complet pour devenir : {titre_metier}
+Niveau de départ : {niveau}
+
+Réponds UNIQUEMENT en JSON valide :
+{{
+    "titre": "Parcours [métier]",
+    "icone": "emoji pertinent",
+    "description": "Description inspirante du parcours en 2-3 phrases",
+    "duree_mois_totale": 12,
+    "prix_suggere": 350,
+    "formations_recommandees": ["Nom formation 1", "Nom formation 2", "Nom formation 3"],
+    "debouches": "métier1, métier2, métier3",
+    "salaire_indicatif_haiti": "800-2000",
+    "salaire_indicatif_international": "2500-6000"
+}}
+
+Réponds en français, sois réaliste sur le marché haïtien et international."""
+
+        response = appeler_gemini_resilient(client, prompt)
+        return parser_json_robuste(response.text, valeur_defaut={'erreur': 'Génération échouée'})
+    except Exception as e:
+        logger.error(f"Erreur generer_parcours_professionnel_admin : {e}")
+        return {'erreur': str(e)}

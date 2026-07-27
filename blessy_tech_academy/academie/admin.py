@@ -1,59 +1,49 @@
 from datetime import timedelta
+
 from adminsortable2.admin import SortableAdminBase, SortableInlineAdminMixin
-from django.conf import settings
 from django.contrib import admin
 from django.db.models import Avg, Count, Q, Sum
 from django.shortcuts import get_object_or_404, render
 from django.urls import path
 from django.utils import timezone
-from django.utils.safestring import mark_safe
 from simple_history.admin import SimpleHistoryAdmin
-from django.contrib.admin.views.decorators import staff_member_required
-from .models import LogRequetePartenaire
-from academie import views
+
 from . import views
-from users.models import ProfilUtilisateur, LogAudit, Enseignant, HistoriqueConversationIA, PushSubscription, NotificationPushEnvoyee
 from .models import (
+    LogRequetePartenaire,
     Academie,
-    AccesFormationDebloque,
     Affilie,
     Article,
-    ChoixExamen,
-    CommissionAffiliation,
-    Competence,
-    Coupon,
-    Ecole,
-    Examen,
-    Formation,
     Inscription,
     InteractionCRM,
-    Invoice,
-    LearningOutcome,
-    Lecon,
-    Module,
-    MoyenPaiement,
     Order,
     OutilRecommande,
-    Parcours,
     PartenaireAPI,
-    PlanAbonnement,
-    Promotion,
-    Question,
-    QuestionExamen,
-    Quiz,
     Reaction,
-    Refund,
-    Reponse,
-    ResultatQuiz,
-    Subscription,
+    Reponse, 
     Sujet,
     Temoignage,
-    TentativeExamen,
     Transaction,
+    # Modèles pédagogiques (maintenant dans academie.models)
+    Competence,
+    LearningOutcome,
+    Ecole,
+    Formation,
+    Module,
+    Lecon,
+    Parcours,
+    Quiz,
+    Question,
+    ResultatQuiz,
+    Examen,
+    QuestionExamen,
+    ChoixExamen,
+    TentativeExamen,
     WorkflowFormation,
 )
-from users.admin import RolePermissionMixin
 
+from users.admin import RolePermissionMixin
+from users.models import Enseignant
 # ================================================
 # Thème CSS global pour tout l'admin
 # ================================================
@@ -73,7 +63,9 @@ class EcoleAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_editable = ["ordre"]
     list_filter = ["academie"]
     search_fields = ["nom"]
-
+    class Media:
+        js = ['academie/admin/generer_ecole.js']
+    
     def has_module_permission(self, request):
         if request.user.is_superuser:
             return True
@@ -377,20 +369,52 @@ class LeconAdmin(RolePermissionMixin, AdminThemeMixin, SimpleHistoryAdmin):
 
 
 # ================================================
-# ADMIN — Parcours (RespAcademique, Admin, SuperAdmin)
+# ADMIN — Parcours
 # ================================================
 @admin.register(Parcours)
 class ParcoursAdmin(AdminThemeMixin, admin.ModelAdmin):
-    list_display = ["icone", "titre", "duree_mois", "prix", "nombre_formations", "actif", "ordre"]
-    list_filter = ["actif"]
-    search_fields = ["titre", "description"]
-    list_editable = ["actif", "ordre"]
-    filter_horizontal = ["formations"]
+    list_display = [
+        "icone",
+        "titre",
+        "duree_mois",
+        "prix",
+        "nombre_formations",
+        "actif",
+        "ordre",
+    ]
+
+    list_filter = [
+        "actif",
+    ]
+
+    search_fields = [
+        "titre",
+        "description",
+    ]
+
+    list_editable = [
+        "actif",
+        "ordre",
+    ]
+
+    filter_horizontal = [
+        "formations",
+    ]
 
     fieldsets = [
         (
             "Informations principales",
-            {"fields": ["icone", "titre", "description", "duree_mois", "prix", "actif", "ordre"]},
+            {
+                "fields": [
+                    "icone",
+                    "titre",
+                    "description",
+                    "duree_mois",
+                    "prix",
+                    "actif",
+                    "ordre",
+                ]
+            },
         ),
         (
             "Formations incluses",
@@ -401,13 +425,25 @@ class ParcoursAdmin(AdminThemeMixin, admin.ModelAdmin):
         ),
     ]
 
+    class Media:
+        js = ["academie/admin/generer_parcours.js"]
+
+    def nombre_formations(self, obj):
+        return obj.formations.count()
+
+    nombre_formations.short_description = "Formations"
+
     def has_module_permission(self, request):
         if request.user.is_superuser:
             return True
         try:
-            return request.user.profil.role in ["resp_academique", "admin"]
+            return request.user.profil.role in [
+                "resp_academique",
+                "admin",
+            ]
         except Exception:
             return False
+        
 
 
 # ================================================
@@ -654,23 +690,43 @@ class QuestionExamenInline(admin.TabularInline):
 
 
 # ================================================
-# ADMIN — Examens (Examinateur, RespAcademique, Admin, SuperAdmin)
+# ADMIN — Examens
 # ================================================
 @admin.register(Examen)
 class ExamenAdmin(admin.ModelAdmin):
-    list_display = ["titre", "formation", "duree_minutes", "seuil_reussite", "actif"]
-    list_filter = ["formation__ecole__academie", "formation"]
-    search_fields = ["titre"]
+    list_display = [
+        "titre",
+        "formation",
+        "duree_minutes",
+        "seuil_reussite",
+    ]
+
+    list_filter = [
+        "formation__ecole__academie",
+        "formation",
+    ]
+
+    search_fields = [
+        "titre",
+    ]
+
     inlines = [QuestionExamenInline]
+
+    class Media:
+        js = ["academie/admin/generer_examen.js"]
 
     def has_module_permission(self, request):
         if request.user.is_superuser:
             return True
         try:
-            return request.user.profil.role in ["examinateur", "resp_academique", "admin"]
+            return request.user.profil.role in [
+                "examinateur",
+                "resp_academique",
+                "admin",
+            ]
         except Exception:
             return False
-
+        
 
 # ================================================
 # ADMIN — Questions Examen (Examinateur, RespAcademique, Admin, SuperAdmin)
@@ -693,13 +749,30 @@ class QuestionExamenAdmin(admin.ModelAdmin):
 
 
 # ================================================
-# ADMIN — Tentatives Examen (Examinateur, Correcteur, RespAcademique, Admin, SuperAdmin)
+# ADMIN — Tentatives Examen
 # ================================================
 @admin.register(TentativeExamen)
 class TentativeExamenAdmin(admin.ModelAdmin):
-    list_display = ["utilisateur", "examen", "score", "reussi", "date_debut"]
-    list_filter = ["reussi", "examen"]
-    readonly_fields = ["date_debut", "date_fin", "evenements_suspects"]
+    list_display = [
+        "utilisateur",
+        "examen",
+        "score",
+        "reussi",
+    ]
+
+    list_filter = [
+        "reussi",
+        "examen",
+    ]
+
+    search_fields = [
+        "utilisateur__username",
+        "utilisateur__first_name",
+        "utilisateur__last_name",
+        "examen__titre",
+    ]
+
+    readonly_fields = []
 
     def has_module_permission(self, request):
         if request.user.is_superuser:
@@ -713,7 +786,6 @@ class TentativeExamenAdmin(admin.ModelAdmin):
             ]
         except Exception:
             return False
-
 
 # ================================================
 # Vue personnalisée — Gestion organisée par École
@@ -1287,7 +1359,6 @@ admin.site.get_app_list = get_app_list_reorganise.__get__(admin.site)
 # ================================================
 # ADMIN.PY — Administration Compétences & Résultats d'apprentissage
 # ================================================
-from .models import Competence, LearningOutcome
 
 @admin.register(Competence)
 class CompetenceAdmin(RolePermissionMixin, admin.ModelAdmin):
@@ -1297,10 +1368,6 @@ class CompetenceAdmin(RolePermissionMixin, admin.ModelAdmin):
     filter_horizontal = ['formations', 'modules', 'lecons']
     search_fields = ['nom']
 
-
-class LearningOutcomeInline(admin.TabularInline):
-    model = LearningOutcome
-    extra = 2
 
 @admin.register(LearningOutcome)
 class LearningOutcomeAdmin(RolePermissionMixin, admin.ModelAdmin):

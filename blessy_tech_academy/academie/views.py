@@ -5,8 +5,10 @@ import random
 from datetime import timedelta
 from decimal import Decimal
 from io import StringIO
+
 import filetype
 import markdown as markdown_lib
+
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth import login, logout
@@ -24,15 +26,18 @@ from django.utils import timezone, translation
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+
 from django_ratelimit.decorators import ratelimit
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import serializers
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
 from .payment_gateways import stripe_gateway, moncash_gateway, paypal_gateway
 from . import notifications
 from .forms import ConnexionForm, InscriptionCompteForm, SujetForm
+
 from .services.ia_service import (
     assistant_code,
     attribuer_badges,
@@ -43,56 +48,80 @@ from .services.ia_service import (
     generateur_exercices,
     generer_contenu_formation,
     generer_contenu_lecon,
+    generer_ecole_description, 
     generer_parcours_oriente,
     generer_programme_complet,
     generer_quiz,
     parcours_adaptatif,
     recommander_formations,
 )
+
 from .services.ia_service import simuler_carriere as simuler_carriere_ia
+
+# ============================================================
+# MODÈLES DE L'APP ACADEMIE
+# ============================================================
+
 from .models import (
     AccesFormationDebloque,
     Article,
     BadgeForum,
     Certificat,
-    ChoixExamen,
     Coupon,
-    Ecole,
-    Enseignant,
-    Examen,
-    Formation,
     HistoriqueConversationIA,
     Inscription,
     InteractionCRM,
     Invoice,
-    Lecon,
-    LogAudit, 
-    Module,
+    LogAudit,
     MoyenPaiement,
     Order,
     OrderItem,
     OutilRecommande,
-    Parcours,
-    ProgressionLecon,
     ProjetEtudiant,
     Promotion,
-    Quiz,
-    Question,
     Reaction,
     Refund,
     Reponse,
-    ResultatQuiz,
     Sujet,
     Temoignage,
-    TentativeExamen,
     Transaction,
-    WorkflowFormation,
 )
+
+# ============================================================
+# MODÈLES UTILISATEURS
+# ============================================================
+
+from users.models import Enseignant
+
+# ============================================================
+# MODÈLES PÉDAGOGIQUES
+# Physiquement dans learning/models.py
+# mais app_label='academie'
+# ============================================================
+
+from .models import (
+    Ecole,
+    Formation,
+    Module,
+    Lecon,
+    ProgressionLecon,
+    Quiz,
+    Question,
+    ResultatQuiz,
+    Parcours,
+    Competence,
+    LearningOutcome,
+    WorkflowFormation,
+    Examen,
+    QuestionExamen,
+    ChoixExamen,
+    TentativeExamen,
+)
+
 from .permissions import enregistrer_log, role_required
 from .xp_utils import ajouter_xp
 from .services.async_tasks import executer_en_arriere_plan
 from .services.email_service import _envoyer_email
-
 
 def _construire_contexte_utilisateur(request):
     """Construit un contexte utilisateur pour personnaliser les réponses du chatbot."""
@@ -272,7 +301,6 @@ def detail_formation(request, formation_id):
 
 # ================================================
 # VIEWS.PY — detail_formation_slug (SEO-friendly, réutilise detail_formation existante)
-# Insérer juste après la fonction detail_formation() existante
 # ================================================
 
 def detail_formation_slug(request, formation_slug):
@@ -377,7 +405,7 @@ def dashboard(request):
     examens_passes = (
         TentativeExamen.objects.filter(utilisateur=user)
         .select_related("examen")
-        .order_by("-date_debut")[:10]
+        .order_by("-date_passage")[:10]
     )
 
     return render(
@@ -403,7 +431,8 @@ def vue_dashboard_ia(request):
     from django.contrib.auth.models import User
     from django.db.models import Count, Q, Sum
 
-    from .models import Article, Formation, Lecon, Order, ResultatQuiz
+    from .models import Article, Order, ResultatQuiz
+    from .models import Formation, Lecon
 
     formations_stats = (
         Formation.objects.filter(actif=True)
@@ -689,6 +718,71 @@ def recommandations_ia(request):
             "interets": interets,
         },
     )
+
+
+
+@require_POST
+@login_required
+def api_generer_ecole(request):
+    """
+    Génère les informations d'une école avec l'IA.
+
+    POST attendu :
+        {
+            "nom": "École de Développement Informatique",
+            "domaine": "Développement web et programmation"
+        }
+
+    Retourne les données générées par le service IA.
+    """
+
+    try:
+        data = json.loads(request.body or "{}")
+    except json.JSONDecodeError:
+        return JsonResponse(
+            {
+                "success": False,
+                "error": "Données JSON invalides."
+            },
+            status=400,
+        )
+
+    nom_ecole = str(data.get("nom", "")).strip()
+    domaine = str(data.get("domaine", "")).strip()
+
+    if not nom_ecole:
+        return JsonResponse(
+            {
+                "success": False,
+                "error": "Le nom de l'école est obligatoire."
+            },
+            status=400,
+        )
+
+    try:
+        contenu = generer_ecole_description(
+            nom_ecole=nom_ecole,
+            domaine=domaine,
+        )
+
+        return JsonResponse(
+            {
+                "success": True,
+                "nom": nom_ecole,
+                "domaine": domaine,
+                "contenu": contenu,
+            }
+        )
+
+    except Exception as e:
+        return JsonResponse(
+            {
+                "success": False,
+                "error": str(e),
+            },
+            status=500,
+        )
+    
 
 
 # ================================================
@@ -1932,7 +2026,8 @@ def espace_recrutement(request):
     from django.contrib.auth.models import User
     from django.db.models import Count, Q
 
-    from .models import BadgeForum, Formation, ProjetEtudiant
+    from .models import BadgeForum, ProjetEtudiant
+    from .models import Formation
 
     etudiants_qs = (
         User.objects.annotate(
@@ -2457,7 +2552,7 @@ def admin_sync_export(request):
 
         from django.http import HttpResponse
 
-        from academie.models import Ecole, Formation, Lecon, Module
+        from .models import Ecole, Formation, Lecon, Module
 
         data = {
             "ecoles": [],
@@ -2553,7 +2648,7 @@ def admin_sync_import(request):
 @login_required
 @role_required("direction", "admin", "super_admin")
 def admin_sync_dashboard(request):
-    from academie.models import Formation
+    from .models import Formation
 
     formations_liste = Formation.objects.filter(actif=True).order_by("nom")
     return render(
@@ -3722,3 +3817,106 @@ def supprimer_mon_compte(request):
         return redirect('accueil')
 
     return render(request, 'academie/confirmer_suppression_compte.html')
+
+
+# ================================================
+# VIEWS.PY — API Génération IA : Examen, École, Parcours (admin)
+# ================================================
+
+@staff_member_required
+@ratelimit(key='user', rate='15/h', method='POST', block=True)
+def api_generer_examen(request):
+    """Génère un examen complet (questions + choix) via IA."""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            formation_id = data.get('formation_id')
+            niveau = data.get('niveau', 'intermediaire')
+            nombre_questions = int(data.get('nombre_questions', 10))
+
+            formation = Formation.objects.get(id=formation_id)
+
+            from .services.ia_service import generer_examen_complet
+            resultat = generer_examen_complet(formation.nom, niveau, nombre_questions)
+
+            if 'erreur' in resultat:
+                return JsonResponse({'erreur': resultat['erreur']}, status=500)
+
+            examen = Examen.objects.create(
+                formation=formation,
+                titre=resultat.get('titre', f"Examen — {formation.nom}"),
+                duree_minutes=resultat.get('duree_minutes', 45),
+                seuil_reussite=resultat.get('seuil_reussite', 70),
+                competences_evaluees=resultat.get('competences_evaluees', ''),
+            )
+
+            for i, q_data in enumerate(resultat.get('questions', []), start=1):
+                question = QuestionExamen.objects.create(
+                    examen=examen,
+                    texte=q_data.get('texte', ''),
+                    type_question='qcm',
+                    ordre=i,
+                    points=q_data.get('points', 10),
+                )
+                for choix_data in q_data.get('choix', []):
+                    ChoixExamen.objects.create(
+                        question=question,
+                        texte=choix_data.get('texte', ''),
+                        est_correct=choix_data.get('correct', False),
+                    )
+
+            return JsonResponse({
+                'succes': True,
+                'examen_id': examen.id,
+                'nombre_questions': len(resultat.get('questions', [])),
+            })
+
+        except Exception as e:
+            return JsonResponse({'erreur': str(e)}, status=500)
+
+    return JsonResponse({'erreur': 'Méthode non autorisée'}, status=405)
+
+
+@staff_member_required
+@ratelimit(key='user', rate='15/h', method='POST', block=True)
+def api_generer_parcours_admin(request):
+    """Génère un Parcours Professionnel complet (admin), crée le Parcours + lie les formations existantes trouvées."""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            titre_metier = data.get('titre_metier', '')
+            niveau = data.get('niveau', 'intermediaire')
+
+            from .services.ia_service import generer_parcours_professionnel_admin
+            resultat = generer_parcours_professionnel_admin(titre_metier, niveau)
+
+            if 'erreur' in resultat:
+                return JsonResponse({'erreur': resultat['erreur']}, status=500)
+
+            parcours = Parcours.objects.create(
+                titre=resultat.get('titre', titre_metier),
+                icone=resultat.get('icone', '🚀'),
+                description=resultat.get('description', ''),
+                duree_mois=resultat.get('duree_mois_totale', 12),
+                prix=resultat.get('prix_suggere', 300),
+                actif=False,
+            )
+
+            formations_liees = 0
+            for nom_suggere in resultat.get('formations_recommandees', []):
+                formation_trouvee = Formation.objects.filter(nom__icontains=nom_suggere.split()[0]).first()
+                if formation_trouvee:
+                    parcours.formations.add(formation_trouvee)
+                    formations_liees += 1
+
+            return JsonResponse({
+                'succes': True,
+                'parcours_id': parcours.id,
+                'formations_liees': formations_liees,
+                'formations_suggerees_total': len(resultat.get('formations_recommandees', [])),
+            })
+
+        except Exception as e:
+            return JsonResponse({'erreur': str(e)}, status=500)
+
+    return JsonResponse({'erreur': 'Méthode non autorisée'}, status=405)

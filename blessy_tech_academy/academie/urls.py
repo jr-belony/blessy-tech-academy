@@ -162,5 +162,9 @@ urlpatterns = [
     path('health/', views.health_check, name='health_check'),
     path('mes-donnees/exporter/', views.exporter_mes_donnees, name='exporter_mes_donnees'),
     path('mon-compte/supprimer/', views.supprimer_mon_compte, name='supprimer_mon_compte'),
+    # Génération d'examens, d'écoles et de parcours
+    path('api/generer-examen/', views.api_generer_examen, name='api_generer_examen'),
+    path('api/generer-ecole/', views.api_generer_ecole, name='api_generer_ecole'),
+    path('api/generer-parcours-admin/', views.api_generer_parcours_admin, name='api_generer_parcours_admin'),
     path('reaction/<str:type_cible>/<int:objet_id>/', views.toggle_reaction_generique, name='toggle_reaction_generique'),
 ]

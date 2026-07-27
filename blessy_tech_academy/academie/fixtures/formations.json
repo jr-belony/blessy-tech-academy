@@ -1,6 +1,6 @@
 [
 {
-  "model": "academie.formation",
+  "model": "academie.Formation",
   "pk": 5,
   "fields": {
     "ecole": 1,
@@ -18,7 +18,7 @@
   }
 },
 {
-  "model": "academie.formation",
+  "model": "academie.Formation",
   "pk": 2,
   "fields": {
     "ecole": null,
@@ -36,7 +36,7 @@
   }
 },
 {
-  "model": "academie.formation",
+  "model": "academie.Formation",
   "pk": 3,
   "fields": {
     "ecole": null,
@@ -54,7 +54,7 @@
   }
 },
 {
-  "model": "academie.formation",
+  "model": "academie.Formation",
   "pk": 4,
   "fields": {
     "ecole": 2,
@@ -72,7 +72,7 @@
   }
 },
 {
-  "model": "academie.formation",
+  "model": "academie.Formation",
   "pk": 1,
   "fields": {
     "ecole": null,

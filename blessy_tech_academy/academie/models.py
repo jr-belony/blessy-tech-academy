@@ -1,4 +1,10 @@
-﻿import uuid
+﻿# ================================================
+# ACADEMIE/MODELS.PY — Modèles racines + pédagogiques
+# Réexporte les modèles déplacés vers CRM et FORUM
+# pour assurer la compatibilité.
+# ================================================
+
+import uuid
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
@@ -6,255 +12,18 @@ from django_ckeditor_5.fields import CKEditor5Field
 from simple_history.models import HistoricalRecords
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+
+# --- Réexport des modèles déplacés vers CRM et FORUM ---
+from crm.models import Inscription, InteractionCRM
+from forum.models import Sujet, Reponse, Reaction, BadgeForum
+
+# --- Imports des autres apps (users, billing) ---
 from users.models import ProfilUtilisateur, LogAudit, Enseignant, HistoriqueConversationIA, PushSubscription, NotificationPushEnvoyee
 from billing.models import (
     MoyenPaiement, Coupon, Promotion, Order, OrderItem, Invoice,
     Transaction, Refund, AccesFormationDebloque, PlanAbonnement,
     Subscription, Affilie, CommissionAffiliation,
 )
-
-
-class Inscription(models.Model):
-    """Représente une demande d'inscription."""
-
-    SUJETS = [
-        ("inscription", "S'inscrire à une formation"),
-        ("information", "Demande d'information"),
-        ("partenariat", "Partenariat"),
-        ("autre", "Autre"),
-    ]
-    prenom = models.CharField(max_length=100)
-    nom = models.CharField(max_length=100)
-    email = models.EmailField()
-    telephone = models.CharField(max_length=20, blank=True)
-    formation = models.ForeignKey(
-        "academie.Formation", on_delete=models.SET_NULL, null=True, blank=True, related_name="inscriptions"
-    )
-    sujet = models.CharField(max_length=20, choices=SUJETS, default="information")
-    message = models.TextField()
-    date_inscription = models.DateTimeField(auto_now_add=True)
-    traite = models.BooleanField(default=False)
-    # === Extension CRM ===
-    STATUTS_LEAD = [
-        ("nouveau", "🆕 Nouveau"),
-        ("contacte", "📞 Contacté"),
-        ("interesse", "💬 Intéressé"),
-        ("converti", "✅ Converti"),
-        ("perdu", "❌ Perdu"),
-    ]
-    statut_lead = models.CharField(max_length=15, choices=STATUTS_LEAD, default="nouveau")
-    assigne_a = models.ForeignKey(
-        "auth.User",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="leads_assignes",
-        help_text="Membre de l'équipe responsable de ce lead",
-    )
-    source_lead = models.CharField(
-        max_length=50,
-        blank=True,
-        choices=[
-            ("site", "Site web"),
-            ("forum", "Forum"),
-            ("reseaux", "Réseaux sociaux"),
-            ("bouche_oreille", "Bouche-à-oreille"),
-            ("autre", "Autre"),
-        ],
-        default="site",
-    )
-    notes_internes = models.TextField(
-        blank=True, help_text="Notes visibles uniquement par l'équipe"
-    )
-
-    class Meta:
-        ordering = ["-date_inscription"]
-        verbose_name = "Inscription"
-        verbose_name_plural = "Inscriptions"
-
-    def __str__(self):
-        return f"{self.prenom} {self.nom} — {self.get_sujet_display()}"
-
-
-
-# ================================================
-# MODÈLE — Sujet (forum communautaire)
-# ================================================
-class Sujet(models.Model):
-    """Un sujet de discussion dans le forum."""
-
-    CATEGORIES = [
-        ("general", "Général"),
-        ("question", "Question"),
-        ("partage", "Partage de projet"),
-        ("aide", "Demande d'aide"),
-        ("annonce", "Annonce"),
-    ]
-
-    titre = models.CharField(max_length=300)
-    contenu = CKEditor5Field(config_name="default")
-    auteur = models.ForeignKey("auth.User", on_delete=models.CASCADE, related_name="sujets_forum")
-    formation = models.ForeignKey(
-        "academie.Formation", on_delete=models.SET_NULL, null=True, blank=True, related_name="sujets_forum"
-    )
-    categorie = models.CharField(max_length=20, choices=CATEGORIES, default="general")
-    vues = models.IntegerField(default=0)
-    epingle = models.BooleanField(default=False)
-    resolu = models.BooleanField(default=False)
-    date_creation = models.DateTimeField(auto_now_add=True)
-    date_modification = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ["-epingle", "-date_creation"]
-        verbose_name = "Sujet"
-        verbose_name_plural = "Sujets"
-        indexes = [
-            models.Index(fields=["categorie", "date_creation"]),
-            models.Index(fields=["formation"]),
-        ]
-
-    def __str__(self):
-        return self.titre
-
-    def nombre_reponses(self):
-        return self.reponses.count()
-
-    def nombre_likes(self):
-        return self.reactions.count()
-
-
-# ================================================
-# MODÈLE — Réponse (forum)
-# ================================================
-class Reponse(models.Model):
-    """Une réponse à un sujet du forum."""
-
-    sujet = models.ForeignKey(Sujet, on_delete=models.CASCADE, related_name="reponses")
-    contenu = models.TextField()
-    auteur = models.ForeignKey("auth.User", on_delete=models.CASCADE, related_name="reponses_forum")
-    acceptee = models.BooleanField(default=False)
-    date_creation = models.DateTimeField(auto_now_add=True)
-    date_modification = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ["date_creation"]
-        verbose_name = "Réponse"
-        verbose_name_plural = "Réponses"
-
-    def __str__(self):
-        return f"Réponse de {self.auteur.username} sur {self.sujet.titre[:30]}"
-
-    def nombre_likes(self):
-        return self.reactions.count()
-
-
-# ================================================
-# MODÈLE — Réaction (like/émotion forum)
-# ================================================
-class Reaction(models.Model):
-    """Un like sur un sujet ou une réponse."""
-
-    utilisateur = models.ForeignKey(
-        "auth.User", on_delete=models.CASCADE, related_name="reactions_forum"
-    )
-    sujet = models.ForeignKey(
-        Sujet, on_delete=models.CASCADE, null=True, blank=True, related_name="reactions"
-    )
-    reponse = models.ForeignKey(
-        Reponse, on_delete=models.CASCADE, null=True, blank=True, related_name="reactions"
-    )
-    date_creation = models.DateTimeField(auto_now_add=True)
-# Nouveau système polymorphe (V2)
-# Les anciens champs sujet/reponse restent temporairement
-# pour assurer la compatibilité.
-# ==========================================================
-
-    content_type = models.ForeignKey(
-    ContentType,
-    on_delete=models.CASCADE,
-    null=True,
-    blank=True,
-    related_name="reactions",
-    )
-    object_id = models.PositiveBigIntegerField(
-    null=True,
-    blank=True,
-    )
-    cible = GenericForeignKey(
-    "content_type",
-    "object_id",
-    )
-    class Meta:
-        unique_together = [
-            ["utilisateur", "sujet"],
-            ["utilisateur", "reponse"],
-        ]
-        verbose_name = "Réaction"
-        verbose_name_plural = "Réactions"
-
-    def __str__(self):
-        cible = self.sujet or self.reponse
-        return f"❤️ {self.utilisateur.username} → {cible}"
-
-
-# ================================================
-# MODÈLE — BadgeForum (gamification)
-# ================================================
-class BadgeForum(models.Model):
-    """Badge attribué à un membre du forum."""
-
-    TYPES_BADGES = [
-        # Badges Forum (existants)
-        ("premier_post", "✍️ Premier Post"),
-        ("premiere_reponse", "💬 Première Réponse"),
-        ("solution_acceptee", "✅ Solution Acceptée"),
-        ("dix_reponses", "🔥 10 Réponses"),
-        ("cinquante_reponses", "⭐ 50 Réponses"),
-        ("cent_likes", "❤️ 100 Likes reçus"),
-        ("sujet_populaire", "🏆 Sujet Populaire"),
-        # Badges Apprentissage (existants)
-        ("premier_quiz", "🏅 Premier Quiz Réussi"),
-        ("cinq_quiz", "📝 5 Quiz Réussis"),
-        ("dix_heures", "⏰ 10 Heures d'Apprentissage"),
-        ("cinquante_heures", "🎯 50 Heures d'Apprentissage"),
-        ("premiere_formation", "🎓 Première Formation Complétée"),
-        ("trois_formations", "🏆 3 Formations Complétées"),
-        # Badges Apprentissage (nouveaux)
-        ("premier_cours_termine", "🏅 Premier cours terminé"),
-        ("cinq_lecons", "📚 5 leçons terminées"),
-        ("dix_lecons", "📘 10 leçons terminées"),
-        # Badges Compétences (existants)
-        ("expert_python", "🐍 Expert Python"),
-        ("expert_web", "🌐 Expert Web"),
-        ("expert_data", "📊 Expert Données"),
-        ("expert_cyber", "🔒 Expert Cybersécurité"),
-        ("expert_design", "🎨 Expert Design"),
-        # Badges Compétences (nouveaux)
-        ("expert_excel", "📊 Expert Excel"),
-        ("expert_ia", "🤖 Expert IA"),
-        # Badges Projet (existants)
-        ("projet_termine", "🚀 Projet Terminé"),
-        ("trois_projets", "💼 3 Projets Livrés"),
-        # Badges Social (existants)
-        ("profile_complet", "👤 Profil Complété"),
-        ("premier_certificat", "📜 Premier Certificat"),
-        ("membre_actif", "🌟 Membre Actif"),
-        ("membre_actif_forum", "💬 Membre actif du forum"),
-    ]
-    utilisateur = models.ForeignKey(
-        "auth.User", on_delete=models.CASCADE, related_name="badges_forum"
-    )
-    type_badge = models.CharField(max_length=30, choices=TYPES_BADGES)
-    date_obtention = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = ["utilisateur", "type_badge"]
-        ordering = ["-date_obtention"]
-        verbose_name = "Badge Forum"
-        verbose_name_plural = "Badges Forum"
-
-    def __str__(self):
-        return f"{self.get_type_badge_display()} — {self.utilisateur.username}"
 
 
 # ================================================
@@ -268,7 +37,6 @@ class ProjetEtudiant(models.Model):
     description = models.TextField()
     image = models.ImageField(upload_to="projets/", blank=True, null=True)
     lien = models.URLField(blank=True, null=True)
-    
     technologies = models.CharField(
         max_length=300, blank=True, help_text="Ex: Python, Django, React"
     )
@@ -284,12 +52,12 @@ class ProjetEtudiant(models.Model):
     )
     competences_developpees = models.CharField(max_length=300, blank=True)
     date_creation = models.DateTimeField(auto_now_add=True)
-    # MODELS.PY — Ajout traçabilité pédagogique
     formation_liee = models.ForeignKey(
-    "academie.Formation", on_delete=models.SET_NULL, null=True, blank=True,
-    related_name='projets_etudiants',
-    help_text="Formation dans le cadre de laquelle ce projet a été réalisé"
-)
+        "academie.Formation", on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='projets_etudiants',
+        help_text="Formation dans le cadre de laquelle ce projet a été réalisé"
+    )
+
     class Meta:
         ordering = ["-date_creation"]
         verbose_name = "Projet étudiant"
@@ -311,9 +79,11 @@ class Certificat(models.Model):
     formation = models.ForeignKey("academie.Formation", on_delete=models.CASCADE, related_name="certificats")
     numero = models.CharField(max_length=20, unique=True)
     date_emission = models.DateTimeField(auto_now_add=True)
-    verifie = models.BooleanField(default=False)  # pour usage futur
+    verifie = models.BooleanField(default=False)
 
     class Meta:
+        app_label = 'academie'
+        db_table = 'academie_certificat'  # ajout explicite
         unique_together = ["utilisateur", "formation"]
         ordering = ["-date_emission"]
         verbose_name = "Certificat"
@@ -345,7 +115,6 @@ class Article(models.Model):
     formation_liee = models.ForeignKey(
         "academie.Formation", on_delete=models.SET_NULL, null=True, blank=True, related_name="articles"
     )
-    # === Lien racine Academie (multi-tenant) ===
     academie = models.ForeignKey(
         "Academie",
         on_delete=models.SET_NULL,
@@ -363,7 +132,6 @@ class Article(models.Model):
     date_publication = models.DateTimeField(auto_now_add=True)
     date_modification = models.DateTimeField(auto_now=True)
 
-    # Champs SEO
     meta_titre = models.CharField(
         max_length=70, blank=True, help_text="Titre SEO (60-70 caractères recommandés)"
     )
@@ -375,7 +143,6 @@ class Article(models.Model):
     )
     noindex = models.BooleanField(default=False, help_text="Empêcher l'indexation Google")
 
-    # === Knowledge Center — nouveaux types de contenu ===
     TYPES_CONTENU = [
         ("article", "📝 Article"),
         ("guide", "📖 Guide"),
@@ -391,10 +158,11 @@ class Article(models.Model):
     nb_vues = models.IntegerField(default=0)
     nb_partages = models.IntegerField(default=0)
 
-    # Enregistrement historique
     history = HistoricalRecords()
 
     class Meta:
+        app_label = 'academie'
+        db_table = 'academie_article'  # ajout explicite
         ordering = ["-en_vedette", "-date_publication"]
         verbose_name = "Article"
         verbose_name_plural = "Articles"
@@ -405,23 +173,16 @@ class Article(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             from django.utils.text import slugify
-
             self.slug = slugify(self.titre)
         super().save(*args, **kwargs)
 
     def temps_lecture_estime(self):
-        """Calcule le temps de lecture basé sur le nombre de mots (200 mots/min)."""
         import re
-
         texte_brut = re.sub("<[^<]+?>", "", self.contenu or "")
         nb_mots = len(texte_brut.split())
         return max(1, round(nb_mots / 200))
 
-    # ================================================
-    # Score SEO (réutilisation des champs existants)
-    # ================================================
     def score_seo(self):
-        """Calcule un score SEO sur 100 basé sur les champs déjà existants."""
         score = 0
         if self.meta_titre and 50 <= len(self.meta_titre) <= 70:
             score += 20
@@ -438,7 +199,6 @@ class Article(models.Model):
         return score
 
     def suggestions_seo(self):
-        """Liste de suggestions d'amélioration SEO — actionnable directement."""
         suggestions = []
         if not self.meta_titre:
             suggestions.append("Ajoute un titre SEO (50-70 caractères)")
@@ -475,6 +235,8 @@ class OutilRecommande(models.Model):
     ordre = models.IntegerField(default=0)
 
     class Meta:
+        app_label = 'academie'
+        db_table = 'academie_outilrecommande'
         ordering = ["ordre", "nom"]
         verbose_name = "Outil recommandé"
         verbose_name_plural = "Outils recommandés"
@@ -503,6 +265,8 @@ class Temoignage(models.Model):
     date_creation = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        app_label = 'academie'
+        db_table = 'academie_temoignage'
         ordering = ["-en_vedette", "-date_creation"]
         verbose_name = "Témoignage"
         verbose_name_plural = "Témoignages"
@@ -513,13 +277,8 @@ class Temoignage(models.Model):
 
 # ================================================
 # MODÈLE : ConnexionUtilisateur
-# Rôle : Enregistre chaque connexion d'un utilisateur
-# Utilisé par : signals.py (signal user_logged_in)
-#               dashboard.html (historique)
 # ================================================
 class ConnexionUtilisateur(models.Model):
-    """Enregistre chaque connexion d'un utilisateur pour l'historique et la détection suspecte."""
-
     utilisateur = models.ForeignKey(
         "auth.User", on_delete=models.CASCADE, related_name="connexions"
     )
@@ -527,12 +286,12 @@ class ConnexionUtilisateur(models.Model):
     navigateur = models.CharField(max_length=300)
     pays = models.CharField(max_length=100, blank=True)
     ville = models.CharField(max_length=100, blank=True)
-    suspecte = models.BooleanField(
-        default=False
-    )  # True si IP ou pays différent de la dernière connexion
+    suspecte = models.BooleanField(default=False)
     date_connexion = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        app_label = 'academie'
+        db_table = 'academie_connexionutilisateur'
         ordering = ["-date_connexion"]
         verbose_name = "Connexion utilisateur"
         verbose_name_plural = "Connexions utilisateurs"
@@ -541,49 +300,10 @@ class ConnexionUtilisateur(models.Model):
         return f"{self.utilisateur.username} - {self.date_connexion}"
 
 
-
 # ================================================
-# MODELS.PY — Historique des interactions CRM
-# ================================================
-class InteractionCRM(models.Model):
-    """Historique des échanges avec un prospect/lead."""
-
-    TYPES = [
-        ("appel", "📞 Appel"),
-        ("email", "📧 Email"),
-        ("whatsapp", "💬 WhatsApp"),
-        ("rencontre", "🤝 Rencontre"),
-        ("note", "📝 Note"),
-    ]
-
-    inscription = models.ForeignKey(
-        Inscription, on_delete=models.CASCADE, related_name="interactions"
-    )
-    type_interaction = models.CharField(max_length=15, choices=TYPES, default="note")
-    contenu = models.TextField()
-    auteur = models.ForeignKey("auth.User", on_delete=models.SET_NULL, null=True)
-    date_creation = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["-date_creation"]
-        verbose_name = "Interaction CRM"
-        verbose_name_plural = "Interactions CRM"
-
-    def __str__(self):
-        return f"{self.get_type_interaction_display()} — {self.inscription}"
-
-
-
-# ================================================
-# MODELS.PY — Academie (racine Enterprise Multi-Academy)
+# MODÈLE — Academie (racine Enterprise Multi-Academy)
 # ================================================
 class Academie(models.Model):
-    """
-    Racine de la plateforme Enterprise. Chaque Academie est une
-    "marque" indépendante (Blessy Tech Academy, Blessy Business School...)
-    partageant le même code et la même base de données.
-    """
-
     nom = models.CharField(max_length=150, unique=True)
     slug = models.SlugField(max_length=150, unique=True, blank=True)
     sous_titre = models.CharField(
@@ -591,10 +311,8 @@ class Academie(models.Model):
     )
     icone = models.CharField(max_length=10, default="🎓")
     logo = models.ImageField(upload_to="academies/logos/", null=True, blank=True)
-
     couleur_principale = models.CharField(max_length=7, default="#0B2447")
     couleur_accent = models.CharField(max_length=7, default="#00B4D8")
-
     domaine_personnalise = models.CharField(
         max_length=200,
         blank=True,
@@ -605,10 +323,11 @@ class Academie(models.Model):
         default=False,
         help_text="Une seule Academie doit avoir ce champ à True — utilisée en fallback",
     )
-
     date_creation = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        app_label = 'academie'
+        db_table = 'academie_academie'
         verbose_name = "Académie"
         verbose_name_plural = "Académies"
         ordering = ["nom"]
@@ -619,7 +338,6 @@ class Academie(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             from django.utils.text import slugify
-
             self.slug = slugify(self.nom)
         super().save(*args, **kwargs)
 
@@ -635,7 +353,7 @@ class Academie(models.Model):
 
 
 # ================================================
-# MODÈLE — PartenaireAPI (accès API tiers)
+# MODÈLE — PartenaireAPI
 # ================================================
 class PartenaireAPI(models.Model):
     nom = models.CharField(max_length=150)
@@ -663,6 +381,8 @@ class PartenaireAPI(models.Model):
     date_creation = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        app_label = 'academie'
+        db_table = 'academie_partenaireapi'
         verbose_name = "Partenaire API"
         verbose_name_plural = "Partenaires API"
 
@@ -670,11 +390,6 @@ class PartenaireAPI(models.Model):
         return self.nom
 
 
-# ================================================
-# MODELS.PY — Journal des requêtes partenaires API
-# Enregistre chaque appel API partenaire pour le
-# monitoring, la facturation et les alertes de débit.
-# ================================================
 class LogRequetePartenaire(models.Model):
     partenaire = models.ForeignKey(
         PartenaireAPI,
@@ -702,21 +417,20 @@ class LogRequetePartenaire(models.Model):
     )
 
     class Meta:
+        app_label = 'academie'
+        db_table = 'academie_logrequetepartenaire'
+        ordering = ['-date_creation']
         verbose_name = "Log Requête Partenaire"
         verbose_name_plural = "Logs Requêtes Partenaires"
-        ordering = ['-date_creation']
 
     def __str__(self):
         return f"{self.partenaire.nom} — {self.statut_reponse} ({self.date_creation})"
-    
 
 
 # ================================================
-# MODÈLE — Notification (système d'alertes)
+# MODÈLE — Notification
 # ================================================
 class Notification(models.Model):
-    """Notification envoyée à un utilisateur."""
-
     utilisateur = models.ForeignKey(
         "auth.User", on_delete=models.CASCADE, related_name="notifications"
     )
@@ -727,6 +441,8 @@ class Notification(models.Model):
     date_creation = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        app_label = 'academie'
+        db_table = 'academie_notification'
         ordering = ["-date_creation"]
         verbose_name = "Notification"
         verbose_name_plural = "Notifications"
@@ -734,19 +450,11 @@ class Notification(models.Model):
     def __str__(self):
         statut = "✓" if self.lue else "●"
         return f"{statut} {self.titre} — {self.utilisateur.username}"
-    
 
-    # ================================================
-# LEARNING/MODELS.PY — Modèles pédagogiques extraits d'academie
-# Ecole, Formation, Module, Lecon, Quiz, Question, Parcours, 
-# Examen, QuestionExamen, ChoixExamen, TentativeExamen, 
-# Competence, LearningOutcome, WorkflowFormation
-# app_label='academie' + db_table explicite = zéro perte de données
+
 # ================================================
-
-from django.db import models
-from django.utils import timezone
-
+# MODÈLES PÉDAGOGIQUES (learning)
+# ================================================
 
 class Ecole(models.Model):
     nom = models.CharField(max_length=200)
@@ -767,7 +475,12 @@ class Ecole(models.Model):
 
 
 class Formation(models.Model):
-    NIVEAUX = [('debutant', 'Débutant'), ('intermediaire', 'Intermédiaire'), ('avance', 'Avancé'), ('professionnel', 'Professionnel')]
+    NIVEAUX = [
+        ('debutant', 'Débutant'),
+        ('intermediaire', 'Intermédiaire'),
+        ('avance', 'Avancé'),
+        ('professionnel', 'Professionnel'),
+    ]
 
     ecole = models.ForeignKey(Ecole, on_delete=models.CASCADE, related_name='formations', null=True, blank=True)
     nom = models.CharField(max_length=200)
@@ -794,7 +507,10 @@ class Formation(models.Model):
         db_table = 'academie_formation'
         verbose_name = 'Formation'
         verbose_name_plural = 'Formations'
-        indexes = [models.Index(fields=['actif', 'niveau']), models.Index(fields=['ecole'])]
+        indexes = [
+            models.Index(fields=['actif', 'niveau']),
+            models.Index(fields=['ecole']),
+        ]
 
     def __str__(self):
         return self.nom
@@ -871,7 +587,10 @@ class ProgressionLecon(models.Model):
         app_label = 'academie'
         db_table = 'academie_progressionlecon'
         unique_together = ['utilisateur', 'lecon']
-        indexes = [models.Index(fields=['utilisateur', 'terminee']), models.Index(fields=['lecon', 'terminee'])]
+        indexes = [
+            models.Index(fields=['utilisateur', 'terminee']),
+            models.Index(fields=['lecon', 'terminee']),
+        ]
 
 
 class Quiz(models.Model):
@@ -959,7 +678,12 @@ class Parcours(models.Model):
 
 
 class Competence(models.Model):
-    CATEGORIES = [('technique', '💻 Technique'), ('soft_skill', '🤝 Soft Skill'), ('outil', '🛠️ Outil/Logiciel'), ('methode', '📐 Méthodologie')]
+    CATEGORIES = [
+        ('technique', '💻 Technique'),
+        ('soft_skill', '🤝 Soft Skill'),
+        ('outil', '🛠️ Outil/Logiciel'),
+        ('methode', '📐 Méthodologie'),
+    ]
     nom = models.CharField(max_length=150, unique=True)
     slug = models.SlugField(max_length=150, unique=True, blank=True)
     categorie = models.CharField(max_length=15, choices=CATEGORIES, default='technique')
@@ -1012,14 +736,20 @@ class LearningOutcome(models.Model):
 
 class WorkflowFormation(models.Model):
     ETATS = [
-        ('brouillon', '📝 Brouillon'), ('en_revision', '🔍 En révision'),
-        ('validee', '✅ Validée'), ('publiee', '🌐 Publiée'),
-        ('suspendue', '⏸️ Suspendue'), ('archivee', '📦 Archivée'),
+        ('brouillon', '📝 Brouillon'),
+        ('en_revision', '🔍 En révision'),
+        ('validee', '✅ Validée'),
+        ('publiee', '🌐 Publiée'),
+        ('suspendue', '⏸️ Suspendue'),
+        ('archivee', '📦 Archivée'),
     ]
     TRANSITIONS_AUTORISEES = {
-        'brouillon': ['en_revision', 'archivee'], 'en_revision': ['brouillon', 'validee'],
-        'validee': ['publiee', 'brouillon'], 'publiee': ['suspendue', 'archivee'],
-        'suspendue': ['publiee', 'archivee'], 'archivee': [],
+        'brouillon': ['en_revision', 'archivee'],
+        'en_revision': ['brouillon', 'validee'],
+        'validee': ['publiee', 'brouillon'],
+        'publiee': ['suspendue', 'archivee'],
+        'suspendue': ['publiee', 'archivee'],
+        'archivee': [],
     }
 
     formation = models.OneToOneField(Formation, on_delete=models.CASCADE, related_name='workflow')
@@ -1114,7 +844,11 @@ class Examen(models.Model):
 class QuestionExamen(models.Model):
     examen = models.ForeignKey(Examen, on_delete=models.CASCADE)
     texte = models.TextField()
-    type_question = models.CharField(max_length=15, choices=[('qcm', 'QCM'), ('vrai_faux', 'Vrai/Faux'), ('texte', 'Texte libre')], default='qcm')
+    type_question = models.CharField(
+        max_length=15,
+        choices=[('qcm', 'QCM'), ('vrai_faux', 'Vrai/Faux'), ('texte', 'Texte libre')],
+        default='qcm'
+    )
     ordre = models.IntegerField(default=0)
     points = models.IntegerField(default=10)
 

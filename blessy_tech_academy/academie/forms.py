@@ -2,8 +2,9 @@ from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.models import User
 from django_ckeditor_5.widgets import CKEditor5Widget
+from django.apps import apps
 
-from .models import Formation, Inscription, Reponse, Sujet
+from .models import Inscription, Reponse, Sujet
 
 
 class ContactForm(forms.Form):
@@ -86,7 +87,7 @@ class InscriptionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Formations actives uniquement dans le select
+        Formation = apps.get_model('academie', 'Formation')
         self.fields["formation"].queryset = Formation.objects.filter(actif=True)
         self.fields["formation"].empty_label = "-- Choisir une formation --"
 
@@ -220,6 +221,7 @@ class SujetForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        Formation = apps.get_model('academie', 'Formation')
         self.fields["formation"].queryset = Formation.objects.filter(actif=True)
         self.fields["formation"].empty_label = "-- Aucune formation --"
         self.fields["formation"].required = False

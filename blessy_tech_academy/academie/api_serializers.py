@@ -3,7 +3,8 @@
 # ================================================
 from rest_framework import serializers
 
-from .models import Article, Ecole, Formation, Module, Parcours, ProgressionLecon
+from .models import Article
+from .models import Ecole, Formation, Module, Parcours, ProgressionLecon
 
 
 class EcoleSerializer(serializers.ModelSerializer):
