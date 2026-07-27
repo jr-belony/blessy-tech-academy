@@ -1,4 +1,4 @@
-# ================================================
+﻿# ================================================
 # USERS/MODELS.PY — Modèles utilisateur extraits d'academie
 # IMPORTANT : Meta.app_label reste 'academie' pour préserver 
 # la table PostgreSQL existante (academie_profilutilisateur, etc.)
@@ -140,7 +140,7 @@ class LogAudit(models.Model):
 class Enseignant(models.Model):
     STATUTS = [('actif', '✅ Actif'), ('en_attente', '⏳ En attente validation'), ('suspendu', '⛔ Suspendu')]
     profil = models.OneToOneField(ProfilUtilisateur, on_delete=models.CASCADE, related_name='enseignant')
-    formations_attribuees = models.ManyToManyField('academie.Formation', blank=True, related_name='enseignants')
+    formations_attribuees = models.ManyToManyField("academie.Formation", blank=True, related_name='enseignants')
     statut = models.CharField(max_length=15, choices=STATUTS, default='en_attente')
     date_recrutement = models.DateTimeField(auto_now_add=True)
     numero_contrat = models.CharField(max_length=50, blank=True)
