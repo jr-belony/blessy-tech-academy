@@ -80,6 +80,7 @@ INSTALLED_APPS = [
     'academie',
     'crm',
     'forum', 
+    'content',
 ]
 # Debug Toolbar (développement uniquement)
 if DEBUG:
