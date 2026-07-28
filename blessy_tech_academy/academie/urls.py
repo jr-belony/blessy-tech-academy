@@ -13,7 +13,7 @@ urlpatterns = [
     path("connexion/", views.connexion, name="connexion"),
     path("deconnexion/", views.deconnexion, name="deconnexion"),
     path("dashboard/", views.dashboard, name="dashboard"),
-    path("recherche/", views.recherche_formations, name="recherche"),
+    path("recherche/", views.recherche, name="recherche"),  # corrigé : recherche_formations → recherche
     # Statistiques admin
     path("statistiques/", views.statistiques, name="statistiques"),
     # Intelligence Artificielle

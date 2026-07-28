@@ -650,3 +650,132 @@ class TentativeExamen(models.Model):
     def pourcentage(self):
         total = self.nb_bonnes + self.nb_mauvaises
         return round((self.nb_bonnes / total) * 100) if total else 0
+
+
+# ================================================
+# MODELS.PY — Notes personnelles étudiant sur une leçon
+# ================================================
+
+class NoteLecon(models.Model):
+    """Note personnelle qu'un étudiant prend pendant sa lecture — privée."""
+
+    utilisateur = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='notes_lecons')
+    lecon = models.ForeignKey(Lecon, on_delete=models.CASCADE, related_name='notes_etudiants')
+    contenu = models.TextField()
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Note de leçon'
+        verbose_name_plural = 'Notes de leçons'
+        ordering = ['-date_modification']
+
+    def __str__(self):
+        return f"Note de {self.utilisateur.username} sur {self.lecon.titre}"
+
+
+# ================================================
+# MODELS.PY — Streak (série quotidienne d'apprentissage)
+# Mécanisme de rétention type Duolingo
+# ================================================
+
+class StreakEtudiant(models.Model):
+    """Suivi de la série de jours consécutifs d'activité d'un étudiant."""
+
+    utilisateur = models.OneToOneField('auth.User', on_delete=models.CASCADE, related_name='streak')
+    jours_consecutifs = models.IntegerField(default=0)
+    record_jours_consecutifs = models.IntegerField(default=0)
+    derniere_activite = models.DateField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Série étudiant'
+        verbose_name_plural = 'Séries étudiants'
+
+    def __str__(self):
+        return f"{self.utilisateur.username} — {self.jours_consecutifs} jour(s)"
+
+    def enregistrer_activite_jour(self):
+        """Appelé à chaque action pédagogique (leçon terminée, quiz passé)."""
+        aujourdhui = timezone.now().date()
+
+        if self.derniere_activite == aujourdhui:
+            return  # déjà comptée aujourd'hui
+
+        hier = aujourdhui - timezone.timedelta(days=1)
+        if self.derniere_activite == hier:
+            self.jours_consecutifs += 1
+        else:
+            self.jours_consecutifs = 1
+
+        self.record_jours_consecutifs = max(self.record_jours_consecutifs, self.jours_consecutifs)
+        self.derniere_activite = aujourdhui
+        self.save()
+
+
+# ================================================
+# MODELS.PY — Gradebook / Suivi des notes des étudiants
+# ================================================
+
+class GradebookEntry(models.Model):
+    """Note attribuée à un étudiant pour une formation, par un formateur."""
+
+    formation = models.ForeignKey('Formation', on_delete=models.CASCADE, related_name='grades')
+    etudiant = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='grades')
+    formateur = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='grades_attribuees')
+    note = models.DecimalField(max_digits=5, decimal_places=2, help_text="Note sur 20")
+    appreciation = models.TextField(blank=True, help_text="Commentaire qualitatif")
+    date_attribution = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['formation', 'etudiant']
+        ordering = ['-date_attribution']
+        verbose_name = 'Note Gradebook'
+        verbose_name_plural = 'Notes Gradebook'
+
+    def __str__(self):
+        return f"{self.etudiant.username} — {self.formation.nom} : {self.note}/20"
+
+
+# ================================================
+# MODELS.PY — Mentorat : Disponibilités et réservations
+# ================================================
+
+class DisponibiliteMentor(models.Model):
+    """Créneau de disponibilité d'un formateur pour du mentorat."""
+    formateur = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='disponibilites_mentorat')
+    date = models.DateField()
+    heure_debut = models.TimeField()
+    heure_fin = models.TimeField()
+    actif = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['date', 'heure_debut']
+        verbose_name = 'Disponibilité mentor'
+        verbose_name_plural = 'Disponibilités mentors'
+
+    def __str__(self):
+        return f"{self.formateur.username} — {self.date} {self.heure_debut}-{self.heure_fin}"
+
+
+class ReservationMentorat(models.Model):
+    """Réservation d'un créneau par un étudiant."""
+    STATUTS = [
+        ('en_attente', 'En attente'),
+        ('confirmee', 'Confirmée'),
+        ('annulee', 'Annulée'),
+        ('terminee', 'Terminée'),
+    ]
+    disponibilite = models.ForeignKey(DisponibiliteMentor, on_delete=models.CASCADE, related_name='reservations')
+    etudiant = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='reservations_mentorat')
+    statut = models.CharField(max_length=20, choices=STATUTS, default='en_attente')
+    sujet = models.CharField(max_length=200)
+    notes = models.TextField(blank=True)
+    date_reservation = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date_reservation']
+        verbose_name = 'Réservation mentorat'
+        verbose_name_plural = 'Réservations mentorat'
+
+    def __str__(self):
+        return f"{self.etudiant.username} → {self.disponibilite.formateur.username} ({self.get_statut_display()})"

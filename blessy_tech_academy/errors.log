@@ -8542,3 +8542,329 @@ Traceback (most recent call last):
     )
 django.core.exceptions.FieldError: Cannot resolve keyword 'date_debut' into field. Choices are: date_passage, examen, examen_id, id, nb_bonnes, nb_mauvaises, reussi, score, temps_utilise, utilisateur, utilisateur_id
 "GET /dashboard/ HTTP/1.1" 500 118043
+Internal Server Error: /formation/65/
+Traceback (most recent call last):
+  File "C:\Projects\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Projects\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\projects\blessy_tech_academy\academie\views.py", line 254, in detail_formation
+    pourcentage_progression = formation.progression_pour(request.user)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Formation' object has no attribute 'progression_pour'
+Internal Server Error: /formation/68/
+Traceback (most recent call last):
+  File "C:\Projects\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Projects\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\projects\blessy_tech_academy\academie\views.py", line 254, in detail_formation
+    pourcentage_progression = formation.progression_pour(request.user)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Formation' object has no attribute 'progression_pour'
+Internal Server Error: /forum/
+Traceback (most recent call last):
+  File "C:\Projects\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Projects\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\projects\blessy_tech_academy\academie\views.py", line 965, in forum_liste
+    sujets = Sujet.objects.select_related("auteur", "formation").annotate(
+        nb_reponses_calc=DjangoCount("reponses", distinct=True),
+        nb_likes_calc=DjangoCount("reactions", distinct=True),
+    )
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\query.py", line 1699, in annotate
+    return self._annotate(args, kwargs, select=True)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\query.py", line 1751, in _annotate
+    clone.query.add_annotation(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        annotation,
+        ^^^^^^^^^^^
+        alias,
+        ^^^^^^
+        select=select,
+        ^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 1247, in add_annotation
+    annotation = annotation.resolve_expression(self, allow_joins=True, reuse=None)
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\aggregates.py", line 261, in resolve_expression
+    result = super().resolve_expression(*args, **kwargs)
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\aggregates.py", line 122, in resolve_expression
+    c = super().resolve_expression(query, allow_joins, reuse, summarize)
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\expressions.py", line 301, in resolve_expression
+    expr.resolve_expression(query, allow_joins, reuse, summarize, for_save)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\expressions.py", line 904, in resolve_expression
+    return query.resolve_ref(self.name, allow_joins, reuse, summarize)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 2087, in resolve_ref
+    join_info = self.setup_joins(
+        field_list, self.get_meta(), self.get_initial_alias(), can_reuse=reuse
+    )
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 1937, in setup_joins
+    path, final_field, targets, rest = self.names_to_path(
+                                       ~~~~~~~~~~~~~~~~~~^
+        names[:pivot],
+        ^^^^^^^^^^^^^^
+    ...<2 lines>...
+        fail_on_missing=True,
+        ^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 1842, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'reactions' into field. Choices are: auteur, auteur_id, categorie, contenu, date_creation, date_modification, epingle, formation, formation_id, id, nb_reponses_calc, reaction, reponses, resolu, titre, vues
+"GET /forum/ HTTP/1.1" 500 147656
+Internal Server Error: /forum/
+Traceback (most recent call last):
+  File "C:\Projects\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Projects\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\projects\blessy_tech_academy\academie\views.py", line 965, in forum_liste
+    sujets = Sujet.objects.select_related("auteur", "formation").annotate(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\query.py", line 1699, in annotate
+    return self._annotate(args, kwargs, select=True)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\query.py", line 1751, in _annotate
+    clone.query.add_annotation(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        annotation,
+        ^^^^^^^^^^^
+        alias,
+        ^^^^^^
+        select=select,
+        ^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 1247, in add_annotation
+    annotation = annotation.resolve_expression(self, allow_joins=True, reuse=None)
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\aggregates.py", line 261, in resolve_expression
+    result = super().resolve_expression(*args, **kwargs)
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\aggregates.py", line 122, in resolve_expression
+    c = super().resolve_expression(query, allow_joins, reuse, summarize)
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\expressions.py", line 301, in resolve_expression
+    expr.resolve_expression(query, allow_joins, reuse, summarize, for_save)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\expressions.py", line 904, in resolve_expression
+    return query.resolve_ref(self.name, allow_joins, reuse, summarize)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 2087, in resolve_ref
+    join_info = self.setup_joins(
+        field_list, self.get_meta(), self.get_initial_alias(), can_reuse=reuse
+    )
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 1937, in setup_joins
+    path, final_field, targets, rest = self.names_to_path(
+                                       ~~~~~~~~~~~~~~~~~~^
+        names[:pivot],
+        ^^^^^^^^^^^^^^
+    ...<2 lines>...
+        fail_on_missing=True,
+        ^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 1842, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'reaction_set' into field. Choices are: auteur, auteur_id, categorie, contenu, date_creation, date_modification, epingle, formation, formation_id, id, nb_reponses_calc, reaction, reponses, resolu, titre, vues
+"GET /forum/ HTTP/1.1" 500 147705
+Internal Server Error: /statistiques/
+Traceback (most recent call last):
+  File "C:\Projects\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Projects\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Projects\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Projects\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\projects\blessy_tech_academy\academie\views.py", line 284, in statistiques
+    certificats_mois = Certificat.objects.filter(date_emission__gte=debut_mois).count()
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\query.py", line 1542, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\query.py", line 1560, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\query.py", line 1570, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 1676, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 1708, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 1556, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 1363, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 1842, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'date_emission' into field. Choices are: date_obtention, examen_origine, examen_origine_id, fichier_pdf, formation, formation_id, id, numero, utilisateur, utilisateur_id
+"GET /statistiques/ HTTP/1.1" 500 155574
+Internal Server Error: /statistiques/
+Traceback (most recent call last):
+  File "C:\Projects\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Projects\venv\Lib\site-packages\psycopg\cursor.py", line 117, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UndefinedColumn: la colonne academie_certificat.date_obtention n'existe pas
+LINE 1: ...(*) AS "__count" FROM "academie_certificat" WHERE "academie_...
+                                                             ^
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Projects\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Projects\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Projects\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Projects\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\projects\blessy_tech_academy\academie\views.py", line 285, in statistiques
+    certificats_mois = Certificat.objects.filter(date_obtention__gte=debut_mois).count()
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\query.py", line 610, in count
+    return self.query.get_count(using=self.db)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 656, in get_count
+    return obj.get_aggregation(using, {"__count": Count("*")})["__count"]
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 638, in get_aggregation
+    result = compiler.execute_sql(SINGLE)
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1624, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Projects\venv\Lib\site-packages\debug_toolbar\panels\sql\tracking.py", line 281, in execute
+    return self._record(super().execute, sql, params)
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\venv\Lib\site-packages\debug_toolbar\panels\sql\tracking.py", line 201, in _record
+    return method(sql, params)
+  File "C:\Projects\venv\Lib\site-packages\django\db\backends\utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Projects\venv\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Projects\venv\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Projects\venv\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\venv\Lib\site-packages\django\db\utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Projects\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Projects\venv\Lib\site-packages\psycopg\cursor.py", line 117, in execute
+    raise ex.with_traceback(None)
+django.db.utils.ProgrammingError: la colonne academie_certificat.date_obtention n'existe pas
+LINE 1: ...(*) AS "__count" FROM "academie_certificat" WHERE "academie_...
+                                                             ^
+"GET /statistiques/ HTTP/1.1" 500 189947
+Internal Server Error: /statistiques/
+Traceback (most recent call last):
+  File "C:\Projects\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Projects\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Projects\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Projects\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\projects\blessy_tech_academy\academie\views.py", line 306, in statistiques
+    User.objects.annotate(
+    ~~~~~~~~~~~~~~~~~~~~~^
+        nb_actions=Count("sujets_forum", distinct=True) + Count("reponses_forum", distinct=True)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\query.py", line 1699, in annotate
+    return self._annotate(args, kwargs, select=True)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\query.py", line 1751, in _annotate
+    clone.query.add_annotation(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        annotation,
+        ^^^^^^^^^^^
+        alias,
+        ^^^^^^
+        select=select,
+        ^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 1247, in add_annotation
+    annotation = annotation.resolve_expression(self, allow_joins=True, reuse=None)
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\expressions.py", line 777, in resolve_expression
+    resolved = super().resolve_expression(
+        query,
+    ...<3 lines>...
+        for_save,
+    )
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\expressions.py", line 301, in resolve_expression
+    expr.resolve_expression(query, allow_joins, reuse, summarize, for_save)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\aggregates.py", line 261, in resolve_expression
+    result = super().resolve_expression(*args, **kwargs)
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\aggregates.py", line 122, in resolve_expression
+    c = super().resolve_expression(query, allow_joins, reuse, summarize)
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\expressions.py", line 301, in resolve_expression
+    expr.resolve_expression(query, allow_joins, reuse, summarize, for_save)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\expressions.py", line 904, in resolve_expression
+    return query.resolve_ref(self.name, allow_joins, reuse, summarize)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 2087, in resolve_ref
+    join_info = self.setup_joins(
+        field_list, self.get_meta(), self.get_initial_alias(), can_reuse=reuse
+    )
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 1937, in setup_joins
+    path, final_field, targets, rest = self.names_to_path(
+                                       ~~~~~~~~~~~~~~~~~~^
+        names[:pivot],
+        ^^^^^^^^^^^^^^
+    ...<2 lines>...
+        fail_on_missing=True,
+        ^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 1842, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'sujets_forum' into field. Choices are: abonnements, acces_debloques, affiliation, articles, auth_token, badges_forum, certificats, commandes, connexions, date_joined, email, emailaddress, first_name, groups, historique_ia, id, interactioncrm, is_active, is_staff, is_superuser, last_login, last_name, leads_assignes, logentry, logs_audit, notifications, password, profil, progressions, projets, push_recues, push_subscriptions, reaction, refund, reponse, resultats_quiz, socialaccount, sujets, tentatives_examen, transactions_validees, user_permissions, username, workflows_demandes, workflows_valides
+"GET /statistiques/ HTTP/1.1" 500 178707

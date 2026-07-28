@@ -162,7 +162,7 @@ class Certificat(models.Model):
     formation = models.ForeignKey('academie.Formation', on_delete=models.SET_NULL, null=True, blank=True)
     examen_origine = models.ForeignKey('academie.Examen', on_delete=models.SET_NULL, null=True, blank=True)
     numero = models.CharField(max_length=50, unique=True, db_index=True, blank=True)
-    date_obtention = models.DateTimeField(auto_now_add=True)
+    date_emission = models.DateTimeField(auto_now_add=True)
     fichier_pdf = models.FileField(upload_to='certificats/', null=True, blank=True)
 
     class Meta:

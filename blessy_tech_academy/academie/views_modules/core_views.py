@@ -1,0 +1,375 @@
+# ================================================
+# VIEWS_MODULES/CORE_VIEWS.PY — Vues transverses
+# ================================================
+
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.contrib.auth.models import User
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
+from django.db import connection
+from django.core.cache import cache
+from django.db.models import Q
+from django.http import JsonResponse, HttpResponse
+from django.views.decorators.cache import cache_page
+from django_ratelimit.decorators import ratelimit
+from django.utils import timezone
+import json, logging
+
+# Import des modèles nécessaires
+from academie.models import (
+    Ecole, Formation, Article, Parcours, ProgressionLecon,
+    HistoriqueConversationIA, ProjetEtudiant, PushSubscription,
+    Sujet, AccesFormationDebloque, BadgeForum, Order,
+    Certificat, LogAudit, ConnexionUtilisateur, TentativeExamen,
+)
+from academie.forms import ConnexionForm, InscriptionCompteForm
+from academie import notifications
+from academie.services.ia_service import (
+    attribuer_badges,
+    calculer_stats_etudiant,
+    _circuit_ouvert,
+)
+
+logger = logging.getLogger('academie')
+
+
+# ================================================
+# Pages principales
+# ================================================
+
+@cache_page(60 * 10)  # 10 minutes
+def accueil(request):
+    """Page d'accueil avec statistiques dynamiques."""
+    formations = Formation.objects.filter(actif=True)[:4]
+    formations_gratuites = Formation.objects.filter(actif=True, gratuit=True)
+    ecoles = Ecole.objects.all()
+    parcours_list = Parcours.objects.filter(actif=True)
+    nb_etudiants = User.objects.filter(is_active=True).count()
+    nb_formations = Formation.objects.filter(actif=True).count()
+    nb_sujets_forum = Sujet.objects.count()
+    stats = [
+        {"valeur": nb_etudiants, "suffixe": "+", "label": "Étudiants"},
+        {"valeur": nb_formations, "suffixe": "", "label": "Formations"},
+        {"valeur": nb_sujets_forum, "suffixe": "", "label": "Sujets forum"},
+    ]
+    articles_recents = Article.objects.filter(publie=True).order_by("-date_publication")[:3]
+
+    return render(
+        request,
+        "academie/accueil.html",
+        {
+            "formations": formations,
+            "formations_gratuites": formations_gratuites,
+            "ecoles": ecoles,
+            "parcours_list": parcours_list,
+            "stats": stats,
+            "articles_recents": articles_recents,
+            "nb_etudiants": nb_etudiants,
+            "nb_formations": nb_formations,
+            "nb_sujets_forum": nb_sujets_forum,
+        },
+    )
+
+
+@ratelimit(key='ip', rate='3/m', method='POST', block=True)
+def contact(request):
+    from django import forms
+    class ContactForm(forms.Form):
+        prenom = forms.CharField(max_length=100, label="Prénom")
+        nom = forms.CharField(max_length=100, label="Nom")
+        email = forms.EmailField(label="Email")
+        sujet = forms.CharField(max_length=200, label="Sujet")
+        message = forms.CharField(widget=forms.Textarea, label="Message")
+
+    if request.method == "POST":
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            messages.success(request, "✅ Message envoyé avec succès !")
+            return redirect("contact")
+    else:
+        form = ContactForm()
+    return render(request, "academie/contact.html", {"form": form})
+
+
+def apropos(request):
+    return render(request, "academie/apropos.html")
+
+
+@ratelimit(key="ip", rate="5/m", block=True)
+def connexion(request):
+    """Connexion à un compte existant."""
+    if request.user.is_authenticated:
+        return redirect("dashboard")
+
+    if request.method == "POST":
+        form = ConnexionForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+            messages.success(request, f"✅ Bienvenue {user.first_name or user.username} !")
+            return redirect("dashboard")
+        else:
+            messages.error(
+                request,
+                "❌ Identifiants incorrects. Vérifie ton nom d'utilisateur et ton mot de passe.",
+            )
+    else:
+        form = ConnexionForm(request)
+
+    return render(request, "academie/connexion.html", {"form": form})
+
+
+def deconnexion(request):
+    """Déconnexion."""
+    logout(request)
+    messages.success(request, "👋 Tu as été déconnecté avec succès.")
+    return redirect("accueil")
+
+
+@ratelimit(key='ip', rate='3/h', method='POST', block=True)
+def inscription_compte(request):
+    """Créer un nouveau compte étudiant."""
+    if request.user.is_authenticated:
+        return redirect("dashboard")
+
+    if request.method == "POST":
+        form = InscriptionCompteForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+            messages.success(
+                request, f"🎉 Bienvenue {user.first_name} ! Ton compte a été créé avec succès."
+            )
+            return redirect("dashboard")
+        else:
+            messages.error(
+                request,
+                "❌ Erreur lors de la création du compte. Vérifie les informations saisies.",
+            )
+    else:
+        form = InscriptionCompteForm()
+
+    return render(request, "academie/inscription_compte.html", {"form": form})
+
+
+# ================================================
+# Tableau de bord
+# ================================================
+
+@login_required(login_url="/connexion/")
+def dashboard(request):
+    """Tableau de bord étudiant moderne."""
+    user = request.user
+    stats = calculer_stats_etudiant(user)
+    tous_badges = stats["badges"]
+    formations_actives = sorted(stats["en_cours"], key=lambda f: f["pourcentage"], reverse=True)[:4]
+    nouveaux_badges = attribuer_badges(user)
+    if nouveaux_badges:
+        messages.success(request, f"🎉 Nouveau(x) badge(s) : {', '.join(nouveaux_badges)} !")
+    for badge_type in nouveaux_badges:
+        notifications.notifier_badge(user, badge_type)
+
+    connexions = ConnexionUtilisateur.objects.filter(utilisateur=user).order_by("-date_connexion")[:5]
+    examens_passes = (
+        TentativeExamen.objects.filter(utilisateur=user)
+        .select_related("examen")
+        .order_by("-date_passage")[:10]
+    )
+
+    return render(
+        request,
+        "academie/dashboard.html",
+        {
+            "user": user,
+            "stats": stats,
+            "badges": tous_badges,
+            "formations_actives": formations_actives,
+            "connexions": connexions,
+            "examens_passes": examens_passes,
+        },
+    )
+
+
+# ================================================
+# Recherche
+# ================================================
+
+def recherche(request):
+    """Recherche globale — formations, articles, forum — via PostgreSQL full-text search."""
+    terme = request.GET.get('q', '').strip()
+
+    resultats_formations = []
+    resultats_articles = []
+    resultats_forum = []
+
+    if terme:
+        query = SearchQuery(terme, config='french')
+
+        resultats_formations = Formation.objects.filter(actif=True).annotate(
+            rang=SearchRank(SearchVector('nom', weight='A', config='french') + SearchVector('description', weight='B', config='french'), query)
+        ).filter(rang__gt=0.01).order_by('-rang')[:10]
+
+        if not resultats_formations:
+            resultats_formations = Formation.objects.filter(
+                actif=True
+            ).filter(Q(nom__icontains=terme) | Q(description__icontains=terme))[:10]
+
+        resultats_articles = Article.objects.filter(publie=True).annotate(
+            rang=SearchRank(SearchVector('titre', weight='A', config='french') + SearchVector('resume', weight='B', config='french'), query)
+        ).filter(rang__gt=0.01).order_by('-rang')[:10]
+
+        if not resultats_articles:
+            resultats_articles = Article.objects.filter(
+                publie=True
+            ).filter(Q(titre__icontains=terme) | Q(resume__icontains=terme))[:10]
+
+        resultats_forum = Sujet.objects.annotate(
+            rang=SearchRank(SearchVector('titre', weight='A', config='french') + SearchVector('contenu', weight='B', config='french'), query)
+        ).filter(rang__gt=0.01).order_by('-rang')[:10]
+
+        if not resultats_forum:
+            resultats_forum = Sujet.objects.filter(
+                Q(titre__icontains=terme) | Q(contenu__icontains=terme)
+            )[:10]
+
+    nb_total = len(resultats_formations) + len(resultats_articles) + len(resultats_forum)
+
+    return render(request, 'academie/recherche.html', {
+        'terme': terme,
+        'resultats_formations': resultats_formations,
+        'resultats_articles': resultats_articles,
+        'resultats_forum': resultats_forum,
+        'nb_total': nb_total,
+    })
+
+
+def recherche_formations(request):
+    """Recherche de formations par mot-clé."""
+    terme = request.GET.get("q", "")
+
+    if terme:
+        resultats = Formation.objects.filter(
+            Q(nom__icontains=terme)
+            | Q(description__icontains=terme)
+            | Q(debouches__icontains=terme),
+            actif=True,
+        ).select_related("ecole")
+    else:
+        resultats = Formation.objects.none()
+
+    return render(
+        request,
+        "academie/recherche.html",
+        {
+            "resultats": resultats,
+            "terme": terme,
+        },
+    )
+
+
+# ================================================
+# Pages utilitaires
+# ================================================
+
+def health_check(request):
+    """Endpoint de santé — utilisé par les services de monitoring."""
+    statut = {'statut': 'ok', 'verifications': {}}
+    code_http = 200
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+        statut['verifications']['database'] = 'ok'
+    except Exception as e:
+        statut['verifications']['database'] = f'erreur: {str(e)}'
+        statut['statut'] = 'degrade'
+        code_http = 503
+
+    try:
+        cache.set('health_check_test', 'ok', 10)
+        statut['verifications']['cache'] = 'ok' if cache.get('health_check_test') == 'ok' else 'erreur'
+    except Exception:
+        statut['verifications']['cache'] = 'indisponible (fallback local actif)'
+
+    statut['verifications']['ia_gemini'] = 'circuit_ouvert' if _circuit_ouvert() else 'ok'
+
+    return JsonResponse(statut, status=code_http)
+
+
+def page_offline(request):
+    return render(request, "academie/offline.html")
+
+
+# ================================================
+# Données personnelles (RGPD-like)
+# ================================================
+
+@login_required(login_url='/connexion/')
+def exporter_mes_donnees(request):
+    """Génère un export JSON complet des données de l'utilisateur connecté."""
+    user = request.user
+
+    donnees = {
+        'profil': {
+            'username': user.username, 'email': user.email,
+            'prenom': user.first_name, 'nom': user.last_name,
+            'date_inscription': user.date_joined.isoformat(),
+        },
+        'formations_suivies': list(
+            AccesFormationDebloque.objects.filter(utilisateur=user).values('nom_formation_snapshot', 'date_deblocage')
+        ),
+        'progressions': list(
+            ProgressionLecon.objects.filter(utilisateur=user).values('lecon__titre', 'terminee', 'date_completion')
+        ),
+        'commandes': list(
+            Order.objects.filter(utilisateur=user).values('reference', 'total', 'statut', 'date_creation')
+        ),
+        'badges': list(BadgeForum.objects.filter(utilisateur=user).values('type_badge', 'date_obtention')),
+        'projets_portfolio': list(ProjetEtudiant.objects.filter(auteur=user).values('titre', 'description', 'date_creation')),
+        'conversations_ia': list(
+            HistoriqueConversationIA.objects.filter(utilisateur=user).values('role', 'contenu', 'date_creation')
+        ),
+    }
+
+    reponse = HttpResponse(
+        json.dumps(donnees, indent=2, default=str, ensure_ascii=False),
+        content_type='application/json'
+    )
+    reponse['Content-Disposition'] = f'attachment; filename="mes_donnees_bta_{user.username}.json"'
+    return reponse
+
+
+@login_required(login_url='/connexion/')
+def supprimer_mon_compte(request):
+    """Anonymise le compte utilisateur — conserve les données comptables légalement requises."""
+    if request.method == 'POST':
+        confirmation = request.POST.get('confirmation', '')
+        if confirmation != 'SUPPRIMER':
+            messages.error(request, "❌ Confirmation incorrecte.")
+            return redirect('dashboard')
+
+        user = request.user
+        user_id = user.id
+
+        user.username = f"utilisateur_supprime_{user_id}"
+        user.email = f"supprime_{user_id}@anonyme.local"
+        user.first_name = "Utilisateur"
+        user.last_name = "Supprimé"
+        user.is_active = False
+        user.set_unusable_password()
+        user.save()
+
+        ProjetEtudiant.objects.filter(auteur=user).delete()
+        HistoriqueConversationIA.objects.filter(utilisateur=user).delete()
+        LogAudit.objects.create(
+            utilisateur=None, action='suppression',
+            description=f"Compte utilisateur #{user_id} anonymisé (demande RGPD)",
+        )
+
+        logout(request)
+        messages.success(request, "✅ Ton compte a été supprimé et tes données anonymisées.")
+        return redirect('accueil')
+
+    return render(request, 'academie/confirmer_suppression_compte.html')
