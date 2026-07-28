@@ -8868,3 +8868,24 @@ Traceback (most recent call last):
     )
 django.core.exceptions.FieldError: Cannot resolve keyword 'sujets_forum' into field. Choices are: abonnements, acces_debloques, affiliation, articles, auth_token, badges_forum, certificats, commandes, connexions, date_joined, email, emailaddress, first_name, groups, historique_ia, id, interactioncrm, is_active, is_staff, is_superuser, last_login, last_name, leads_assignes, logentry, logs_audit, notifications, password, profil, progressions, projets, push_recues, push_subscriptions, reaction, refund, reponse, resultats_quiz, socialaccount, sujets, tentatives_examen, transactions_validees, user_permissions, username, workflows_demandes, workflows_valides
 "GET /statistiques/ HTTP/1.1" 500 178707
+Internal Server Error: /mentorat/calendrier/
+Traceback (most recent call last):
+  File "C:\Projects\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Projects\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Projects\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\projects\blessy_tech_academy\academie\views_modules\admin_views.py", line 820, in mentorat_calendrier
+    return render(request, 'academie/mentorat_calendrier.html', {
+        'disponibilites': disponibilites,
+        'title': 'Réserver un mentorat',
+    })
+  File "C:\Projects\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Projects\venv\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "C:\Projects\venv\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: academie/mentorat_calendrier.html
+"GET /mentorat/calendrier/ HTTP/1.1" 500 120224

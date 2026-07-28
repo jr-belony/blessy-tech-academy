@@ -167,4 +167,14 @@ urlpatterns = [
     path('api/generer-ecole/', views.api_generer_ecole, name='api_generer_ecole'),
     path('api/generer-parcours-admin/', views.api_generer_parcours_admin, name='api_generer_parcours_admin'),
     path('reaction/<str:type_cible>/<int:objet_id>/', views.toggle_reaction_generique, name='toggle_reaction_generique'),
+    path("api/note-lecon/<int:lecon_id>/", views.api_note_lecon, name="api_note_lecon"),
+    path("admin/gradebook/<int:formation_id>/", views.gradebook_formation, name="gradebook_formation"),
+    path("admin/gradebook/<int:formation_id>/edit/<int:etudiant_id>/", views.gradebook_edit, name="gradebook_edit"),
+    # Mentorat
+    path("mentorat/disponibilites/", views.mentorat_disponibilites, name="mentorat_disponibilites"),
+    path("mentorat/disponibilite/supprimer/<int:disponibilite_id>/", views.mentorat_disponibilite_supprimer, name="mentorat_disponibilite_supprimer"),
+    path("mentorat/reservations/", views.mentorat_reservations, name="mentorat_reservations"),
+    path("mentorat/reserver/<int:disponibilite_id>/", views.mentorat_reserver, name="mentorat_reserver"),
+    path("mentorat/changer-statut/<int:reservation_id>/", views.mentorat_changer_statut, name="mentorat_changer_statut"),
+    path("mentorat/calendrier/", views.mentorat_calendrier, name="mentorat_calendrier"),
 ]

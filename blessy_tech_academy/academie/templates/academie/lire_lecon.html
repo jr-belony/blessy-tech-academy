@@ -72,8 +72,9 @@
         </div>
     </main>
 
-    <!-- ================= COLONNE DROITE — BLESSY AI + OUTILS ================= -->
+    <!-- ================= COLONNE DROITE — BLESSY AI + FORUM + NOTES ================= -->
     <aside class="ll-droite">
+        <!-- Blessy AI -->
         <div class="ll-droite-section">
             <h4>🤖 Blessy AI</h4>
             <p class="ll-ai-hint">Pose une question sur cette leçon</p>
@@ -89,9 +90,19 @@
             </div>
         </div>
 
+        <!-- Forum -->
         <div class="ll-droite-section">
             <h4>💬 Forum</h4>
             <a href="{% url 'forum_liste' %}?formation={{ formation.id }}" class="ll-droite-lien">Poser une question à la communauté →</a>
+        </div>
+
+        <!-- ================= WIDGET NOTES PERSONNELLES ================= -->
+        <div class="ll-droite-section">
+            <h4>📝 Mes notes</h4>
+            <textarea id="ll-notes-textarea" placeholder="Prends des notes sur cette leçon..."
+                      style="width:100%; min-height:100px; padding:8px; border:1px solid #e2e8f0; border-radius:8px; font-size:12px; resize:vertical;"></textarea>
+            <button onclick="sauvegarderNoteLL()" style="margin-top:6px; background:var(--bleu-principal); color:white; border:none; padding:6px 14px; border-radius:8px; font-size:12px; cursor:pointer;">💾 Sauvegarder</button>
+            <span id="ll-notes-statut" style="font-size:11px; color:#22c55e; margin-left:8px;"></span>
         </div>
     </aside>
 
@@ -163,6 +174,8 @@ body.ll-dark .ll-titre { color:#7dd3fc; }
 /* ================================================
    JS LIRE_LECON — Focus/Dark/Nav mobile/Blessy AI contextuel + Téléchargement offline
    ================================================ */
+
+// ---- Utilitaires ----
 function toggleModeFocus() { document.body.classList.toggle('ll-focus'); }
 function toggleDarkLL() { document.body.classList.toggle('ll-dark'); }
 function toggleNavLL() { document.getElementById('ll-nav').classList.toggle('ll-ouvert'); }
@@ -178,7 +191,7 @@ function getCookieLL(name) {
     return null;
 }
 
-// Bouton "Marquer comme terminée"
+// ---- Bouton "Marquer comme terminée" ----
 document.getElementById('ll-btn-terminer').addEventListener('click', async function() {
     const id = this.dataset.leconId;
     const reponse = await fetch(`/lecon/${id}/terminer/`, { method:'POST', headers:{'X-CSRFToken':getCookieLL('csrftoken')} });
@@ -189,6 +202,7 @@ document.getElementById('ll-btn-terminer').addEventListener('click', async funct
     }
 });
 
+// ---- Blessy AI contextuel ----
 function suggestionLL(texte) { document.getElementById('ll-ai-input').value = texte; envoyerQuestionLL(); }
 
 async function envoyerQuestionLL() {
@@ -210,7 +224,43 @@ async function envoyerQuestionLL() {
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
-// ================= TÉLÉCHARGEMENT OFFLINE (conservé de l'ancienne version) =================
+// ---- Notes personnelles ----
+async function chargerNoteLL() {
+    try {
+        const reponse = await fetch('/api/note-lecon/{{ lecon.id }}/');
+        if (reponse.ok) {
+            const data = await reponse.json();
+            document.getElementById('ll-notes-textarea').value = data.contenu || '';
+        }
+    } catch (e) {
+        console.warn('Erreur chargement note:', e);
+    }
+}
+
+async function sauvegarderNoteLL() {
+    const contenu = document.getElementById('ll-notes-textarea').value;
+    const statut = document.getElementById('ll-notes-statut');
+    try {
+        const reponse = await fetch('/api/note-lecon/{{ lecon.id }}/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookieLL('csrftoken')
+            },
+            body: JSON.stringify({ contenu: contenu })
+        });
+        if (reponse.ok) {
+            statut.textContent = '✓ Sauvegardé';
+            setTimeout(() => statut.textContent = '', 2000);
+        } else {
+            statut.textContent = '⚠️ Erreur';
+        }
+    } catch (e) {
+        statut.textContent = '⚠️ Erreur';
+    }
+}
+
+// ---- Téléchargement hors-ligne ----
 async function ouvrirDB() {
     return new Promise((resolve, reject) => {
         const req = indexedDB.open('bta-offline-db', 1);
@@ -243,5 +293,10 @@ async function telechargerLeconOffline() {
     btn.textContent = '✅ Disponible hors-ligne';
     setTimeout(() => { btn.textContent = '📥 Télécharger pour hors-ligne'; }, 3000);
 }
+
+// ---- Chargement initial ----
+document.addEventListener('DOMContentLoaded', function() {
+    chargerNoteLL();  // charge la note personnelle
+});
 </script>
 {% endblock %}

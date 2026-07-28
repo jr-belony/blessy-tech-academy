@@ -36,6 +36,9 @@
     <a href="?onglet=vente" class="wf-tab {% if onglet_actif == 'vente' %}wf-tab-actif{% endif %}">💰 Vente</a>
     <a href="?onglet=seo" class="wf-tab {% if onglet_actif == 'seo' %}wf-tab-actif{% endif %}">🌍 SEO</a>
     <a href="?onglet=parametres" class="wf-tab {% if onglet_actif == 'parametres' %}wf-tab-actif{% endif %}">⚙️ Paramètres</a>
+    <a href="{% url 'gradebook_formation' formation.id %}" class="btn btn-outline-primary btn-sm">
+    📊 Gradebook
+</a>
 </div>
 
 <!-- ---- CONTENU SELON ONGLET ---- -->

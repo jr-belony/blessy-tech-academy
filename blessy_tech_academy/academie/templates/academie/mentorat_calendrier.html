@@ -1,0 +1,35 @@
+{% extends 'academie/base.html' %}
+{% block titre %}Réserver un mentorat — Blessy Tech Academy{% endblock %}
+{% block contenu %}
+<section style="max-width:900px; margin:0 auto; padding:40px 20px;">
+    <h1 style="color:var(--bleu-principal);">📅 Réserver un mentorat</h1>
+    <p style="color:var(--gris-texte);">Choisis un créneau disponible avec un formateur.</p>
+
+    {% if disponibilites %}
+        {% regroup disponibilites by date as dispo_par_date %}
+        {% for groupe in dispo_par_date %}
+            <div style="background:white; border-radius:12px; box-shadow:var(--ombre-legere); padding:20px; margin-top:24px;">
+                <h3 style="color:var(--bleu-principal);">{{ groupe.grouper|date:"l d F Y" }}</h3>
+                {% for dispo in groupe.list %}
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid #f0f0f0;">
+                        <div>
+                            <span style="font-weight:600;">{{ dispo.formateur.get_full_name|default:dispo.formateur.username }}</span>
+                            <span style="color:var(--gris-texte); margin-left:12px;">{{ dispo.heure_debut|time:"H:i" }} – {{ dispo.heure_fin|time:"H:i" }}</span>
+                        </div>
+                        <form method="post" action="{% url 'mentorat_reserver' dispo.id %}">
+                            {% csrf_token %}
+                            <input type="text" name="sujet" placeholder="Sujet de la session" required style="padding:6px 10px; border:1px solid #e2e8f0; border-radius:6px; font-size:13px; width:160px;">
+                            <button type="submit" style="background:var(--bleu-principal); color:white; border:none; padding:6px 16px; border-radius:6px; cursor:pointer;">Réserver</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <div style="background:#f9fafb; padding:40px; text-align:center; border-radius:12px;">
+            <span style="font-size:48px;">📭</span>
+            <p style="color:var(--gris-texte); margin-top:12px;">Aucun créneau disponible pour les prochains jours.<br>Reviens plus tard.</p>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

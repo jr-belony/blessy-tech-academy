@@ -1,0 +1,20 @@
+{% extends 'academie/base.html' %}
+{% block titre %}Réserver un créneau — Blessy Tech Academy{% endblock %}
+{% block contenu %}
+<section style="max-width:600px; margin:0 auto; padding:40px 20px;">
+    <h1 style="color:var(--bleu-principal);">📅 Réserver un mentorat</h1>
+    <p style="color:var(--gris-texte);">Confirme ta réservation avec {{ disponibilite.formateur.get_full_name|default:disponibilite.formateur.username }}.</p>
+    <div style="background:white; border-radius:12px; box-shadow:var(--ombre-legere); padding:24px;">
+        <p><strong>Date :</strong> {{ disponibilite.date|date:"l d F Y" }}</p>
+        <p><strong>Heure :</strong> {{ disponibilite.heure_debut|time:"H:i" }} – {{ disponibilite.heure_fin|time:"H:i" }}</p>
+        <form method="post">
+            {% csrf_token %}
+            <div style="margin-bottom:16px;">
+                <label for="sujet" style="font-weight:600; display:block; margin-bottom:4px;">Sujet de la session</label>
+                <input type="text" name="sujet" id="sujet" required style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:6px;">
+            </div>
+            <button type="submit" style="background:var(--bleu-principal); color:white; border:none; padding:10px 20px; border-radius:6px; cursor:pointer;">Confirmer la réservation</button>
+        </form>
+    </div>
+</section>
+{% endblock %}

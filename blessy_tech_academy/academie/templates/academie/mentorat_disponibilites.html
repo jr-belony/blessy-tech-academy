@@ -1,0 +1,46 @@
+{% extends 'academie/base.html' %}
+{% block titre %}Mes disponibilités — Blessy Tech Academy{% endblock %}
+{% block contenu %}
+<section style="max-width:900px; margin:0 auto; padding:40px 20px;">
+    <h1 style="color:var(--bleu-principal);">📋 Mes disponibilités</h1>
+    <p style="color:var(--gris-texte);">Ajoute des créneaux pour recevoir des demandes de mentorat.</p>
+
+    <!-- Formulaire d'ajout -->
+    <div style="background:white; border-radius:12px; box-shadow:var(--ombre-legere); padding:20px; margin-bottom:24px;">
+        <h3 style="font-size:16px; color:var(--bleu-principal);">➕ Ajouter un créneau</h3>
+        <form method="post" style="display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
+            {% csrf_token %}
+            <input type="date" name="date" required style="padding:8px; border:1px solid #e2e8f0; border-radius:6px;">
+            <input type="time" name="heure_debut" required style="padding:8px; border:1px solid #e2e8f0; border-radius:6px;">
+            <input type="time" name="heure_fin" required style="padding:8px; border:1px solid #e2e8f0; border-radius:6px;">
+            <button type="submit" style="background:var(--bleu-principal); color:white; border:none; padding:8px 20px; border-radius:6px; cursor:pointer;">Ajouter</button>
+        </form>
+    </div>
+
+    <!-- Liste des disponibilités -->
+    <div style="background:white; border-radius:12px; box-shadow:var(--ombre-legere); padding:20px;">
+        <h3 style="font-size:16px; color:var(--bleu-principal);">📅 Mes créneaux</h3>
+        {% if disponibilites %}
+            {% regroup disponibilites by date as dispo_par_date %}
+            {% for groupe in dispo_par_date %}
+                <div style="margin-top:16px;">
+                    <h4 style="color:var(--bleu-electrique);">{{ groupe.grouper|date:"l d F Y" }}</h4>
+                    {% for dispo in groupe.list %}
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f0f0f0;">
+                            <span>{{ dispo.heure_debut|time:"H:i" }} – {{ dispo.heure_fin|time:"H:i" }}
+                                {% if not dispo.actif %} <span style="color:#e53e3e;">(inactif)</span>{% endif %}
+                            </span>
+                            <form method="post" action="{% url 'mentorat_disponibilite_supprimer' dispo.id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" style="background:#fee2e2; color:#991b1b; border:none; padding:4px 12px; border-radius:4px; cursor:pointer;">Supprimer</button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        {% else %}
+            <p style="color:var(--gris-texte);">Aucun créneau pour le moment.</p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

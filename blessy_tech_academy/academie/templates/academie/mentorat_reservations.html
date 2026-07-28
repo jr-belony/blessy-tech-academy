@@ -1,0 +1,55 @@
+{% extends 'academie/base.html' %}
+{% block titre %}Mes réservations — Blessy Tech Academy{% endblock %}
+{% block contenu %}
+<section style="max-width:900px; margin:0 auto; padding:40px 20px;">
+    <h1 style="color:var(--bleu-principal);">📋 Mes réservations</h1>
+    <p style="color:var(--gris-texte);">Suis l'état de tes demandes de mentorat.</p>
+
+    {% if reservations %}
+        <div style="background:white; border-radius:12px; box-shadow:var(--ombre-legere); padding:20px;">
+            {% for res in reservations %}
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid #f0f0f0;">
+                    <div>
+                        <div style="font-weight:600;">
+                            {% if request.user == res.etudiant %}
+                                {{ res.disponibilite.formateur.get_full_name|default:res.disponibilite.formateur.username }}
+                            {% else %}
+                                {{ res.etudiant.get_full_name|default:res.etudiant.username }}
+                            {% endif %}
+                        </div>
+                        <div style="font-size:13px; color:var(--gris-texte);">
+                            {{ res.disponibilite.date|date:"d/m/Y" }} {{ res.disponibilite.heure_debut|time:"H:i" }} – {{ res.disponibilite.heure_fin|time:"H:i" }}
+                            <br>Sujet : {{ res.sujet }}
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="display:inline-block; padding:4px 12px; border-radius:12px; font-size:12px; font-weight:700;
+                            {% if res.statut == 'confirmee' %}background:#d1fae5; color:#065f46;
+                            {% elif res.statut == 'en_attente' %}background:#fef3c7; color:#92400e;
+                            {% elif res.statut == 'annulee' %}background:#fee2e2; color:#991b1b;
+                            {% elif res.statut == 'terminee' %}background:#e0e7ff; color:#4338ca;
+                            {% endif %}">
+                            {{ res.get_statut_display }}
+                        </span>
+                        {% if request.user == res.disponibilite.formateur and res.statut == 'en_attente' %}
+                            <form method="post" action="{% url 'mentorat_changer_statut' res.id %}" style="margin-top:6px;">
+                                {% csrf_token %}
+                                <select name="statut" style="padding:4px; border:1px solid #e2e8f0; border-radius:4px; font-size:12px;">
+                                    <option value="confirmee">✅ Confirmer</option>
+                                    <option value="annulee">❌ Annuler</option>
+                                </select>
+                                <button type="submit" style="background:var(--bleu-principal); color:white; border:none; padding:4px 12px; border-radius:4px; cursor:pointer;">Mettre à jour</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div style="background:#f9fafb; padding:40px; text-align:center; border-radius:12px;">
+            <span style="font-size:48px;">📭</span>
+            <p style="color:var(--gris-texte); margin-top:12px;">Aucune réservation pour le moment.</p>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

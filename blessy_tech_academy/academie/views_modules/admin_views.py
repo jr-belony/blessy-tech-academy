@@ -25,9 +25,11 @@ from ..models import (
     AccesFormationDebloque,
     Article,
     Certificat,
+    DisponibiliteMentor,
     Ecole,
     Examen,
     Formation,
+    GradebookEntry,
     Inscription,
     Invoice,
     Lecon,
@@ -39,6 +41,7 @@ from ..models import (
     Promotion,
     Quiz,
     Refund,
+    ReservationMentorat,         
     Sujet,
     Transaction,
     WorkflowFormation,
@@ -560,3 +563,261 @@ def export_ventes_pdf(request):
     response = HttpResponse(pdf, content_type="application/pdf")
     response["Content-Disposition"] = 'attachment; filename="rapport_ventes_bta.pdf"'
     return response
+
+
+# ================================================
+# Gradebook — Suivi des étudiants par formation
+# ================================================
+
+@login_required
+@role_required("formateur", "resp_academique", "admin", "super_admin")
+def gradebook_formation(request, formation_id):
+    formation = get_object_or_404(Formation, id=formation_id)
+
+    # Récupérer tous les étudiants ayant accès à cette formation
+    etudiants = User.objects.filter(
+        acces_debloques__formation=formation
+    ).distinct()
+
+    # Pour chaque étudiant, récupérer sa note (GradebookEntry) et sa progression
+    data = []
+    for etudiant in etudiants:
+        note_entry = GradebookEntry.objects.filter(
+            formation=formation, etudiant=etudiant
+        ).first()
+        progression = formation.progression_pour(etudiant)
+        data.append({
+            'etudiant': etudiant,
+            'note': note_entry.note if note_entry else None,
+            'appreciation': note_entry.appreciation if note_entry else '',
+            'progression': progression,
+        })
+
+    return render(request, 'academie/gradebook.html', {
+        'formation': formation,
+        'etudiants': data,
+        'title': f'Gradebook — {formation.nom}',
+    })
+
+
+@login_required
+@role_required("formateur", "resp_academique", "admin", "super_admin")
+def gradebook_edit(request, formation_id, etudiant_id):
+    """Formulaire d'édition d'une note pour un étudiant."""
+    if request.method == 'POST':
+        note = request.POST.get('note')
+        appreciation = request.POST.get('appreciation', '')
+        try:
+            note_decimal = Decimal(note)
+            if note_decimal < 0 or note_decimal > 20:
+                messages.error(request, "La note doit être entre 0 et 20.")
+                return redirect('gradebook_formation', formation_id=formation_id)
+        except:
+            messages.error(request, "Note invalide.")
+            return redirect('gradebook_formation', formation_id=formation_id)
+
+        GradebookEntry.objects.update_or_create(
+            formation_id=formation_id,
+            etudiant_id=etudiant_id,
+            defaults={
+                'note': note_decimal,
+                'appreciation': appreciation,
+                'formateur': request.user,
+            }
+        )
+        messages.success(request, "✅ Note enregistrée.")
+        return redirect('gradebook_formation', formation_id=formation_id)
+
+    # GET : afficher le formulaire
+    etudiant = get_object_or_404(User, id=etudiant_id)
+    formation = get_object_or_404(Formation, id=formation_id)
+    entry = GradebookEntry.objects.filter(formation=formation, etudiant=etudiant).first()
+
+    return render(request, 'academie/gradebook_edit.html', {
+        'formation': formation,
+        'etudiant': etudiant,
+        'note': entry.note if entry else '',
+        'appreciation': entry.appreciation if entry else '',
+    })
+
+
+# ================================================
+# Mentorat — Gestion des disponibilités
+# ================================================
+
+@login_required
+@role_required("formateur", "admin", "super_admin")
+def liste_disponibilites_mentor(request):
+    """Liste des créneaux de disponibilité du formateur connecté."""
+    disponibilites = DisponibiliteMentor.objects.filter(formateur=request.user).order_by('date', 'heure_debut')
+    return render(request, 'academie/mentor/disponibilites.html', {
+        'disponibilites': disponibilites,
+        'title': 'Mes disponibilités',
+    })
+
+@login_required
+@role_required("formateur", "admin", "super_admin")
+def ajouter_disponibilite_mentor(request):
+    """Ajouter un créneau de disponibilité."""
+    if request.method == 'POST':
+        date = request.POST.get('date')
+        heure_debut = request.POST.get('heure_debut')
+        heure_fin = request.POST.get('heure_fin')
+        if date and heure_debut and heure_fin:
+            try:
+                DisponibiliteMentor.objects.create(
+                    formateur=request.user,
+                    date=date,
+                    heure_debut=heure_debut,
+                    heure_fin=heure_fin,
+                    actif=True
+                )
+                messages.success(request, "✅ Créneau ajouté.")
+            except Exception as e:
+                messages.error(request, f"❌ Erreur : {str(e)}")
+        else:
+            messages.error(request, "❌ Tous les champs sont requis.")
+        return redirect('liste_disponibilites_mentor')
+    return render(request, 'academie/mentor/ajouter_disponibilite.html', {'title': 'Ajouter un créneau'})
+
+@login_required
+@role_required("formateur", "admin", "super_admin")
+def supprimer_disponibilite_mentor(request, disponibilite_id):
+    """Supprimer un créneau de disponibilité."""
+    dispo = get_object_or_404(DisponibiliteMentor, id=disponibilite_id, formateur=request.user)
+    dispo.delete()
+    messages.success(request, "✅ Créneau supprimé.")
+    return redirect('liste_disponibilites_mentor')
+
+
+# ================================================
+# MENTORAT — Disponibilités du formateur
+# ================================================
+
+@login_required
+@role_required("formateur", "resp_academique", "admin", "super_admin")
+def mentorat_disponibilites(request):
+    """Liste et gestion des disponibilités du formateur connecté."""
+    formateur = request.user
+    disponibilites = DisponibiliteMentor.objects.filter(formateur=formateur).order_by('date', 'heure_debut')
+
+    if request.method == 'POST':
+        date = request.POST.get('date')
+        heure_debut = request.POST.get('heure_debut')
+        heure_fin = request.POST.get('heure_fin')
+        if date and heure_debut and heure_fin:
+            DisponibiliteMentor.objects.create(
+                formateur=formateur,
+                date=date,
+                heure_debut=heure_debut,
+                heure_fin=heure_fin,
+                actif=True
+            )
+            messages.success(request, "✅ Créneau ajouté.")
+        else:
+            messages.error(request, "❌ Tous les champs sont obligatoires.")
+        return redirect('mentorat_disponibilites')
+
+    return render(request, 'academie/mentorat_disponibilites.html', {
+        'disponibilites': disponibilites,
+        'title': 'Mes disponibilités',
+    })
+
+
+@login_required
+@role_required("formateur", "resp_academique", "admin", "super_admin")
+def mentorat_disponibilite_supprimer(request, disponibilite_id):
+    """Supprime une disponibilité."""
+    dispo = get_object_or_404(DisponibiliteMentor, id=disponibilite_id, formateur=request.user)
+    if request.method == 'POST':
+        dispo.delete()
+        messages.success(request, "✅ Créneau supprimé.")
+    return redirect('mentorat_disponibilites')
+
+
+@login_required
+def mentorat_reservations(request):
+    """Liste des réservations pour l'étudiant ou le formateur."""
+    if request.user.profil.role in ['formateur', 'admin', 'resp_academique']:
+        # Le formateur voit les réservations sur ses disponibilités
+        reservations = ReservationMentorat.objects.filter(
+            disponibilite__formateur=request.user
+        ).select_related('etudiant', 'disponibilite').order_by('-date_reservation')
+    else:
+        # L'étudiant voit ses propres réservations
+        reservations = ReservationMentorat.objects.filter(
+            etudiant=request.user
+        ).select_related('disponibilite__formateur').order_by('-date_reservation')
+
+    return render(request, 'academie/mentorat_reservations.html', {
+        'reservations': reservations,
+        'title': 'Mes réservations',
+    })
+
+
+@login_required
+def mentorat_reserver(request, disponibilite_id):
+    """Un étudiant réserve un créneau."""
+    if request.method == 'POST':
+        dispo = get_object_or_404(DisponibiliteMentor, id=disponibilite_id, actif=True)
+        # Vérifier que le créneau n'est pas déjà réservé
+        if ReservationMentorat.objects.filter(disponibilite=dispo, statut__in=['en_attente', 'confirmee']).exists():
+            messages.error(request, "❌ Ce créneau est déjà réservé.")
+            return redirect('mentorat_calendrier')
+
+        sujet = request.POST.get('sujet', '').strip()
+        if not sujet:
+            messages.error(request, "❌ Veuillez indiquer un sujet.")
+            return redirect('mentorat_calendrier')
+
+        ReservationMentorat.objects.create(
+            disponibilite=dispo,
+            etudiant=request.user,
+            sujet=sujet,
+            statut='en_attente'
+        )
+        messages.success(request, "✅ Demande de réservation envoyée.")
+        return redirect('mentorat_reservations')
+
+    return redirect('mentorat_calendrier')
+
+
+@login_required
+@role_required("formateur", "resp_academique", "admin", "super_admin")
+def mentorat_changer_statut(request, reservation_id):
+    """Le formateur accepte ou refuse une réservation."""
+    if request.method == 'POST':
+        reservation = get_object_or_404(
+            ReservationMentorat,
+            id=reservation_id,
+            disponibilite__formateur=request.user
+        )
+        nouveau_statut = request.POST.get('statut')
+        if nouveau_statut in ['confirmee', 'annulee', 'terminee']:
+            reservation.statut = nouveau_statut
+            reservation.save()
+            messages.success(request, f"✅ Statut mis à jour : {reservation.get_statut_display()}")
+        else:
+            messages.error(request, "❌ Statut invalide.")
+    return redirect('mentorat_reservations')
+
+
+@login_required
+def mentorat_calendrier(request):
+    """Calendrier des disponibilités pour les étudiants."""
+    from datetime import date, timedelta
+
+    # Par défaut, on affiche les disponibilités des 7 prochains jours
+    aujourdhui = date.today()
+    fin_periode = aujourdhui + timedelta(days=7)
+
+    disponibilites = DisponibiliteMentor.objects.filter(
+        date__gte=aujourdhui,
+        date__lte=fin_periode,
+        actif=True
+    ).select_related('formateur').order_by('date', 'heure_debut')
+
+    return render(request, 'academie/mentorat_calendrier.html', {
+        'disponibilites': disponibilites,
+        'title': 'Réserver un mentorat',
+    })

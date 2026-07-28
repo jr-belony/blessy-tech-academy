@@ -1,0 +1,52 @@
+{% extends 'academie/base.html' %}
+{% block titre %}Gradebook — {{ formation.nom }}{% endblock %}
+{% block contenu %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>📊 Gradebook — {{ formation.nom }}</h1>
+        <a href="{% url 'workspace_formation' formation.id %}" class="btn btn-secondary">← Retour au workspace</a>
+    </div>
+    <p class="text-muted">Suivi des notes et progression des étudiants inscrits</p>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Étudiant</th>
+                    <th>Progression</th>
+                    <th>Note /20</th>
+                    <th>Appréciation</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in etudiants %}
+                <tr>
+                    <td>{{ item.etudiant.get_full_name|default:item.etudiant.username }}</td>
+                    <td>
+                        <div class="progress" style="height:20px; width:120px;">
+                            <div class="progress-bar bg-info" role="progressbar" style="width:{{ item.progression }}%;" aria-valuenow="{{ item.progression }}" aria-valuemin="0" aria-valuemax="100">
+                                {{ item.progression }}%
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if item.note is not None %}
+                            <span class="badge bg-primary">{{ item.note }}/20</span>
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ item.appreciation|truncatechars:50 }}</td>
+                    <td>
+                        <a href="{% url 'gradebook_edit' formation.id item.etudiant.id %}" class="btn btn-sm btn-outline-primary">✏️ Éditer</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center">Aucun étudiant inscrit à cette formation.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

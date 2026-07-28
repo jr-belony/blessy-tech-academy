@@ -188,6 +188,11 @@ def marquer_lecon_terminee(request, lecon_id):
             progression.date_completion = timezone.now() if progression.terminee else None
             progression.save()
 
+            # ===== ENREGISTREMENT DU STREAK =====
+            from ..models import StreakEtudiant
+            streak, _ = StreakEtudiant.objects.get_or_create(utilisateur=request.user)
+            streak.enregistrer_activite_jour()
+
             if progression.terminee:
                 ajouter_xp(request.user, "lecon_terminee")
                 formation = lecon.module.formation
@@ -212,6 +217,7 @@ def marquer_lecon_terminee(request, lecon_id):
             return JsonResponse({"erreur": str(e)}, status=500)
 
     return JsonResponse({"erreur": "Méthode non autorisée"}, status=405)
+
 
 
 # ================================================
@@ -809,3 +815,38 @@ def verifier_acces_formation(user, formation):
     if not user.is_authenticated:
         return False
     return AccesFormationDebloque.objects.filter(utilisateur=user, formation=formation).exists()
+
+
+# ================================================
+# Notes personnelles sur leçon
+# ================================================
+
+import json
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from ..models import NoteLecon
+
+@login_required(login_url='/connexion/')
+def api_note_lecon(request, lecon_id):
+    """
+    GET  : récupère la note existante pour l'utilisateur et la leçon
+    POST : sauvegarde ou met à jour la note
+    """
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            note, _ = NoteLecon.objects.update_or_create(
+                utilisateur=request.user,
+                lecon_id=lecon_id,
+                defaults={'contenu': data.get('contenu', '')}
+            )
+            return JsonResponse({'succes': True})
+        except json.JSONDecodeError:
+            return JsonResponse({'erreur': 'Données JSON invalides'}, status=400)
+        except Exception as e:
+            return JsonResponse({'erreur': str(e)}, status=500)
+
+    note = NoteLecon.objects.filter(utilisateur=request.user, lecon_id=lecon_id).first()
+    return JsonResponse({'contenu': note.contenu if note else ''})
+
+

@@ -1,0 +1,33 @@
+{% extends 'academie/base.html' %}
+{% block titre %}Éditer la note — {{ formation.nom }}{% endblock %}
+{% block contenu %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h3 class="mb-0">✏️ Note de {{ etudiant.get_full_name|default:etudiant.username }}</h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Formation : <strong>{{ formation.nom }}</strong></p>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="note" class="form-label">Note sur 20</label>
+                            <input type="number" step="0.5" min="0" max="20" name="note" id="note" class="form-control" value="{{ note|default:'' }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="appreciation" class="form-label">Appréciation (optionnel)</label>
+                            <textarea name="appreciation" id="appreciation" class="form-control" rows="3">{{ appreciation }}</textarea>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success">💾 Enregistrer</button>
+                            <a href="{% url 'gradebook_formation' formation.id %}" class="btn btn-secondary">Annuler</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
