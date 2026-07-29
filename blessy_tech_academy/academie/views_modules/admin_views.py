@@ -5,6 +5,7 @@
 import json
 import os
 import markdown as markdown_lib
+import logging
 from datetime import timedelta
 from decimal import Decimal
 from io import StringIO
@@ -67,6 +68,7 @@ from ..services.ia_service import (
 )
 from ..xp_utils import ajouter_xp
 from .. import notifications
+logger = logging.getLogger('academie')
 
 
 # ================================================
@@ -218,8 +220,9 @@ def admin_valider_transaction(request, transaction_id):
 
         facture, _ = Invoice.objects.get_or_create(commande=commande)
         if commande.coupon_applique:
-            commande.coupon_applique.utilisations_actuelles += 1
-            commande.coupon_applique.save()
+            succes, msg = commande.coupon_applique.utiliser_atomiquement()
+            if not succes:
+                logger.warning(f"Échec coupon : {msg}")
 
         try:
             from ..tasks import (

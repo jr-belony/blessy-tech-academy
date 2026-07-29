@@ -81,6 +81,7 @@ INSTALLED_APPS = [
     'crm',
     'forum', 
     'content',
+    'storages'
 ]
 # Debug Toolbar (développement uniquement)
 if DEBUG:
@@ -502,10 +503,17 @@ else:
 # Compatible AWS S3, Cloudflare R2 (moins cher), MinIO, Backblaze B2
 # ================================================
 
-INSTALLED_APPS += ['storages']
-
 USE_S3_STORAGE = config('USE_S3_STORAGE', default=False, cast=bool)
 
+# ================================================
+# CORRECTIF CRITIQUE : Forcer S3 en production
+# ================================================
+if not DEBUG and not USE_S3_STORAGE:
+    raise ValueError(
+        "❌ USE_S3_STORAGE=True est OBLIGATOIRE en production. "
+        "Railway efface /media/ à chaque déploiement — configure "
+        "Cloudflare R2 ou AWS S3 avant de déployer (voir README.md)."
+    )
 if USE_S3_STORAGE:
     AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default='')
     AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default='')

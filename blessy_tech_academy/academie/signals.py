@@ -2,12 +2,13 @@
 Signaux Django pour Blessy Tech Academy.
 - Compression automatique des images uploadées (ProjetEtudiant, Formation)
 - Détection des connexions suspectes et historique des connexions
+- Auto-création ProfilUtilisateur et WorkflowFormation
 """
 
 import os
+import logging
 from io import BytesIO
 
-import requests
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth.signals import user_logged_in
@@ -19,6 +20,8 @@ from PIL import Image
 
 from .models import ConnexionUtilisateur, ProjetEtudiant
 from .models import Formation
+
+logger = logging.getLogger('academie')
 
 TAILLE_MAX = (1200, 1200)
 QUALITE_JPEG = 82
@@ -98,52 +101,44 @@ def compresser_illustration_formation(sender, instance, **kwargs):
 
 
 # ================================================
-# FONCTION UTILITAIRE : Géolocalisation IP
-# ================================================
-def get_geo_info(ip):
-    try:
-        response = requests.get(f"http://ip-api.com/json/{ip}", timeout=3)
-        if response.status_code == 200:
-            data = response.json()
-            return data.get("country", ""), data.get("city", "")
-    except Exception:
-        pass
-    return "", ""
-
-
-# ================================================
-# SIGNAL : user_logged_in
+# SIGNAL : user_logged_in (version sécurisée, sans géolocalisation externe)
 # ================================================
 @receiver(user_logged_in)
 def enregistrer_connexion(sender, request, user, **kwargs):
-    # Correction : IP par défaut '0.0.0.0' si aucune IP réelle n'est trouvée
-    ip = (
-        request.META.get("HTTP_X_FORWARDED_FOR", request.META.get("REMOTE_ADDR", "0.0.0.0"))
-        .split(",")[0]
-        .strip()
-    )
+    """
+    Enregistre la connexion de l'utilisateur avec IP et navigateur.
+    Aucun appel externe (ip-api.com) – conforme RGPD.
+    """
+    ip = request.META.get("HTTP_X_FORWARDED_FOR", request.META.get("REMOTE_ADDR", ""))
+    if ip:
+        ip = ip.split(",")[0].strip()
     if not ip:
         ip = "0.0.0.0"
-    user_agent = request.META.get("HTTP_USER_AGENT", "")[:300]
-    pays, ville = get_geo_info(ip)
 
+    user_agent = request.META.get("HTTP_USER_AGENT", "")[:300]
+
+    # Journalisation locale
+    logger.info(f"Connexion de {user.username} depuis IP {ip}")
+
+    # Détection suspecte basée uniquement sur l'IP (pas de pays/ville)
     derniere = (
         ConnexionUtilisateur.objects.filter(utilisateur=user).order_by("-date_connexion").first()
     )
     suspecte = False
-    if derniere and (derniere.pays != pays or derniere.adresse_ip != ip):
+    if derniere and derniere.adresse_ip != ip:
         suspecte = True
 
+    # Création de l'enregistrement (pays et ville vides)
     ConnexionUtilisateur.objects.create(
         utilisateur=user,
         adresse_ip=ip,
         navigateur=user_agent,
-        pays=pays,
-        ville=ville,
+        pays="",      # plus de géolocalisation externe
+        ville="",
         suspecte=suspecte,
     )
 
-    # === Email d'alerte (protégé) ===
+    # Email d'alerte en cas de suspect (conserve la logique)
     if suspecte and user.email:
         try:
             send_mail(
@@ -152,8 +147,6 @@ def enregistrer_connexion(sender, request, user, **kwargs):
                     f"Bonjour {user.first_name or user.username},\n\n"
                     f"Une nouvelle connexion à votre compte Blessy Tech Academy a été détectée :\n\n"
                     f"📍 Adresse IP : {ip}\n"
-                    f"🌍 Pays : {pays}\n"
-                    f"🏙️ Ville : {ville}\n"
                     f"🖥️ Navigateur : {user_agent[:100]}\n\n"
                     f"Si vous n'êtes pas à l'origine de cette connexion, changez immédiatement votre mot de passe.\n\n"
                     f"L'équipe BTA"
@@ -169,7 +162,6 @@ def enregistrer_connexion(sender, request, user, **kwargs):
 # ================================================
 # SIGNAL — Auto-création ProfilUtilisateur à l'inscription
 # ================================================
-
 
 @receiver(post_save, sender=User)
 def creer_profil_utilisateur(sender, instance, created, **kwargs):

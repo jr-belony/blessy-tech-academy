@@ -30,6 +30,9 @@ from django.db.models import F
 import stripe
 import paypalrestsdk
 
+logger = logging.getLogger('academie')
+
+
 # ================================================
 # Fonction utilitaire (copiée depuis views.py)
 # ================================================
@@ -211,8 +214,6 @@ def rediriger_paiement_externe(request, order_reference):
 
 
 
-logger = logging.getLogger('academie')
-
 @login_required(login_url='/connexion/')
 def paiement_succes(request, order_reference):
     """
@@ -297,14 +298,14 @@ def paiement_succes(request, order_reference):
 
         Invoice.objects.get_or_create(commande=commande)
 
+        # ===== CORRECTIF : Utilisation atomique du coupon =====
         if commande.coupon_applique:
-            Coupon.objects.filter(id=commande.coupon_applique.id).update(
-                utilisations_actuelles=F('utilisations_actuelles') + 1
-            )
+            succes, msg = commande.coupon_applique.utiliser_atomiquement()
+            if not succes:
+                logger.warning(f"Échec coupon : {msg}")
 
     messages.success(request, "🎉 Paiement confirmé ! Accès débloqué immédiatement.")
     return redirect('mes_commandes')
-
 
 
 @csrf_exempt

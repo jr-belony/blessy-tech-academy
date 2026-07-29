@@ -6,6 +6,7 @@
 from django.db import models
 from django.utils import timezone
 import uuid
+from django.db import transaction
 
 
 class MoyenPaiement(models.Model):
@@ -65,6 +66,27 @@ class Coupon(models.Model):
             return False, "Ce coupon a atteint sa limite d'utilisation."
         return True, ""
 
+    # ================================================
+    # CORRECTIF : Verrouillage atomique pour éviter la race condition
+    # ================================================
+    def utiliser_atomiquement(self):
+        """
+        Incrémente utilisations_actuelles de façon atomique avec 
+        verrouillage de ligne (SELECT FOR UPDATE) — élimine la race condition.
+        Retourne (succes: bool, message: str).
+        """
+        from django.db import transaction as db_transaction
+
+        with db_transaction.atomic():
+            coupon_verrouille = Coupon.objects.select_for_update().get(id=self.id)
+
+            valide, message = coupon_verrouille.est_valide()
+            if not valide:
+                return False, message
+
+            coupon_verrouille.utilisations_actuelles += 1
+            coupon_verrouille.save(update_fields=['utilisations_actuelles'])
+            return True, "Coupon appliqué avec succès."
 
 class Promotion(models.Model):
     nom = models.CharField(max_length=150)
