@@ -263,10 +263,13 @@ class AccesFormationDebloque(models.Model):
     class Meta:
         app_label = 'academie'
         db_table = 'academie_accesformationdebloque'
-        unique_together = ['utilisateur', 'nom_formation_snapshot']
+        unique_together = ['utilisateur', 'formation']  # ⚠️ CHANGÉ (était nom_formation_snapshot)
         verbose_name = "Accès formation débloqué"
         verbose_name_plural = "Accès formations débloqués"
-        indexes = [models.Index(fields=['utilisateur']), models.Index(fields=['formation'])]
+        indexes = [
+            models.Index(fields=['utilisateur']),
+            models.Index(fields=['formation']),
+    ]
     def __str__(self):
         return f"{self.utilisateur.username} → {self.nom_formation_snapshot}"
 
