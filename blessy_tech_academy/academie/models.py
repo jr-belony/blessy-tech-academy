@@ -405,6 +405,9 @@ class ResultatQuiz(models.Model):
     class Meta:
         app_label = 'academie'
         db_table = 'academie_resultatquiz'
+        indexes = [
+            models.Index(fields=['utilisateur', 'quiz']),   # ← AJOUTÉ
+        ]
 
     def pourcentage(self):
         return round((self.score / self.total_questions) * 100) if self.total_questions else 0
@@ -581,6 +584,9 @@ class Examen(models.Model):
         db_table = 'academie_examen'
         verbose_name = 'Examen'
         verbose_name_plural = 'Examens'
+        indexes = [
+            models.Index(fields=['formation']),   # ← AJOUTÉ
+        ]
 
     def __str__(self):
         return self.titre
@@ -776,6 +782,9 @@ class ReservationMentorat(models.Model):
         ordering = ['-date_reservation']
         verbose_name = 'Réservation mentorat'
         verbose_name_plural = 'Réservations mentorat'
+        indexes = [
+            models.Index(fields=['etudiant']),   # ← AJOUTÉ
+        ]
 
     def __str__(self):
         return f"{self.etudiant.username} → {self.disponibilite.formateur.username} ({self.get_statut_display()})"

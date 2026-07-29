@@ -302,7 +302,8 @@ SOCIALACCOUNT_LOGIN_ON_GET = True
 
 
 # ========== Sécurité des cookies ==========
-CSRF_COOKIE_HTTPONLY = True
+# 🔥 CORRECTIF : CSRF_COOKIE_HTTPONLY doit être False pour les requêtes AJAX
+CSRF_COOKIE_HTTPONLY = False
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = 'Strict'
 SESSION_COOKIE_SAMESITE = 'Strict'
@@ -335,9 +336,9 @@ CSP_SCRIPT_SRC = (
     "https://www.googletagmanager.com",
     "https://www.google-analytics.com",
 )
+# 🔥 CORRECTIF : suppression de 'unsafe-inline' des styles (CSP renforcé)
 CSP_STYLE_SRC = (
     "'self'",
-    "'unsafe-inline'",   # CKEditor a besoin d'inline styles
     "https://cdn.ckeditor.com",
     "https://cdn.jsdelivr.net",
     "https://fonts.googleapis.com",

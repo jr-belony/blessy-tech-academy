@@ -680,3 +680,101 @@ class ExtractionAppLearningTestCase(TestCase):
         module = Module.objects.create(formation=formation, titre='M1', ordre=1)
         Lecon.objects.create(module=module, titre='L1', ordre=1)
         self.assertEqual(module.nombre_lecons(), 1)
+
+
+# ================================================
+# TESTS.PY — Tests critiques post-audit (paiement securise, acces verrouille)
+# ================================================
+
+class SecuritePaiementAuditTestCase(TestCase):
+    """Vérifie qu'on ne peut PAS débloquer l'accès sans validation réelle."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username='fraude_test', password='test1234')
+        self.ecole = Ecole.objects.create(nom='Ecole Fraude', icone='🏫', ordre=1)
+        self.formation = Formation.objects.create(
+            ecole=self.ecole, nom='Formation Fraude', icone='📚', description='Test',
+            duree_mois=1, prix=100, actif=True,
+        )
+
+    def test_paiement_succes_sans_transaction_ne_debloque_pas(self):
+        """Simule une tentative de fraude : appel direct de l'URL sans vraie transaction."""
+        from django.test import Client
+        client = Client()
+        client.login(username='fraude_test', password='test1234')
+
+        commande = Order.objects.create(utilisateur=self.user, total=100, statut='en_attente')
+        OrderItem.objects.create(
+            commande=commande, formation=self.formation, type_produit='formation',
+            nom_produit_snapshot=self.formation.nom, prix_unitaire=100,
+        )
+
+        client.get(f'/paiement-succes/{commande.reference}/')
+
+        commande.refresh_from_db()
+        self.assertNotEqual(commande.statut, 'paye')  # doit rester en_attente
+        self.assertFalse(
+            AccesFormationDebloque.objects.filter(utilisateur=self.user, formation=self.formation).exists()
+        )
+
+
+class VerrouillageContenuAuditTestCase(TestCase):
+    """Vérifie l'IDOR corrigé : accès bloqué sans paiement."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username='idor_test', password='test1234')
+        self.ecole = Ecole.objects.create(nom='Ecole IDOR', icone='🏫', ordre=1)
+        self.formation = Formation.objects.create(
+            ecole=self.ecole, nom='Formation IDOR', icone='📚', description='Test',
+            duree_mois=1, prix=100, actif=True,
+        )
+        self.module = Module.objects.create(formation=self.formation, titre='M1', ordre=1)
+        self.lecon = Lecon.objects.create(module=self.module, titre='L1', contenu='Contenu premium', ordre=1)
+
+    def test_lire_lecon_bloquee_sans_acces(self):
+        from django.test import Client
+        client = Client()
+        client.login(username='idor_test', password='test1234')
+        reponse = client.get(f'/lecon/{self.lecon.id}/')
+        self.assertEqual(reponse.status_code, 302)  # redirigé, pas 200
+
+    def test_lire_lecon_autorisee_avec_acces(self):
+        AccesFormationDebloque.objects.create(
+            utilisateur=self.user, formation=self.formation, nom_formation_snapshot=self.formation.nom
+        )
+        from django.test import Client
+        client = Client()
+        client.login(username='idor_test', password='test1234')
+        reponse = client.get(f'/lecon/{self.lecon.id}/')
+        self.assertEqual(reponse.status_code, 200)
+
+
+class CouponConcurrenceAuditTestCase(TestCase):
+    """Vérifie que le verrouillage atomique empêche le dépassement d'utilisations."""
+
+    def test_coupon_utilisation_atomique_respecte_limite(self):
+        coupon = Coupon.objects.create(
+            code='LIMITE_TEST', type_reduction='fixe', valeur=10, utilisations_max=1
+        )
+        succes1, _ = coupon.utiliser_atomiquement()
+        succes2, message2 = coupon.utiliser_atomiquement()
+
+        self.assertTrue(succes1)
+        self.assertFalse(succes2)
+        self.assertIn('limite', message2.lower())
+
+
+class AccesFormationCleNaturelleTestCase(TestCase):
+    """Vérifie la nouvelle contrainte unique utilisateur+formation."""
+
+    def test_unique_utilisateur_formation(self):
+        user = User.objects.create_user(username='cle_test', password='test1234')
+        ecole = Ecole.objects.create(nom='Ecole Cle', icone='🏫', ordre=1)
+        formation = Formation.objects.create(
+            ecole=ecole, nom='Formation Cle', icone='📚', description='Test', duree_mois=1, prix=0, actif=True,
+        )
+        AccesFormationDebloque.objects.create(utilisateur=user, formation=formation, nom_formation_snapshot=formation.nom)
+
+        from django.db import IntegrityError
+        with self.assertRaises(IntegrityError):
+            AccesFormationDebloque.objects.create(utilisateur=user, formation=formation, nom_formation_snapshot='Autre nom')
