@@ -45,11 +45,13 @@ from ..models import (
     WorkflowFormation,
 )
 from ..services.ia_service import (
+    attribuer_badges,
     generer_parcours_oriente,
     generer_programme_complet,
 )
 from ..xp_utils import ajouter_xp
 from .. import notifications
+from ..decorators import exiger_acces_formation
 
 
 # ================================================
@@ -77,7 +79,6 @@ def detail_formation(request, formation_id):
     formation = Formation.objects.prefetch_related("modules__lecons").get(
         id=formation_id, actif=True
     )
-
     pourcentage_progression = 0
     acces_autorise = formation.gratuit
     deja_inscrit = False
@@ -88,7 +89,6 @@ def detail_formation(request, formation_id):
         deja_inscrit = acces_autorise
 
     prix_final, promo_active = _prix_avec_promotion(formation)
-
     nb_modules = formation.modules.count()
     nb_lecons = sum(m.lecons.count() for m in formation.modules.all())
     duree_totale_minutes = sum(
@@ -140,6 +140,7 @@ def detail_formation_slug(request, formation_slug):
 # ================================================
 
 @login_required(login_url="/connexion/")
+@exiger_acces_formation(lambda lecon_id: Lecon.objects.get(id=lecon_id).module.formation)
 def lire_lecon(request, lecon_id):
     lecon = get_object_or_404(Lecon.objects.select_related("module__formation__ecole"), id=lecon_id)
 
@@ -155,7 +156,6 @@ def lire_lecon(request, lecon_id):
     lecon_terminee = progression.terminee if progression else False
     formation = lecon.module.formation
     pourcentage_formation = formation.progression_pour(request.user)
-
     tous_modules = formation.modules.prefetch_related("lecons").all()
 
     return render(
@@ -175,6 +175,7 @@ def lire_lecon(request, lecon_id):
 
 
 @login_required(login_url="/connexion/")
+@exiger_acces_formation(lambda lecon_id: Lecon.objects.get(id=lecon_id).module.formation)
 def marquer_lecon_terminee(request, lecon_id):
     if request.method == "POST":
         try:
@@ -217,6 +218,68 @@ def marquer_lecon_terminee(request, lecon_id):
             return JsonResponse({"erreur": str(e)}, status=500)
 
     return JsonResponse({"erreur": "Méthode non autorisée"}, status=405)
+
+
+
+# ================================================
+# Vues Quiz (complément)
+# ================================================
+
+def liste_quiz(request, formation_id):
+    formation = Formation.objects.get(id=formation_id)
+    quiz_disponibles = Quiz.objects.filter(formation=formation, actif=True)
+    return render(
+        request,
+        "academie/liste_quiz.html",
+        {
+            "formation": formation,
+            "quiz_disponibles": quiz_disponibles,
+        },
+    )
+
+
+@exiger_acces_formation(lambda quiz_id: Quiz.objects.get(id=quiz_id).formation)
+@login_required(login_url="/connexion/")
+def passer_quiz(request, quiz_id):
+    quiz = Quiz.objects.prefetch_related("questions").get(id=quiz_id)
+
+    if request.method == "POST":
+        score = 0
+        total = quiz.questions.count()
+
+        for question in quiz.questions.all():
+            reponse_utilisateur = request.POST.get(f"question_{question.id}")
+            if reponse_utilisateur == question.bonne_reponse:
+                score += 1
+
+        ResultatQuiz.objects.create(
+            utilisateur=request.user, quiz=quiz, score=score, total_questions=total
+        )
+
+        attribuer_badges(request.user)
+
+        pourcentage = round((score / total) * 100) if total > 0 else 0
+        if pourcentage >= 70:
+            ajouter_xp(request.user, "quiz_reussi")
+            notifications.creer_notification(
+                request.user,
+                "📝 Quiz réussi !",
+                f'Tu as obtenu {score}/{total} au quiz "{quiz.titre}".',
+                f"/formation/{quiz.formation.id}/quiz/",
+            )
+
+        return render(
+            request,
+            "academie/resultat_quiz.html",
+            {
+                "quiz": quiz,
+                "score": score,
+                "total": total,
+                "pourcentage": pourcentage,
+            },
+        )
+
+    return render(request, "academie/passer_quiz.html", {"quiz": quiz})
 
 
 
@@ -569,6 +632,7 @@ def simuler_carriere(request):
 # ================================================
 
 @login_required
+@exiger_acces_formation(lambda examen_id: Examen.objects.get(id=examen_id).formation)
 def preparation_examen(request, examen_id):
     examen = get_object_or_404(Examen, id=examen_id, actif=True)
 
@@ -620,6 +684,7 @@ def preparation_examen(request, examen_id):
 
 
 @login_required
+@exiger_acces_formation(lambda examen_id: Examen.objects.get(id=examen_id).formation)
 def passer_examen(request, examen_id):
     examen = get_object_or_404(Examen, id=examen_id, actif=True)
 
@@ -643,6 +708,7 @@ def passer_examen(request, examen_id):
 
 
 @login_required
+@exiger_acces_formation(lambda examen_id: Examen.objects.get(id=examen_id).formation)
 def soumettre_examen(request, examen_id):
     if request.method != "POST":
         return redirect("passer_examen", examen_id=examen_id)
@@ -848,5 +914,3 @@ def api_note_lecon(request, lecon_id):
 
     note = NoteLecon.objects.filter(utilisateur=request.user, lecon_id=lecon_id).first()
     return JsonResponse({'contenu': note.contenu if note else ''})
-
-

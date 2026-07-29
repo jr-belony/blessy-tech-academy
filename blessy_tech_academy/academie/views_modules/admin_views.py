@@ -4,6 +4,7 @@
 
 import json
 import os
+import markdown as markdown_lib
 from datetime import timedelta
 from decimal import Decimal
 from io import StringIO
@@ -14,17 +15,27 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.db import transaction as db_transaction
-from django.db.models import Count, Q, Sum
+from django.db.models import Avg, Count, Q, Sum
+from django.db.models.functions import TruncMonth
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from drf_spectacular.utils import extend_schema, inline_serializer
+from rest_framework import serializers
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+from users.models import Enseignant
+
 from ..models import (
     AccesFormationDebloque,
     Article,
     Certificat,
+    Coupon,
     DisponibiliteMentor,
     Ecole,
     Examen,
@@ -41,7 +52,8 @@ from ..models import (
     Promotion,
     Quiz,
     Refund,
-    ReservationMentorat,         
+    Reponse,
+    ReservationMentorat,
     Sujet,
     Transaction,
     WorkflowFormation,
@@ -49,6 +61,10 @@ from ..models import (
 from ..permissions import enregistrer_log, role_required
 from ..services.async_tasks import executer_en_arriere_plan
 from ..services.email_service import _envoyer_email
+from ..services.ia_service import (
+    analyser_plateforme_ia,
+    assistant_backoffice_ia,
+)
 from ..xp_utils import ajouter_xp
 from .. import notifications
 
@@ -342,8 +358,6 @@ def admin_sync_export(request):
         import json
         import time
 
-        from django.http import HttpResponse
-
         data = {
             "ecoles": [],
             "formations": [],
@@ -451,19 +465,12 @@ def admin_sync_dashboard(request):
 def admin_backup_complet(request):
     """Déclenchement backup complet depuis l'admin."""
     if request.method == "POST":
-        from io import StringIO
-        from django.core.management import call_command
-
         output = StringIO()
         try:
-            call_command(
-                "backup_database",
-                stdout=output
-            )
+            call_command("backup_database", stdout=output)
             messages.success(
                 request,
-                "✅ Sauvegarde lancée. " +
-                output.getvalue().replace("\n", " ")
+                "✅ Sauvegarde lancée. " + output.getvalue().replace("\n", " ")
             )
         except Exception as e:
             messages.error(
@@ -574,12 +581,10 @@ def export_ventes_pdf(request):
 def gradebook_formation(request, formation_id):
     formation = get_object_or_404(Formation, id=formation_id)
 
-    # Récupérer tous les étudiants ayant accès à cette formation
     etudiants = User.objects.filter(
         acces_debloques__formation=formation
     ).distinct()
 
-    # Pour chaque étudiant, récupérer sa note (GradebookEntry) et sa progression
     data = []
     for etudiant in etudiants:
         note_entry = GradebookEntry.objects.filter(
@@ -628,7 +633,6 @@ def gradebook_edit(request, formation_id, etudiant_id):
         messages.success(request, "✅ Note enregistrée.")
         return redirect('gradebook_formation', formation_id=formation_id)
 
-    # GET : afficher le formulaire
     etudiant = get_object_or_404(User, id=etudiant_id)
     formation = get_object_or_404(Formation, id=formation_id)
     entry = GradebookEntry.objects.filter(formation=formation, etudiant=etudiant).first()
@@ -639,55 +643,6 @@ def gradebook_edit(request, formation_id, etudiant_id):
         'note': entry.note if entry else '',
         'appreciation': entry.appreciation if entry else '',
     })
-
-
-# ================================================
-# Mentorat — Gestion des disponibilités
-# ================================================
-
-@login_required
-@role_required("formateur", "admin", "super_admin")
-def liste_disponibilites_mentor(request):
-    """Liste des créneaux de disponibilité du formateur connecté."""
-    disponibilites = DisponibiliteMentor.objects.filter(formateur=request.user).order_by('date', 'heure_debut')
-    return render(request, 'academie/mentor/disponibilites.html', {
-        'disponibilites': disponibilites,
-        'title': 'Mes disponibilités',
-    })
-
-@login_required
-@role_required("formateur", "admin", "super_admin")
-def ajouter_disponibilite_mentor(request):
-    """Ajouter un créneau de disponibilité."""
-    if request.method == 'POST':
-        date = request.POST.get('date')
-        heure_debut = request.POST.get('heure_debut')
-        heure_fin = request.POST.get('heure_fin')
-        if date and heure_debut and heure_fin:
-            try:
-                DisponibiliteMentor.objects.create(
-                    formateur=request.user,
-                    date=date,
-                    heure_debut=heure_debut,
-                    heure_fin=heure_fin,
-                    actif=True
-                )
-                messages.success(request, "✅ Créneau ajouté.")
-            except Exception as e:
-                messages.error(request, f"❌ Erreur : {str(e)}")
-        else:
-            messages.error(request, "❌ Tous les champs sont requis.")
-        return redirect('liste_disponibilites_mentor')
-    return render(request, 'academie/mentor/ajouter_disponibilite.html', {'title': 'Ajouter un créneau'})
-
-@login_required
-@role_required("formateur", "admin", "super_admin")
-def supprimer_disponibilite_mentor(request, disponibilite_id):
-    """Supprimer un créneau de disponibilité."""
-    dispo = get_object_or_404(DisponibiliteMentor, id=disponibilite_id, formateur=request.user)
-    dispo.delete()
-    messages.success(request, "✅ Créneau supprimé.")
-    return redirect('liste_disponibilites_mentor')
 
 
 # ================================================
@@ -739,12 +694,10 @@ def mentorat_disponibilite_supprimer(request, disponibilite_id):
 def mentorat_reservations(request):
     """Liste des réservations pour l'étudiant ou le formateur."""
     if request.user.profil.role in ['formateur', 'admin', 'resp_academique']:
-        # Le formateur voit les réservations sur ses disponibilités
         reservations = ReservationMentorat.objects.filter(
             disponibilite__formateur=request.user
         ).select_related('etudiant', 'disponibilite').order_by('-date_reservation')
     else:
-        # L'étudiant voit ses propres réservations
         reservations = ReservationMentorat.objects.filter(
             etudiant=request.user
         ).select_related('disponibilite__formateur').order_by('-date_reservation')
@@ -760,7 +713,6 @@ def mentorat_reserver(request, disponibilite_id):
     """Un étudiant réserve un créneau."""
     if request.method == 'POST':
         dispo = get_object_or_404(DisponibiliteMentor, id=disponibilite_id, actif=True)
-        # Vérifier que le créneau n'est pas déjà réservé
         if ReservationMentorat.objects.filter(disponibilite=dispo, statut__in=['en_attente', 'confirmee']).exists():
             messages.error(request, "❌ Ce créneau est déjà réservé.")
             return redirect('mentorat_calendrier')
@@ -807,7 +759,6 @@ def mentorat_calendrier(request):
     """Calendrier des disponibilités pour les étudiants."""
     from datetime import date, timedelta
 
-    # Par défaut, on affiche les disponibilités des 7 prochains jours
     aujourdhui = date.today()
     fin_periode = aujourdhui + timedelta(days=7)
 
@@ -821,3 +772,296 @@ def mentorat_calendrier(request):
         'disponibilites': disponibilites,
         'title': 'Réserver un mentorat',
     })
+
+
+# ================================================
+# Admin / Dashboards
+# ================================================
+
+@login_required
+@role_required("resp_academique", "direction", "admin", "super_admin")
+def vue_dashboard_ia(request):
+    from django.contrib.auth.models import User
+    from django.db.models import Count, Q, Sum
+
+    from ..models import Article, Order, ResultatQuiz
+    from ..models import Formation, Lecon
+
+    formations_stats = (
+        Formation.objects.filter(actif=True)
+        .annotate(
+            nb_inscrits=Count("orderitem", filter=Q(orderitem__commande__statut="paye")),
+        )
+        .order_by("-nb_inscrits")[:10]
+    )
+
+    lecons_abandon = Lecon.objects.annotate(
+        nb_vues=Count("progressions"),
+        nb_terminees=Count("progressions", filter=Q(progressions__terminee=True)),
+    ).filter(nb_vues__gt=0)
+
+    quiz_difficiles = (
+        ResultatQuiz.objects.values("quiz__titre")
+        .annotate(score_moyen=Avg("score"), nb_tentatives=Count("id"))
+        .order_by("score_moyen")[:5]
+    )
+
+    articles_populaires = Article.objects.filter(publie=True).order_by("-date_publication")[:5]
+
+    contexte_donnees = f"""
+Formations les plus vendues : {[(f.nom, f.nb_inscrits) for f in formations_stats[:5]]}
+Quiz avec scores les plus bas (difficiles) : {list(quiz_difficiles)}
+Nombre total de formations actives : {Formation.objects.filter(actif=True).count()}
+Nombre d'étudiants inscrits : {User.objects.filter(is_staff=False).count()}
+Chiffre d'affaires : {Order.objects.filter(statut="paye").aggregate(t=Sum("total"))["t"] or 0} $
+"""
+
+    analyse_ia = None
+    if request.GET.get("lancer_analyse"):
+        analyse_ia = analyser_plateforme_ia(contexte_donnees)
+    if analyse_ia:
+        analyse_ia = analyse_ia.replace("##", "").replace("**", "").replace("---", "")
+    return render(
+        request,
+        "admin/dashboard_ia.html",
+        {
+            "title": "🧠 Dashboard IA — Intelligence Décisionnelle",
+            "formations_stats": formations_stats,
+            "quiz_difficiles": quiz_difficiles,
+            "articles_populaires": articles_populaires,
+            "analyse_ia": analyse_ia,
+        },
+    )
+
+
+@login_required
+@role_required("direction", "admin", "super_admin")
+def statistiques(request):
+    from django.db.models import Sum
+
+    total_etudiants = User.objects.filter(is_active=True).count()
+    total_formations = Formation.objects.filter(actif=True).count()
+    total_certificats = Certificat.objects.count()
+    total_leads = Inscription.objects.filter(formation__gratuit=True).count()
+    total_inscriptions = Inscription.objects.count()
+    taux_conversion = 0
+    if total_leads > 0:
+        taux_conversion = round((total_inscriptions / total_leads) * 100)
+
+    telechargements = total_leads
+    comptes_crees = User.objects.count()
+    inscriptions_payantes = Inscription.objects.filter(formation__gratuit=False).count()
+    certificats_delivres = total_certificats
+    taux_leads_comptes = (
+        round((comptes_crees / telechargements) * 100) if telechargements > 0 else 0
+    )
+    taux_comptes_payant = (
+        round((inscriptions_payantes / comptes_crees) * 100) if comptes_crees > 0 else 0
+    )
+    taux_payant_certif = (
+        round((certificats_delivres / inscriptions_payantes) * 100)
+        if inscriptions_payantes > 0
+        else 0
+    )
+
+    total_revenus = (
+        Inscription.objects.filter(formation__gratuit=False).aggregate(
+            total=Sum("formation__prix")
+        )["total"]
+        or 0
+    )
+
+    debut_mois = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    certificats_mois = Certificat.objects.filter(date_emission__gte=debut_mois).count()
+
+    quiz_generees = Quiz.objects.count()
+    contenus_generes = Lecon.objects.filter(contenu__isnull=False).exclude(contenu="").count()
+    formations_populaires = (
+        Formation.objects.filter(actif=True)
+        .annotate(nb_inscriptions=Count("inscriptions"))
+        .order_by("-nb_inscriptions")[:5]
+    )
+    douze_mois = timezone.now() - timedelta(days=365)
+    inscriptions_mensuelles = (
+        Inscription.objects.filter(date_inscription__gte=douze_mois)
+        .annotate(mois=TruncMonth("date_inscription"))
+        .values("mois")
+        .annotate(total=Count("id"))
+        .order_by("mois")
+    )
+    mois_labels = [item["mois"].strftime("%b %Y") for item in inscriptions_mensuelles]
+    mois_data = [item["total"] for item in inscriptions_mensuelles]
+
+    total_sujets = Sujet.objects.count()
+    total_reponses = Reponse.objects.count()
+    membres_actifs = User.objects.filter(
+        Q(id__in=Sujet.objects.values('auteur')) | Q(id__in=Reponse.objects.values('auteur'))
+    ).distinct().count()
+
+    alertes = []
+    inscriptions_non_traitees = Inscription.objects.filter(traite=False).count()
+    if inscriptions_non_traitees > 0:
+        alertes.append(f"{inscriptions_non_traitees} inscriptions non traitées")
+    formations_sans_modules = Formation.objects.filter(actif=True, modules__isnull=True).count()
+    if formations_sans_modules > 0:
+        alertes.append(f"{formations_sans_modules} formations sans modules")
+    etudiants_inactifs = User.objects.filter(is_active=True, progressions__isnull=True).count()
+    if etudiants_inactifs > 0:
+        alertes.append(f"{etudiants_inactifs} étudiants inactifs")
+
+    contexte = {
+        "total_etudiants": total_etudiants,
+        "total_formations": total_formations,
+        "total_certificats": total_certificats,
+        "total_revenus": total_revenus,
+        "total_leads": total_leads,
+        "total_inscriptions": total_inscriptions,
+        "taux_conversion": taux_conversion,
+        "formations_populaires": formations_populaires,
+        "mois_labels": mois_labels,
+        "mois_data": mois_data,
+        "total_sujets": total_sujets,
+        "total_reponses": total_reponses,
+        "membres_actifs": membres_actifs,
+        "alertes": alertes,
+        "telechargements": telechargements,
+        "comptes_crees": comptes_crees,
+        "inscriptions_payantes": inscriptions_payantes,
+        "certificats_delivres": certificats_delivres,
+        "taux_leads_comptes": taux_leads_comptes,
+        "taux_comptes_payant": taux_comptes_payant,
+        "taux_payant_certif": taux_payant_certif,
+        "certificats_mois": certificats_mois,
+        "quiz_generees": quiz_generees,
+        "contenus_generes": contenus_generes,
+    }
+    return render(request, "academie/statistiques.html", contexte)
+
+
+@login_required
+@role_required("finance", "direction", "admin", "super_admin")
+def vue_dashboard_business(request):
+    import json
+    from datetime import timedelta
+
+    total_inscriptions = Inscription.objects.count()
+    inscriptions_non_traitees = Inscription.objects.filter(traite=False).count()
+
+    ca_total = Order.objects.filter(statut="paye").aggregate(total=Sum("total"))["total"] or 0
+
+    labels_jours, valeurs_jours = [], []
+    for i in range(29, -1, -1):
+        jour = timezone.now().date() - timedelta(days=i)
+        montant_jour = (
+            Order.objects.filter(statut="paye", date_paiement__date=jour).aggregate(
+                total=Sum("total")
+            )["total"]
+            or 0
+        )
+        labels_jours.append(jour.strftime("%d/%m"))
+        valeurs_jours.append(float(montant_jour))
+
+    formations_populaires = Formation.objects.annotate(
+        nb_ventes=Count("orderitem", filter=Q(orderitem__commande__statut="paye"))
+    ).order_by("-nb_ventes")[:8]
+
+    repartition_moyens = (
+        Transaction.objects.filter(statut="reussie")
+        .values("moyen_paiement__nom_affiche")
+        .annotate(total=Count("id"))
+    )
+
+    coupons_utilises = Coupon.objects.filter(utilisations_actuelles__gt=0).count()
+    remboursements_total = (
+        Refund.objects.filter(statut="approuve").aggregate(total=Sum("montant"))["total"] or 0
+    )
+
+    return render(
+        request,
+        "admin/dashboard_business.html",
+        {
+            "title": "💼 Dashboard Business",
+            "site_header": admin.site.site_header,
+            "ca_total": ca_total,
+            "total_inscriptions": total_inscriptions,
+            "inscriptions_non_traitees": inscriptions_non_traitees,
+            "formations_populaires": formations_populaires,
+            "coupons_utilises": coupons_utilises,
+            "remboursements_total": remboursements_total,
+            "chart_labels_json": json.dumps(labels_jours),
+            "chart_valeurs_json": json.dumps(valeurs_jours),
+            "chart_moyens_labels": json.dumps(
+                [m["moyen_paiement__nom_affiche"] or "N/A" for m in repartition_moyens]
+            ),
+            "chart_moyens_valeurs": json.dumps([m["total"] for m in repartition_moyens]),
+        },
+    )
+
+
+@login_required
+@role_required("formateur", "resp_academique", "admin", "super_admin")
+def dashboard_enseignant(request):
+    try:
+        enseignant = request.user.profil.enseignant
+    except (AttributeError, Enseignant.DoesNotExist):
+        messages.error(request, "❌ Aucun profil enseignant associé à ce compte.")
+        return redirect("dashboard")
+
+    formations = enseignant.formations_attribuees.all()
+
+    return render(
+        request,
+        "academie/dashboard_enseignant.html",
+        {
+            "enseignant": enseignant,
+            "formations": formations,
+            "revenus": enseignant.revenus_generes(),
+            "remuneration": enseignant.part_remuneration(),
+            "nb_etudiants": enseignant.nb_etudiants_formes(),
+            "note_moyenne": enseignant.note_moyenne_temoignages(),
+        },
+    )
+
+
+@extend_schema(
+    tags=["Back Office"],
+    description="Assistant IA pour les administrateurs – réponse en HTML",
+    request=inline_serializer(
+        name="AssistantBackOfficeRequest", fields={"question": serializers.CharField()}
+    ),
+    responses={
+        200: inline_serializer(
+            name="AssistantBackOfficeResponse", fields={"reponse": serializers.CharField()}
+        )
+    },
+)
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+@login_required
+@role_required(
+    "formateur",
+    "resp_academique",
+    "marketing",
+    "support",
+    "finance",
+    "direction",
+    "admin",
+    "super_admin",
+)
+def api_assistant_backoffice(request):
+    question = request.data.get("question", "").strip()
+    if not question:
+        return Response({"erreur": "Question vide"}, status=400)
+
+    contexte = (
+        f"Rôle: {request.user.profil.get_role_display()}, Utilisateur: {request.user.username}"
+    )
+
+    reponse_brute = assistant_backoffice_ia(question, contexte)
+
+    try:
+        reponse_html = markdown_lib.markdown(reponse_brute)
+    except Exception:
+        reponse_html = reponse_brute
+
+    return Response({"reponse": reponse_html})

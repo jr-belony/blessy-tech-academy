@@ -11,3 +11,4 @@ from .crm_views import *
 from .forum_views import *
 from .ia_views import *
 from .admin_views import *
+from .content_views import *

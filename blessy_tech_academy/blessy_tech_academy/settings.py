@@ -354,7 +354,7 @@ CSP_OBJECT_SRC = ("'none'",)
 if DEBUG:
     # En développement, on assouplit pour permettre localhost
     CSP_DEFAULT_SRC = ("'self'", "http://127.0.0.1:8000", "http://localhost:8000")
-    CSP_CONNECT_SRC = ("'self'", "http://127.0.0.1:8000", "http://localhost:8000", "https://www.google-analytics.com")
+    CSP_CONNECT_SRC = ("'self'", "http://127.0.0.1:8000", "http://localhost:8000", "https://www.google-analytics.com", "https://cdn.jsdelivr.net")
 else:
     # En production, on renforce la sécurité
     CSP_UPGRADE_INSECURE_REQUESTS = True

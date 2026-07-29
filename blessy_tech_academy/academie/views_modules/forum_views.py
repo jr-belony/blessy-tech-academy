@@ -10,9 +10,11 @@ from django.core.paginator import Paginator
 from django.db.models import Count, Q, Subquery, OuterRef, IntegerField
 from django.shortcuts import render, redirect, get_object_or_404
 from django_ratelimit.decorators import ratelimit
+from django.http import HttpResponse, JsonResponse
 
 from forum.models import Sujet, Reponse, Reaction, BadgeForum
 from academie.models import Formation, LogAudit
+from academie.forms import SujetForm
 from academie.validators import detecter_spam_probable
 from academie.xp_utils import ajouter_xp
 from academie.services.ia_service import attribuer_badges
@@ -136,7 +138,7 @@ def forum_creer(request):
                 request,
                 "academie/forum/creer.html",
                 {
-                    "form": SujetForm(),  # Note : SujetForm doit être importé
+                    "form": SujetForm(),
                     "formations": formations,
                     "categories": Sujet.CATEGORIES,
                 },
@@ -170,8 +172,6 @@ def forum_creer(request):
         return redirect("forum_detail", sujet_id=sujet.id)
 
     formations = Formation.objects.filter(actif=True)
-    # SujetForm est utilisé, mais il n'est pas défini ici; il vient de academie.forms
-    from academie.forms import SujetForm
     return render(
         request,
         "academie/forum/creer.html",
@@ -205,3 +205,83 @@ def forum_membres(request):
             "membres": membres,
         },
     )
+
+
+# ================================================
+# Forum — Likes et acceptation réponse (conservés)
+# ================================================
+
+@login_required(login_url="/connexion/")
+def forum_liker(request, type_cible, cible_id):
+    if request.method == "POST":
+        try:
+            if type_cible == "sujet":
+                sujet = Sujet.objects.get(id=cible_id)
+                reaction, cree = Reaction.objects.get_or_create(
+                    utilisateur=request.user,
+                    sujet=sujet,
+                )
+                if not cree:
+                    reaction.delete()
+                    liked = False
+                else:
+                    liked = True
+                total = sujet.reactions.count()
+
+            elif type_cible == "reponse":
+                reponse = Reponse.objects.get(id=cible_id)
+                reaction, cree = Reaction.objects.get_or_create(
+                    utilisateur=request.user,
+                    reponse=reponse,
+                )
+                if not cree:
+                    reaction.delete()
+                    liked = False
+                else:
+                    liked = True
+                total = reponse.reactions.count()
+
+            else:
+                return JsonResponse({"erreur": "Type invalide"}, status=400)
+
+            return JsonResponse(
+                {
+                    "succes": True,
+                    "liked": liked,
+                    "total": total,
+                }
+            )
+
+        except Exception as e:
+            return JsonResponse({"erreur": str(e)}, status=500)
+
+    return JsonResponse({"erreur": "Méthode non autorisée"}, status=405)
+
+
+@login_required(login_url="/connexion/")
+def forum_accepter_reponse(request, reponse_id):
+    if request.method == "POST":
+        reponse = Reponse.objects.select_related("sujet").get(id=reponse_id)
+
+        if request.user != reponse.sujet.auteur:
+            messages.error(request, "❌ Seul l'auteur du sujet peut accepter une réponse.")
+            return redirect("forum_detail", sujet_id=reponse.sujet.id)
+
+        Reponse.objects.filter(sujet=reponse.sujet).update(acceptee=False)
+        reponse.acceptee = True
+        reponse.save()
+        reponse.sujet.resolu = True
+        reponse.sujet.save()
+        attribuer_badges(reponse.auteur)
+        ajouter_xp(reponse.auteur, "reponse_acceptee")
+
+        notifications.creer_notification(
+            reponse.auteur,
+            "✅ Réponse acceptée",
+            f'Ta réponse sur "{reponse.sujet.titre}" a été acceptée comme solution.',
+            f"/forum/{reponse.sujet.id}/",
+        )
+        messages.success(request, "✅ Réponse marquée comme solution !")
+        return redirect("forum_detail", sujet_id=reponse.sujet.id)
+
+    return redirect("forum_liste")

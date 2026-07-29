@@ -1,0 +1,209 @@
+# ================================================
+# VIEWS_MODULES/CONTENT_VIEWS.PY — Ressources, Portfolio, Notifications, Classement
+# ================================================
+
+import filetype
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.db.models import Count, Q
+from django.shortcuts import redirect, render
+
+from ..models import (
+    Article,
+    BadgeForum,
+    Certificat,
+    Formation,
+    Notification,
+    OutilRecommande,
+    ProfilUtilisateur,
+    ProjetEtudiant,
+    Temoignage,
+)
+
+
+# ================================================
+# Ressources
+# ================================================
+
+def ressources(request):
+    categorie = request.GET.get("categorie", "")
+
+    articles = Article.objects.filter(publie=True)
+    if hasattr(request, "academie_courante") and request.academie_courante:
+        articles = articles.filter(Q(academie=request.academie_courante) | Q(academie__isnull=True))
+    if categorie:
+        articles = articles.filter(categorie=categorie)
+
+    articles_vedette = Article.objects.filter(publie=True, en_vedette=True)[:3]
+    outils = OutilRecommande.objects.all()
+    temoignages = Temoignage.objects.filter(approuve=True)
+
+    return render(
+        request,
+        "academie/ressources.html",
+        {
+            "articles": articles,
+            "articles_vedette": articles_vedette,
+            "outils": outils,
+            "temoignages": temoignages,
+            "categorie_active": categorie,
+            "categories": Article.CATEGORIES,
+            "categories_outils": OutilRecommande.CATEGORIES,
+        },
+    )
+
+
+def detail_article(request, slug):
+    article = Article.objects.get(slug=slug, publie=True)
+
+    articles_lies = Article.objects.filter(publie=True, categorie=article.categorie).exclude(
+        id=article.id
+    )[:3]
+
+    return render(
+        request,
+        "academie/detail_article.html",
+        {
+            "article": article,
+            "articles_lies": articles_lies,
+        },
+    )
+
+
+# ================================================
+# Espace Recrutement / Portfolio
+# ================================================
+
+def espace_recrutement(request):
+    etudiants_qs = (
+        User.objects.annotate(
+            nb_formations=Count(
+                "progressions__lecon__module__formation",
+                filter=Q(progressions__terminee=True),
+                distinct=True,
+            ),
+            nb_quiz=Count("resultats_quiz", distinct=True),
+            nb_projets=Count("projets", distinct=True),
+            nb_badges=Count("badges_forum", distinct=True),
+        )
+        .filter(Q(nb_formations__gt=0) | Q(nb_projets__gt=0))
+        .order_by("-nb_badges", "-nb_formations")[:20]
+    )
+
+    etudiants_data = []
+    for user in etudiants_qs:
+        formations_completees = []
+        for formation in Formation.objects.filter(actif=True):
+            if formation.progression_pour(user) == 100:
+                formations_completees.append(formation)
+
+        projets = ProjetEtudiant.objects.filter(auteur=user).order_by("-date_creation")[:3]
+        badges = BadgeForum.objects.filter(utilisateur=user)
+
+        etudiants_data.append(
+            {
+                "user": user,
+                "certifications": formations_completees,
+                "badges": badges,
+                "projets": projets,
+                "nb_formations": user.nb_formations,
+                "nb_quiz": user.nb_quiz,
+                "nb_projets": user.nb_projets,
+                "nb_badges": user.nb_badges,
+            }
+        )
+
+    return render(
+        request,
+        "academie/recrutement.html",
+        {
+            "etudiants_data": etudiants_data,
+        },
+    )
+
+
+@login_required(login_url="/connexion/")
+def mon_portfolio(request):
+    if request.method == "POST":
+        titre = request.POST.get("titre", "").strip()
+        description = request.POST.get("description", "").strip()
+        technologies = request.POST.get("technologies", "").strip()
+        lien = request.POST.get("lien", "").strip()
+        image = request.FILES.get("image")
+        formation_liee_id = request.POST.get("formation_liee") or None
+
+        if titre and description:
+            if image:
+                kind = filetype.guess(image)
+                if kind is None or kind.mime not in ["image/jpeg", "image/png", "image/gif"]:
+                    messages.error(request, "❌ Format d'image non autorisé. Utilisez JPEG, PNG ou GIF.")
+                    return redirect("mon_portfolio")
+
+            ProjetEtudiant.objects.create(
+                auteur=request.user,
+                titre=titre,
+                description=description,
+                technologies=technologies,
+                lien=lien if lien else None,
+                image=image,
+                formation_liee_id=formation_liee_id,
+            )
+
+            messages.success(request, "✅ Projet ajouté avec succès !")
+            return redirect("mon_portfolio")
+        else:
+            messages.error(request, "❌ Titre et description sont obligatoires.")
+
+    projets = ProjetEtudiant.objects.filter(auteur=request.user)
+    formations_disponibles = Formation.objects.filter(actif=True)
+
+    return render(
+        request,
+        "academie/portfolio.html",
+        {
+            "projets": projets,
+            "formations_disponibles": formations_disponibles,
+        },
+    )
+
+
+# ================================================
+# Certificat et notifications
+# ================================================
+
+def verifier_certificat(request, numero):
+    certificat = None
+    try:
+        certificat = Certificat.objects.select_related("utilisateur", "formation").get(
+            numero=numero
+        )
+    except Exception:
+        pass
+
+    return render(request, "academie/verifier_certificat.html", {"certificat": certificat})
+
+
+@login_required(login_url="/connexion/")
+def notifications_liste(request):
+    notifs = Notification.objects.filter(utilisateur=request.user).order_by("-date_creation")[:30]
+    ids_non_lues = [n.id for n in notifs if not n.lue]
+    if ids_non_lues:
+        Notification.objects.filter(id__in=ids_non_lues).update(lue=True)
+    return render(request, "academie/notifications.html", {"notifications": notifs})
+
+
+def classement(request):
+    profils = (
+        ProfilUtilisateur.objects.select_related("utilisateur")
+        .filter(xp__gt=0)
+        .order_by("-xp", "-streak")[:50]
+    )
+
+    return render(
+        request,
+        "academie/classement.html",
+        {
+            "profils": profils,
+        },
+    )

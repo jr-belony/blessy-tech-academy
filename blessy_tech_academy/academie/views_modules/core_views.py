@@ -2,6 +2,12 @@
 # VIEWS_MODULES/CORE_VIEWS.PY — Vues transverses
 # ================================================
 
+import json
+import logging
+import hashlib
+import base64
+from io import BytesIO
+
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -14,15 +20,16 @@ from django.db.models import Q
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.cache import cache_page
 from django_ratelimit.decorators import ratelimit
-from django.utils import timezone
-import json, logging
+from django.utils import timezone, translation
+from django.conf import settings
+from django.template.loader import render_to_string
 
-# Import des modèles nécessaires
 from academie.models import (
     Ecole, Formation, Article, Parcours, ProgressionLecon,
     HistoriqueConversationIA, ProjetEtudiant, PushSubscription,
     Sujet, AccesFormationDebloque, BadgeForum, Order,
     Certificat, LogAudit, ConnexionUtilisateur, TentativeExamen,
+    NoteLecon, StreakEtudiant,
 )
 from academie.forms import ConnexionForm, InscriptionCompteForm
 from academie import notifications
@@ -31,6 +38,7 @@ from academie.services.ia_service import (
     calculer_stats_etudiant,
     _circuit_ouvert,
 )
+from academie.decorators import exiger_acces_formation
 
 logger = logging.getLogger('academie')
 
@@ -108,6 +116,9 @@ def connexion(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+            # Enregistrement du streak
+            streak, _ = StreakEtudiant.objects.get_or_create(utilisateur=user)
+            streak.enregistrer_activite_jour()
             messages.success(request, f"✅ Bienvenue {user.first_name or user.username} !")
             return redirect("dashboard")
         else:
@@ -139,6 +150,9 @@ def inscription_compte(request):
         if form.is_valid():
             user = form.save()
             login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+            # Enregistrement du streak
+            streak, _ = StreakEtudiant.objects.get_or_create(utilisateur=user)
+            streak.enregistrer_activite_jour()
             messages.success(
                 request, f"🎉 Bienvenue {user.first_name} ! Ton compte a été créé avec succès."
             )
@@ -171,6 +185,9 @@ def dashboard(request):
     for badge_type in nouveaux_badges:
         notifications.notifier_badge(user, badge_type)
 
+    # Récupération du streak
+    streak, _ = StreakEtudiant.objects.get_or_create(utilisateur=user)
+
     connexions = ConnexionUtilisateur.objects.filter(utilisateur=user).order_by("-date_connexion")[:5]
     examens_passes = (
         TentativeExamen.objects.filter(utilisateur=user)
@@ -188,6 +205,7 @@ def dashboard(request):
             "formations_actives": formations_actives,
             "connexions": connexions,
             "examens_passes": examens_passes,
+            "streak": streak,
         },
     )
 
@@ -373,3 +391,111 @@ def supprimer_mon_compte(request):
         return redirect('accueil')
 
     return render(request, 'academie/confirmer_suppression_compte.html')
+
+
+# ================================================
+# Langues, Sitemap, Robots, Rate limit
+# ================================================
+
+def set_lang_fr(request):
+    translation.activate("fr")
+    response = redirect(request.META.get("HTTP_REFERER", "/"))
+    response.set_cookie(settings.LANGUAGE_COOKIE_NAME, "fr")
+    return response
+
+
+def set_lang_ht(request):
+    translation.activate("ht")
+    response = redirect(request.META.get("HTTP_REFERER", "/"))
+    response.set_cookie(settings.LANGUAGE_COOKIE_NAME, "ht")
+    return response
+
+
+def sitemap_xml(request):
+    articles = Article.objects.filter(publie=True)
+    formations = Formation.objects.filter(actif=True, slug__isnull=False)
+    return render(request, 'academie/sitemap.xml', {
+        'articles': articles,
+        'formations': formations,
+    }, content_type='application/xml')
+
+
+def robots_txt(request):
+    contenu = "User-agent: *\nAllow: /\nSitemap: " + request.build_absolute_uri("/sitemap.xml")
+    return HttpResponse(contenu, content_type="text/plain")
+
+
+def vue_limite_depassee(request, exception=None):
+    return render(request, 'academie/limite_depassee.html', status=429)
+
+
+# ================================================
+# Certificat PDF
+# ================================================
+
+# ================================================
+# Certificat PDF
+# ================================================
+
+@login_required(login_url="/connexion/")
+@exiger_acces_formation(lambda formation_id: Formation.objects.get(id=formation_id))
+def telecharger_certificat(request, formation_id):
+    import base64
+    from io import BytesIO
+    import qrcode
+    from weasyprint import HTML
+    from ..models import Certificat
+
+    formation = Formation.objects.prefetch_related("modules__lecons").get(
+        id=formation_id, actif=True
+    )
+
+    pourcentage = formation.progression_pour(request.user)
+
+    if pourcentage < 100:
+        messages.error(
+            request,
+            f"❌ Tu dois compléter 100% de la formation pour obtenir le certificat "
+            f"(progression actuelle : {pourcentage}%).",
+        )
+        return redirect("detail_formation", formation_id=formation_id)
+
+    chaine = f"{request.user.id}-{formation.id}-{request.user.date_joined}"
+    numero = f"BTA-{hashlib.md5(chaine.encode()).hexdigest()[:8].upper()}"
+
+    certificat, created = Certificat.objects.get_or_create(
+        utilisateur=request.user, formation=formation, defaults={"numero": numero}
+    )
+    if not created:
+        numero = certificat.numero
+
+    url_verification = request.build_absolute_uri(f"/certificat/{numero}/")
+    qr = qrcode.QRCode(version=1, box_size=10, border=2)
+    qr.add_data(url_verification)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+    qr_code_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+    contexte = {
+        "prenom": request.user.first_name or request.user.username,
+        "nom": request.user.last_name or "",
+        "formation": formation,
+        "date_emission": certificat.date_emission.strftime("%d %B %Y"),
+        "numero_certificat": numero,
+        "qr_code_base64": qr_code_base64,
+        "url_verification": url_verification,
+    }
+
+    html_certificat = render_to_string("academie/pdf/certificat.html", contexte, request=request)
+
+    try:
+        pdf = HTML(string=html_certificat, base_url=request.build_absolute_uri("/")).write_pdf()
+        nom_fichier = f"certificat-{formation.nom.replace(' ', '-').lower()}-BTA.pdf"
+        response = HttpResponse(pdf, content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="{nom_fichier}"'
+        return response
+    except Exception as e:
+        messages.error(request, f"❌ Erreur lors de la génération du certificat : {str(e)}")
+        return redirect("detail_formation", formation_id=formation_id)

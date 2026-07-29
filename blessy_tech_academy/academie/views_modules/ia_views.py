@@ -14,6 +14,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST
 from django_ratelimit.decorators import ratelimit
+
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import serializers
 from rest_framework.decorators import api_view, permission_classes
@@ -43,6 +44,8 @@ from ..services.ia_service import (
     generer_parcours_professionnel_admin,
     analyser_plateforme_ia,
     initialiser_ia,
+    generer_article,
+    simuler_carriere as simuler_carriere_ia,
 )
 from ..permissions import role_required
 from .. import notifications
@@ -654,3 +657,41 @@ def api_historique_ia(request):
     ).order_by('-date_creation')[:20]
     data = [{'role': h.role, 'contenu': h.contenu} for h in reversed(historique)]
     return JsonResponse({'historique': data})
+
+
+# ================================================
+# API IA supplémentaires
+# ================================================
+
+@login_required
+@role_required("marketing", "resp_academique", "admin", "super_admin")
+def api_generer_article(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            titre = data.get("titre", "").strip()
+            tags = data.get("tags", "").strip()
+
+            if not titre:
+                return JsonResponse({"erreur": "Titre requis"}, status=400)
+
+            resultat = generer_article(titre, tags)
+            return JsonResponse(resultat)
+        except Exception as e:
+            return JsonResponse({"erreur": str(e)}, status=500)
+    return JsonResponse({"erreur": "Méthode non autorisée"}, status=405)
+
+
+@require_POST
+def api_simuler_carriere(request):
+    try:
+        data = json.loads(request.body)
+        metier = data.get("metier", "").strip()
+        if not metier:
+            return JsonResponse({"erreur": 'Le champ "metier" est requis.'}, status=400)
+        reponse = simuler_carriere_ia(metier=metier)
+        return JsonResponse({"reponse": reponse, "metier": metier})
+    except json.JSONDecodeError:
+        return JsonResponse({"erreur": "JSON invalide"}, status=400)
+    except Exception as e:
+        return JsonResponse({"erreur": str(e)}, status=500)

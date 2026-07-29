@@ -24,6 +24,11 @@ from academie.permissions import enregistrer_log, role_required
 from academie.services.async_tasks import executer_en_arriere_plan
 from academie.services.email_service import _envoyer_email
 
+import logging
+from django.conf import settings
+from django.db.models import F
+import stripe
+import paypalrestsdk
 
 # ================================================
 # Fonction utilitaire (copiée depuis views.py)
@@ -205,27 +210,101 @@ def rediriger_paiement_externe(request, order_reference):
     return redirect("confirmer_paiement", order_reference=order_reference)
 
 
-@login_required(login_url="/connexion/")
+
+logger = logging.getLogger('academie')
+
+@login_required(login_url='/connexion/')
 def paiement_succes(request, order_reference):
-    """Page de retour après paiement externe réussi — débloque l'accès."""
-    commande = Order.objects.get(reference=order_reference, utilisateur=request.user)
+    """
+    Page de retour après paiement externe — vérification active auprès du prestataire.
+    """
+    from ..models import Order, Coupon, AccesFormationDebloque, Invoice, Transaction
+    from ..payment_gateways import moncash_gateway
+
+    commande = Order.objects.select_related('moyen_paiement').get(
+        reference=order_reference, utilisateur=request.user
+    )
+
+    if commande.statut == 'paye':
+        messages.success(request, "✅ Paiement déjà confirmé — accès débloqué.")
+        return redirect('mes_commandes')
+
+    code_moyen = commande.moyen_paiement.code if commande.moyen_paiement else None
+    transaction_recente = commande.transactions.order_by('-date_creation').first()
+    paiement_verifie = False
+    erreur_verification = None
+
+    if code_moyen == 'stripe' and transaction_recente:
+        try:
+            stripe.api_key = settings.STRIPE_SECRET_KEY
+            session = stripe.checkout.Session.retrieve(transaction_recente.reference_externe)
+            paiement_verifie = (session.payment_status == 'paid')
+        except Exception as e:
+            erreur_verification = str(e)
+
+    elif code_moyen == 'moncash' and transaction_recente:
+        try:
+            paiement_verifie, _ = moncash_gateway.verifier_transaction(commande.reference)
+        except Exception as e:
+            erreur_verification = str(e)
+
+    elif code_moyen == 'paypal' and transaction_recente:
+        try:
+            paypalrestsdk.configure({
+                'mode': settings.PAYPAL_MODE,
+                'client_id': settings.PAYPAL_CLIENT_ID,
+                'client_secret': settings.PAYPAL_CLIENT_SECRET,
+            })
+            payment = paypalrestsdk.Payment.find(transaction_recente.reference_externe)
+            paiement_verifie = (payment.state == 'approved')
+        except Exception as e:
+            erreur_verification = str(e)
+
+    else:
+        erreur_verification = "Aucune transaction vérifiable associée à cette commande."
+
+    if not paiement_verifie:
+        logger.warning(
+            f"⚠️ Tentative de validation paiement NON vérifiée — commande {commande.reference}, "
+            f"utilisateur {request.user.username}, erreur: {erreur_verification}"
+        )
+        messages.error(
+            request,
+            "⏳ Ton paiement est en cours de vérification. Si le débit a bien eu lieu, "
+            "l'accès sera débloqué automatiquement sous quelques minutes."
+        )
+        return redirect('mes_commandes')
 
     with db_transaction.atomic():
-        commande.statut = "paye"
+        commande.statut = 'paye'
         commande.date_paiement = timezone.now()
         commande.save()
 
-        for item in commande.items.all():
+        if transaction_recente:
+            transaction_recente.statut = 'reussie'
+            transaction_recente.save()
+
+        for item in commande.items.select_related('formation').all():
             if item.formation:
                 AccesFormationDebloque.objects.get_or_create(
                     utilisateur=commande.utilisateur,
-                    nom_formation_snapshot=item.nom_produit_snapshot,
-                    defaults={"formation": item.formation, "commande_origine": commande},
+                    formation=item.formation,
+                    defaults={
+                        'nom_formation_snapshot': item.nom_produit_snapshot,
+                        'commande_origine': commande
+                    }
                 )
+
         Invoice.objects.get_or_create(commande=commande)
 
+        if commande.coupon_applique:
+            Coupon.objects.filter(id=commande.coupon_applique.id).update(
+                utilisations_actuelles=F('utilisations_actuelles') + 1
+            )
+
     messages.success(request, "🎉 Paiement confirmé ! Accès débloqué immédiatement.")
-    return redirect("mes_commandes")
+    return redirect('mes_commandes')
+
 
 
 @csrf_exempt
