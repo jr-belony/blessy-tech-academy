@@ -120,6 +120,10 @@ class Promotion(models.Model):
                 condition=models.Q(date_fin__gte=models.F('date_debut')),
                 name='promotion_date_fin_apres_debut'
             ),
+            models.CheckConstraint(
+                condition=models.Q(pourcentage_reduction__gt=0) & models.Q(pourcentage_reduction__lte=100),
+                name='promotion_pourcentage_valide'
+            ),
         ]
 
     def __str__(self):
@@ -212,10 +216,14 @@ class OrderItem(models.Model):
         constraints = [
             models.CheckConstraint(
                 condition=(
-                    models.Q(type_produit='formation', formation__isnull=False, parcours__isnull=True) |
-                    models.Q(type_produit='parcours', parcours__isnull=False, formation__isnull=True)
+                    (models.Q(type_produit='formation') & models.Q(formation__isnull=False)) |
+                    (models.Q(type_produit='parcours') & models.Q(parcours__isnull=False))
                 ),
-                name='orderitem_type_produit_coherent'
+                name='orderitem_produit_coherent'
+            ),
+            models.CheckConstraint(
+                condition=models.Q(prix_unitaire__gte=0),
+                name='orderitem_prix_positif'
             ),
         ]
 
