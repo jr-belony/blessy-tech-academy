@@ -121,8 +121,8 @@ def recommandations_ia(request):
 # API endpoints IA
 # ================================================
 
-@login_required
-@ratelimit(key="user_or_ip", rate="20/m", block=True)
+@login_required(login_url='/connexion/')
+@ratelimit(key='user', rate='20/m', method='POST', block=True)
 def api_chat_ia(request):
     if request.method == "POST":
         try:
