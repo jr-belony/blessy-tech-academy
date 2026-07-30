@@ -188,6 +188,16 @@ class HistoriqueConversationIA(models.Model):
         ordering = ['date_creation']
         indexes = [models.Index(fields=['utilisateur', 'date_creation'])]
 
+    # ================================================
+    # CORRECTIF : Purge automatique (max 100 messages par utilisateur)
+    # ================================================
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        max_entries = 100
+        ids = HistoriqueConversationIA.objects.filter(utilisateur=self.utilisateur).values_list('id', flat=True).order_by('-date_creation')[max_entries:]
+        if ids:
+            HistoriqueConversationIA.objects.filter(id__in=list(ids)).delete()
+
 
 class PushSubscription(models.Model):
     utilisateur = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='push_subscriptions')

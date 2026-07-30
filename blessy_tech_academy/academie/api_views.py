@@ -29,6 +29,9 @@ from .models import (
     Parcours,
     ProgressionLecon,
 )
+from .throttles import ThrottlePartenaireAPI
+from .api_partenaires import obtenir_partenaire_depuis_request
+
 
 # ================================================
 # Endpoints v1 (rétrocompatibles)
@@ -184,9 +187,8 @@ def journaliser_requete_partenaire(request, partenaire, code_http):
 
 
 # ================================================
-# VUE — PartenaireFormationsView (isolation multi-académie)
+# VUE — PartenaireFormationsView (avec accesseur explicite)
 # ================================================
-
 
 class PartenaireFormationsView(APIView):
     """
@@ -197,10 +199,12 @@ class PartenaireFormationsView(APIView):
 
     authentication_classes = [PartenaireAPIAuthentication]
     permission_classes = []
-    throttle_classes = []  # ← Désactive la limite de débit pour les partenaires
+    throttle_classes = [ThrottlePartenaireAPI]   # ← RÉTABLI
 
     def get(self, request):
-        partenaire = request.user
+        partenaire = obtenir_partenaire_depuis_request(request)
+        if partenaire is None:
+            return Response({"erreur": "Authentification partenaire requise"}, status=401)
 
         formations = Formation.objects.filter(actif=True).select_related("ecole", "ecole__academie")
 
@@ -223,10 +227,10 @@ class PartenaireFormationsView(APIView):
         )
 
 
+    
 # ================================================
-# VUE — PartenaireEtudiantsFormesView (isolation multi-académie)
+# VUE — PartenaireEtudiantsFormesView (avec accesseur explicite)
 # ================================================
-
 
 class PartenaireEtudiantsFormesView(APIView):
     """
@@ -237,10 +241,13 @@ class PartenaireEtudiantsFormesView(APIView):
 
     authentication_classes = [PartenaireAPIAuthentication]
     permission_classes = []
-    throttle_classes = []  # ← Désactive la limite de débit pour les partenaires
+    throttle_classes = [ThrottlePartenaireAPI]   # ← RÉTABLI
 
     def get(self, request):
-        partenaire = request.user
+        partenaire = obtenir_partenaire_depuis_request(request)
+        if partenaire is None:
+            return Response({"erreur": "Authentification partenaire requise"}, status=401)
+
         formation_id = request.query_params.get("formation_id")
 
         if not formation_id:
@@ -270,4 +277,3 @@ class PartenaireEtudiantsFormesView(APIView):
         ]
         journaliser_requete_partenaire(request, partenaire, 200)
         return Response({"partenaire": partenaire.nom, "etudiants_certifies": data})
-

@@ -17,7 +17,7 @@ class MoyenPaiement(models.Model):
     ]
     code = models.CharField(max_length=20, choices=CODES, unique=True)
     nom_affiche = models.CharField(max_length=100)
-    icone = models.CharField(max_length=10, default='ðŸ’³')
+    icone = models.CharField(max_length=10, default='💳')
     actif = models.BooleanField(default=True)
     instructions = models.TextField(blank=True)
     ordre = models.IntegerField(default=0)
@@ -52,6 +52,16 @@ class Coupon(models.Model):
         db_table = 'academie_coupon'
         verbose_name = 'Coupon'
         verbose_name_plural = 'Coupons'
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(date_fin__isnull=True) | models.Q(date_fin__gte=models.F('date_debut')),
+                name='coupon_date_fin_apres_debut'
+            ),
+            models.CheckConstraint(
+                condition=models.Q(valeur__gt=0),
+                name='coupon_valeur_positive'
+            ),
+        ]
 
     def __str__(self):
         return f"{self.code} ({self.get_type_reduction_display()})"
@@ -88,6 +98,7 @@ class Coupon(models.Model):
             coupon_verrouille.save(update_fields=['utilisations_actuelles'])
             return True, "Coupon appliqué avec succès."
 
+
 class Promotion(models.Model):
     nom = models.CharField(max_length=150)
     description = models.TextField(blank=True)
@@ -104,6 +115,12 @@ class Promotion(models.Model):
         db_table = 'academie_promotion'
         verbose_name = 'Promotion'
         verbose_name_plural = 'Promotions'
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(date_fin__gte=models.F('date_debut')),
+                name='promotion_date_fin_apres_debut'
+            ),
+        ]
 
     def __str__(self):
         return f"{self.nom} (-{self.pourcentage_reduction}%)"
@@ -183,7 +200,7 @@ class OrderItem(models.Model):
     parcours = models.ForeignKey('academie.Parcours', on_delete=models.SET_NULL, null=True, blank=True)
     type_produit = models.CharField(max_length=15, choices=TYPES_PRODUIT)
     nom_produit_snapshot = models.CharField(max_length=200)
-    icone_produit_snapshot = models.CharField(max_length=10, default='ðŸ“š')
+    icone_produit_snapshot = models.CharField(max_length=10, default='📚')
     ecole_nom_snapshot = models.CharField(max_length=200, blank=True)
     prix_unitaire = models.DecimalField(max_digits=10, decimal_places=2)
 
@@ -192,6 +209,15 @@ class OrderItem(models.Model):
         db_table = 'academie_orderitem'
         verbose_name = 'Article de commande'
         verbose_name_plural = 'Articles de commande'
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    models.Q(type_produit='formation', formation__isnull=False, parcours__isnull=True) |
+                    models.Q(type_produit='parcours', parcours__isnull=False, formation__isnull=True)
+                ),
+                name='orderitem_type_produit_coherent'
+            ),
+        ]
 
     def __str__(self):
         return f"{self.nom_produit_snapshot} — {self.prix_unitaire}$"
@@ -285,15 +311,17 @@ class AccesFormationDebloque(models.Model):
     class Meta:
         app_label = 'academie'
         db_table = 'academie_accesformationdebloque'
-        unique_together = ['utilisateur', 'formation']  # ⚠️ CHANGÉ (était nom_formation_snapshot)
+        unique_together = ('utilisateur', 'formation')
         verbose_name = "Accès formation débloqué"
         verbose_name_plural = "Accès formations débloqués"
         indexes = [
             models.Index(fields=['utilisateur']),
             models.Index(fields=['formation']),
-    ]
+        ]
+
     def __str__(self):
         return f"{self.utilisateur.username} → {self.nom_formation_snapshot}"
+
 
 class PlanAbonnement(models.Model):
     PERIODICITES = [('mensuel', 'Mensuel'), ('annuel', 'Annuel')]

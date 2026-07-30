@@ -205,6 +205,16 @@ class Notification(models.Model):
         statut = "✓" if self.lue else "●"
         return f"{statut} {self.titre} — {self.utilisateur.username}"
 
+    # ================================================
+    # CORRECTIF : Purge automatique (max 100 notifications par utilisateur)
+    # ================================================
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        max_notifications = 100
+        ids = Notification.objects.filter(utilisateur=self.utilisateur).values_list('id', flat=True).order_by('-date_creation')[max_notifications:]
+        if ids:
+            Notification.objects.filter(id__in=list(ids)).delete()
+
 
 # ================================================
 # MODÈLES PÉDAGOGIQUES (learning)
@@ -406,7 +416,7 @@ class ResultatQuiz(models.Model):
         app_label = 'academie'
         db_table = 'academie_resultatquiz'
         indexes = [
-            models.Index(fields=['utilisateur', 'quiz']),   # ← AJOUTÉ
+            models.Index(fields=['utilisateur', 'quiz']),
         ]
 
     def pourcentage(self):
@@ -585,7 +595,7 @@ class Examen(models.Model):
         verbose_name = 'Examen'
         verbose_name_plural = 'Examens'
         indexes = [
-            models.Index(fields=['formation']),   # ← AJOUTÉ
+            models.Index(fields=['formation']),
         ]
 
     def __str__(self):
@@ -675,6 +685,7 @@ class NoteLecon(models.Model):
         verbose_name = 'Note de leçon'
         verbose_name_plural = 'Notes de leçons'
         ordering = ['-date_modification']
+        unique_together = ['utilisateur', 'lecon']   # ← AJOUTÉ
 
     def __str__(self):
         return f"Note de {self.utilisateur.username} sur {self.lecon.titre}"
@@ -783,7 +794,7 @@ class ReservationMentorat(models.Model):
         verbose_name = 'Réservation mentorat'
         verbose_name_plural = 'Réservations mentorat'
         indexes = [
-            models.Index(fields=['etudiant']),   # ← AJOUTÉ
+            models.Index(fields=['etudiant']),
         ]
 
     def __str__(self):
