@@ -29,7 +29,7 @@ from academie.models import (
     HistoriqueConversationIA, ProjetEtudiant, PushSubscription,
     Sujet, AccesFormationDebloque, BadgeForum, Order,
     Certificat, LogAudit, ConnexionUtilisateur, TentativeExamen,
-    NoteLecon, StreakEtudiant,
+    NoteLecon, StreakEtudiant, ResultatQuiz,
 )
 from academie.forms import ConnexionForm, InscriptionCompteForm
 from academie import notifications
@@ -174,21 +174,43 @@ def inscription_compte(request):
 
 @login_required(login_url="/connexion/")
 def dashboard(request):
-    """Tableau de bord étudiant moderne."""
+    """Tableau de bord étudiant — version optimisée, sans calcul inutile."""
     user = request.user
-    stats = calculer_stats_etudiant(user)
-    tous_badges = stats["badges"]
-    formations_actives = sorted(stats["en_cours"], key=lambda f: f["pourcentage"], reverse=True)[:4]
+
+    # --- Formations avec progression (optimisé : 1 requête) ---
+    formation_ids_actives = ProgressionLecon.objects.filter(
+        utilisateur=user
+    ).values_list('lecon__module__formation_id', flat=True).distinct()
+
+    formations_avec_progression = []
+    for formation in Formation.objects.filter(id__in=formation_ids_actives).select_related('ecole'):
+        pourcentage = formation.progression_pour(user)   # optimisé + cache
+        if pourcentage > 0:
+            formations_avec_progression.append({
+                'formation': formation,
+                'pourcentage': pourcentage
+            })
+    # Trier par progression décroissante (comme avant)
+    formations_avec_progression.sort(key=lambda x: x['pourcentage'], reverse=True)
+
+    # --- Badges ---
+    tous_badges = BadgeForum.objects.filter(utilisateur=user).order_by('-date_obtention')
     nouveaux_badges = attribuer_badges(user)
     if nouveaux_badges:
         messages.success(request, f"🎉 Nouveau(x) badge(s) : {', '.join(nouveaux_badges)} !")
     for badge_type in nouveaux_badges:
         notifications.notifier_badge(user, badge_type)
 
-    # Récupération du streak
+    # --- Streak ---
     streak, _ = StreakEtudiant.objects.get_or_create(utilisateur=user)
 
+    # --- Résultats de quiz récents ---
+    resultats_recents = ResultatQuiz.objects.filter(utilisateur=user).select_related('quiz__formation')[:5]
+
+    # --- Historique de connexions ---
     connexions = ConnexionUtilisateur.objects.filter(utilisateur=user).order_by("-date_connexion")[:5]
+
+    # --- Examens passés ---
     examens_passes = (
         TentativeExamen.objects.filter(utilisateur=user)
         .select_related("examen")
@@ -200,9 +222,10 @@ def dashboard(request):
         "academie/dashboard.html",
         {
             "user": user,
-            "stats": stats,
+            "formations_actives": formations_avec_progression,   # compatible avec l'ancien template
             "badges": tous_badges,
-            "formations_actives": formations_actives,
+            "formations_avec_progression": formations_avec_progression,  # pour éviter de casser d'éventuelles références
+            "resultats_recents": resultats_recents,
             "connexions": connexions,
             "examens_passes": examens_passes,
             "streak": streak,
@@ -428,10 +451,6 @@ def robots_txt(request):
 def vue_limite_depassee(request, exception=None):
     return render(request, 'academie/limite_depassee.html', status=429)
 
-
-# ================================================
-# Certificat PDF
-# ================================================
 
 # ================================================
 # Certificat PDF

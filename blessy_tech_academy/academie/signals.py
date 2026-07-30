@@ -3,6 +3,8 @@ Signaux Django pour Blessy Tech Academy.
 - Compression automatique des images uploadées (ProjetEtudiant, Formation)
 - Détection des connexions suspectes et historique des connexions
 - Auto-création ProfilUtilisateur et WorkflowFormation
+- Invalidation du cache progression (ProgressionLecon)
+- Invalidation du cache catalogue (Formation) par versionnage
 """
 
 import os
@@ -12,14 +14,19 @@ from io import BytesIO
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth.signals import user_logged_in
+from django.core.cache import cache
 from django.core.files.base import ContentFile
 from django.core.mail import send_mail
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save, pre_save, post_delete
 from django.dispatch import receiver
 from PIL import Image
 
-from .models import ConnexionUtilisateur, ProjetEtudiant
-from .models import Formation
+from .models import (
+    ConnexionUtilisateur,
+    ProjetEtudiant,
+    Formation,
+    ProgressionLecon,
+)
 
 logger = logging.getLogger('academie')
 
@@ -184,3 +191,25 @@ def creer_workflow_formation(sender, instance, created, **kwargs):
         WorkflowFormation.objects.get_or_create(
             formation=instance, defaults={"etat_actuel": "brouillon"}
         )
+
+
+# ================================================
+# SIGNAL — Invalidation cache progression (leçon terminée)
+# ================================================
+@receiver(post_save, sender=ProgressionLecon)
+def invalider_cache_progression(sender, instance, **kwargs):
+    """Vide le cache de progression dès qu'une leçon est marquée terminée."""
+    formation = instance.lecon.module.formation
+    cache_key = f"progression_formation_{formation.id}_user_{instance.utilisateur.id}"
+    cache.delete(cache_key)
+
+
+# ================================================
+# SIGNAL — Invalidation cache catalogue formations (versionnage)
+# ================================================
+@receiver(post_save, sender=Formation)
+@receiver(post_delete, sender=Formation)
+def invalider_cache_catalogue_formations(sender, **kwargs):
+    """Invalide le cache du catalogue dès qu'une formation est modifiée/supprimée."""
+    version_actuelle = cache.get('formations_cache_version', 1)
+    cache.set('formations_cache_version', version_actuelle + 1, None)  # jamais expiré

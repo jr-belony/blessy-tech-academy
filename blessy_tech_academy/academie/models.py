@@ -291,15 +291,37 @@ class Formation(models.Model):
             self.slug = slug_candidat
         super().save(*args, **kwargs)
 
+
     def progression_pour(self, utilisateur):
-        total = sum(m.lecons.count() for m in self.modules.all())
+        """Version optimisée — 1 seule requête au lieu de 2, avec cache."""
+        from django.core.cache import cache
+        from django.db.models import Count, Q
+
+        cache_key = f"progression_formation_{self.id}_user_{utilisateur.id}"
+        resultat_cache = cache.get(cache_key)
+        if resultat_cache is not None:
+            return resultat_cache
+
+        stats = Module.objects.filter(formation=self).aggregate(
+            total_lecons=Count('lecons', distinct=True),
+            lecons_terminees=Count(
+                'lecons',
+                filter=Q(
+                    lecons__progressions__utilisateur=utilisateur,
+                    lecons__progressions__terminee=True
+                ),
+                distinct=True
+            )
+        )
+
+        total = stats['total_lecons'] or 0
         if total == 0:
-            return 0
-        from .models import ProgressionLecon
-        terminees = ProgressionLecon.objects.filter(
-            utilisateur=utilisateur, lecon__module__formation=self, terminee=True
-        ).count()
-        return round((terminees / total) * 100)
+            pourcentage = 0
+        else:
+            pourcentage = round((stats['lecons_terminees'] / total) * 100)
+
+        cache.set(cache_key, pourcentage, 300)  # 5 minutes
+        return pourcentage
 
 
 class Module(models.Model):

@@ -778,3 +778,23 @@ class AccesFormationCleNaturelleTestCase(TestCase):
         from django.db import IntegrityError
         with self.assertRaises(IntegrityError):
             AccesFormationDebloque.objects.create(utilisateur=user, formation=formation, nom_formation_snapshot='Autre nom')
+
+
+
+# ================================================
+# TESTS.PY — Vérifie que la recherche full-text fonctionne
+# ================================================
+
+class RechercheFullTextTestCase(TestCase):
+    def setUp(self):
+        self.ecole = Ecole.objects.create(nom='Ecole Recherche', icone='🏫', ordre=1)
+        self.formation = Formation.objects.create(
+            ecole=self.ecole, nom='Développement Python Avancé', icone='🐍',
+            description='Apprends Python en profondeur', duree_mois=3, prix=0, actif=True,
+        )
+
+    def test_recherche_trouve_formation_par_nom(self):
+        client = Client()
+        reponse = client.get('/recherche/?q=Python')
+        self.assertEqual(reponse.status_code, 200)
+        self.assertIn(self.formation, reponse.context.get('resultats_formations', []))

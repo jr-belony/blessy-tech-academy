@@ -13,7 +13,8 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
-from django.core.paginator import Paginator
+from django.core.cache import cache
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import transaction
 from django.db.models import Count, Q
 from django.http import JsonResponse, HttpResponse
@@ -58,21 +59,34 @@ from ..decorators import exiger_acces_formation
 # Vues : Formations
 # ================================================
 
-@cache_page(60 * 15)
 def formations(request):
-    ecoles = Ecole.objects.prefetch_related("formations__modules").all()
-    formations_gratuites = Formation.objects.filter(actif=True, gratuit=True)
-    parcours_list = Parcours.objects.prefetch_related("formations").filter(actif=True)
+    """Page catalogue formations — paginée, avec cache invalidable par version."""
+    version_cache = cache.get('formations_cache_version', 1)
+    page_num = request.GET.get('page', 1)
+    cache_key = f"formations_page_{page_num}_v{version_cache}"
 
-    return render(
-        request,
-        "academie/formations.html",
-        {
-            "ecoles": ecoles,
-            "formations_gratuites": formations_gratuites,
-            "parcours_list": parcours_list,
-        },
-    )
+    donnees_cache = cache.get(cache_key)
+    if donnees_cache is not None:
+        return render(request, 'academie/formations.html', donnees_cache)
+
+    ecoles_list = Ecole.objects.prefetch_related('formations__modules').all()
+    paginator = Paginator(ecoles_list, 6)  # 6 écoles par page
+    try:
+        ecoles = paginator.page(page_num)
+    except PageNotAnInteger:
+        ecoles = paginator.page(1)
+    except EmptyPage:
+        ecoles = paginator.page(paginator.num_pages)
+
+    parcours_list = Parcours.objects.prefetch_related('formations').filter(actif=True)
+
+    contexte = {
+        'ecoles': ecoles,
+        'page_obj': ecoles,             # pour les contrôles de pagination dans le template
+        'parcours_list': parcours_list,
+    }
+    cache.set(cache_key, contexte, 600)  # 10 minutes
+    return render(request, 'academie/formations.html', contexte)
 
 
 def detail_formation(request, formation_id):

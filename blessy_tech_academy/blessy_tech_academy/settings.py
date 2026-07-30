@@ -77,7 +77,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.facebook',
     'users',
     'billing',
-    'academie',
+    'academie.apps.AcademieConfig',  # ← modifié pour charger la config personnalisée
     'crm',
     'forum', 
     'content',
