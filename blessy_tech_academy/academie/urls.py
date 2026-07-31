@@ -180,4 +180,8 @@ urlpatterns = [
     path("mentorat/calendrier/", views.mentorat_calendrier, name="mentorat_calendrier"),
     path('admin/monitoring-conversion/', views.vue_monitoring_conversion, name='monitoring_conversion'),
     path('mon-profil-competences/', views.mon_profil_competences, name='mon_profil_competences'),
+    path('formation/<int:formation_id>/soumettre-projet/', views.soumettre_projet, name='soumettre_projet'),
+    path('admin/evaluer-soumissions/', views.evaluer_soumissions, name='evaluer_soumissions'),
+    path('admin/valider-soumission/<int:soumission_id>/', views.valider_soumission, name='valider_soumission'),
+    path('portfolio/<str:username>/', views.portfolio_public, name='portfolio_public'),
 ]

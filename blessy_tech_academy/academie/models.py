@@ -265,6 +265,10 @@ class Formation(models.Model):
     certifications = models.TextField(blank=True)
     actif = models.BooleanField(default=True)
     gratuit = models.BooleanField(default=False)
+    sequentiel_obligatoire = models.BooleanField(
+        default=False,
+        help_text="Si activé, l'étudiant doit terminer chaque leçon dans l'ordre avant d'accéder à la suivante"
+    )
     formation_upgrade = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True)
     date_creation = models.DateTimeField(auto_now_add=True)
     salaire_haiti = models.CharField(max_length=50, blank=True)
@@ -367,6 +371,38 @@ class Lecon(models.Model):
     def __str__(self):
         return self.titre
 
+    def est_accessible_pour(self, utilisateur):
+        """
+        Vérifie si l'utilisateur peut accéder à cette leçon selon 
+        l'ordre séquentiel — retourne (accessible: bool, raison: str).
+        """
+        formation = self.module.formation
+
+        if not formation.sequentiel_obligatoire:
+            return True, ""
+        # Récupère TOUTES les leçons de la formation, triées par ordre module puis leçon
+        toutes_lecons = list(
+            Lecon.objects.filter(module__formation=formation)
+            .select_related('module')
+            .order_by('module__ordre', 'ordre')
+        )
+        try:
+            index_actuel = toutes_lecons.index(self)
+        except ValueError:
+            return True, ""
+
+        if index_actuel == 0:
+            return True, ""  # première leçon, toujours accessible
+
+        lecon_precedente = toutes_lecons[index_actuel - 1]
+        terminee = ProgressionLecon.objects.filter(
+            utilisateur=utilisateur, lecon=lecon_precedente, terminee=True
+        ).exists()
+
+        if not terminee:
+            return False, f"Termine d'abord la leçon « {lecon_precedente.titre} »"
+
+        return True, ""
 
 class ProgressionLecon(models.Model):
     utilisateur = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='progressions')
@@ -935,3 +971,73 @@ class CompetenceValidee(models.Model):
             if cree:
                 creees.append(obj)
         return creees
+
+
+# ================================================
+# MODELS.PY — SoumissionProjet — Évaluation pratique par formateur
+# Corrige la faiblesse P1 : "aucune évaluation par livrable concret"
+# ================================================
+
+class SoumissionProjet(models.Model):
+    """Soumission d'un projet pratique par un étudiant, évalué par un formateur."""
+
+    STATUTS = [
+        ('en_attente', '⏳ En attente d\'évaluation'),
+        ('validee', '✅ Validée'),
+        ('a_revoir', '🔄 À revoir'),
+        ('refusee', '❌ Refusée'),
+    ]
+
+    utilisateur = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='soumissions_projets')
+    formation = models.ForeignKey('Formation', on_delete=models.CASCADE, related_name='soumissions')
+    module = models.ForeignKey('Module', on_delete=models.SET_NULL, null=True, blank=True)
+    titre = models.CharField(max_length=200)
+    description = models.TextField()
+    lien_livrable = models.URLField(help_text="Lien GitHub, Figma, démo, etc.")
+    fichier_livrable = models.FileField(upload_to='soumissions_projets/', null=True, blank=True)
+
+    statut = models.CharField(max_length=15, choices=STATUTS, default='en_attente')
+    evalue_par = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='projets_evalues')
+    feedback_formateur = models.TextField(blank=True)
+    note_sur_20 = models.IntegerField(null=True, blank=True)
+    competences_a_valider = models.ManyToManyField('Competence', blank=True, related_name='soumissions_liees')
+
+    date_soumission = models.DateTimeField(auto_now_add=True)
+    date_evaluation = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-date_soumission']
+        verbose_name = 'Soumission de projet'
+        verbose_name_plural = 'Soumissions de projets'
+        indexes = [models.Index(fields=['statut']), models.Index(fields=['utilisateur'])]
+
+    def __str__(self):
+        return f"{self.titre} — {self.utilisateur.username} ({self.get_statut_display()})"
+
+    def valider(self, formateur, note=None, feedback=''):
+        """Valide la soumission — déclenche CompetenceValidee automatiquement."""
+        self.statut = 'validee'
+        self.evalue_par = formateur
+        self.date_evaluation = timezone.now()
+        if note is not None:
+            self.note_sur_20 = note
+        if feedback:
+            self.feedback_formateur = feedback
+        self.save()
+
+        niveau = 'expert' if (note and note >= 18) else 'confirme' if (note and note >= 14) else 'acquis'
+        for competence in self.competences_a_valider.all():
+            CompetenceValidee.objects.get_or_create(
+                utilisateur=self.utilisateur, competence=competence,
+                source_type='projet', projet_origine=None, formation_origine=self.formation,
+                defaults={'niveau': niveau, 'score_obtenu': note, 'validee_par': formateur}
+            )
+
+        # Auto-crée un ProjetEtudiant dans le portfolio si validé (ferme la boucle P0 #4)
+        ProjetEtudiant.objects.get_or_create(
+            auteur=self.utilisateur, titre=self.titre,
+            defaults={
+                'description': self.description, 'lien': self.lien_livrable,
+                'formation_liee': self.formation,
+            }
+        )

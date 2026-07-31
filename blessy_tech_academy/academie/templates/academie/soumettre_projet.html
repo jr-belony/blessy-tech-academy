@@ -1,0 +1,30 @@
+<!-- ================================================
+     SOUMETTRE_PROJET.HTML — Soumission livrable pratique
+     ================================================ -->
+{% extends 'academie/base.html' %}
+{% block titre %}Soumettre un projet — {{ formation.nom }}{% endblock %}
+{% block contenu %}
+<section style="max-width:600px; margin:60px auto; padding:0 20px;">
+    <h1 style="color:var(--bleu-principal);">💼 Soumettre mon projet pratique</h1>
+    <p style="color:var(--gris-texte); margin-bottom:24px;">Formation : {{ formation.nom }}</p>
+
+    <form method="POST" enctype="multipart/form-data" style="background:white; border:1.5px solid #e2e8f0; border-radius:16px; padding:28px;">
+        {% csrf_token %}
+        <label style="font-weight:700; color:var(--bleu-principal); font-size:13px;">Titre du projet</label>
+        <input type="text" name="titre" required style="width:100%; padding:12px; border:1.5px solid #e2e8f0; border-radius:8px; margin:8px 0 16px;">
+
+        <label style="font-weight:700; color:var(--bleu-principal); font-size:13px;">Description</label>
+        <textarea name="description" rows="5" required style="width:100%; padding:12px; border:1.5px solid #e2e8f0; border-radius:8px; margin:8px 0 16px;"></textarea>
+
+        <label style="font-weight:700; color:var(--bleu-principal); font-size:13px;">Lien du livrable (GitHub, démo...)</label>
+        <input type="url" name="lien_livrable" style="width:100%; padding:12px; border:1.5px solid #e2e8f0; border-radius:8px; margin:8px 0 16px;">
+
+        <label style="font-weight:700; color:var(--bleu-principal); font-size:13px;">Fichier (optionnel)</label>
+        <input type="file" name="fichier_livrable" style="margin:8px 0 20px; display:block;">
+
+        <button type="submit" style="width:100%; padding:14px; background:linear-gradient(135deg,#FF6B35,#e85a2a); color:white; border:none; border-radius:10px; font-weight:800; cursor:pointer;">
+            🚀 Soumettre pour évaluation
+        </button>
+    </form>
+</section>
+{% endblock %}

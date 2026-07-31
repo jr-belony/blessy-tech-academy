@@ -22,12 +22,14 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.cache import cache_page
 from django.views.decorators.http import require_POST
+from django.contrib.admin.views.decorators import staff_member_required 
 
 from ..models import (
     AccesFormationDebloque,
     Article,
     Certificat,
     ChoixExamen,
+    Competence,
     CompetenceValidee,          # ← ajouté
     Ecole,
     Examen,
@@ -43,6 +45,7 @@ from ..models import (
     Reponse,
     ResultatQuiz,
     Sujet,
+    SoumissionProjet,
     TentativeExamen,
     WorkflowFormation,
 )
@@ -120,6 +123,17 @@ def detail_formation(request, formation_id):
         ]
     else:
         formation.debouches_liste = []
+    # Pré-calcul accessibilité séquentielle pour le template
+    # Évite de recalculer est_accessible_pour() N fois dans le template Django
+    if request.user.is_authenticated and formation.sequentiel_obligatoire:
+        for module in formation.modules.all():
+            for lecon in module.lecons.all():
+                accessible, _ = lecon.est_accessible_pour(request.user)
+                lecon.accessible = accessible
+    else:
+        for module in formation.modules.all():
+            for lecon in module.lecons.all():
+                lecon.accessible = True
 
     return render(
         request,
@@ -139,7 +153,6 @@ def detail_formation(request, formation_id):
         },
     )
 
-
 def detail_formation_slug(request, formation_slug):
     formation = Formation.objects.filter(slug=formation_slug, actif=True).first()
     if not formation:
@@ -156,6 +169,13 @@ def detail_formation_slug(request, formation_slug):
 @exiger_acces_formation(lambda lecon_id: Lecon.objects.get(id=lecon_id).module.formation)
 def lire_lecon(request, lecon_id):
     lecon = get_object_or_404(Lecon.objects.select_related("module__formation__ecole"), id=lecon_id)
+
+    # --- Vérification séquentielle P0 #3 ---
+    accessible, raison_blocage = lecon.est_accessible_pour(request.user)
+    if not accessible:
+        messages.warning(request, f"🔒 {raison_blocage}")
+        return redirect('detail_formation', formation_id=lecon.module.formation.id)
+    # ------------------------------------
 
     contenu_html = lecon.contenu if lecon.contenu else ""
 
@@ -185,7 +205,6 @@ def lire_lecon(request, lecon_id):
             "formation": formation,
         },
     )
-
 
 @login_required(login_url="/connexion/")
 @exiger_acces_formation(lambda lecon_id: Lecon.objects.get(id=lecon_id).module.formation)
@@ -938,3 +957,69 @@ def api_note_lecon(request, lecon_id):
 
     note = NoteLecon.objects.filter(utilisateur=request.user, lecon_id=lecon_id).first()
     return JsonResponse({'contenu': note.contenu if note else ''})
+
+
+# ================================================
+# VIEWS.PY — Soumission de projet pratique (étudiant) + évaluation (formateur)
+# ================================================
+
+@login_required(login_url='/connexion/')
+def soumettre_projet(request, formation_id):
+    """Étudiant soumet un livrable pratique pour évaluation."""
+    formation = get_object_or_404(Formation, id=formation_id)
+
+    if not verifier_acces_formation(request.user, formation):
+        messages.error(request, "🔒 Accès non autorisé.")
+        return redirect('detail_formation', formation_id=formation_id)
+
+    if request.method == 'POST':
+        SoumissionProjet.objects.create(
+            utilisateur=request.user, formation=formation,
+            titre=request.POST.get('titre', ''), description=request.POST.get('description', ''),
+            lien_livrable=request.POST.get('lien_livrable', ''),
+            fichier_livrable=request.FILES.get('fichier_livrable'),
+        )
+        messages.success(request, "✅ Projet soumis ! Un formateur va l'évaluer sous peu.")
+        return redirect('detail_formation', formation_id=formation_id)
+
+    return render(request, 'academie/soumettre_projet.html', {'formation': formation})
+
+
+@login_required(login_url='/connexion/')
+@staff_member_required   # ou un décorateur personnalisé si disponible
+def evaluer_soumissions(request):
+    """Vue formateur — liste des soumissions à évaluer."""
+    soumissions = SoumissionProjet.objects.filter(statut='en_attente').select_related('utilisateur', 'formation')
+    return render(request, 'academie/evaluer_soumissions.html', {'soumissions': soumissions})
+
+
+@login_required(login_url='/connexion/')
+@staff_member_required
+def valider_soumission(request, soumission_id):
+    """Traite l'évaluation d'une soumission par le formateur."""
+    if request.method == 'POST':
+        soumission = get_object_or_404(SoumissionProjet, id=soumission_id)
+        action = request.POST.get('action')
+        note = request.POST.get('note')
+        feedback = request.POST.get('feedback', '')
+
+        if action == 'valider':
+            competence_ids = request.POST.getlist('competences')
+            soumission.competences_a_valider.set(competence_ids)
+            soumission.valider(request.user, note=int(note) if note else None, feedback=feedback)
+            messages.success(request, "✅ Soumission validée — compétences attribuées.")
+        elif action == 'a_revoir':
+            soumission.statut = 'a_revoir'
+            soumission.feedback_formateur = feedback
+            soumission.evalue_par = request.user
+            soumission.date_evaluation = timezone.now()
+            soumission.save()
+            messages.info(request, "🔄 Retour envoyé à l'étudiant.")
+        elif action == 'refuser':
+            soumission.statut = 'refusee'
+            soumission.feedback_formateur = feedback
+            soumission.evalue_par = request.user
+            soumission.date_evaluation = timezone.now()
+            soumission.save()
+
+    return redirect('evaluer_soumissions')

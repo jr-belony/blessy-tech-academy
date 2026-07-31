@@ -136,13 +136,14 @@
 {% endif %}
 
 {% if formation.learning_outcomes.all %}
-<div style="margin-top:16px;">
-    <p style="font-size:12px; font-weight:700; color:var(--bleu-electrique); text-transform:uppercase; margin-bottom:10px;">
-        Objectifs pédagogiques
+<div style="margin-top:24px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 20px;">
+    <p style="font-size:13px; font-weight:700; color:#166534; text-transform:uppercase; margin-bottom:12px;">
+        🎯 Objectifs pédagogiques
     </p>
     {% for outcome in formation.learning_outcomes.all %}
-    <div style="display:flex; gap:8px; padding:6px 0; font-size:13px; color:var(--gris-texte);">
-        <span style="color:#22c55e;">✓</span> {{ outcome.description }}
+    <div style="display:flex; gap:10px; align-items:flex-start; padding:8px 0; border-bottom:1px solid #dcfce7;">
+        <span style="color:#22c55e; font-weight:700; flex-shrink:0;">✓</span>
+        <span style="font-size:14px; color:#14532d;">{{ outcome.description }}</span>
     </div>
     {% endfor %}
 </div>
@@ -211,19 +212,47 @@
                 <span class="pv-module-chevron">▼</span>
             </div>
             <div class="pv-module-lecons">
+                <!-- ================================================
+                     DETAIL_FORMATION.HTML — Affichage cadenas séquentiel
+                     Remplace le bloc .pv-lecon-item existant
+                     ================================================ -->
                 {% for lecon in module.lecons.all %}
-                <div class="pv-lecon-item">
-                    <span class="pv-lecon-icone">{% if user.is_authenticated and acces_autorise %}▶️{% else %}🔒{% endif %}</span>
-                    <div class="pv-lecon-info">
-                        {% if acces_autorise %}
-                        <a href="{% url 'lire_lecon' lecon.id %}">{{ lecon.titre }}</a>
-                        {% else %}
-                        <span>{{ lecon.titre }}</span>
-                        {% endif %}
-                        {% if lecon.resume %}<p>{{ lecon.resume }}</p>{% endif %}
-                    </div>
-                    <span class="pv-lecon-duree">⏱ {{ lecon.duree_minutes }} min</span>
-                </div>
+                    {% if user.is_authenticated and formation.sequentiel_obligatoire %}
+                        {% with accessible=lecon.accessible %}
+                        <div class="pv-lecon-item {% if not accessible %}pv-lecon-verrouillee{% endif %}">
+                            <span class="pv-lecon-icone">
+                                {% if not acces_autorise %}🔒
+                                {% elif not accessible %}🔐
+                                {% else %}▶️{% endif %}
+                            </span>
+                            <div class="pv-lecon-info">
+                                {% if acces_autorise and accessible %}
+                                <a href="{% url 'lire_lecon' lecon.id %}">{{ lecon.titre }}</a>
+                                {% else %}
+                                <span style="color:#a0aec0;">{{ lecon.titre }}</span>
+                                {% if formation.sequentiel_obligatoire %}
+                                <p style="font-size:11px; color:#a0aec0; font-style:italic;">Termine les leçons précédentes d'abord</p>
+                                {% endif %}
+                                {% endif %}
+                                {% if lecon.resume %}<p>{{ lecon.resume }}</p>{% endif %}
+                            </div>
+                            <span class="pv-lecon-duree">⏱ {{ lecon.duree_minutes }} min</span>
+                        </div>
+                        {% endwith %}
+                    {% else %}
+                        <div class="pv-lecon-item">
+                            <span class="pv-lecon-icone">▶️</span>
+                            <div class="pv-lecon-info">
+                                {% if acces_autorise %}
+                                <a href="{% url 'lire_lecon' lecon.id %}">{{ lecon.titre }}</a>
+                                {% else %}
+                                <span style="color:#a0aec0;">{{ lecon.titre }}</span>
+                                {% endif %}
+                                {% if lecon.resume %}<p>{{ lecon.resume }}</p>{% endif %}
+                            </div>
+                            <span class="pv-lecon-duree">⏱ {{ lecon.duree_minutes }} min</span>
+                        </div>
+                    {% endif %}
                 {% endfor %}
             </div>
         </div>
@@ -367,6 +396,10 @@
 .pv-module-lecons { display:none; padding:0 20px 16px; }
 .pv-module-lecons.visible { display:block; }
 .pv-lecon-item { display:flex; align-items:center; gap:12px; padding:10px 14px; background:var(--gris-clair); border-radius:8px; margin-bottom:8px; }
+/* ================================================
+Style leçon verrouillée séquentielle
+   ================================================ */
+.pv-lecon-verrouillee { opacity: 0.6; background: #f8fafc !important; }
 .pv-lecon-info a { color:var(--bleu-principal); font-weight:600; text-decoration:none; font-size:14px; }
 .pv-lecon-info p { font-size:12px; color:var(--gris-texte); margin:2px 0 0; }
 .pv-lecon-duree { margin-left:auto; font-size:12px; color:#a0aec0; }

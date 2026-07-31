@@ -272,3 +272,23 @@ def classement(request):
             "profils": profils,
         },
     )
+
+
+# ================================================
+# VIEWS.PY — Portfolio public partageable (/portfolio/username/)
+# ================================================
+
+def portfolio_public(request, username):
+    """Page portfolio publique — consultable par recruteurs sans connexion."""
+    utilisateur = User.objects.get(username=username)
+    projets = ProjetEtudiant.objects.filter(auteur=utilisateur).prefetch_related('competences_demontrees')
+    competences_validees = CompetenceValidee.objects.filter(utilisateur=utilisateur).select_related('competence')
+    certificats = Certificat.objects.filter(utilisateur=utilisateur).select_related('formation')
+
+    return render(request, 'academie/portfolio_public.html', {
+        'profil_utilisateur': utilisateur,
+        'projets': projets,
+        'nb_competences': competences_validees.values('competence').distinct().count(),
+        'competences_validees': competences_validees[:12],
+        'certificats': certificats,
+    })
