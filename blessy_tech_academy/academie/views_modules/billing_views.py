@@ -17,6 +17,7 @@ from django.views.decorators.http import require_POST
 from billing.models import (
     Order, OrderItem, Coupon, MoyenPaiement, Transaction,
     Invoice, AccesFormationDebloque, Promotion,
+    AlerteFraude, detecter_fraude_potentielle,   # <-- ajouté
 )
 from academie.models import Formation
 from academie.payment_gateways import stripe_gateway, moncash_gateway, paypal_gateway
@@ -275,6 +276,17 @@ def paiement_succes(request, order_reference):
             "l'accès sera débloqué automatiquement sous quelques minutes."
         )
         return redirect('mes_commandes')
+
+    # ================================================
+    # DÉTECTION DE FRAUDE AVANT VALIDATION DÉFINITIVE
+    # ================================================
+    adresse_ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', ''))
+    alertes_detectees = detecter_fraude_potentielle(commande, adresse_ip)
+
+    for niveau, raison in alertes_detectees:
+        AlerteFraude.objects.create(commande=commande, niveau=niveau, raison=raison)
+        if niveau == 'eleve':
+            logger.warning(f"🚨 ALERTE FRAUDE ÉLEVÉE — commande {commande.reference} : {raison}")
 
     with db_transaction.atomic():
         commande.statut = 'paye'

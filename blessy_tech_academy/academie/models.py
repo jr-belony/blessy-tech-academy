@@ -27,7 +27,7 @@ from billing.models import (
     Transaction, Refund, AccesFormationDebloque, PlanAbonnement,
     Subscription, Affilie, CommissionAffiliation,
 )
-
+from academie.validators import valider_image
 
 # ================================================
 # MODÈLE : ConnexionUtilisateur
@@ -64,7 +64,12 @@ class Academie(models.Model):
         max_length=250, blank=True, help_text="Ex: L'école de la haute technologie moderne d'Haïti"
     )
     icone = models.CharField(max_length=10, default="🎓")
-    logo = models.ImageField(upload_to="academies/logos/", null=True, blank=True)
+    logo = models.ImageField(
+    upload_to='logos/',
+    null=True,
+    blank=True,
+    validators=[valider_image]
+)
     couleur_principale = models.CharField(max_length=7, default="#0B2447")
     couleur_accent = models.CharField(max_length=7, default="#00B4D8")
     domaine_personnalise = models.CharField(

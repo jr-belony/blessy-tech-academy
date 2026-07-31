@@ -172,16 +172,25 @@ def mon_portfolio(request):
 # Certificat et notifications
 # ================================================
 
-def verifier_certificat(request, numero):
-    certificat = None
-    try:
-        certificat = Certificat.objects.select_related("utilisateur", "formation").get(
-            numero=numero
-        )
-    except Exception:
-        pass
+def verifier_certificat_public(request, numero_certificat):
+    """Vérification publique d'un certificat — accessible sans connexion."""
+    certificat = Certificat.objects.select_related('utilisateur', 'formation').filter(
+        numero=numero_certificat
+    ).first()
 
-    return render(request, "academie/verifier_certificat.html", {"certificat": certificat})
+    if not certificat:
+        return render(request, 'academie/verifier_certificat.html', {
+            'valide': False,
+            'message': "Ce certificat n'existe pas ou le numéro est incorrect.",
+        })
+
+    return render(request, 'academie/verifier_certificat.html', {
+        'valide': True,
+        'certificat': certificat,
+        'nom_affiche': certificat.utilisateur.get_full_name() or certificat.utilisateur.username,
+        'formation_nom': certificat.formation.nom if certificat.formation else "Formation supprimée",
+        'date_obtention': certificat.date_emission,
+    })
 
 
 @login_required(login_url="/connexion/")

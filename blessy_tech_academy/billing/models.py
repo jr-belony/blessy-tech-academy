@@ -7,6 +7,7 @@ from django.db import models
 from django.utils import timezone
 import uuid
 from django.db import transaction
+from academie.validators import valider_document, valider_preuve_paiement  # <-- ajouté
 
 
 class MoyenPaiement(models.Model):
@@ -216,8 +217,9 @@ class OrderItem(models.Model):
         constraints = [
             models.CheckConstraint(
                 condition=(
-                    (models.Q(type_produit='formation') & models.Q(formation__isnull=False)) |
-                    (models.Q(type_produit='parcours') & models.Q(parcours__isnull=False))
+                    (models.Q(type_produit='formation') & models.Q(formation__isnull=False, parcours__isnull=True)) |
+                    (models.Q(type_produit='parcours') & models.Q(parcours__isnull=False, formation__isnull=True)) |
+                    models.Q(formation__isnull=True, parcours__isnull=True)  # snapshots (formation supprimée)
                 ),
                 name='orderitem_produit_coherent'
             ),
@@ -240,7 +242,12 @@ class Invoice(models.Model):
     commande = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='facture')
     numero_facture = models.CharField(max_length=30, unique=True, editable=False, db_index=True)
     date_emission = models.DateTimeField(auto_now_add=True)
-    fichier_pdf = models.FileField(upload_to='factures/', null=True, blank=True)
+    fichier_pdf = models.FileField(
+        upload_to='factures/',
+        null=True,
+        blank=True,
+        validators=[valider_document]   # <-- validateur ajouté
+    )
 
     class Meta:
         app_label = 'academie'
@@ -268,7 +275,12 @@ class Transaction(models.Model):
     commande = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='transactions')
     moyen_paiement = models.ForeignKey(MoyenPaiement, on_delete=models.SET_NULL, null=True)
     reference_externe = models.CharField(max_length=100, blank=True)
-    preuve_paiement = models.ImageField(upload_to='preuves_paiement/', null=True, blank=True)
+    preuve_paiement = models.ImageField(
+        upload_to='preuves_paiement/',
+        null=True,
+        blank=True,
+        validators=[valider_preuve_paiement]   # <-- validateur ajouté
+    )
     montant = models.DecimalField(max_digits=10, decimal_places=2)
     statut = models.CharField(max_length=20, choices=STATUTS, default='initiee')
     notes_admin = models.TextField(blank=True)
@@ -426,3 +438,67 @@ class CommissionAffiliation(models.Model):
         db_table = 'academie_commissionaffiliation'
         verbose_name = 'Commission affiliation'
         verbose_name_plural = 'Commissions affiliation'
+
+
+# ================================================
+# BILLING/MODELS.PY — Détection patterns de fraude
+# Complète le contrôle de paiement (Correctif #1 du chantier précédent) 
+# avec une couche heuristique anti-fraude
+# ================================================
+
+class AlerteFraude(models.Model):
+    """Enregistre les patterns suspects détectés — pour revue admin."""
+
+    NIVEAUX = [('faible', '🟡 Faible'), ('moyen', '🟠 Moyen'), ('eleve', '🔴 Élevé')]
+
+    commande = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='alertes_fraude')
+    niveau = models.CharField(max_length=10, choices=NIVEAUX)
+    raison = models.TextField()
+    revue_par_admin = models.BooleanField(default=False)
+    date_creation = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        app_label = 'academie'
+        db_table = 'academie_alertefraude'
+        ordering = ['-date_creation']
+        verbose_name = 'Alerte fraude'
+        verbose_name_plural = 'Alertes fraude'
+
+    def __str__(self):
+        return f"Alerte {self.get_niveau_display()} — {self.commande.reference}"
+
+
+def detecter_fraude_potentielle(commande, adresse_ip):
+    """
+    Analyse une commande au moment du paiement — retourne une liste 
+    d'alertes détectées (heuristiques simples mais efficaces).
+    """
+    alertes = []
+
+    # 1. Vélocité anormale : plusieurs commandes du même utilisateur en peu de temps
+    from django.utils import timezone
+    from datetime import timedelta
+    commandes_recentes = Order.objects.filter(
+        utilisateur=commande.utilisateur,
+        date_creation__gte=timezone.now() - timedelta(minutes=10)
+    ).count()
+    if commandes_recentes >= 3:
+        alertes.append(('moyen', f"{commandes_recentes} commandes créées en moins de 10 minutes"))
+
+    # 2. Même IP utilisée par plusieurs comptes différents récemment
+    from users.models import LogAudit
+    comptes_meme_ip = LogAudit.objects.filter(
+        adresse_ip=adresse_ip, date_creation__gte=timezone.now() - timedelta(hours=24)
+    ).values('utilisateur').distinct().count()
+    if comptes_meme_ip >= 4:
+        alertes.append(('eleve', f"{comptes_meme_ip} comptes différents utilisés depuis la même IP en 24h"))
+
+    # 3. Montant anormalement élevé par rapport à l'historique de l'utilisateur
+    from django.db.models import Avg
+    moyenne_utilisateur = Order.objects.filter(
+        utilisateur=commande.utilisateur, statut='paye'
+    ).aggregate(m=Avg('total'))['m']
+    if moyenne_utilisateur and commande.total > moyenne_utilisateur * 5:
+        alertes.append(('faible', f"Montant ({commande.total}$) 5x supérieur à la moyenne habituelle"))
+
+    return alertes

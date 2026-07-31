@@ -9,6 +9,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAdminUser
 
 from .api_serializers import (
     ArticleSerializer,
@@ -28,6 +29,7 @@ from .models import (
     Formation,
     Parcours,
     ProgressionLecon,
+    WorkflowFormation,
 )
 from .throttles import ThrottlePartenaireAPI
 from .api_partenaires import obtenir_partenaire_depuis_request
@@ -277,3 +279,40 @@ class PartenaireEtudiantsFormesView(APIView):
         ]
         journaliser_requete_partenaire(request, partenaire, 200)
         return Response({"partenaire": partenaire.nom, "etudiants_certifies": data})
+
+
+# ================================================
+# API_VIEWS.PY — CORRECTIF : Endpoint API workflow avec vérifications strictes
+# L'audit signale : "transitions non vérifiées côté front/API" — 
+# ce endpoint applique EXACTEMENT la même logique que transitionner()
+# du modèle, jamais de bypass possible
+# ================================================
+
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def api_workflow_transition(request, formation_id):
+    """Transition de workflow via API — sécurisée, réutilise transitionner() du modèle."""
+    try:
+        formation = Formation.objects.get(id=formation_id)
+        workflow, _ = WorkflowFormation.objects.get_or_create(formation=formation)
+
+        nouvel_etat = request.data.get('nouvel_etat')
+        commentaire = request.data.get('commentaire', '')
+
+        if not nouvel_etat:
+            return Response({'erreur': 'nouvel_etat requis'}, status=400)
+
+        # Vérifie explicitement le rôle (double protection avec IsAdminUser)
+        profil = getattr(request.user, 'profil', None)
+        if not profil or profil.role not in ['admin', 'formateur']:
+            return Response({'erreur': 'Permissions insuffisantes'}, status=403)
+
+        succes, message = workflow.transitionner(nouvel_etat, request.user, commentaire)
+
+        if succes:
+            return Response({'succes': True, 'nouvel_etat': workflow.etat_actuel, 'message': message})
+        return Response({'succes': False, 'erreur': message}, status=400)
+
+    except Formation.DoesNotExist:
+        return Response({'erreur': 'Formation introuvable'}, status=404)

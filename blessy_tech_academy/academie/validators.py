@@ -1,198 +1,159 @@
 # ================================================
 # VALIDATORS.PY
 # Blessy Tech Academy
-# Version : 2.0
+# Version : 3.0 — Renforcée (magic bytes)
 #
-# Validation professionnelle des fichiers uploadés
-#
-# Compatible avec :
-# - ProjetEtudiant
-# - Academie.logo
-# - Enseignant.document_cv
-# - Transaction.preuve_paiement
-# - Tous les futurs uploads
+# Validation professionnelle des fichiers uploadés.
+# Vérifie l'extension, la taille et les premiers octets réels (magic bytes)
+# pour empêcher l'usurpation d'extension (ex : .exe renommé en .jpg).
 # ================================================
 
 import os
+import re
 
 from django.core.exceptions import ValidationError
-from django.core.files.uploadedfile import UploadedFile
-
-from PIL import Image
-from pypdf import PdfReader
-
 
 # ==========================================================
 # CONSTANTES
 # ==========================================================
 
-EXTENSIONS_IMAGE_AUTORISEES = {
-    ".jpg",
-    ".jpeg",
-    ".png",
-    ".webp",
-}
-
-EXTENSIONS_DOCUMENT_AUTORISEES = {
-    ".pdf",
-}
+EXTENSIONS_IMAGE_AUTORISEES = {".jpg", ".jpeg", ".png", ".webp"}
+EXTENSIONS_DOCUMENT_AUTORISEES = {".pdf"}
 
 TAILLE_MAX_IMAGE_MO = 5
 TAILLE_MAX_DOCUMENT_MO = 10
+
+# Signatures magiques des formats autorisés (premiers octets)
+SIGNATURES_MAGIC_BYTES = {
+    b'\xff\xd8\xff': 'jpg',         # JPEG
+    b'\x89PNG\r\n\x1a\n': 'png',    # PNG
+    b'RIFF': 'webp',               # WebP (conteneur RIFF)
+    b'%PDF': 'pdf',                # PDF
+}
 
 
 # ==========================================================
 # OUTILS
 # ==========================================================
 
-def taille_max_octets(mo: int) -> int:
+def _taille_max_octets(mo: int) -> int:
     return mo * 1024 * 1024
 
 
-def verifier_extension(fichier: UploadedFile, extensions):
+def _verifier_extension(fichier, extensions_autorisees):
     extension = os.path.splitext(fichier.name)[1].lower()
-
-    if extension not in extensions:
+    if extension not in extensions_autorisees:
         raise ValidationError(
-            f"Extension non autorisée ({extension})."
+            f"Extension non autorisée ({extension}). "
+            f"Extensions acceptées : {', '.join(extensions_autorisees)}"
         )
 
 
-def verifier_taille(fichier: UploadedFile, taille_max_mo: int):
-    if fichier.size > taille_max_octets(taille_max_mo):
+def _verifier_taille(fichier, taille_max_mo: int):
+    if fichier.size > _taille_max_octets(taille_max_mo):
         raise ValidationError(
             f"Le fichier dépasse la taille maximale autorisée ({taille_max_mo} Mo)."
         )
+
+
+def _verifier_magic_bytes(fichier, types_attendus: list) -> bool:
+    """
+    Vérifie que les premiers octets du fichier correspondent
+    à l'un des types attendus. Empêche l'usurpation d'extension.
+    """
+    try:
+        pos = fichier.tell()
+        fichier.seek(0)
+        entete = fichier.read(16)
+        fichier.seek(pos)
+    except Exception:
+        return False
+
+    for signature, type_reel in SIGNATURES_MAGIC_BYTES.items():
+        if entete.startswith(signature) and type_reel in types_attendus:
+            return True
+    return False
 
 
 # ==========================================================
 # VALIDATION IMAGE
 # ==========================================================
 
-def verifier_image_reelle(fichier: UploadedFile):
+def valider_image(fichier):
     """
-    Vérifie que le fichier est une véritable image.
+    Validation renforcée d'une image :
+    ✔ Extension autorisée
+    ✔ Taille max
+    ✔ Magic bytes (JPEG, PNG, WebP)
     """
+    _verifier_extension(fichier, EXTENSIONS_IMAGE_AUTORISEES)
+    _verifier_taille(fichier, TAILLE_MAX_IMAGE_MO)
 
-    try:
-
-        position = fichier.tell()
-
-        image = Image.open(fichier)
-
-        image.verify()
-
-        fichier.seek(position)
-
-    except Exception:
+    if not _verifier_magic_bytes(fichier, ['jpg', 'png', 'webp']):
         raise ValidationError(
-            "Le fichier n'est pas une image valide."
+            "Le contenu du fichier ne correspond pas à une image valide "
+            "(extension usurpée détectée)."
         )
-
-
-def valider_image(fichier: UploadedFile):
-    """
-    Validation professionnelle d'une image.
-
-    Vérifie :
-
-    ✔ Extension
-    ✔ Taille
-    ✔ Intégrité de l'image
-    """
-
-    verifier_extension(
-        fichier,
-        EXTENSIONS_IMAGE_AUTORISEES,
-    )
-
-    verifier_taille(
-        fichier,
-        TAILLE_MAX_IMAGE_MO,
-    )
-
-    verifier_image_reelle(fichier)
 
 
 # ==========================================================
 # VALIDATION PDF
 # ==========================================================
 
-def verifier_pdf_valide(fichier: UploadedFile):
+def valider_document(fichier):
     """
-    Vérifie que le PDF est lisible.
+    Validation renforcée d'un document :
+    ✔ Extension autorisée (PDF uniquement)
+    ✔ Taille max
+    ✔ Magic bytes (PDF)
     """
+    _verifier_extension(fichier, EXTENSIONS_DOCUMENT_AUTORISEES)
+    _verifier_taille(fichier, TAILLE_MAX_DOCUMENT_MO)
 
-    try:
-
-        position = fichier.tell()
-
-        PdfReader(fichier)
-
-        fichier.seek(position)
-
-    except Exception:
+    if not _verifier_magic_bytes(fichier, ['pdf']):
         raise ValidationError(
-            "Le PDF est invalide ou corrompu."
+            "Le contenu du fichier ne correspond pas à un PDF valide "
+            "(extension usurpée détectée)."
         )
-
-
-def valider_document(fichier: UploadedFile):
-    """
-    Validation professionnelle des documents.
-
-    Actuellement :
-
-    ✔ PDF uniquement
-    ✔ Taille
-    ✔ Intégrité
-    """
-
-    verifier_extension(
-        fichier,
-        EXTENSIONS_DOCUMENT_AUTORISEES,
-    )
-
-    verifier_taille(
-        fichier,
-        TAILLE_MAX_DOCUMENT_MO,
-    )
-
-    verifier_pdf_valide(fichier)
 
 
 # ==========================================================
 # PREUVE DE PAIEMENT
 # ==========================================================
 
-def valider_preuve_paiement(fichier: UploadedFile):
+def valider_preuve_paiement(fichier):
     """
-    Accepte :
-
-    ✔ Image
-    ✔ PDF
+    Validation renforcée d'une preuve de paiement :
+    ✔ Extension image ou PDF
+    ✔ Taille max
+    ✔ Magic bytes correspondant au type détecté
     """
-
     extension = os.path.splitext(fichier.name)[1].lower()
+    extensions_acceptees = EXTENSIONS_IMAGE_AUTORISEES | EXTENSIONS_DOCUMENT_AUTORISEES
+
+    if extension not in extensions_acceptees:
+        raise ValidationError(
+            f"Format non autorisé ({extension}). "
+            f"Formats acceptés : {', '.join(extensions_acceptees)}"
+        )
+
+    _verifier_taille(fichier, TAILLE_MAX_IMAGE_MO)
 
     if extension in EXTENSIONS_IMAGE_AUTORISEES:
-
-        return valider_image(fichier)
-
-    if extension in EXTENSIONS_DOCUMENT_AUTORISEES:
-
-        return valider_document(fichier)
-
-    raise ValidationError(
-        "La preuve de paiement doit être une image ou un PDF."
-    )
+        if not _verifier_magic_bytes(fichier, ['jpg', 'png', 'webp']):
+            raise ValidationError(
+                "Le fichier n'est pas une image valide (extension usurpée)."
+            )
+    else:
+        if not _verifier_magic_bytes(fichier, ['pdf']):
+            raise ValidationError(
+                "Le fichier n'est pas un PDF valide (extension usurpée)."
+            )
 
 
 # ================================================
 # VALIDATORS.PY — Filtre anti-spam contenu forum
 # ================================================
-
-import re
 
 def detecter_spam_probable(texte):
     """Heuristiques simples anti-spam — retourne True si suspect."""
@@ -206,7 +167,7 @@ def detecter_spam_probable(texte):
     if len(set(texte.split())) < len(texte.split()) * 0.3 and len(texte.split()) > 10:
         return True  # trop répétitif
 
-    mots_suspects = ['viagra', 'casino', 'crypto gratuit', 'gagner de l\'argent rapidement']
+    mots_suspects = ['viagra', 'casino', 'crypto gratuit', "gagner de l'argent rapidement"]
     texte_lower = texte.lower()
     if any(mot in texte_lower for mot in mots_suspects):
         return True

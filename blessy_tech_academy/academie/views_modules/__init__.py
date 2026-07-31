@@ -12,3 +12,4 @@ from .forum_views import *
 from .ia_views import *
 from .admin_views import *
 from .content_views import *
+from .business_views import *

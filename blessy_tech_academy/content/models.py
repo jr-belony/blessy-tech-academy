@@ -5,6 +5,7 @@
 
 from django.db import models
 from django.utils import timezone
+from academie.validators import valider_document, valider_image   # <-- ajouté
 
 
 class Article(models.Model):
@@ -30,7 +31,12 @@ class Article(models.Model):
     en_vedette = models.BooleanField(default=False)
     publie = models.BooleanField(default=False)
     temps_lecture = models.IntegerField(default=5)
-    fichier_telechargeable = models.FileField(upload_to='knowledge_center/', null=True, blank=True)
+    fichier_telechargeable = models.FileField(
+        upload_to='knowledge_center/',
+        null=True,
+        blank=True,
+        validators=[valider_document]   # <-- validateur ajouté
+    )
     articles_associes = models.ManyToManyField('self', blank=True, symmetrical=True)
     nb_vues = models.IntegerField(default=0)
     nb_partages = models.IntegerField(default=0)
@@ -141,7 +147,12 @@ class ProjetEtudiant(models.Model):
     description = models.TextField()
     technologies = models.CharField(max_length=300, blank=True)
     lien = models.URLField(null=True, blank=True)
-    image = models.ImageField(upload_to='projets/', null=True, blank=True)
+    image = models.ImageField(
+        upload_to='projets/',
+        null=True,
+        blank=True,
+        validators=[valider_image]   # <-- validateur ajouté
+    )
     formation_liee = models.ForeignKey('academie.Formation', on_delete=models.SET_NULL, null=True, blank=True, related_name='projets_realises')
     competences_demontrees = models.ManyToManyField('academie.Competence', blank=True, related_name='projets_demonstrations')
     date_creation = models.DateTimeField(auto_now_add=True)
@@ -161,10 +172,16 @@ class Certificat(models.Model):
     utilisateur = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='certificats')
     formation = models.ForeignKey('academie.Formation', on_delete=models.SET_NULL, null=True, blank=True)
     examen_origine = models.ForeignKey('academie.Examen', on_delete=models.SET_NULL, null=True, blank=True)
-    numero = models.CharField(max_length=50, unique=True, db_index=True, blank=True)
+    numero = models.CharField(max_length=50, unique=True, db_index=True, blank=True, editable=False)
     date_emission = models.DateTimeField(auto_now_add=True)
-    fichier_pdf = models.FileField(upload_to='certificats/', null=True, blank=True)
-
+    fichier_pdf = models.FileField(
+        upload_to='certificats/',
+        null=True,
+        blank=True,
+        validators=[valider_document]   # <-- validateur ajouté
+    )
+    verifie = models.BooleanField(default=False)
+    
     class Meta:
         app_label = 'academie'
         db_table = 'academie_certificat'
@@ -176,7 +193,6 @@ class Certificat(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.numero:
-            import hashlib
-            base = f"{self.utilisateur.id}-{self.formation.id if self.formation else 0}-{timezone.now().timestamp()}"
-            self.numero = hashlib.md5(base.encode()).hexdigest()[:16].upper()
+            import secrets
+            self.numero = secrets.token_hex(12).upper()  # 24 caractères hex aléatoires, non devinable
         super().save(*args, **kwargs)

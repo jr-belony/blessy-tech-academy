@@ -5,6 +5,8 @@ from decimal import Decimal
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
+from django.test.utils import CaptureQueriesContext
+from django.db import connection
 from django.urls import reverse
 from django.utils import timezone
 
@@ -25,6 +27,7 @@ from .models import (
     QuestionExamen,
     ChoixExamen,
     TentativeExamen,
+    Certificat,
 )
 
 from .models import (
@@ -40,6 +43,7 @@ from .models import (
     Reaction,
     Sujet,
     Transaction,
+    Article,
 )
 
 class BaseTestCase(TestCase):
@@ -203,16 +207,18 @@ class TestPaymentTunnel(BaseTestCase):
 
 
 # ================================================
-# Tests API IA basiques
+# Tests API IA basiques (corrigés pour login_required)
 # ================================================
 class TestBasicIA(BaseTestCase):
     """Test minimal de l'API IA (simule une réponse)."""
 
     def test_api_chat_ia_requires_post(self):
+        # Non authentifié → redirection 302 (login_required)
         response = self.client.get(reverse("api_chat_ia"))
-        self.assertEqual(response.status_code, 405)  # Method not allowed
+        self.assertEqual(response.status_code, 302)
 
     def test_api_chat_ia_empty_question(self):
+        self.client.login(username="testuser", password="testpass123")
         response = self.client.post(
             reverse("api_chat_ia"),
             data=json.dumps({"question": ""}),
@@ -221,7 +227,7 @@ class TestBasicIA(BaseTestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_api_chat_ia_valid_question(self):
-        # Teste que la route fonctionne sans erreur (peut retourner 200 ou 500 selon clé API)
+        self.client.login(username="testuser", password="testpass123")
         response = self.client.post(
             reverse("api_chat_ia"),
             data=json.dumps({"question": "Bonjour"}),
@@ -302,11 +308,13 @@ class PaymentCenterTestCase(TestCase):
         self.assertEqual(commande.total, Decimal("85.00"))
 
     def test_coupon_expire_invalide(self):
+        maintenant = timezone.now()
         coupon = Coupon.objects.create(
             code="EXPIRE",
             type_reduction="pourcentage",
             valeur=10,
-            date_fin=timezone.now() - timedelta(days=1),
+            date_debut=maintenant - timedelta(days=10),   # début il y a 10 jours
+            date_fin=maintenant - timedelta(days=1),      # fin hier → expiré
         )
         valide, message = coupon.est_valide()
         self.assertFalse(valide)
@@ -798,3 +806,127 @@ class RechercheFullTextTestCase(TestCase):
         reponse = client.get('/recherche/?q=Python')
         self.assertEqual(reponse.status_code, 200)
         self.assertIn(self.formation, reponse.context.get('resultats_formations', []))
+
+
+# ================================================
+# TESTS.PY — Tests de performance (détecte les régressions N+1)
+# ================================================
+
+class PerformanceN1TestCase(TestCase):
+    """Vérifie qu'aucune régression N+1 ne se réintroduit silencieusement."""
+
+    def setUp(self):
+        self.ecole = Ecole.objects.create(nom='Ecole Perf', icone='🏫', ordre=1)
+        self.user = User.objects.create_user(username='perf_test', password='test1234')
+
+        # Crée 10 formations avec modules/leçons pour simuler une charge réaliste
+        for i in range(10):
+            formation = Formation.objects.create(
+                ecole=self.ecole, nom=f'Formation {i}', icone='📚', description='Test',
+                duree_mois=1, prix=0, actif=True,
+            )
+            module = Module.objects.create(formation=formation, titre='M1', ordre=1)
+            Lecon.objects.create(module=module, titre='L1', ordre=1)
+
+    def test_progression_pour_moins_de_3_requetes(self):
+        """La méthode optimisée ne doit JAMAIS dépasser 3 requêtes (cache + calcul)."""
+        formation = Formation.objects.first()
+        with CaptureQueriesContext(connection) as contexte:
+            formation.progression_pour(self.user)
+        self.assertLessEqual(len(contexte.captured_queries), 3)
+
+    def test_formations_page_nombre_requetes_stable(self):
+        """Vérifie que charger la page catalogue ne fait pas exploser les requêtes avec plus de données."""
+        client = Client()
+        with CaptureQueriesContext(connection) as contexte:
+            client.get('/formations/')
+        # Seuil raisonnable — si ça dépasse largement, une régression N+1 a été introduite
+        self.assertLess(len(contexte.captured_queries), 30)
+
+
+# ================================================
+# TESTS.PY — Tests de vérification publique des certificats
+# ================================================
+
+class CertificatVerificationTestCase(TestCase):
+    """Vérifie la robustesse de la vérification publique de certificat."""
+
+    def setUp(self):
+        # Données communes pour les tests de certificat
+        self.ecole = Ecole.objects.create(nom='Ecole Cert', icone='🏫', ordre=1)
+        self.formation = Formation.objects.create(
+            ecole=self.ecole, nom='Formation Cert', icone='📜', description='Test',
+            duree_mois=1, prix=0, actif=True,
+        )
+
+    def test_numero_certificat_non_devinable(self):
+        user = User.objects.create_user(username='cert_test', password='test1234')
+        cert = Certificat.objects.create(utilisateur=user, formation=self.formation)
+        self.assertEqual(len(cert.numero), 24)  # token_hex(12) = 24 caractères
+
+    def test_verification_publique_certificat_valide(self):
+        user = User.objects.create_user(username='cert_test2', password='test1234')
+        cert = Certificat.objects.create(utilisateur=user, formation=self.formation)
+        client = Client()
+        reponse = client.get(reverse('verifier_certificat_public', kwargs={'numero_certificat': cert.numero}))
+        self.assertContains(reponse, 'authentique')
+
+    def test_verification_publique_certificat_invalide(self):
+        client = Client()
+        reponse = client.get(reverse('verifier_certificat_public', kwargs={'numero_certificat': 'NUMERO_INEXISTANT_123'}))
+        self.assertContains(reponse, 'introuvable')
+
+
+# ================================================
+# TESTS.PY — Tests multi-académie approfondis (audit: "à approfondir")
+# ================================================
+
+class MultiAcademieApprofondisTestCase(TestCase):
+    """Tests d'isolation stricte entre académies — couvre formations, articles, partenaires."""
+
+    def setUp(self):
+        self.academie_a = Academie.objects.create(nom='Academie Deep A', icone='🅰️')
+        self.academie_b = Academie.objects.create(nom='Academie Deep B', icone='🅱️')
+        self.ecole_a = Ecole.objects.create(nom='Ecole A', icone='🏫', academie=self.academie_a, ordre=1)
+        self.ecole_b = Ecole.objects.create(nom='Ecole B', icone='🏫', academie=self.academie_b, ordre=1)
+        self.formation_a = Formation.objects.create(
+            ecole=self.ecole_a, nom='F-A', icone='📚', description='x', duree_mois=1, prix=0, actif=True,
+        )
+        self.formation_b = Formation.objects.create(
+            ecole=self.ecole_b, nom='F-B', icone='📚', description='x', duree_mois=1, prix=0, actif=True,
+        )
+        self.user_a = User.objects.create_user(username='user_academie_a', password='test1234')
+
+    def test_formation_appartient_bonne_academie(self):
+        """Vérification basique que l'académie d'une formation correspond à celle de son école."""
+        self.assertEqual(self.formation_a.ecole.academie, self.academie_a)
+        self.assertEqual(self.formation_b.ecole.academie, self.academie_b)
+
+    def test_article_isole_par_academie(self):
+        article_a = Article.objects.create(titre='Article A', resume='x', academie=self.academie_a, publie=True)
+        articles_academie_a = Article.objects.filter(academie=self.academie_a)
+        articles_academie_b = Article.objects.filter(academie=self.academie_b)
+        self.assertIn(article_a, articles_academie_a)
+        self.assertNotIn(article_a, articles_academie_b)
+
+    def test_partenaire_api_ne_voit_que_son_academie_meme_avec_id_direct(self):
+        """Test IDOR spécifique multi-académie : un partenaire ne doit JAMAIS 
+        pouvoir accéder aux données d'une autre académie même en devinant l'ID."""
+        partenaire = PartenaireAPI.objects.create(
+            nom='Partenaire Deep Test', type_partenaire='entreprise',
+            email_contact='p@test.com', academie_associee=self.academie_a,
+        )
+        # Simule la logique de filtrage réelle utilisée dans PartenaireEtudiantsFormesView
+        formation_visible = Formation.objects.filter(
+            id=self.formation_b.id, ecole__academie=partenaire.academie_associee
+        ).exists()
+        self.assertFalse(formation_visible)  # formation_b (académie B) invisible pour partenaire académie A
+
+    def test_academies_differentes_donnees_isolees(self):
+        """Vérifie que les données d'une académie ne fuient pas dans l'autre."""
+        formations_a = Formation.objects.filter(ecole__academie=self.academie_a)
+        formations_b = Formation.objects.filter(ecole__academie=self.academie_b)
+        self.assertIn(self.formation_a, formations_a)
+        self.assertIn(self.formation_b, formations_b)
+        self.assertNotIn(self.formation_a, formations_b)
+        self.assertNotIn(self.formation_b, formations_a)

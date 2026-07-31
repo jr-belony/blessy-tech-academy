@@ -79,7 +79,8 @@ urlpatterns = [
     ),
     path("orientation/", views.orientation_ia, name="orientation_ia"),
     path("forum/membres/", views.forum_membres, name="forum_membres"),
-    path("certificat/<str:numero>/", views.verifier_certificat, name="verifier_certificat"),
+    # --- Vérification publique de certificat (nouvelle) ---
+    path("certificat/<str:numero_certificat>/", views.verifier_certificat_public, name="verifier_certificat_public"),
     path("notifications/", views.notifications_liste, name="notifications_liste"),
     path("classement/", views.classement, name="classement"),
     path("setlang/fr/", views.set_lang_fr, name="set_lang_fr"),
@@ -177,4 +178,5 @@ urlpatterns = [
     path("mentorat/reserver/<int:disponibilite_id>/", views.mentorat_reserver, name="mentorat_reserver"),
     path("mentorat/changer-statut/<int:reservation_id>/", views.mentorat_changer_statut, name="mentorat_changer_statut"),
     path("mentorat/calendrier/", views.mentorat_calendrier, name="mentorat_calendrier"),
+    path('admin/monitoring-conversion/', views.vue_monitoring_conversion, name='monitoring_conversion'),
 ]

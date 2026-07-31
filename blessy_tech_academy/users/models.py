@@ -7,6 +7,7 @@
 from django.db import models
 from django.utils import timezone
 import uuid
+from academie.validators import valider_document   # <-- ajouté
 
 
 class ProfilUtilisateur(models.Model):
@@ -144,7 +145,12 @@ class Enseignant(models.Model):
     statut = models.CharField(max_length=15, choices=STATUTS, default='en_attente')
     date_recrutement = models.DateTimeField(auto_now_add=True)
     numero_contrat = models.CharField(max_length=50, blank=True)
-    document_cv = models.FileField(upload_to='enseignants/cv/', null=True, blank=True)
+    document_cv = models.FileField(
+        upload_to='enseignants/cv/',
+        null=True,
+        blank=True,
+        validators=[valider_document]          # <-- validateur ajouté
+    )
 
     class Meta:
         app_label = 'academie'

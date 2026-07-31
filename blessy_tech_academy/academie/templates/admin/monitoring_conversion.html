@@ -1,0 +1,40 @@
+<!-- ================================================
+     ADMIN/MONITORING_CONVERSION.HTML — Business intelligence temps réel
+     ================================================ -->
+{% extends "admin/base_backoffice.html" %}
+{% block bo_contenu %}
+<h1 style="color:var(--bo-texte);">🎯 Monitoring Conversion</h1>
+
+<div class="bo-kpi-grille">
+    <div class="bo-kpi-card">
+        <div class="bo-kpi-label">Taux de conversion (7j)</div>
+        <div class="bo-kpi-valeur" style="color:{% if taux_conversion >= 50 %}#22c55e{% else %}#FF6B00{% endif %};">{{ taux_conversion }}%</div>
+    </div>
+    <div class="bo-kpi-card">
+        <div class="bo-kpi-label">Commandes (7j)</div>
+        <div class="bo-kpi-valeur">{{ total_commandes_7j }}</div>
+    </div>
+    <div class="bo-kpi-card">
+        <div class="bo-kpi-label">💰 Valeur paniers abandonnés</div>
+        <div class="bo-kpi-valeur" style="color:#ef4444;">{{ valeur_paniers_abandonnes }} $</div>
+    </div>
+</div>
+
+<div class="bo-card">
+    <h3>🛒 Paniers abandonnés (relance possible)</h3>
+    {% for panier in paniers_abandonnes %}
+    <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--bo-gris-bordure);">
+        <div>
+            <strong>{{ panier.utilisateur.email }}</strong>
+            <div style="font-size:11px; color:var(--bo-texte-secondaire);">Créé le {{ panier.date_creation|date:"d/m/Y H:i" }}</div>
+        </div>
+        <div style="text-align:right;">
+            <strong>{{ panier.total }} $</strong>
+            <div><a href="mailto:{{ panier.utilisateur.email }}" style="font-size:11px; color:var(--bo-cyan);">✉️ Relancer</a></div>
+        </div>
+    </div>
+    {% empty %}
+    <p style="color:var(--bo-texte-secondaire);">Aucun panier abandonné 🎉</p>
+    {% endfor %}
+</div>
+{% endblock %}

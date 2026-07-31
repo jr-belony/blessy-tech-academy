@@ -11,6 +11,8 @@ from .models import (
     Subscription, Affilie, CommissionAffiliation,
 )
 from users.admin import RolePermissionMixin
+from .models import AlerteFraude
+
 
 
 # ================================================
@@ -240,3 +242,19 @@ class CommissionAffiliationAdmin(RolePermissionMixin, admin.ModelAdmin):
     roles_autorises = ['admin', 'comptable']
     list_display = ['affilie', 'commande', 'montant', 'statut', 'date_creation']
     list_editable = ['statut']
+
+
+# ================================================
+# BILLING/ADMIN.PY — Administration des modèles billing
+# ================================================
+
+@admin.register(AlerteFraude)
+class AlerteFraudeAdmin(RolePermissionMixin, admin.ModelAdmin):
+    roles_autorises = ['admin', 'comptable']
+    list_display = ['commande', 'niveau', 'raison_courte', 'revue_par_admin', 'date_creation']
+    list_filter = ['niveau', 'revue_par_admin']
+    list_editable = ['revue_par_admin']
+
+    def raison_courte(self, obj):
+        return obj.raison[:80]
+    raison_courte.short_description = 'Raison'

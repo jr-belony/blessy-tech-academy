@@ -12,10 +12,11 @@ from academie.api_views import (
     FormationV2ViewSet,
     FormationViewSet,
     MaProgressionViewSet,
+    obtenir_token_api,
     ParcoursViewSet,
     PartenaireEtudiantsFormesView,
     PartenaireFormationsView,
-    obtenir_token_api,
+    api_workflow_transition
 )
 
 urlpatterns = [
@@ -33,6 +34,7 @@ urlpatterns = [
     path('admin/export/ventes-pdf/', views_academie.export_ventes_pdf, name='export_ventes_pdf'),
     path('api/v2/partenaire/etudiants-formes/', PartenaireEtudiantsFormesView.as_view(), name='api-partenaire-etudiants'),
     path('api/v2/partenaire/formations/', PartenaireFormationsView.as_view(), name='api-partenaire-formations'),
+    path('api/v2/workflow/<int:formation_id>/transition/', api_workflow_transition, name='api_workflow_transition'),
 ]
 
 # Debug Toolbar (développement uniquement)
