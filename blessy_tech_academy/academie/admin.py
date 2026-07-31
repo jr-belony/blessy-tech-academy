@@ -711,6 +711,7 @@ class ExamenAdmin(admin.ModelAdmin):
     ]
 
     inlines = [QuestionExamenInline]
+    filter_horizontal = ['competences_liees']   # <-- AJOUTÉ ICI
 
     class Media:
         js = ["academie/admin/generer_examen.js"]
@@ -725,8 +726,7 @@ class ExamenAdmin(admin.ModelAdmin):
                 "admin",
             ]
         except Exception:
-            return False
-        
+            return False 
 
 # ================================================
 # ADMIN — Questions Examen (Examinateur, RespAcademique, Admin, SuperAdmin)
@@ -1374,3 +1374,13 @@ class LearningOutcomeAdmin(RolePermissionMixin, admin.ModelAdmin):
     roles_autorises = ['admin', 'formateur']
     list_display = ['formation', 'description', 'competence_associee', 'ordre']
     list_filter = ['formation']
+
+
+from .models import CompetenceValidee
+
+@admin.register(CompetenceValidee)
+class CompetenceValideeAdmin(admin.ModelAdmin):
+    list_display = ['utilisateur', 'competence', 'niveau', 'source_type', 'score_obtenu', 'date_validation']
+    list_filter = ['niveau', 'source_type', 'competence__categorie']
+    search_fields = ['utilisateur__username', 'competence__nom']
+    readonly_fields = ['date_validation']

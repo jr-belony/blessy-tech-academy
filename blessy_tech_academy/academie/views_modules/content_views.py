@@ -19,7 +19,9 @@ from ..models import (
     ProfilUtilisateur,
     ProjetEtudiant,
     Temoignage,
+    CompetenceValidee,          # <-- déjà présent
 )
+from academie.models import Competence  # si besoin (déjà accessible via formation.competences)
 
 
 # ================================================
@@ -140,7 +142,7 @@ def mon_portfolio(request):
                     messages.error(request, "❌ Format d'image non autorisé. Utilisez JPEG, PNG ou GIF.")
                     return redirect("mon_portfolio")
 
-            ProjetEtudiant.objects.create(
+            projet = ProjetEtudiant.objects.create(
                 auteur=request.user,
                 titre=titre,
                 description=description,
@@ -150,7 +152,37 @@ def mon_portfolio(request):
                 formation_liee_id=formation_liee_id,
             )
 
-            messages.success(request, "✅ Projet ajouté avec succès !")
+            # --- Auto-remplissage des compétences liées à la formation ---
+            competences_validees = []
+            if formation_liee_id:
+                try:
+                    formation = Formation.objects.get(id=formation_liee_id)
+                    competences_formation = formation.competences.all()
+                    if competences_formation.exists():
+                        # Associer les compétences au projet
+                        projet.competences_demontrees.set(competences_formation)
+                        # Valider chaque compétence avec source 'projet'
+                        for competence in competences_formation:
+                            cv, created = CompetenceValidee.objects.get_or_create(
+                                utilisateur=request.user,
+                                competence=competence,
+                                source_type='projet',
+                                projet_origine=projet,
+                                defaults={
+                                    'niveau': 'acquis',
+                                    'formation_origine': formation,
+                                }
+                            )
+                            if created:
+                                competences_validees.append(cv)
+                except Formation.DoesNotExist:
+                    pass
+
+            if competences_validees:
+                noms = ", ".join(cv.competence.nom for cv in competences_validees)
+                messages.success(request, f"✅ Projet ajouté avec succès ! Compétences validées : {noms}.")
+            else:
+                messages.success(request, "✅ Projet ajouté avec succès !")
             return redirect("mon_portfolio")
         else:
             messages.error(request, "❌ Titre et description sont obligatoires.")
@@ -200,6 +232,30 @@ def notifications_liste(request):
     if ids_non_lues:
         Notification.objects.filter(id__in=ids_non_lues).update(lue=True)
     return render(request, "academie/notifications.html", {"notifications": notifs})
+
+
+# ================================================
+# Profil de compétences
+# ================================================
+
+@login_required(login_url='/connexion/')
+def mon_profil_competences(request):
+    """Carte de compétences de l'étudiant — le cœur visible de la démonstration."""
+    competences_validees = CompetenceValidee.objects.filter(
+        utilisateur=request.user
+    ).select_related('competence', 'examen_origine', 'formation_origine').order_by('-date_validation')
+
+    par_categorie = {}
+    for cv in competences_validees:
+        cat = cv.competence.get_categorie_display()
+        if cat not in par_categorie:
+            par_categorie[cat] = []
+        par_categorie[cat].append(cv)
+
+    return render(request, 'academie/profil_competences.html', {
+        'competences_par_categorie': par_categorie,
+        'total_competences': competences_validees.values('competence').distinct().count(),
+    })
 
 
 def classement(request):

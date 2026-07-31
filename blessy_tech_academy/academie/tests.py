@@ -21,6 +21,7 @@ from .models import (
     ResultatQuiz,
     Parcours,
     Competence,
+    CompetenceValidee,
     LearningOutcome,
     WorkflowFormation,
     Examen,
@@ -28,6 +29,7 @@ from .models import (
     ChoixExamen,
     TentativeExamen,
     Certificat,
+    ProjetEtudiant,
 )
 
 from .models import (
@@ -930,3 +932,59 @@ class MultiAcademieApprofondisTestCase(TestCase):
         self.assertIn(self.formation_b, formations_b)
         self.assertNotIn(self.formation_a, formations_b)
         self.assertNotIn(self.formation_b, formations_a)
+
+
+# ================================================
+# TESTS.PY — Tests Trio P0 (le cœur de la vision produit)
+# ================================================
+
+class CompetenceValideeTestCase(TestCase):
+    """Vérifie le déclenchement automatique — LE test le plus important du projet."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username='comp_test', password='test1234')
+        self.ecole = Ecole.objects.create(nom='Ecole Comp', icone='🏫', ordre=1)
+        self.formation = Formation.objects.create(
+            ecole=self.ecole, nom='Formation Comp', icone='📚', description='x', duree_mois=1, prix=0, actif=True,
+        )
+        self.competence = Competence.objects.create(nom='Python Test')
+        self.examen = Examen.objects.create(formation=self.formation, titre='Exam Test')
+        self.examen.competences_liees.add(self.competence)
+
+    def test_examen_reussi_valide_competence_liee(self):
+        tentative = TentativeExamen.objects.create(
+            utilisateur=self.user, examen=self.examen, score=90, nb_bonnes=9, nb_mauvaises=1, reussi=True,
+        )
+        creees = CompetenceValidee.valider_pour_examen(self.user, self.examen, tentative)
+        self.assertEqual(len(creees), 1)
+        self.assertTrue(
+            CompetenceValidee.objects.filter(utilisateur=self.user, competence=self.competence).exists()
+        )
+
+    def test_examen_echoue_ne_valide_rien(self):
+        tentative = TentativeExamen.objects.create(
+            utilisateur=self.user, examen=self.examen, score=30, nb_bonnes=3, nb_mauvaises=7, reussi=False,
+        )
+        creees = CompetenceValidee.valider_pour_examen(self.user, self.examen, tentative)
+        self.assertEqual(len(creees), 0)
+
+    def test_niveau_expert_si_score_eleve(self):
+        tentative = TentativeExamen.objects.create(
+            utilisateur=self.user, examen=self.examen, score=95, nb_bonnes=19, nb_mauvaises=1, reussi=True,
+        )
+        creees = CompetenceValidee.valider_pour_examen(self.user, self.examen, tentative)
+        self.assertEqual(creees[0].niveau, 'expert')
+
+    def test_portfolio_auto_remplit_competences(self):
+        """Vérifie que P0 #4 (auto-remplissage portfolio) fonctionne."""
+        # Lier la compétence à la formation pour que l'auto-remplissage la trouve
+        self.formation.competences.add(self.competence)
+
+        client = Client()
+        client.login(username='comp_test', password='test1234')
+        client.post('/mon-portfolio/', {
+            'titre': 'Mon projet', 'description': 'Description test',
+            'technologies': 'Python', 'formation_liee': self.formation.id,
+        })
+        projet = ProjetEtudiant.objects.get(titre='Mon projet')
+        self.assertIn(self.competence, projet.competences_demontrees.all())

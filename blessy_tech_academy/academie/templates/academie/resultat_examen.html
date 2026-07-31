@@ -33,6 +33,26 @@
     </div>
     {% endif %}
 
+    <!-- ================================================
+         RESULTAT_EXAMEN.HTML — Compétences validées (P0 #1)
+         Inséré juste après le bloc .re-certificat-card existant
+         ================================================ -->
+    {% if competences_validees %}
+    <div style="background:linear-gradient(135deg,#0B2447,#1a3a6a); border-radius:18px; padding:24px; margin-bottom:20px; text-align:center;">
+        <h3 style="color:white; margin-bottom:16px;">🎯 Compétences validées !</h3>
+        <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center;">
+            {% for cv in competences_validees %}
+            <span style="background:rgba(0,180,216,0.2); color:#00B4D8; padding:8px 16px; border-radius:20px; font-weight:700; font-size:13px;">
+                {{ cv.competence.icone }} {{ cv.competence.nom }} — {{ cv.get_niveau_display }}
+            </span>
+            {% endfor %}
+        </div>
+        <a href="{% url 'mon_profil_competences' %}" style="display:inline-block; margin-top:16px; color:#00B4D8; text-decoration:underline; font-size:13px;">
+            Voir toutes mes compétences →
+        </a>
+    </div>
+    {% endif %}
+
     <div class="re-card">
         <h3>💬 Feedback de Blessy AI</h3>
         <p>{{ feedback_ia }}</p>

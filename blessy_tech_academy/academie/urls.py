@@ -179,4 +179,5 @@ urlpatterns = [
     path("mentorat/changer-statut/<int:reservation_id>/", views.mentorat_changer_statut, name="mentorat_changer_statut"),
     path("mentorat/calendrier/", views.mentorat_calendrier, name="mentorat_calendrier"),
     path('admin/monitoring-conversion/', views.vue_monitoring_conversion, name='monitoring_conversion'),
+    path('mon-profil-competences/', views.mon_profil_competences, name='mon_profil_competences'),
 ]

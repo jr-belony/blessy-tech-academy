@@ -28,6 +28,7 @@ from ..models import (
     Article,
     Certificat,
     ChoixExamen,
+    CompetenceValidee,          # ← ajouté
     Ecole,
     Examen,
     Formation,
@@ -53,8 +54,6 @@ from ..services.ia_service import (
 from ..xp_utils import ajouter_xp
 from .. import notifications
 from ..decorators import exiger_acces_formation
-
-
 # ================================================
 # Vues : Formations
 # ================================================
@@ -214,6 +213,8 @@ def marquer_lecon_terminee(request, lecon_id):
                 pourcentage = formation.progression_pour(request.user)
                 if pourcentage == 100:
                     notifications.notifier_formation_completee(request.user, formation.nom)
+                    # --- Validation des compétences liées à la formation complétée ---
+                    CompetenceValidee.valider_pour_formation_completee(request.user, formation)
 
             formation = lecon.module.formation
             nouveau_pourcentage = formation.progression_pour(request.user)
@@ -232,8 +233,6 @@ def marquer_lecon_terminee(request, lecon_id):
             return JsonResponse({"erreur": str(e)}, status=500)
 
     return JsonResponse({"erreur": "Méthode non autorisée"}, status=405)
-
-
 
 # ================================================
 # Vues Quiz (complément)
@@ -776,10 +775,22 @@ def soumettre_examen(request, examen_id):
     tentative.mauvaises_reponses = mauvaises
     tentative.date_fin = timezone.now()
     tentative.save()
-
+    # --- NOUVEAU : validation automatique des compétences liées à l'examen ---
     if tentative.reussi:
         from ..xp_utils import ajouter_xp
         ajouter_xp(request.user, examen.xp_recompense or 50)
+        # Enregistrement des compétences validées par la réussite de l'examen
+        from ..models import CompetenceValidee
+        competences_validees = CompetenceValidee.valider_pour_examen(
+            request.user, examen, tentative
+        )
+        for comp_validee in competences_validees:
+            notifications.creer_notification(
+                request.user,
+                "🏆 Nouvelle compétence validée !",
+                f"Tu maîtrises maintenant {comp_validee.competence.nom} ({comp_validee.get_niveau_display()}).",
+                "/mon-profil-competences/"
+            )
 
         if examen.certificat_auto:
             Certificat.objects.get_or_create(
@@ -815,7 +826,6 @@ def soumettre_examen(request, examen_id):
             "feedback_ia": feedback_ia,
         },
     )
-
 
 # ================================================
 # Vues : Réactions génériques (sujets/réponses)

@@ -155,6 +155,20 @@
                 </div>
                 {% endif %}
 
+                <!-- ================================================
+                     PORTFOLIO.HTML — Compétences démontrées (auto-remplies)
+                     Inséré juste après le bloc .cp-technologies existant
+                     ================================================ -->
+                {% if projet.competences_demontrees.all %}
+                <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px;">
+                    {% for comp in projet.competences_demontrees.all %}
+                    <span style="background:rgba(34,197,94,0.1); color:#22c55e; padding:3px 10px; border-radius:10px; font-size:11px; font-weight:700;">
+                        ✓ {{ comp.icone }} {{ comp.nom }}
+                    </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
                 <div class="cp-footer">
                     <span class="cp-date">
                         📅 {{ projet.date_creation|date:"d M Y" }}

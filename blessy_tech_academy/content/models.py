@@ -146,6 +146,7 @@ class ProjetEtudiant(models.Model):
     titre = models.CharField(max_length=200)
     description = models.TextField()
     technologies = models.CharField(max_length=300, blank=True)
+    competences_developpees = models.CharField(max_length=500, blank=True, default='')
     lien = models.URLField(null=True, blank=True)
     image = models.ImageField(
         upload_to='projets/',
@@ -156,6 +157,7 @@ class ProjetEtudiant(models.Model):
     formation_liee = models.ForeignKey('academie.Formation', on_delete=models.SET_NULL, null=True, blank=True, related_name='projets_realises')
     competences_demontrees = models.ManyToManyField('academie.Competence', blank=True, related_name='projets_demonstrations')
     date_creation = models.DateTimeField(auto_now_add=True)
+    niveau_difficulte = models.CharField(max_length=20, default='debutant')
 
     class Meta:
         app_label = 'academie'

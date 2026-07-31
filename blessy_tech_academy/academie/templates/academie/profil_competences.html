@@ -1,0 +1,125 @@
+{% extends 'academie/base.html' %}
+{% block titre %}Mes Compétences — Blessy Tech Academy{% endblock %}
+
+{% block contenu %}
+<section class="comp-hero">
+    <h1>🏆 Mes Compétences</h1>
+    <p>{{ total_competences }} compétence(s) validée(s)</p>
+</section>
+
+<div class="comp-container">
+    {% for categorie, competences in competences_par_categorie.items %}
+    <div class="comp-categorie">
+        <h2 class="comp-cat-titre">{{ categorie }}</h2>
+        <div class="comp-grille">
+            {% for cv in competences %}
+            <div class="comp-card">
+                <div class="comp-icone">{{ cv.competence.icone }}</div>
+                <div class="comp-info">
+                    <strong>{{ cv.competence.nom }}</strong>
+                    <span class="comp-niveau {{ cv.niveau }}">{{ cv.get_niveau_display }}</span>
+                    {% if cv.source_type == 'examen' and cv.examen_origine %}
+                        <div class="comp-source">Validé via l'examen « {{ cv.examen_origine.titre }} »</div>
+                    {% elif cv.source_type == 'formation_completee' and cv.formation_origine %}
+                        <div class="comp-source">Formation « {{ cv.formation_origine.nom }} » terminée</div>
+                    {% elif cv.source_type == 'projet' %}
+                        <div class="comp-source">Projet de portfolio</div>
+                    {% endif %}
+                    <div class="comp-date">{{ cv.date_validation|date:"d/m/Y" }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% empty %}
+    <p>Aucune compétence validée pour le moment. Termine des formations ou réussis des examens pour en débloquer.</p>
+    {% endfor %}
+</div>
+
+<style>
+.comp-hero {
+    background: linear-gradient(135deg, #0B2447, #166534);
+    padding: 60px 20px;
+    text-align: center;
+    color: white;
+}
+.comp-hero h1 { font-size: 32px; margin-bottom: 8px; }
+.comp-hero p { opacity: 0.8; }
+
+.comp-container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 0 20px 80px;
+}
+
+.comp-categorie {
+    margin-bottom: 40px;
+}
+
+.comp-cat-titre {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--bleu-principal);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.comp-grille {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.comp-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    transition: box-shadow 0.2s;
+}
+.comp-card:hover {
+    box-shadow: 0 12px 32px rgba(0,0,0,0.06);
+}
+
+.comp-icone {
+    font-size: 32px;
+    width: 48px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.comp-info strong {
+    font-size: 16px;
+    color: #1a202c;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.comp-niveau {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+.comp-niveau.acquis { background: #e8f5e9; color: #166534; }
+.comp-niveau.confirme { background: #e3f2fd; color: #0d47a1; }
+.comp-niveau.expert { background: #fff3e0; color: #e65100; }
+
+.comp-source {
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+
+.comp-date {
+    font-size: 11px;
+    color: #94a3b8;
+}
+</style>
+{% endblock %}

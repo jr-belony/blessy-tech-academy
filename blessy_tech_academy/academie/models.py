@@ -609,6 +609,10 @@ class Examen(models.Model):
     seuil_reussite = models.IntegerField(default=70)
     tentatives_max = models.IntegerField(default=3)
     competences_evaluees = models.TextField(blank=True)
+    competences_liees = models.ManyToManyField(
+        'Competence', blank=True, related_name='examens_lies',
+        help_text="Compétences validées automatiquement si l'étudiant réussit cet examen"
+    )
     prerequis = models.TextField(blank=True)
     conditions_utilisation = models.TextField(blank=True)
     xp_recompense = models.IntegerField(default=50)
@@ -636,7 +640,6 @@ class Examen(models.Model):
     @property
     def questions(self):
         return self.questionexamen_set.all()
-
 
 class QuestionExamen(models.Model):
     examen = models.ForeignKey(Examen, on_delete=models.CASCADE)
@@ -826,3 +829,109 @@ class ReservationMentorat(models.Model):
 
     def __str__(self):
         return f"{self.etudiant.username} → {self.disponibilite.formateur.username} ({self.get_statut_display()})"
+
+
+# ================================================
+# MODELS.PY — CompetenceValidee (LE MAILLON CENTRAL de la vision produit)
+# "Ne pas seulement apprendre une compétence. Être capable de la démontrer."
+# Chaque ligne = une preuve horodatée, traçable, vérifiable qu'un 
+# utilisateur maîtrise réellement une compétence précise.
+# ================================================
+
+class CompetenceValidee(models.Model):
+    """
+    Preuve traçable qu'un utilisateur a démontré une compétence.
+    C'est CE modèle qui transforme "j'ai réussi un quiz" en 
+    "je maîtrise Python" — visible sur profil, portfolio, recrutement.
+    """
+
+    SOURCES = [
+        ('examen', '🎯 Examen réussi'),
+        ('quiz', '📝 Quiz réussi'),
+        ('projet', '💼 Projet évalué par un formateur'),
+        ('formation_completee', '🎓 Formation terminée à 100%'),
+        ('validation_manuelle', '✍️ Validée manuellement par un admin/formateur'),
+    ]
+
+    NIVEAUX = [
+        ('acquis', '✅ Acquis'),
+        ('confirme', '⭐ Confirmé'),
+        ('expert', '🏆 Expert'),
+    ]
+
+    utilisateur = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='competences_validees')
+    competence = models.ForeignKey(Competence, on_delete=models.CASCADE, related_name='validations')
+
+    source_type = models.CharField(max_length=25, choices=SOURCES)
+    niveau = models.CharField(max_length=15, choices=NIVEAUX, default='acquis')
+
+    # Traçabilité de la preuve — au moins UN de ces champs est rempli selon la source
+    examen_origine = models.ForeignKey('Examen', on_delete=models.SET_NULL, null=True, blank=True, related_name='competences_declenchees')
+    quiz_origine = models.ForeignKey('Quiz', on_delete=models.SET_NULL, null=True, blank=True)
+    formation_origine = models.ForeignKey('Formation', on_delete=models.SET_NULL, null=True, blank=True)
+    projet_origine = models.ForeignKey('ProjetEtudiant', on_delete=models.SET_NULL, null=True, blank=True)
+    validee_par = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='competences_validees_par_moi')
+
+    score_obtenu = models.IntegerField(null=True, blank=True, help_text="Score/pourcentage au moment de la validation, si applicable")
+    date_validation = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['utilisateur', 'competence', 'source_type', 'examen_origine', 'quiz_origine']
+        ordering = ['-date_validation']
+        verbose_name = 'Compétence validée'
+        verbose_name_plural = 'Compétences validées'
+        indexes = [
+            models.Index(fields=['utilisateur', 'competence']),
+            models.Index(fields=['utilisateur', 'date_validation']),
+        ]
+
+    def __str__(self):
+        return f"{self.utilisateur.username} — {self.competence.nom} ({self.get_niveau_display()})"
+
+    @staticmethod
+    def valider_pour_examen(utilisateur, examen, tentative):
+        """
+        Point d'entrée unique — appelé automatiquement quand un examen 
+        est réussi. Crée une CompetenceValidee pour CHAQUE compétence 
+        liée à cet examen (via le nouveau FK M2M Examen.competences_liees).
+        """
+        if not tentative.reussi:
+            return []
+
+        niveau = 'expert' if tentative.pourcentage >= 90 else 'confirme' if tentative.pourcentage >= 75 else 'acquis'
+        creees = []
+
+        for competence in examen.competences_liees.all():
+            obj, cree = CompetenceValidee.objects.get_or_create(
+                utilisateur=utilisateur, competence=competence,
+                source_type='examen', examen_origine=examen, quiz_origine=None,
+                defaults={
+                    'niveau': niveau, 'formation_origine': examen.formation,
+                    'score_obtenu': tentative.pourcentage,
+                }
+            )
+            if cree:
+                creees.append(obj)
+            elif obj.score_obtenu and tentative.pourcentage > obj.score_obtenu:
+                # Meilleur score obtenu lors d'un nouvel essai : upgrade la preuve
+                obj.score_obtenu = tentative.pourcentage
+                obj.niveau = niveau
+                obj.date_validation = timezone.now()
+                obj.save()
+
+        return creees
+
+    @staticmethod
+    def valider_pour_formation_completee(utilisateur, formation):
+        """Déclenché quand une formation est terminée à 100% — valide toutes ses compétences liées."""
+        creees = []
+        for competence in formation.competences.all():
+            obj, cree = CompetenceValidee.objects.get_or_create(
+                utilisateur=utilisateur, competence=competence,
+                source_type='formation_completee', formation_origine=formation,
+                examen_origine=None, quiz_origine=None,
+                defaults={'niveau': 'acquis'}
+            )
+            if cree:
+                creees.append(obj)
+        return creees
