@@ -1,0 +1,33 @@
+{% extends 'academie/base.html' %}
+{% block titre %}Ambassadeurs — Blessy Tech Academy{% endblock %}
+{% block contenu %}
+<section style="background:linear-gradient(135deg,#050d1a,#003B8E); padding:60px 40px; text-align:center;">
+    <h1 style="color:white; font-size:32px;">⭐ Nos Ambassadeurs</h1>
+    <p style="color:rgba(255,255,255,0.6);">Des apprenants qui inspirent leur communauté.</p>
+</section>
+
+<div style="max-width:900px; margin:0 auto; padding:50px 20px;">
+    {% if ambassadeurs %}
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:20px;">
+        {% for a in ambassadeurs %}
+        <div style="background:white; border:1.5px solid #e2e8f0; border-radius:16px; padding:20px; text-align:center;">
+            {% if a.photo %}
+            <img src="{{ a.photo.url }}" style="width:80px; height:80px; border-radius:50%; object-fit:cover; margin-bottom:12px;">
+            {% else %}
+            <div style="width:80px; height:80px; border-radius:50%; background:linear-gradient(135deg,#00B4D8,#003B8E); display:flex; align-items:center; justify-content:center; font-size:28px; color:white; margin:0 auto 12px;">
+                {{ a.utilisateur.first_name|first|upper|default:a.utilisateur.username|first|upper }}
+            </div>
+            {% endif %}
+            <h3 style="color:#003B8E; font-size:16px;">{{ a.utilisateur.first_name|default:a.utilisateur.username }}</h3>
+            <span style="font-size:12px; font-weight:700; color:#FF6B00;">{{ a.get_niveau_display }}</span>
+            {% if a.citation_mise_en_avant %}
+            <p style="font-size:13px; color:#a0aec0; margin-top:8px; font-style:italic;">"{{ a.citation_mise_en_avant }}"</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="text-align:center; color:#a0aec0; padding:60px;">Nos premiers ambassadeurs seront dévoilés prochainement.</p>
+    {% endif %}
+</div>
+{% endblock %}

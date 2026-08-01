@@ -665,6 +665,7 @@ class Examen(models.Model):
         help_text="Compétences validées automatiquement si l'étudiant réussit cet examen"
     )
     type_evaluation = models.CharField(max_length=15, choices=TYPES_EVALUATION, default='sommative')
+    actif = models.BooleanField(default=True)
     prerequis = models.TextField(blank=True)
     conditions_utilisation = models.TextField(blank=True)
     xp_recompense = models.IntegerField(default=50)
@@ -1207,3 +1208,54 @@ class Parrainage(models.Model):
             import uuid
             self.code_parrainage = f"REF-{uuid.uuid4().hex[:8].upper()}"
         super().save(*args, **kwargs)
+
+
+# ================================================
+# MODELS.PY — Partenaire (vitrine publique de confiance)
+# Distinct de PartenaireAPI (technique/API) — celui-ci est 100% marketing/confiance
+# ================================================
+
+class Partenaire(models.Model):
+    TYPES = [('entreprise', '🏢 Entreprise'), ('institution', '🏛️ Institution'), ('ong', '🤝 ONG'), ('media', '📰 Média')]
+
+    nom = models.CharField(max_length=200)
+    type_partenaire = models.CharField(max_length=15, choices=TYPES, default='entreprise')
+    logo = models.ImageField(upload_to='partenaires/logos/', null=True, blank=True)
+    description = models.CharField(max_length=250, blank=True)
+    url_site = models.URLField(blank=True)
+    actif = models.BooleanField(default=True)
+    ordre = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['ordre']
+        verbose_name = 'Partenaire'
+        verbose_name_plural = 'Partenaires'
+
+    def __str__(self):
+        return self.nom
+
+
+# ================================================
+# MODELS.PY — Programme Ambassadeur
+# ================================================
+
+class Ambassadeur(models.Model):
+    NIVEAUX = [
+        ('pilote', '🚀 Pilote fondateur'),
+        ('actif', '⭐ Ambassadeur actif'),
+        ('elite', '🏆 Ambassadeur élite'),
+    ]
+
+    utilisateur = models.OneToOneField('auth.User', on_delete=models.CASCADE, related_name='statut_ambassadeur')
+    niveau = models.CharField(max_length=15, choices=NIVEAUX, default='pilote')
+    citation_mise_en_avant = models.CharField(max_length=250, blank=True, help_text="Phrase courte affichée publiquement")
+    photo = models.ImageField(upload_to='ambassadeurs/', null=True, blank=True)
+    visible_publiquement = models.BooleanField(default=False, help_text="Nécessite le consentement explicite")
+    date_nomination = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Ambassadeur'
+        verbose_name_plural = 'Ambassadeurs'
+
+    def __str__(self):
+        return f"{self.utilisateur.username} — {self.get_niveau_display()}"

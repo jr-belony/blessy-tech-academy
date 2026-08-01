@@ -1404,3 +1404,25 @@ class CohorteAdmin(admin.ModelAdmin):
     def progression_moyenne_affiche(self, obj):
         return f"{obj.progression_moyenne()}%"
     progression_moyenne_affiche.short_description = 'Progression moy.'
+
+
+# ================================================
+# ADMIN.PY — Administration Partenaire (vitrine)
+# ================================================
+from .models import Partenaire
+
+@admin.register(Partenaire)
+class PartenaireAdmin(admin.ModelAdmin):
+    list_display = ['nom', 'type_partenaire', 'actif', 'ordre']
+    list_editable = ['actif', 'ordre']
+
+
+# ================================================
+# ADMIN.PY — Administration Ambassadeur
+# ================================================
+from .models import Ambassadeur
+
+@admin.register(Ambassadeur)
+class AmbassadeurAdmin(admin.ModelAdmin):
+    list_display = ['utilisateur', 'niveau', 'visible_publiquement', 'date_nomination']
+    list_editable = ['visible_publiquement']

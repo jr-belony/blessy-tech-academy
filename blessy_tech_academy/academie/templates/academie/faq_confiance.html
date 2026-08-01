@@ -1,0 +1,39 @@
+<!-- ================================================
+     FAQ_CONFIANCE.HTML — Confiance & Sécurité (rassure avant paiement)
+     ================================================ -->
+{% extends 'academie/base.html' %}
+{% block titre %}Confiance & Sécurité — Blessy Tech Academy{% endblock %}
+{% block contenu %}
+<section style="max-width:700px; margin:60px auto; padding:0 20px;">
+    <h1 style="color:#003B8E; text-align:center; margin-bottom:32px;">🔒 Confiance & Sécurité</h1>
+
+    <div class="cf-faq-liste">
+        <div class="cf-faq-item">
+            <button class="cf-faq-question" onclick="toggleFaqConf(this)"><span>Mes paiements sont-ils sécurisés ?</span><span>+</span></button>
+            <div class="cf-faq-reponse"><p>Oui, tous les paiements passent par des prestataires vérifiés (Stripe, PayPal, MonCash) avec validation serveur avant tout déblocage d'accès.</p></div>
+        </div>
+        <div class="cf-faq-item">
+            <button class="cf-faq-question" onclick="toggleFaqConf(this)"><span>Que se passe-t-il avec mes données personnelles ?</span><span>+</span></button>
+            <div class="cf-faq-reponse"><p>Tes données ne sont jamais vendues. Tu peux exporter ou supprimer ton compte à tout moment depuis ton dashboard.</p></div>
+        </div>
+        <div class="cf-faq-item">
+            <button class="cf-faq-question" onclick="toggleFaqConf(this)"><span>Puis-je me faire rembourser ?</span><span>+</span></button>
+            <div class="cf-faq-reponse"><p>Contacte notre support sous 7 jours suivant ton achat pour une demande de remboursement.</p></div>
+        </div>
+        <div class="cf-faq-item">
+            <button class="cf-faq-question" onclick="toggleFaqConf(this)"><span>Mon certificat est-il vraiment vérifiable ?</span><span>+</span></button>
+            <div class="cf-faq-reponse"><p>Oui — chaque certificat a un numéro unique et une page de vérification publique accessible à n'importe qui, y compris les recruteurs.</p></div>
+        </div>
+    </div>
+</section>
+
+<style>
+.cf-faq-item { border-bottom:1px solid #e2e8f0; }
+.cf-faq-question { width:100%; display:flex; justify-content:space-between; padding:16px 0; background:none; border:none; cursor:pointer; font-size:15px; font-weight:600; color:#003B8E; }
+.cf-faq-reponse { display:none; padding:0 0 16px; font-size:14px; color:#718096; }
+.cf-faq-reponse.visible { display:block; }
+</style>
+<script>
+function toggleFaqConf(bouton) { bouton.parentElement.querySelector('.cf-faq-reponse').classList.toggle('visible'); }
+</script>
+{% endblock %}

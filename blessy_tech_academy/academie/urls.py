@@ -189,4 +189,8 @@ urlpatterns = [
     path('admin/valider-temoignages/', views.valider_temoignages_en_attente, name='valider_temoignages'),
     path('resultats/', views.resultats_et_preuves, name='resultats_et_preuves'),
     path('mon-parrainage/', views.mon_parrainage, name='mon_parrainage'),
+    path('partenariats/', views.partenariats, name='partenariats'),
+    path('ambassadeurs/', views.ambassadeurs, name='ambassadeurs'),
+    path('nos-ambassadeurs/', views.nos_ambassadeurs, name='nos_ambassadeurs'),
+    path('confiance-securite/', views.faq_confiance, name='faq_confiance'),
 ]

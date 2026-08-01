@@ -373,3 +373,29 @@ def resultats_et_preuves(request):
         'total_projets_realises': total_projets_realises,
         'total_etudiants_actifs': total_etudiants_actifs,
     })
+
+
+def partenariats(request):
+    """Page vitrine partenaires — vide au départ, structure prête pour Phase 4."""
+    from ..models import Partenaire
+    partenaires = Partenaire.objects.filter(actif=True)
+    return render(request, 'academie/partenariats.html', {'partenaires': partenaires})
+
+
+def ambassadeurs(request):
+    """Page publique présentant les ambassadeurs de la plateforme."""
+    from ..models import Ambassadeur
+    ambassadeurs = Ambassadeur.objects.filter(visible_publiquement=True).select_related('utilisateur')
+    return render(request, 'academie/ambassadeurs.html', {'ambassadeurs': ambassadeurs})
+
+
+def nos_ambassadeurs(request):
+    """Met en avant les pilotes ayant CONSENTI à être visibles — preuve humaine forte."""
+    from ..models import Ambassadeur
+    ambassadeurs = Ambassadeur.objects.filter(visible_publiquement=True).select_related('utilisateur')
+    return render(request, 'academie/nos_ambassadeurs.html', {'ambassadeurs': ambassadeurs})
+
+
+def faq_confiance(request):
+    """FAQ globale sur la confiance et la sécurité — rassure les visiteurs."""
+    return render(request, 'academie/faq_confiance.html')
