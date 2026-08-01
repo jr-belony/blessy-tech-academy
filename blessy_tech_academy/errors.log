@@ -9189,3 +9189,24 @@ Traceback (most recent call last):
     raise ex.with_traceback(None)
 django.db.utils.IntegrityError: une valeur NULL viole la contrainte NOT NULL de la colonne « competences_developpees » dans la relation « academie_projetetudiant »
 DETAIL:  La ligne en échec contient (1, Mon projet, Description test, , null, Python, debutant, null, 2026-07-31 20:19:30.738552+00, 4, 4).
+Internal Server Error: /resultats/
+Traceback (most recent call last):
+  File "C:\projects\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\projects\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\projects\blessy_tech_academy\academie\views_modules\content_views.py", line 357, in resultats_et_preuves
+    ).select_related('utilisateur', 'formation').order_by('-date_obtention')[:8]
+                                                 ~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\django\db\models\query.py", line 1772, in order_by
+    obj.query.add_ordering(*field_names)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 2343, in add_ordering
+    self.names_to_path(item.split(LOOKUP_SEP), self.model._meta)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 1842, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'date_obtention' into field. Choices are: date_emission, duree_heures, examen_origine, examen_origine_id, fichier_pdf, formation, formation_id, id, niveau, numero, qr_code_image, resultat_final, statut, utilisateur, utilisateur_id, verifie
+"GET /resultats/ HTTP/1.1" 500 114388

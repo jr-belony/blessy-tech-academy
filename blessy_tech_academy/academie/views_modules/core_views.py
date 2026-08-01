@@ -27,7 +27,7 @@ from django.template.loader import render_to_string
 from academie.models import (
     Ecole, Formation, Article, Parcours, ProgressionLecon,
     HistoriqueConversationIA, ProjetEtudiant, PushSubscription,
-    Sujet, AccesFormationDebloque, BadgeForum, Order,
+    Sujet, AccesFormationDebloque, BadgeForum, Order, Parrainage,
     Certificat, LogAudit, ConnexionUtilisateur, TentativeExamen,
     NoteLecon, StreakEtudiant, ResultatQuiz,
 )
@@ -149,12 +149,30 @@ def inscription_compte(request):
         form = InscriptionCompteForm(request.POST)
         if form.is_valid():
             user = form.save()
+
+            # ================================================
+            # Parrainage — association automatique si ?ref= présent
+            # ================================================
+            code_ref = request.GET.get('ref') or request.POST.get('ref')
+            if code_ref:
+                try:
+                    parrainage = Parrainage.objects.get(
+                        code_parrainage=code_ref, statut='invite'
+                    )
+                    parrainage.filleul_utilisateur = user
+                    parrainage.statut = 'inscrit'
+                    parrainage.date_conversion = timezone.now()
+                    parrainage.save()
+                except Parrainage.DoesNotExist:
+                    pass  # code invalide, on ignore
+
             login(request, user, backend="django.contrib.auth.backends.ModelBackend")
             # Enregistrement du streak
             streak, _ = StreakEtudiant.objects.get_or_create(utilisateur=user)
             streak.enregistrer_activite_jour()
             messages.success(
-                request, f"🎉 Bienvenue {user.first_name} ! Ton compte a été créé avec succès."
+                request,
+                f"🎉 Bienvenue {user.first_name} ! Ton compte a été créé avec succès.",
             )
             return redirect("dashboard")
         else:
@@ -166,7 +184,6 @@ def inscription_compte(request):
         form = InscriptionCompteForm()
 
     return render(request, "academie/inscription_compte.html", {"form": form})
-
 
 # ================================================
 # Tableau de bord

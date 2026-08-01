@@ -337,3 +337,39 @@ def valider_temoignages_en_attente(request):
         return redirect('valider_temoignages_en_attente')
 
     return render(request, 'admin/valider_temoignages.html', {'demandes': demandes})
+
+
+# ================================================
+# Page Preuve Sociale (résultats réels uniquement)
+# ================================================
+
+def resultats_et_preuves(request):
+    """Page publique de preuve sociale — cœur de la stratégie PROOF→TRUST."""
+    from ..models import Cohorte, Temoignage, Certificat, ProjetEtudiant, CompetenceValidee
+    from django.contrib.auth.models import User
+
+    cohortes_actives = Cohorte.objects.filter(actif=True).prefetch_related('formations', 'membres')
+    temoignages_publies = Temoignage.objects.filter(approuve=True).select_related('formation_suivie').order_by('-date_creation')[:12]
+    certificats_recents = Certificat.objects.filter(
+        statut='valide'
+    ).select_related('utilisateur', 'formation').order_by('-date_emission')[:8]   # ← corrigé
+
+    projets_valides = ProjetEtudiant.objects.filter(
+        valide_par_formateur__isnull=False
+    ).select_related('auteur', 'formation_liee').order_by('-date_validation')[:9]
+
+    total_certificats = Certificat.objects.filter(statut='valide').count()
+    total_competences_validees = CompetenceValidee.objects.count()
+    total_projets_realises = ProjetEtudiant.objects.count()
+    total_etudiants_actifs = User.objects.filter(progressions__isnull=False).distinct().count()
+
+    return render(request, 'academie/resultats_et_preuves.html', {
+        'cohortes_actives': cohortes_actives,
+        'temoignages': temoignages_publies,
+        'certificats_recents': certificats_recents,
+        'projets_valides': projets_valides,
+        'total_certificats': total_certificats,
+        'total_competences_validees': total_competences_validees,
+        'total_projets_realises': total_projets_realises,
+        'total_etudiants_actifs': total_etudiants_actifs,
+    })

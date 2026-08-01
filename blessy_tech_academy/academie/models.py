@@ -284,6 +284,10 @@ class Formation(models.Model):
     salaire_haiti = models.CharField(max_length=50, blank=True)
     salaire_international = models.CharField(max_length=50, blank=True)
     competences_acquises = models.TextField(blank=True)
+    # --- Nouveaux champs pour la page de vente ---
+    methode_pedagogique = models.TextField(blank=True, help_text="Ex: 100% pratique, projets réels, feedback formateur")
+    criteres_evaluation = models.TextField(blank=True, help_text="Ex: Quiz formatifs, projet pratique, examen final sommatif")
+    public_cible = models.CharField(max_length=300, blank=True, help_text="Ex: Débutants, professionnels en reconversion")
 
     class Meta:
         app_label = 'academie'
@@ -1172,3 +1176,34 @@ class DemandeTemoignage(models.Model):
 
     def __str__(self):
         return f"Demande à {self.utilisateur.username} — {self.get_statut_display()}"
+
+
+# ================================================
+# MODELS.PY — Parrainage (referral communautaire, distinct d'Affilie B2B)
+# ================================================
+
+class Parrainage(models.Model):
+    """Un apprenant invite un ami — traçable, récompensable simplement."""
+
+    STATUTS = [('invite', '📨 Invité'), ('inscrit', '✅ Inscrit'), ('actif', '🎯 Devenu actif')]
+
+    parrain = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='parrainages_envoyes')
+    filleul_email = models.EmailField()
+    filleul_utilisateur = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='parrainage_origine')
+    code_parrainage = models.CharField(max_length=20, unique=True, editable=False)
+    statut = models.CharField(max_length=15, choices=STATUTS, default='invite')
+    date_invitation = models.DateTimeField(auto_now_add=True)
+    date_conversion = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Parrainage'
+        verbose_name_plural = 'Parrainages'
+
+    def __str__(self):
+        return f"{self.parrain.username} → {self.filleul_email} ({self.get_statut_display()})"
+
+    def save(self, *args, **kwargs):
+        if not self.code_parrainage:
+            import uuid
+            self.code_parrainage = f"REF-{uuid.uuid4().hex[:8].upper()}"
+        super().save(*args, **kwargs)

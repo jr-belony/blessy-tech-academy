@@ -151,6 +151,31 @@
     </section>
 
     <!-- ================================================
+         DETAIL_FORMATION.HTML — Sections Méthode/Évaluation/Public (audit lancement)
+         Inséré juste après la section "Ce que tu apprendras" existante
+         ================================================ -->
+    {% if formation.public_cible %}
+    <section class="pv-section">
+        <h2 class="pv-section-titre">👥 Pour qui ?</h2>
+        <p style="color:var(--gris-texte); font-size:15px;">{{ formation.public_cible }}</p>
+    </section>
+    {% endif %}
+
+    {% if formation.methode_pedagogique %}
+    <section class="pv-section">
+        <h2 class="pv-section-titre">📐 Notre méthode</h2>
+        <p style="color:var(--gris-texte); font-size:15px; line-height:1.8;">{{ formation.methode_pedagogique }}</p>
+    </section>
+    {% endif %}
+
+    {% if formation.criteres_evaluation %}
+    <section class="pv-section">
+        <h2 class="pv-section-titre">✅ Comment tu seras évalué</h2>
+        <p style="color:var(--gris-texte); font-size:15px; line-height:1.8;">{{ formation.criteres_evaluation }}</p>
+    </section>
+    {% endif %}
+
+    <!-- ================================================
          3. CE QUE TU RÉALISERAS
          ================================================ -->
     <section class="pv-section">

@@ -1,0 +1,24 @@
+<!-- ================================================
+     MON_PARRAINAGE.HTML — Espace parrainage étudiant
+     ================================================ -->
+{% extends 'academie/base.html' %}
+{% block titre %}Parrainer un ami{% endblock %}
+{% block contenu %}
+<section style="max-width:600px; margin:60px auto; padding:0 20px;">
+    <h1 style="color:#003B8E;">🤝 Invite un ami</h1>
+    <p style="color:#718096; margin-bottom:24px;">{{ nb_inscrits }} ami{{ nb_inscrits|pluralize }} inscrit{{ nb_inscrits|pluralize }} grâce à toi</p>
+
+    <form method="POST" style="display:flex; gap:8px; margin-bottom:32px;">
+        {% csrf_token %}
+        <input type="email" name="email_ami" placeholder="Email de ton ami" required style="flex:1; padding:12px; border:1.5px solid #e2e8f0; border-radius:8px;">
+        <button type="submit" style="padding:12px 24px; background:#FF6B00; color:white; border:none; border-radius:8px; font-weight:700;">Inviter</button>
+    </form>
+
+    {% for p in parrainages %}
+    <div style="display:flex; justify-content:space-between; padding:12px; background:white; border:1.5px solid #e2e8f0; border-radius:10px; margin-bottom:8px;">
+        <span>{{ p.filleul_email }}</span>
+        <span style="font-size:12px; font-weight:700; color:{% if p.statut == 'invite' %}#a0aec0{% else %}#22c55e{% endif %};">{{ p.get_statut_display }}</span>
+    </div>
+    {% endfor %}
+</section>
+{% endblock %}

@@ -223,6 +223,7 @@
 
             <a href="{% url 'parcours' %}" class="nav-lien {% if request.resolver_match.url_name == 'parcours' %}nav-actif{% endif %}">{% trans "Parcours" %}</a>
             <a href="{% url 'ressources' %}" class="nav-lien {% if request.resolver_match.url_name == 'ressources' %}nav-actif{% endif %}">{% trans "Ressources" %}</a>
+            <a href="{% url 'resultats_et_preuves' %}" class="nav-lien {% if request.resolver_match.url_name == 'resultats_et_preuves' %}nav-actif{% endif %}"> 📊 Résultats </a>
             <a href="{% url 'chat_ia' %}" class="nav-lien nav-lien-ai {% if request.resolver_match.url_name == 'chat_ia' %}nav-actif{% endif %}"><span class="bai-pulse-dot"></span> Blessy AI</a>
             <a href="{% url 'apropos' %}" class="nav-lien {% if request.resolver_match.url_name == 'apropos' %}nav-actif{% endif %}">{% trans "À propos" %}</a>
         </nav>

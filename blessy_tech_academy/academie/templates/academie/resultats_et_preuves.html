@@ -1,0 +1,85 @@
+<!-- ================================================
+     RESULTATS_ET_PREUVES.HTML — Preuve sociale (données 100% réelles)
+     ================================================ -->
+{% extends 'academie/base.html' %}
+{% block titre %}Résultats réels — Blessy Tech Academy{% endblock %}
+{% block meta_description %}Découvre les résultats réels, projets, certificats et témoignages authentiques de nos apprenants.{% endblock %}
+{% block contenu %}
+
+<section style="background:linear-gradient(135deg,#050d1a,#003B8E); padding:70px 40px; text-align:center;">
+    <div class="section-tag" style="background:rgba(0,181,226,0.12); border-color:rgba(0,181,226,0.3); color:#00B5E2;">📊 Preuve, pas promesse</div>
+    <h1 style="color:white; font-size:36px; font-weight:800; margin:16px 0 12px;">Des résultats réels, pas des mots</h1>
+    <p style="color:rgba(255,255,255,0.65); max-width:600px; margin:0 auto;">Chaque chiffre ci-dessous provient directement de notre plateforme — aucune statistique inventée.</p>
+</section>
+
+<div style="max-width:1100px; margin:0 auto; padding:50px 20px;">
+
+    <!-- Chiffres réels -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:60px;">
+        <div style="background:white; border:1.5px solid #e2e8f0; border-radius:16px; padding:24px; text-align:center;">
+            <div style="font-size:32px; font-weight:800; color:#003B8E;">{{ total_etudiants_actifs }}</div>
+            <div style="font-size:12px; color:#a0aec0;">Apprenants actifs</div>
+        </div>
+        <div style="background:white; border:1.5px solid #e2e8f0; border-radius:16px; padding:24px; text-align:center;">
+            <div style="font-size:32px; font-weight:800; color:#00B5E2;">{{ total_competences_validees }}</div>
+            <div style="font-size:12px; color:#a0aec0;">Compétences validées</div>
+        </div>
+        <div style="background:white; border:1.5px solid #e2e8f0; border-radius:16px; padding:24px; text-align:center;">
+            <div style="font-size:32px; font-weight:800; color:#FF6B00;">{{ total_projets_realises }}</div>
+            <div style="font-size:12px; color:#a0aec0;">Projets réalisés</div>
+        </div>
+        <div style="background:white; border:1.5px solid #e2e8f0; border-radius:16px; padding:24px; text-align:center;">
+            <div style="font-size:32px; font-weight:800; color:#22c55e;">{{ total_certificats }}</div>
+            <div style="font-size:12px; color:#a0aec0;">Certificats délivrés</div>
+        </div>
+    </div>
+
+    <!-- Certificats vérifiables -->
+    {% if certificats_recents %}
+    <h2 style="color:#003B8E; margin-bottom:20px;">🎓 Certificats vérifiables</h2>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:16px; margin-bottom:60px;">
+        {% for cert in certificats_recents %}
+        <a href="{% url 'verifier_certificat_public' cert.numero %}" style="background:white; border:1.5px solid #e2e8f0; border-radius:14px; padding:20px; text-decoration:none;">
+            <div style="font-size:11px; color:#00B5E2; font-weight:700;">{{ cert.numero }}</div>
+            <div style="font-weight:700; color:#003B8E; margin:6px 0;">{{ cert.formation.nom }}</div>
+            <div style="font-size:12px; color:#a0aec0;">{{ cert.utilisateur.first_name|default:cert.utilisateur.username }} · {{ cert.date_emission|date:"d/m/Y" }}</div>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Projets validés par formateurs -->
+    {% if projets_valides %}
+    <h2 style="color:#003B8E; margin-bottom:20px;">💼 Projets validés par nos formateurs</h2>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px; margin-bottom:60px;">
+        {% for projet in projets_valides %}
+        <div style="background:white; border:1.5px solid #e2e8f0; border-radius:14px; overflow:hidden;">
+            {% if projet.image %}<img src="{{ projet.image.url }}" style="width:100%; height:150px; object-fit:cover;" loading="lazy">{% endif %}
+            <div style="padding:16px;">
+                <div style="font-weight:700; color:#003B8E;">{{ projet.titre }}</div>
+                <div style="font-size:12px; color:#a0aec0; margin:4px 0;">{{ projet.auteur.first_name|default:projet.auteur.username }} — {{ projet.formation_liee.nom }}</div>
+                <div style="font-size:11px; color:#22c55e; font-weight:700; margin-top:6px;">✓ Validé par un formateur</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Témoignages authentiques -->
+    {% if temoignages %}
+    <h2 style="color:#003B8E; margin-bottom:20px;">💬 Ce qu'ils en disent</h2>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px;">
+        {% for t in temoignages %}
+        <div style="background:#f8fafc; border-radius:14px; padding:20px;">
+            <div style="color:#FF6B00; margin-bottom:8px;">{% for i in "12345" %}{% if forloop.counter <= t.note %}★{% else %}☆{% endif %}{% endfor %}</div>
+            <p style="font-size:14px; color:#334155; font-style:italic;">"{{ t.texte }}"</p>
+            <div style="margin-top:12px; font-size:12px; font-weight:700; color:#003B8E;">{{ t.prenom_nom }} — {{ t.formation_suivie.nom }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="text-align:center; color:#a0aec0; padding:40px;">Les premiers témoignages de notre cohorte pilote arrivent bientôt.</p>
+    {% endif %}
+
+</div>
+{% endblock %}

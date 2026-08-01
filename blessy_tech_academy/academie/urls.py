@@ -187,4 +187,6 @@ urlpatterns = [
     path('admin/cohorte/<int:cohorte_id>/', views.dashboard_cohorte, name='dashboard_cohorte'),
     path('temoignage/repondre/<int:demande_id>/', views.repondre_temoignage, name='repondre_temoignage'),
     path('admin/valider-temoignages/', views.valider_temoignages_en_attente, name='valider_temoignages'),
+    path('resultats/', views.resultats_et_preuves, name='resultats_et_preuves'),
+    path('mon-parrainage/', views.mon_parrainage, name='mon_parrainage'),
 ]
