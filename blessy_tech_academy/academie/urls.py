@@ -184,4 +184,5 @@ urlpatterns = [
     path('admin/evaluer-soumissions/', views.evaluer_soumissions, name='evaluer_soumissions'),
     path('admin/valider-soumission/<int:soumission_id>/', views.valider_soumission, name='valider_soumission'),
     path('portfolio/<str:username>/', views.portfolio_public, name='portfolio_public'),
+    path('admin/cohorte/<int:cohorte_id>/', views.dashboard_cohorte, name='dashboard_cohorte'),
 ]

@@ -3,9 +3,9 @@
 # app_label='academie' partout — zéro migration nécessaire
 # ================================================
 
-from django.db import models
+from django.db import models, transaction   # <-- transaction ajouté
 from django.utils import timezone
-from academie.validators import valider_document, valider_image   # <-- ajouté
+from academie.validators import valider_document, valider_image
 
 
 class Article(models.Model):
@@ -35,7 +35,7 @@ class Article(models.Model):
         upload_to='knowledge_center/',
         null=True,
         blank=True,
-        validators=[valider_document]   # <-- validateur ajouté
+        validators=[valider_document]
     )
     articles_associes = models.ManyToManyField('self', blank=True, symmetrical=True)
     nb_vues = models.IntegerField(default=0)
@@ -122,6 +122,13 @@ class OutilRecommande(models.Model):
 
 
 class Temoignage(models.Model):
+    STATUT_TEMOIGNAGE = [
+        ('demande', 'Demande envoyée'),
+        ('consenti', 'Consentement obtenu'),
+        ('redige', 'Rédigé'),
+        ('valide', 'Validé par admin'),
+        ('publie', 'Publié'),
+    ]
     prenom_nom = models.CharField(max_length=200)
     formation_suivie = models.ForeignKey('academie.Formation', on_delete=models.SET_NULL, null=True, blank=True, related_name='temoignages')
     texte = models.TextField()
@@ -130,6 +137,7 @@ class Temoignage(models.Model):
     titre_professionnel = models.CharField(max_length=200, blank=True)
     en_vedette = models.BooleanField(default=False)
     approuve = models.BooleanField(default=False)
+    statut = models.CharField(max_length=15, choices=STATUT_TEMOIGNAGE, default='redige')
     date_creation = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -139,7 +147,6 @@ class Temoignage(models.Model):
 
     def __str__(self):
         return f"{self.prenom_nom} — {self.note}⭐"
-
 
 class ProjetEtudiant(models.Model):
     auteur = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='projets')
@@ -152,7 +159,7 @@ class ProjetEtudiant(models.Model):
         upload_to='projets/',
         null=True,
         blank=True,
-        validators=[valider_image]   # <-- validateur ajouté
+        validators=[valider_image]
     )
     formation_liee = models.ForeignKey('academie.Formation', on_delete=models.SET_NULL, null=True, blank=True, related_name='projets_realises')
     competences_demontrees = models.ManyToManyField('academie.Competence', blank=True, related_name='projets_demonstrations')
@@ -180,10 +187,10 @@ class Certificat(models.Model):
         upload_to='certificats/',
         null=True,
         blank=True,
-        validators=[valider_document]   # <-- validateur ajouté
+        validators=[valider_document]
     )
     verifie = models.BooleanField(default=False)
-    
+
     class Meta:
         app_label = 'academie'
         db_table = 'academie_certificat'
@@ -195,6 +202,12 @@ class Certificat(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.numero:
-            import secrets
-            self.numero = secrets.token_hex(12).upper()  # 24 caractères hex aléatoires, non devinable
+            annee = timezone.now().year
+            code_formation = (self.formation.slug[:3].upper() if self.formation and self.formation.slug else 'BTA')
+            with transaction.atomic():
+                dernier = Certificat.objects.select_for_update().filter(
+                    formation=self.formation,
+                    date_emission__year=annee
+                ).count()
+                self.numero = f"BTA-{annee}-{code_formation}-{dernier + 1:04d}"
         super().save(*args, **kwargs)

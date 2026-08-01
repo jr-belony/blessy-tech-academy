@@ -1041,3 +1041,93 @@ class SoumissionProjet(models.Model):
                 'formation_liee': self.formation,
             }
         )
+
+
+# ================================================
+# MODELS.PY — Cohorte (pilote réel — aucune statistique inventée)
+# Toutes les méthodes ci-dessous interrogent la base réelle, jamais 
+# de valeur codée en dur
+# ================================================
+
+class Cohorte(models.Model):
+    """Groupe réel d'étudiants suivant un lot de formations ensemble (ex: pilote 8 personnes)."""
+
+    nom = models.CharField(max_length=150, help_text="Ex: Cohorte Pilote 2026")
+    formations = models.ManyToManyField('Formation', related_name='cohortes')
+    membres = models.ManyToManyField('auth.User', related_name='cohortes', blank=True)
+    date_debut = models.DateField()
+    date_fin_prevue = models.DateField()
+    actif = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = 'Cohorte'
+        verbose_name_plural = 'Cohortes'
+        ordering = ['-date_debut']
+
+    def __str__(self):
+        return self.nom
+
+    # ---- Toutes les stats ci-dessous = requêtes RÉELLES, zéro donnée fictive ----
+
+    def nb_inscrits(self):
+        return self.membres.count()
+
+    def nb_presents(self):
+        """Présent = a au moins une ProgressionLecon enregistrée (activité réelle détectée)."""
+        return self.membres.filter(progressions__isnull=False).distinct().count()
+
+    def progression_moyenne(self):
+        """Moyenne réelle de progression sur les formations de la cohorte."""
+        membres = self.membres.all()
+        formations = self.formations.all()
+        if not membres or not formations:
+            return 0
+        total = 0
+        compte = 0
+        for membre in membres:
+            for formation in formations:
+                total += formation.progression_pour(membre)
+                compte += 1
+        return round(total / compte) if compte else 0
+
+    def nb_completions_100pct(self):
+        """Nombre réel de membres ayant terminé TOUTES les formations à 100%."""
+        formations = list(self.formations.all())
+        if not formations:
+            return 0
+        complets = 0
+        for membre in self.membres.all():
+            if all(f.progression_pour(membre) == 100 for f in formations):
+                complets += 1
+        return complets
+
+    def moyenne_examens(self):
+        """Moyenne réelle des tentatives d'examen réussies des membres, sur les formations de la cohorte."""
+        from django.db.models import Avg
+        resultat = TentativeExamen.objects.filter(
+            utilisateur__in=self.membres.all(),
+            examen__formation__in=self.formations.all(),
+            reussi=True
+        ).aggregate(m=Avg('score'))
+        return round(resultat['m'] or 0, 1)
+
+    def nb_projets_realises(self):
+        return ProjetEtudiant.objects.filter(
+            auteur__in=self.membres.all(), formation_liee__in=self.formations.all()
+        ).count()
+
+    def nb_certificats_delivres(self):
+        return Certificat.objects.filter(
+            utilisateur__in=self.membres.all(), formation__in=self.formations.all()
+        ).count()
+
+    def nb_temoignages_publies(self):
+        return Temoignage.objects.filter(
+            formation_suivie__in=self.formations.all(), approuve=True,
+            prenom_nom__in=[m.get_full_name() or m.username for m in self.membres.all()]
+        ).count()
+
+    def nb_competences_validees(self):
+        return CompetenceValidee.objects.filter(
+            utilisateur__in=self.membres.all(), formation_origine__in=self.formations.all()
+        ).values('competence').distinct().count()

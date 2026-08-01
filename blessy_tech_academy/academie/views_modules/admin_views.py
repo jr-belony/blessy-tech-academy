@@ -36,6 +36,7 @@ from ..models import (
     AccesFormationDebloque,
     Article,
     Certificat,
+    Cohorte,
     Coupon,
     DisponibiliteMentor,
     Ecole,
@@ -1068,3 +1069,33 @@ def api_assistant_backoffice(request):
         reponse_html = reponse_brute
 
     return Response({"reponse": reponse_html})
+
+
+
+@staff_member_required
+def dashboard_cohorte(request, cohorte_id):
+    cohorte = get_object_or_404(Cohorte.objects.prefetch_related('membres', 'formations'), id=cohorte_id)
+    membres_avec_progression = []
+    for membre in cohorte.membres.all():
+        progression = {f.id: f.progression_pour(membre) for f in cohorte.formations.all()}
+        membres_avec_progression.append({
+            'user': membre,
+            'progression': progression,
+            'moyenne': round(sum(progression.values()) / len(progression)) if progression else 0,
+            'completions': sum(1 for p in progression.values() if p == 100),
+        })
+
+    context = {
+        'cohorte': cohorte,
+        'nb_inscrits': cohorte.nb_inscrits(),
+        'nb_presents': cohorte.nb_presents(),
+        'progression_moyenne': cohorte.progression_moyenne(),
+        'nb_completions': cohorte.nb_completions_100pct(),
+        'moyenne_examens': cohorte.moyenne_examens(),
+        'nb_projets': cohorte.nb_projets_realises(),
+        'nb_certificats': cohorte.nb_certificats_delivres(),
+        'nb_competences': cohorte.nb_competences_validees(),
+        'membres_avec_progression': membres_avec_progression,
+        'title': f'Dashboard Cohorte — {cohorte.nom}',
+    }
+    return render(request, 'admin/dashboard_cohorte.html', context)

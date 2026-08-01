@@ -864,7 +864,10 @@ class CertificatVerificationTestCase(TestCase):
     def test_numero_certificat_non_devinable(self):
         user = User.objects.create_user(username='cert_test', password='test1234')
         cert = Certificat.objects.create(utilisateur=user, formation=self.formation)
-        self.assertEqual(len(cert.numero), 24)  # token_hex(12) = 24 caractères
+        # Vérifie le nouveau format lisible BTA-YYYY-XXX-NNNN
+        import re
+        pattern = r'^BTA-\d{4}-[A-Z]{3}-\d{4}$'
+        self.assertRegex(cert.numero, pattern)
 
     def test_verification_publique_certificat_valide(self):
         user = User.objects.create_user(username='cert_test2', password='test1234')

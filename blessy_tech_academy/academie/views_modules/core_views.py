@@ -479,14 +479,13 @@ def telecharger_certificat(request, formation_id):
         )
         return redirect("detail_formation", formation_id=formation_id)
 
-    chaine = f"{request.user.id}-{formation.id}-{request.user.date_joined}"
-    numero = f"BTA-{hashlib.md5(chaine.encode()).hexdigest()[:8].upper()}"
-
+    # Création / récupération du certificat — le numéro est généré automatiquement par le modèle
     certificat, created = Certificat.objects.get_or_create(
-        utilisateur=request.user, formation=formation, defaults={"numero": numero}
+        utilisateur=request.user,
+        formation=formation,
+        defaults={}  # plus besoin de passer un numero manuel
     )
-    if not created:
-        numero = certificat.numero
+    numero = certificat.numero   # format BTA-2026-XXX-0001
 
     url_verification = request.build_absolute_uri(f"/certificat/{numero}/")
     qr = qrcode.QRCode(version=1, box_size=10, border=2)
