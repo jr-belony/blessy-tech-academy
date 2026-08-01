@@ -30,6 +30,16 @@ from billing.models import (
 from academie.validators import valider_image
 
 # ================================================
+# CONSTANTES PARTAGÉES
+# ================================================
+
+TYPES_EVALUATION = [
+    ('formative', '📝 Formative (auto-évaluation, sans impact certificat)'),
+    ('sommative', '🎯 Sommative (compte pour la validation de compétence)'),
+    ('finale', '🏆 Examen final (déclenche la certification)'),
+]
+
+# ================================================
 # MODÈLE : ConnexionUtilisateur
 # ================================================
 class ConnexionUtilisateur(models.Model):
@@ -430,6 +440,7 @@ class Quiz(models.Model):
     tentatives_max = models.IntegerField(default=0)
     melanger_questions = models.BooleanField(default=True)
     melanger_reponses = models.BooleanField(default=True)
+    type_evaluation = models.CharField(max_length=15, choices=TYPES_EVALUATION, default='formative')
     date_creation = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -649,6 +660,7 @@ class Examen(models.Model):
         'Competence', blank=True, related_name='examens_lies',
         help_text="Compétences validées automatiquement si l'étudiant réussit cet examen"
     )
+    type_evaluation = models.CharField(max_length=15, choices=TYPES_EVALUATION, default='sommative')
     prerequis = models.TextField(blank=True)
     conditions_utilisation = models.TextField(blank=True)
     xp_recompense = models.IntegerField(default=50)
@@ -1131,3 +1143,32 @@ class Cohorte(models.Model):
         return CompetenceValidee.objects.filter(
             utilisateur__in=self.membres.all(), formation_origine__in=self.formations.all()
         ).values('competence').distinct().count()
+
+
+# ================================================
+# MODELS.PY — Workflow Témoignage (jamais de publication automatique)
+# ================================================
+
+class DemandeTemoignage(models.Model):
+    STATUTS = [
+        ('envoyee', '📤 Envoyée'), ('repondue', '✍️ Répondue'),
+        ('consentement_donne', '✅ Consentement donné'), ('validee_admin', '👍 Validée par admin'),
+        ('publiee', '🌐 Publiée'), ('refusee', '❌ Refusée par le participant'),
+    ]
+
+    utilisateur = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='demandes_temoignage')
+    formation = models.ForeignKey('Formation', on_delete=models.SET_NULL, null=True, blank=True)
+    statut = models.CharField(max_length=20, choices=STATUTS, default='envoyee')
+    reponse_texte = models.TextField(blank=True)
+    note = models.IntegerField(null=True, blank=True, choices=[(i, str(i)) for i in range(1, 6)])
+    consentement_publication = models.BooleanField(default=False)
+    temoignage_publie = models.ForeignKey('academie.Temoignage', on_delete=models.SET_NULL, null=True, blank=True)
+    date_envoi = models.DateTimeField(auto_now_add=True)
+    date_reponse = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Demande de témoignage'
+        verbose_name_plural = 'Demandes de témoignage'
+
+    def __str__(self):
+        return f"Demande à {self.utilisateur.username} — {self.get_statut_display()}"

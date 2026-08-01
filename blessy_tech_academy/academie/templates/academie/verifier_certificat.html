@@ -10,15 +10,35 @@
 
 <section style="max-width: 700px; margin: 40px auto; text-align: center;">
     {% if valide %}
-        <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: var(--ombre-legere);">
-            <h3 style="color: #22c55e;">✅ Certificat authentique</h3>
-            <p><strong>{{ nom_affiche }}</strong></p>
-            <p>a validé la formation</p>
-            <p style="font-size: 20px; color: var(--bleu-principal); font-weight: 700;">
-                📜 {{ formation_nom }}
-            </p>
-            <p>Délivré le {{ date_obtention|date:"d/m/Y" }}</p>
-            <p>N° {{ certificat.numero }}</p>
+        <div style="background: white; border: 2px solid #22c55e; border-radius: 20px; padding: 40px;">
+            <div style="font-size: 56px;">✅</div>
+            <h1 style="color: #22c55e; margin: 16px 0;">Certificat authentique</h1>
+
+            {% if certificat.qr_code_image %}
+                <img src="{{ certificat.qr_code_image.url }}" style="width: 100px; height: 100px; margin: 0 auto 16px;" alt="QR Code de vérification">
+            {% endif %}
+
+            <div style="background: var(--gris-clair); border-radius: 14px; padding: 24px; margin-top: 20px; text-align: left;">
+                <p><strong>Numéro :</strong> {{ certificat.numero }}</p>
+                <p><strong>Titulaire :</strong> {{ nom_affiche }}</p>
+                <p><strong>Formation :</strong> {{ formation_nom }}</p>
+                <p><strong>Niveau :</strong> {{ certificat.get_niveau_display }}</p>
+                <p><strong>Durée :</strong> {{ certificat.duree_heures }} heures</p>
+                {% if certificat.resultat_final %}<p><strong>Résultat :</strong> {{ certificat.resultat_final }}%</p>{% endif %}
+                <p><strong>Date d'obtention :</strong> {{ date_obtention|date:"d/m/Y" }}</p>
+                <p><strong>Statut :</strong> {{ certificat.get_statut_display }}</p>
+            </div>
+
+            {% if certificat.competences_associees %}
+                <div style="margin-top: 16px; text-align: left;">
+                    <p style="font-weight: 700; color: var(--bleu-principal); margin-bottom: 8px;">🎯 Compétences validées :</p>
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                        {% for cv in certificat.competences_associees %}
+                            <span style="background: rgba(0,180,216,0.1); color: var(--bleu-electrique); padding: 4px 12px; border-radius: 12px; font-size: 12px;">{{ cv.competence.nom }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
         </div>
     {% else %}
         <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: var(--ombre-legere);">

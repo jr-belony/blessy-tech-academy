@@ -3,7 +3,7 @@
 # app_label='academie' partout — zéro migration nécessaire
 # ================================================
 
-from django.db import models, transaction   # <-- transaction ajouté
+from django.db import models, transaction
 from django.utils import timezone
 from academie.validators import valider_document, valider_image
 
@@ -148,6 +148,7 @@ class Temoignage(models.Model):
     def __str__(self):
         return f"{self.prenom_nom} — {self.note}⭐"
 
+
 class ProjetEtudiant(models.Model):
     auteur = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='projets')
     titre = models.CharField(max_length=200)
@@ -165,6 +166,11 @@ class ProjetEtudiant(models.Model):
     competences_demontrees = models.ManyToManyField('academie.Competence', blank=True, related_name='projets_demonstrations')
     date_creation = models.DateTimeField(auto_now_add=True)
     niveau_difficulte = models.CharField(max_length=20, default='debutant')
+    probleme_traite = models.TextField(blank=True, help_text="Quel problème ce projet résout-il ?")
+    outils_utilises = models.CharField(max_length=300, blank=True)
+    resultat_obtenu = models.TextField(blank=True, help_text="Résultat concret obtenu")
+    valide_par_formateur = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='projets_valides_par_moi')
+    date_validation = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         app_label = 'academie'
@@ -178,10 +184,20 @@ class ProjetEtudiant(models.Model):
 
 
 class Certificat(models.Model):
+    NIVEAUX = [('initiation', 'Initiation'), ('intermediaire', 'Intermédiaire'), ('avance', 'Avancé')]
+    STATUTS = [('valide', '✅ Valide'), ('revoque', '❌ Révoqué'), ('expire', '⏳ Expiré')]
+
     utilisateur = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='certificats')
     formation = models.ForeignKey('academie.Formation', on_delete=models.SET_NULL, null=True, blank=True)
     examen_origine = models.ForeignKey('academie.Examen', on_delete=models.SET_NULL, null=True, blank=True)
+
     numero = models.CharField(max_length=50, unique=True, db_index=True, blank=True, editable=False)
+    niveau = models.CharField(max_length=20, choices=NIVEAUX, default='initiation')
+    statut = models.CharField(max_length=15, choices=STATUTS, default='valide')
+    duree_heures = models.IntegerField(default=0, help_text="Durée totale de la formation en heures")
+    resultat_final = models.IntegerField(null=True, blank=True, help_text="Score/pourcentage final si examen")
+
+    qr_code_image = models.ImageField(upload_to='certificats/qr/', null=True, blank=True)
     date_emission = models.DateTimeField(auto_now_add=True)
     fichier_pdf = models.FileField(
         upload_to='certificats/',
@@ -198,16 +214,53 @@ class Certificat(models.Model):
         verbose_name_plural = 'Certificats'
 
     def __str__(self):
-        return f"Certificat {self.numero} — {self.utilisateur.username}"
+        return f"{self.numero} — {self.utilisateur.username}"
 
     def save(self, *args, **kwargs):
         if not self.numero:
-            annee = timezone.now().year
-            code_formation = (self.formation.slug[:3].upper() if self.formation and self.formation.slug else 'BTA')
-            with transaction.atomic():
-                dernier = Certificat.objects.select_for_update().filter(
-                    formation=self.formation,
-                    date_emission__year=annee
-                ).count()
-                self.numero = f"BTA-{annee}-{code_formation}-{dernier + 1:04d}"
+            self.numero = self._generer_numero_lisible()
         super().save(*args, **kwargs)
+        if not self.qr_code_image:
+            self._generer_qr_code()
+
+    def _generer_numero_lisible(self):
+        annee = timezone.now().year
+        code_formation = (
+            self.formation.slug[:3].upper()
+            if self.formation and self.formation.slug
+            else 'BTA'
+        )
+        with transaction.atomic():
+            dernier = Certificat.objects.select_for_update().filter(
+                formation=self.formation,
+                date_emission__year=annee
+            ).count()
+            sequence = str(dernier + 1).zfill(4)
+        return f"BTA-{annee}-{code_formation}-{sequence}"
+
+    def _generer_qr_code(self):
+        try:
+            import qrcode
+            from io import BytesIO
+            from django.core.files.base import ContentFile
+            from django.conf import settings
+
+            url_verification = f"{getattr(settings, 'SITE_URL', '')}/certificat/{self.numero}/"
+            qr = qrcode.make(url_verification)
+            buffer = BytesIO()
+            qr.save(buffer, format='PNG')
+            self.qr_code_image.save(
+                f"qr_{self.numero}.png",
+                ContentFile(buffer.getvalue()),
+                save=False
+            )
+            super().save(update_fields=['qr_code_image'])
+        except ImportError:
+            pass
+
+    def competences_associees(self):
+        from academie.models import CompetenceValidee
+        return CompetenceValidee.objects.filter(
+            utilisateur=self.utilisateur,
+            formation_origine=self.formation
+        ).select_related('competence')

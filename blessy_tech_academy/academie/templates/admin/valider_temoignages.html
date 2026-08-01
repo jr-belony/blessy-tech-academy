@@ -1,0 +1,46 @@
+<!-- ================================================
+     ADMIN/VALIDER_TEMOIGNAGES.HTML
+     ================================================ -->
+{% extends "admin/base_backoffice.html" %}
+{% block bo_contenu %}
+<h1 style="color:var(--bo-texte);">👍 Témoignages en attente de validation</h1>
+
+{% for demande in demandes %}
+<div style="background:var(--bo-card-bg, white); border:1px solid var(--bo-gris-bordure, #e2e8f0); border-radius:12px; padding:20px; margin-bottom:16px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <div>
+            <strong>{{ demande.utilisateur.get_full_name|default:demande.utilisateur.username }}</strong>
+            <span style="margin-left:8px; color:var(--bo-texte-secondaire, #666); font-size:13px;">
+                {{ demande.formation.nom|default:"Formation" }}
+            </span>
+        </div>
+        <span style="background:#e3f2fd; color:#0d47a1; padding:4px 12px; border-radius:12px; font-size:12px; font-weight:600;">
+            {{ demande.get_statut_display }}
+        </span>
+    </div>
+
+    {% if demande.reponse_texte %}
+    <div style="background:var(--bo-gris-fond, #f5f5f5); padding:12px; border-radius:8px; margin-bottom:12px;">
+        <p style="font-size:14px; color:var(--bo-texte, #333); font-style:italic;">"{{ demande.reponse_texte|truncatewords:50 }}"</p>
+        {% if demande.note %}
+        <div style="font-size:14px; margin-top:8px;">Note : {{ demande.note }}/5 ⭐</div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <form method="POST" style="display:flex; justify-content:flex-end;">
+        {% csrf_token %}
+        <input type="hidden" name="demande_id" value="{{ demande.id }}">
+        <button type="submit" style="background:#22c55e; color:white; border:none; padding:8px 20px; border-radius:8px; font-weight:700; cursor:pointer;">
+            ✅ Valider et publier
+        </button>
+    </form>
+</div>
+{% empty %}
+<div style="text-align:center; padding:60px 20px;">
+    <span style="font-size:48px;">🎉</span>
+    <h3 style="color:var(--bo-texte, #333); margin-top:16px;">Aucun témoignage en attente</h3>
+    <p style="color:var(--bo-texte-secondaire, #666);">Tous les témoignages avec consentement ont été traités.</p>
+</div>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,28 @@
+<!-- ================================================
+     REPONDRE_TEMOIGNAGE.HTML
+     ================================================ -->
+{% extends 'academie/base.html' %}
+{% block titre %}Partage ton expérience — Blessy Tech Academy{% endblock %}
+{% block contenu %}
+<section style="max-width:500px; margin:60px auto; padding:0 20px;">
+    <h1 style="color:var(--bleu-principal);">💬 Partage ton expérience</h1>
+    <p style="color:var(--gris-texte); margin-bottom:24px;">
+        Ton retour aide d'autres étudiants à choisir leur formation.
+    </p>
+    <form method="POST" style="background:white; border:1.5px solid #e2e8f0; border-radius:16px; padding:24px;">
+        {% csrf_token %}
+        <textarea name="reponse_texte" rows="5" placeholder="Raconte ton expérience..." style="width:100%; padding:12px; border:1.5px solid #e2e8f0; border-radius:8px; margin-bottom:16px;"></textarea>
+        <select name="note" style="width:100%; padding:12px; border:1.5px solid #e2e8f0; border-radius:8px; margin-bottom:16px;">
+            <option value="5">⭐⭐⭐⭐⭐ (5 étoiles)</option>
+            <option value="4">⭐⭐⭐⭐ (4 étoiles)</option>
+            <option value="3">⭐⭐⭐ (3 étoiles)</option>
+            <option value="2">⭐⭐ (2 étoiles)</option>
+            <option value="1">⭐ (1 étoile)</option>
+        </select>
+        <label style="display:flex; gap:8px; margin-bottom:16px; font-size:13px;">
+            <input type="checkbox" name="consentement"> J'accepte que mon témoignage soit publié publiquement.
+        </label>
+        <button type="submit" style="width:100%; padding:14px; background:var(--bleu-principal); color:white; border:none; border-radius:10px; font-weight:800;">Envoyer</button>
+    </form>
+</section>
+{% endblock %}

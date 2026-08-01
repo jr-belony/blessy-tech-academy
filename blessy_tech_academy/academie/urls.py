@@ -185,4 +185,6 @@ urlpatterns = [
     path('admin/valider-soumission/<int:soumission_id>/', views.valider_soumission, name='valider_soumission'),
     path('portfolio/<str:username>/', views.portfolio_public, name='portfolio_public'),
     path('admin/cohorte/<int:cohorte_id>/', views.dashboard_cohorte, name='dashboard_cohorte'),
+    path('temoignage/repondre/<int:demande_id>/', views.repondre_temoignage, name='repondre_temoignage'),
+    path('admin/valider-temoignages/', views.valider_temoignages_en_attente, name='valider_temoignages'),
 ]

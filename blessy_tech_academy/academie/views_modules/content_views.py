@@ -6,8 +6,10 @@ import filetype
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Count, Q
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from ..models import (
     Article,
@@ -19,9 +21,10 @@ from ..models import (
     ProfilUtilisateur,
     ProjetEtudiant,
     Temoignage,
-    CompetenceValidee,          # <-- déjà présent
+    CompetenceValidee,
+    DemandeTemoignage,
 )
-from academie.models import Competence  # si besoin (déjà accessible via formation.competences)
+from academie.models import Competence
 
 
 # ================================================
@@ -258,6 +261,22 @@ def mon_profil_competences(request):
     })
 
 
+def portfolio_public(request, username):
+    """Page portfolio publique — consultable par recruteurs sans connexion."""
+    utilisateur = get_object_or_404(User, username=username)
+    projets = ProjetEtudiant.objects.filter(auteur=utilisateur).prefetch_related('competences_demontrees')
+    competences_validees = CompetenceValidee.objects.filter(utilisateur=utilisateur).select_related('competence')
+    certificats = Certificat.objects.filter(utilisateur=utilisateur).select_related('formation')
+
+    return render(request, 'academie/portfolio_public.html', {
+        'profil_utilisateur': utilisateur,
+        'projets': projets,
+        'nb_competences': competences_validees.values('competence').distinct().count(),
+        'competences_validees': competences_validees[:12],
+        'certificats': certificats,
+    })
+
+
 def classement(request):
     profils = (
         ProfilUtilisateur.objects.select_related("utilisateur")
@@ -275,20 +294,46 @@ def classement(request):
 
 
 # ================================================
-# VIEWS.PY — Portfolio public partageable (/portfolio/username/)
+# Workflow Témoignage complet (jamais auto-publié)
 # ================================================
 
-def portfolio_public(request, username):
-    """Page portfolio publique — consultable par recruteurs sans connexion."""
-    utilisateur = User.objects.get(username=username)
-    projets = ProjetEtudiant.objects.filter(auteur=utilisateur).prefetch_related('competences_demontrees')
-    competences_validees = CompetenceValidee.objects.filter(utilisateur=utilisateur).select_related('competence')
-    certificats = Certificat.objects.filter(utilisateur=utilisateur).select_related('formation')
+@login_required(login_url='/connexion/')
+def repondre_temoignage(request, demande_id):
+    demande = get_object_or_404(DemandeTemoignage, id=demande_id, utilisateur=request.user)
 
-    return render(request, 'academie/portfolio_public.html', {
-        'profil_utilisateur': utilisateur,
-        'projets': projets,
-        'nb_competences': competences_validees.values('competence').distinct().count(),
-        'competences_validees': competences_validees[:12],
-        'certificats': certificats,
-    })
+    if request.method == 'POST':
+        demande.reponse_texte = request.POST.get('reponse_texte', '')
+        demande.note = request.POST.get('note') or None
+        demande.consentement_publication = request.POST.get('consentement') == 'on'
+        demande.statut = 'consentement_donne' if demande.consentement_publication else 'refusee'
+        demande.date_reponse = timezone.now()
+        demande.save()
+        messages.success(request, "✅ Merci pour ton retour !")
+        return redirect('dashboard')
+
+    return render(request, 'academie/repondre_temoignage.html', {'demande': demande})
+
+
+@staff_member_required
+def valider_temoignages_en_attente(request):
+    demandes = DemandeTemoignage.objects.filter(statut='consentement_donne').select_related('utilisateur', 'formation')
+
+    if request.method == 'POST':
+        demande_id = request.POST.get('demande_id')
+        demande = get_object_or_404(DemandeTemoignage, id=demande_id)
+
+        temoignage = Temoignage.objects.create(
+            prenom_nom=demande.utilisateur.get_full_name() or demande.utilisateur.username,
+            formation_suivie=demande.formation,
+            texte=demande.reponse_texte,
+            note=demande.note or 5,
+            initiales=(demande.utilisateur.first_name[:1] + demande.utilisateur.last_name[:1]).upper() or demande.utilisateur.username[:2].upper(),
+            approuve=True,
+        )
+        demande.statut = 'publiee'
+        demande.temoignage_publie = temoignage
+        demande.save()
+        messages.success(request, "✅ Témoignage publié.")
+        return redirect('valider_temoignages_en_attente')
+
+    return render(request, 'admin/valider_temoignages.html', {'demandes': demandes})

@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from adminsortable2.admin import SortableAdminBase, SortableInlineAdminMixin
 from django.contrib import admin
+from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Avg, Count, Q, Sum
 from django.shortcuts import get_object_or_404, render
 from django.urls import path
@@ -26,6 +27,7 @@ from .models import (
     Transaction,
     # Modèles pédagogiques (maintenant dans academie.models)
     Competence,
+    CompetenceValidee,
     LearningOutcome,
     Ecole,
     Formation,
@@ -40,10 +42,15 @@ from .models import (
     ChoixExamen,
     TentativeExamen,
     WorkflowFormation,
+    # Modèles P0 / P1
+    Cohorte,
+    ProjetEtudiant,
+    Certificat,
 )
 
 from users.admin import RolePermissionMixin
 from users.models import Enseignant
+
 # ================================================
 # Thème CSS global pour tout l'admin
 # ================================================
@@ -711,7 +718,7 @@ class ExamenAdmin(admin.ModelAdmin):
     ]
 
     inlines = [QuestionExamenInline]
-    filter_horizontal = ['competences_liees']   # <-- AJOUTÉ ICI
+    filter_horizontal = ['competences_liees']
 
     class Media:
         js = ["academie/admin/generer_examen.js"]
@@ -803,7 +810,6 @@ class GestionCoursAdminSite(AdminThemeMixin):
                 admin.site.admin_view(self.vue_dashboard_editorial),
                 name="dashboard_editorial",
             ),
-            # ROUTE — Dashboard Business (via views.py)
             path("dashboard-business/", views.vue_dashboard_business, name="dashboard_business"),
             path(
                 "synchronisation/",
@@ -830,7 +836,6 @@ class GestionCoursAdminSite(AdminThemeMixin):
                 admin.site.admin_view(views.workspace_formation),
                 name="workspace_formation",
             ),
-            # === Centre d'administration des Emails (apercu + test) ===
             path("emails/", views.admin_emails_dashboard, name="admin_emails"),
             path(
                 "emails/preview/<str:template_name>/",
@@ -839,14 +844,11 @@ class GestionCoursAdminSite(AdminThemeMixin):
             ),
             path("emails/test/", views.admin_email_test, name="email_test"),
             path("dashboard-ia/", views.vue_dashboard_ia, name="dashboard_ia"),
-            # Dashboard IA — Quotas & Coûts Gemini
             path("dashboard-ia/quotas/", admin.site.admin_view(self.vue_dashboard_quotas_ia),
                 name="dashboard_quotas_ia",
             ),
-            # === Export Ventes (Excel / PDF) ===
             path("export/ventes-excel/", views.export_ventes_excel, name="export_ventes_excel"),
             path("export/ventes-pdf/", views.export_ventes_pdf, name="export_ventes_pdf"),
-            # === CRM ===
             path("dashboard-crm/", views.dashboard_crm, name="dashboard_crm"),
             path(
                 "crm/interaction/<int:inscription_id>/",
@@ -875,6 +877,7 @@ class GestionCoursAdminSite(AdminThemeMixin):
             ),
             path('monitoring-partenaires/', admin.site.admin_view(self.vue_monitoring_partenaires), 
                 name='monitoring-partenaires'),
+            path('cohorte/<int:cohorte_id>/', admin.site.admin_view(self.vue_dashboard_cohorte), name='dashboard_cohorte'),
         ]
         return custom_urls + original_urls
 
@@ -918,9 +921,6 @@ class GestionCoursAdminSite(AdminThemeMixin):
             },
         )
 
-    # ================================================
-    # Vue Dashboard Exécutif (agrégation complète + filtrage multi‑académie)
-    # ================================================
     def vue_dashboard_executif(self, request):
         from django.contrib.auth.models import User
         from django.db.models import Sum
@@ -929,7 +929,6 @@ class GestionCoursAdminSite(AdminThemeMixin):
         il_y_a_30j = maintenant - timedelta(days=30)
         il_y_a_60j = maintenant - timedelta(days=60)
 
-        # --- Filtrage par Académie ---
         academie_id = request.GET.get("academie_id")
         if academie_id:
             academie_selectionnee = get_object_or_404(Academie, id=academie_id)
@@ -1051,9 +1050,6 @@ class GestionCoursAdminSite(AdminThemeMixin):
             },
         )
 
-    # ================================================
-    # Vue Dashboard Suite SEO
-    # ================================================
     def vue_dashboard_seo(self, request):
         articles = Article.objects.filter(publie=True)
         articles_avec_score = sorted(
@@ -1080,9 +1076,6 @@ class GestionCoursAdminSite(AdminThemeMixin):
             },
         )
 
-    # ================================================
-    # Vue Analytics Consolidé (agrégation multi-modules)
-    # ================================================
     def vue_dashboard_analytics(self, request):
 
         return render(
@@ -1100,9 +1093,6 @@ class GestionCoursAdminSite(AdminThemeMixin):
             },
         )
 
-    # ================================================
-    # Vue Statistiques détaillées d'une Académie
-    # ================================================
     def vue_statistiques_academie(self, request, academie_id):
         academie = Academie.objects.get(id=academie_id)
         ecoles = academie.ecoles.all()
@@ -1140,9 +1130,6 @@ class GestionCoursAdminSite(AdminThemeMixin):
             },
         )
 
-    # ================================================
-    # ADMIN.PY — Dashboard Monitoring Partenaires API
-    # ================================================
     def vue_monitoring_partenaires(self, request):
         from django.utils import timezone
         from datetime import timedelta
@@ -1174,12 +1161,30 @@ class GestionCoursAdminSite(AdminThemeMixin):
             'partenaires_data': partenaires_data,
         })
 
-    # ==========================================================
-    # Dashboard IA V1 — Quotas & Coûts Gemini
-    # ==========================================================
+    @staff_member_required
+    def vue_dashboard_cohorte(self, request, cohorte_id):
+        cohorte = Cohorte.objects.prefetch_related('formations', 'membres').get(id=cohorte_id)
+
+        membres_details = []
+        for membre in cohorte.membres.all():
+            progressions_par_formation = {
+                f.nom: f.progression_pour(membre) for f in cohorte.formations.all()
+            }
+            membres_details.append({
+                'membre': membre,
+                'progressions': progressions_par_formation,
+                'nb_projets': ProjetEtudiant.objects.filter(auteur=membre, formation_liee__in=cohorte.formations.all()).count(),
+                'nb_certificats': Certificat.objects.filter(utilisateur=membre, formation__in=cohorte.formations.all()).count(),
+                'nb_competences': CompetenceValidee.objects.filter(utilisateur=membre, formation_origine__in=cohorte.formations.all()).values('competence').distinct().count(),
+            })
+
+        return render(request, 'admin/dashboard_cohorte.html', {
+            'title': f'👥 {cohorte.nom}', 'site_header': admin.site.site_header,
+            'cohorte': cohorte, 'membres_details': membres_details,
+        })
+
     def vue_dashboard_quotas_ia(self, request):
         from django.core.cache import cache
-        from django.utils import timezone
         from .services.ia_service import (
             QUOTA_QUOTIDIEN_GEMINI,
             _circuit_ouvert,
@@ -1196,7 +1201,7 @@ class GestionCoursAdminSite(AdminThemeMixin):
             else 0
         )
 
-        context = {
+        return render(request, "admin/dashboard_quotas_ia.html", {
             "title": "🤖 Dashboard IA — Quotas Gemini",
             "site_header": admin.site.site_header,
             "utilisation_actuelle": utilisation_actuelle,
@@ -1204,9 +1209,7 @@ class GestionCoursAdminSite(AdminThemeMixin):
             "quota_restant": quota_restant,
             "pourcentage_utilise": pourcentage_utilise,
             "circuit_ouvert": _circuit_ouvert(),
-        }
-
-        return render(request, "admin/dashboard_quotas_ia.html", context)
+        })
 
 
 # Injecte les nouvelles URLs dans l'admin
@@ -1376,11 +1379,28 @@ class LearningOutcomeAdmin(RolePermissionMixin, admin.ModelAdmin):
     list_filter = ['formation']
 
 
-from .models import CompetenceValidee
-
 @admin.register(CompetenceValidee)
 class CompetenceValideeAdmin(admin.ModelAdmin):
     list_display = ['utilisateur', 'competence', 'niveau', 'source_type', 'score_obtenu', 'date_validation']
     list_filter = ['niveau', 'source_type', 'competence__categorie']
     search_fields = ['utilisateur__username', 'competence__nom']
     readonly_fields = ['date_validation']
+
+
+# ================================================
+# ADMIN.PY — Administration Cohorte
+# ================================================
+
+@admin.register(Cohorte)
+class CohorteAdmin(admin.ModelAdmin):
+    list_display = ['nom', 'nb_inscrits_affiche', 'progression_moyenne_affiche', 'nb_certificats_delivres', 'actif']
+    filter_horizontal = ['formations', 'membres']
+    list_editable = ['actif']
+
+    def nb_inscrits_affiche(self, obj):
+        return obj.nb_inscrits()
+    nb_inscrits_affiche.short_description = 'Inscrits'
+
+    def progression_moyenne_affiche(self, obj):
+        return f"{obj.progression_moyenne()}%"
+    progression_moyenne_affiche.short_description = 'Progression moy.'

@@ -1,0 +1,40 @@
+{% extends "admin/base_backoffice.html" %}
+{% load academie_extras %}
+
+{% block bo_contenu %}
+<h1 style="color:var(--bo-texte);">👥 {{ cohorte.nom }}</h1>
+<p style="color:var(--bo-texte-secondaire);">{{ cohorte.date_debut|date:"d/m/Y" }} → {{ cohorte.date_fin_prevue|date:"d/m/Y" }}</p>
+
+<div class="bo-kpi-grille">
+    <div class="bo-kpi-card"><div class="bo-kpi-label">Inscrits</div><div class="bo-kpi-valeur">{{ cohorte.nb_inscrits }}</div></div>
+    <div class="bo-kpi-card"><div class="bo-kpi-label">Présents (actifs)</div><div class="bo-kpi-valeur">{{ cohorte.nb_presents }}</div></div>
+    <div class="bo-kpi-card"><div class="bo-kpi-label">Progression moyenne</div><div class="bo-kpi-valeur">{{ cohorte.progression_moyenne }}%</div></div>
+    <div class="bo-kpi-card"><div class="bo-kpi-label">Complétion 100%</div><div class="bo-kpi-valeur">{{ cohorte.nb_completions_100pct }}</div></div>
+    <div class="bo-kpi-card"><div class="bo-kpi-label">Moyenne examens</div><div class="bo-kpi-valeur">{{ cohorte.moyenne_examens }}%</div></div>
+    <div class="bo-kpi-card"><div class="bo-kpi-label">Projets réalisés</div><div class="bo-kpi-valeur">{{ cohorte.nb_projets_realises }}</div></div>
+    <div class="bo-kpi-card"><div class="bo-kpi-label">Certificats délivrés</div><div class="bo-kpi-valeur">{{ cohorte.nb_certificats_delivres }}</div></div>
+    <div class="bo-kpi-card"><div class="bo-kpi-label">Compétences validées</div><div class="bo-kpi-valeur">{{ cohorte.nb_competences_validees }}</div></div>
+</div>
+
+<div class="bo-card">
+    <h3>👤 Détail par participant</h3>
+    <table style="width:100%; border-collapse:collapse;">
+        <tr style="background:var(--bo-gris-fond);">
+            <th style="padding:10px; text-align:left;">Participant</th>
+            {% for f in cohorte.formations.all %}<th style="padding:10px;">{{ f.nom|truncatechars:15 }}</th>{% endfor %}
+            <th style="padding:10px;">Projets</th><th style="padding:10px;">Certificats</th><th style="padding:10px;">Compétences</th>
+        </tr>
+        {% for md in membres_details %}
+        <tr style="border-bottom:1px solid var(--bo-gris-bordure);">
+            <td style="padding:10px;">{{ md.membre.first_name|default:md.membre.username }}</td>
+            {% for f in cohorte.formations.all %}
+            <td style="padding:10px; text-align:center;">{{ md.progressions|get_item:f.nom }}%</td>
+            {% endfor %}
+            <td style="padding:10px; text-align:center;">{{ md.nb_projets }}</td>
+            <td style="padding:10px; text-align:center;">{{ md.nb_certificats }}</td>
+            <td style="padding:10px; text-align:center;">{{ md.nb_competences }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}
