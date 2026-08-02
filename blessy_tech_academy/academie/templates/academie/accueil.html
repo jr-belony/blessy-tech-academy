@@ -1038,60 +1038,57 @@
 <!-- ================================================
      SECTION 4 : FORMATIONS GRATUITES (LEAD MAGNETS)
      ================================================ -->
-<section class="section-gratuites">
-    <div class="section-inner">
+<section class="section-gratuites" style="padding:80px 40px; background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%);">
+    <div class="section-inner" style="max-width:1200px; margin:0 auto;">
 
         <!-- En-tête section -->
-        <div class="section-header">
-            <div class="section-tag">🎁 Accès immédiat</div>
-            <h2 class="section-titre">Commence gratuitement aujourd'hui</h2>
-            <p class="section-sous-titre">
-                3 mini-formations offertes pour découvrir notre méthode
+        <div class="section-header" style="text-align:center; margin-bottom:56px;">
+            <div class="section-tag" style="display:inline-block; background:rgba(0,180,216,0.1); border:1px solid rgba(0,180,216,0.25); color:#00B4D8; padding:6px 18px; border-radius:50px; font-size:13px; font-weight:700; letter-spacing:0.5px; margin-bottom:16px;">🎁 Accès immédiat</div>
+            <h2 class="section-titre" style="font-size:40px; font-weight:800; color:#0B2447; letter-spacing:-1px; margin-bottom:16px;">Commence gratuitement aujourd'hui</h2>
+            <p class="section-sous-titre" style="font-size:17px; color:#4a5568; max-width:580px; margin:0 auto; line-height:1.7;">
+                {{ formations_gratuites|length }} mini-formations offertes pour découvrir notre méthode
                 avant de t'engager. Aucune carte bancaire requise.
             </p>
         </div>
 
         <!-- Grille formations gratuites -->
-        <div class="gratuites-grille">
-            {% for formation in formations %}
-            {% if formation.gratuit %}
-            <div class="carte-gratuite">
+        <div class="gratuites-grille" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:28px;">
+            {% for formation in formations_gratuites %}
+            <div class="carte-gratuite" style="background:white; border-radius:20px; padding:32px; position:relative; border:2px solid #e2e8f0; transition:all 0.3s ease; overflow:hidden;">
 
                 <!-- Badge GRATUIT -->
-                <div class="gratuite-badge-top">
+                <div class="gratuite-badge-top" style="position:absolute; top:20px; right:20px; background:linear-gradient(135deg, #00B4D8, #0090b8); color:white; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:800; letter-spacing:1px;">
                     🎁 GRATUIT
                 </div>
 
                 <!-- Icône + Titre -->
-                <div class="gratuite-icone">{{ formation.icone }}</div>
-                <h3 class="gratuite-titre">{{ formation.nom }}</h3>
-                <p class="gratuite-desc">{{ formation.description|truncatewords:20 }}</p>
+                <div class="gratuite-icone" style="font-size:52px; margin-bottom:16px; display:block;">{{ formation.icone }}</div>
+                <h3 class="gratuite-titre" style="font-size:20px; font-weight:700; color:#0B2447; margin-bottom:10px; line-height:1.3;">{{ formation.nom }}</h3>
+                <p class="gratuite-desc" style="font-size:14px; color:#4a5568; line-height:1.7; margin-bottom:20px;">{{ formation.description|truncatewords:20 }}</p>
 
                 <!-- Méta -->
-                <div class="gratuite-meta">
+                <div class="gratuite-meta" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-top:1px solid #f0f0f0; border-bottom:1px solid #f0f0f0; margin-bottom:20px; font-size:13px; color:#4a5568;">
                     <span>⏱ {{ formation.duree }} {{ formation.get_duree_unite_display }}</span>
-                    <span class="gratuite-prix">GRATUIT</span>
+                    <span class="gratuite-prix" style="font-weight:800; color:#22c55e; font-size:15px;">GRATUIT</span>
                 </div>
 
                 <!-- CTA -->
                 <a href="{% url 'detail_formation' formation.id %}"
-                   class="btn-gratuite">
+                   class="btn-gratuite" style="display:block; text-align:center; background:#0B2447; color:white; padding:13px 24px; border-radius:10px; text-decoration:none; font-weight:700; font-size:14px; transition:all 0.3s; margin-bottom:16px;">
                     Commencer maintenant →
                 </a>
 
-                <!-- Upgrade suggestion -->
-                {% if formation.formation_upgrade %}
-                <div class="gratuite-upgrade">
-                    <span>🚀 Envie d'aller plus loin ?</span>
-                    <a href="{% url 'detail_formation' formation.formation_upgrade.id %}">
-                        {{ formation.formation_upgrade.nom }} →
-                    </a>
-                </div>
-                {% endif %}
-
             </div>
-            {% endif %}
+            {% empty %}
+            <p style="grid-column:1/-1; text-align:center; color:#a0aec0; padding:40px;">Nouvelles formations gratuites bientôt disponibles.</p>
             {% endfor %}
+        </div>
+
+        <!-- Voir toutes les formations gratuites -->
+        <div style="text-align:center; margin-top:40px;">
+            <a href="{% url 'formations_gratuites' %}" style="display:inline-block; padding:14px 32px; background:#0B2447; color:white; border-radius:10px; text-decoration:none; font-weight:700; transition:all 0.3s; box-shadow:0 4px 16px rgba(11,36,71,0.2);">
+                Voir toutes les formations gratuites →
+            </a>
         </div>
 
     </div>
