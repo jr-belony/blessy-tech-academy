@@ -1,0 +1,34 @@
+<!-- ================================================
+     FORMATIONS_GRATUITES.HTML — Section indépendante (découverte/acquisition)
+     ================================================ -->
+{% extends 'academie/base.html' %}
+{% block titre %}Formations Gratuites — Blessy Tech Academy{% endblock %}
+{% block meta_description %}Découvre Blessy Tech Academy gratuitement — {{ nb_formations_gratuites }} formations sans engagement pour commencer ton parcours numérique.{% endblock %}
+{% block contenu %}
+
+<section style="background:linear-gradient(135deg,#050d1a,#003B8E); padding:70px 40px; text-align:center;">
+    <div class="section-tag" style="background:rgba(0,181,226,0.12); border-color:rgba(0,181,226,0.3); color:#00B5E2;">🎁 100% Gratuit, sans engagement</div>
+    <h1 style="color:white; font-size:34px; font-weight:800; margin:16px 0 12px;">Commence ton parcours numérique gratuitement</h1>
+    <p style="color:rgba(255,255,255,0.65); max-width:600px; margin:0 auto;">Découvre notre pédagogie, teste la plateforme, avance à ton rythme — sans carte bancaire.</p>
+</section>
+
+<div style="max-width:1100px; margin:0 auto; padding:50px 20px;">
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px; margin-bottom:50px;">
+        {% for formation in formations %}
+        {% include 'academie/includes/carte_formation.html' with formation=formation %}
+        {% empty %}
+        <p style="grid-column:1/-1; text-align:center; color:#a0aec0; padding:40px;">Nouvelles formations gratuites bientôt disponibles.</p>
+        {% endfor %}
+    </div>
+
+    <div style="background:var(--gris-clair); border-radius:24px; padding:48px; text-align:center;">
+        <h3 style="color:#003B8E; margin-bottom:12px;">Prêt pour la suite ?</h3>
+        <p style="color:#718096; margin-bottom:24px;">Découvre nos parcours professionnels certifiants et transforme ta carrière.</p>
+        <a href="{% url 'parcours' %}" style="display:inline-block; padding:14px 32px; background:#FF6B00; color:white; border-radius:10px; text-decoration:none; font-weight:800;">
+            🚀 Voir les parcours professionnels
+        </a>
+    </div>
+
+</div>
+{% endblock %}

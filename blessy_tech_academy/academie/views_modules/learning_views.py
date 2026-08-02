@@ -64,15 +64,22 @@ from ..decorators import exiger_acces_formation
 
 def formations(request):
     """Page catalogue formations — paginée, avec cache invalidable par version."""
+    ecole_id = request.GET.get('ecole')
     version_cache = cache.get('formations_cache_version', 1)
     page_num = request.GET.get('page', 1)
-    cache_key = f"formations_page_{page_num}_v{version_cache}"
+    # Inclure l'ecole_id dans la clé de cache pour éviter les conflits
+    cache_key = f"formations_page_{page_num}_ecole_{ecole_id}_v{version_cache}"
 
     donnees_cache = cache.get(cache_key)
     if donnees_cache is not None:
         return render(request, 'academie/formations.html', donnees_cache)
 
-    ecoles_list = Ecole.objects.prefetch_related('formations__modules').all()
+    # Filtrer les écoles si un ID est fourni
+    if ecole_id:
+        ecoles_list = Ecole.objects.filter(id=ecole_id).prefetch_related('formations__modules')
+    else:
+        ecoles_list = Ecole.objects.prefetch_related('formations__modules').all()
+
     paginator = Paginator(ecoles_list, 6)  # 6 écoles par page
     try:
         ecoles = paginator.page(page_num)
@@ -85,8 +92,9 @@ def formations(request):
 
     contexte = {
         'ecoles': ecoles,
-        'page_obj': ecoles,             # pour les contrôles de pagination dans le template
+        'page_obj': ecoles,
         'parcours_list': parcours_list,
+        'ecole_active': ecole_id,  # utile pour le template si besoin
     }
     cache.set(cache_key, contexte, 600)  # 10 minutes
     return render(request, 'academie/formations.html', contexte)
@@ -1028,3 +1036,28 @@ def valider_soumission(request, soumission_id):
             soumission.save()
 
     return redirect('evaluer_soumissions')
+
+
+def nos_ecoles(request):
+    """Page dédiée présentant les 6 écoles, phares mises en valeur visuellement."""
+    ecoles_phares = Ecole.objects.filter(est_ecole_phare=True).prefetch_related('formations')
+    autres_ecoles = Ecole.objects.filter(est_ecole_phare=False).prefetch_related('formations')
+    return render(request, 'academie/nos_ecoles.html', {
+        'ecoles_phares': ecoles_phares, 'autres_ecoles': autres_ecoles,
+    })
+
+
+def formations_gratuites(request):
+    """Section indépendante — porte d'entrée découverte de BTA."""
+    formations = Formation.objects.filter(actif=True, gratuit=True).select_related('ecole')
+    # Pagination (12 formations par page)
+    from django.core.paginator import Paginator
+    paginator = Paginator(formations, 12)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'academie/formations_gratuites.html', {
+        'formations': page_obj,
+        'page_obj': page_obj,
+        'nb_formations_gratuites': formations.count(),
+    })

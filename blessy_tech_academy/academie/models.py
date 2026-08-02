@@ -75,11 +75,11 @@ class Academie(models.Model):
     )
     icone = models.CharField(max_length=10, default="🎓")
     logo = models.ImageField(
-    upload_to='logos/',
-    null=True,
-    blank=True,
-    validators=[valider_image]
-)
+        upload_to='logos/',
+        null=True,
+        blank=True,
+        validators=[valider_image]
+    )
     couleur_principale = models.CharField(max_length=7, default="#0B2447")
     couleur_accent = models.CharField(max_length=7, default="#00B4D8")
     domaine_personnalise = models.CharField(
@@ -241,6 +241,15 @@ class Ecole(models.Model):
     description = models.TextField(blank=True)
     ordre = models.IntegerField(default=0)
     academie = models.ForeignKey('academie.Academie', on_delete=models.CASCADE, null=True, blank=True, related_name='ecoles')
+    # --- NOUVEAUX CHAMPS ---
+    est_ecole_phare = models.BooleanField(
+        default=False,
+        help_text="Écoles à mettre en avant dans la navigation, le SEO et la page d'accueil (IA, Dev, Logistique)"
+    )
+    description_courte = models.CharField(
+        max_length=200, blank=True,
+        help_text="Phrase d'accroche pour la page Nos Écoles"
+    )
 
     class Meta:
         app_label = 'academie'
@@ -509,6 +518,9 @@ class Parcours(models.Model):
     prix = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     formations = models.ManyToManyField(Formation, blank=True, related_name='parcours_list')
     actif = models.BooleanField(default=True)
+    metiers_vises = models.TextField(blank=True, help_text="Métiers visés par ce parcours")
+    projets_inclus = models.TextField(blank=True, help_text="Projets concrets inclus dans le parcours")
+    certifications_incluses = models.TextField(blank=True, help_text="Certifications délivrées durant le parcours")
     ordre = models.IntegerField(default=0)
 
     class Meta:
@@ -1259,3 +1271,51 @@ class Ambassadeur(models.Model):
 
     def __str__(self):
         return f"{self.utilisateur.username} — {self.get_niveau_display()}"
+
+
+# ================================================
+# MODELS.PY — Outil / Logiciel enseigné
+# ================================================
+
+class Outil(models.Model):
+    """Logiciel/outil concret enseigné dans une formation (Excel, VS Code, ChatGPT, SAP...)."""
+    nom = models.CharField(max_length=100)
+    icone = models.CharField(max_length=10, default='🛠️')
+    formations = models.ManyToManyField('Formation', blank=True, related_name='outils_enseignes')
+    site_officiel = models.URLField(blank=True)
+
+    class Meta:
+        verbose_name = 'Outil pédagogique'
+        verbose_name_plural = 'Outils pédagogiques'
+        ordering = ['nom']
+
+    def __str__(self):
+        return f"{self.icone} {self.nom}"
+
+# ================================================
+# MODELS.PY — Étude de Cas
+# ================================================
+
+class EtudeDeCas(models.Model):
+    """Cas pratique concret illustrant l'application d'une formation."""
+    DIFFICULTES = [('debutant', '🌱 Débutant'), ('intermediaire', '⚡ Intermédiaire'), ('avance', '🔥 Avancé')]
+
+    formation = models.ForeignKey('Formation', on_delete=models.CASCADE, related_name='etudes_de_cas')
+    titre = models.CharField(max_length=200)
+    description = models.TextField()
+    probleme = models.TextField(help_text="Problème posé")
+    solution = models.TextField(help_text="Solution apportée")
+    resultat = models.TextField(blank=True, help_text="Résultat concret obtenu")
+    difficulte = models.CharField(max_length=15, choices=DIFFICULTES, default='intermediaire')
+    contexte = models.TextField(blank=True, help_text="Situation professionnelle réelle ou réaliste")
+    objectif = models.TextField(blank=True, help_text="Ce que l'étudiant doit résoudre/produire")
+    module_lie = models.ForeignKey('Module', on_delete=models.SET_NULL, null=True, blank=True)
+    ordre = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['ordre']
+        verbose_name = 'Étude de cas'
+        verbose_name_plural = 'Études de cas'
+
+    def __str__(self):
+        return f"{self.titre} — {self.formation.nom}"

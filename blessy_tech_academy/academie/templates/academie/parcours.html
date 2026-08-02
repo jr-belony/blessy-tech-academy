@@ -318,6 +318,28 @@
                             </div>
                         </div>
 
+                        <!-- ================================================
+                             PARCOURS.HTML — Enrichissement métiers/projets/certifications
+                             Inséré juste après .pp-metiers-section existante dans la boucle parcours
+                             ================================================ -->
+                        {% if parcours.projets_inclus %}
+                        <div class="pp-metiers-section">
+                            <p class="pp-section-label">🛠️ Projets inclus</p>
+                            <div class="pp-metiers-tags">
+                                {% for projet in parcours.projets_inclus.splitlines|slice:":3" %}
+                                <span class="pp-metier-tag">{{ projet }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if parcours.certifications_incluses %}
+                        <div class="pp-metiers-section">
+                            <p class="pp-section-label">🏆 Certifications</p>
+                            <p style="font-size:12px; color:var(--gris-texte);">{{ parcours.certifications_incluses }}</p>
+                        </div>
+                        {% endif %}
+
                         <!-- Salaire indicatif -->
                         <div class="pp-salaire-section">
                             <div class="pp-salaire-info">
@@ -410,6 +432,28 @@
                             </div>
                         </div>
 
+                        <!-- ================================================
+                             PARCOURS.HTML — Enrichissement métiers/projets/certifications
+                             Inséré juste après .pp-metiers-section existante dans la boucle parcours
+                             ================================================ -->
+                        {% if parcours.projets_inclus %}
+                        <div class="pp-metiers-section">
+                            <p class="pp-section-label">🛠️ Projets inclus</p>
+                            <div class="pp-metiers-tags">
+                                {% for projet in parcours.projets_inclus.splitlines|slice:":3" %}
+                                <span class="pp-metier-tag">{{ projet }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if parcours.certifications_incluses %}
+                        <div class="pp-metiers-section">
+                            <p class="pp-section-label">🏆 Certifications</p>
+                            <p style="font-size:12px; color:var(--gris-texte);">{{ parcours.certifications_incluses }}</p>
+                        </div>
+                        {% endif %}
+
                         <!-- Salaire indicatif -->
                         <div class="pp-salaire-section">
                             <div class="pp-salaire-info">
@@ -500,6 +544,28 @@
                             </div>
                         </div>
 
+                        <!-- ================================================
+                             PARCOURS.HTML — Enrichissement métiers/projets/certifications
+                             Inséré juste après .pp-metiers-section existante dans la boucle parcours
+                             ================================================ -->
+                        {% if parcours.projets_inclus %}
+                        <div class="pp-metiers-section">
+                            <p class="pp-section-label">🛠️ Projets inclus</p>
+                            <div class="pp-metiers-tags">
+                                {% for projet in parcours.projets_inclus.splitlines|slice:":3" %}
+                                <span class="pp-metier-tag">{{ projet }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if parcours.certifications_incluses %}
+                        <div class="pp-metiers-section">
+                            <p class="pp-section-label">🏆 Certifications</p>
+                            <p style="font-size:12px; color:var(--gris-texte);">{{ parcours.certifications_incluses }}</p>
+                        </div>
+                        {% endif %}
+
                         <!-- Salaire indicatif -->
                         <div class="pp-salaire-section">
                             <div class="pp-salaire-info">
@@ -589,6 +655,28 @@
                                 {% endfor %}
                             </div>
                         </div>
+
+                        <!-- ================================================
+                             PARCOURS.HTML — Enrichissement métiers/projets/certifications
+                             Inséré juste après .pp-metiers-section existante dans la boucle parcours
+                             ================================================ -->
+                        {% if parcours.projets_inclus %}
+                        <div class="pp-metiers-section">
+                            <p class="pp-section-label">🛠️ Projets inclus</p>
+                            <div class="pp-metiers-tags">
+                                {% for projet in parcours.projets_inclus.splitlines|slice:":3" %}
+                                <span class="pp-metier-tag">{{ projet }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if parcours.certifications_incluses %}
+                        <div class="pp-metiers-section">
+                            <p class="pp-section-label">🏆 Certifications</p>
+                            <p style="font-size:12px; color:var(--gris-texte);">{{ parcours.certifications_incluses }}</p>
+                        </div>
+                        {% endif %}
 
                         <!-- Salaire indicatif -->
                         <div class="pp-salaire-section">

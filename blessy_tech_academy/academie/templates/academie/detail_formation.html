@@ -73,9 +73,17 @@
                     🎓 Télécharger mon certificat
                 </a>
                 {% else %}
-                <a href="{% url 'lire_lecon' formation.modules.first.lecons.first.id %}" class="pv-btn-cta">
-                    ▶️ Continuer ({{ pourcentage_progression }}%)
-                </a>
+                    {% with premiere_lecon=formation.modules.first.lecons.first %}
+                        {% if premiere_lecon %}
+                            <a href="{% url 'lire_lecon' premiere_lecon.id %}" class="pv-btn-cta">
+                                ▶️ Continuer ({{ pourcentage_progression }}%)
+                            </a>
+                        {% else %}
+                            <span class="pv-btn-cta" style="background:#6b7280; cursor:not-allowed;">
+                                ⏳ Contenu en préparation
+                            </span>
+                        {% endif %}
+                    {% endwith %}
                 {% endif %}
             {% elif formation.gratuit %}
                 {% if user.is_authenticated %}
@@ -152,7 +160,6 @@
 
     <!-- ================================================
          DETAIL_FORMATION.HTML — Sections Méthode/Évaluation/Public (audit lancement)
-         Inséré juste après la section "Ce que tu apprendras" existante
          ================================================ -->
     {% if formation.public_cible %}
     <section class="pv-section">
@@ -285,6 +292,36 @@
         <p style="text-align:center; color:var(--gris-texte); padding:40px;">Programme bientôt disponible.</p>
         {% endfor %}
     </section>
+
+    <!-- ================================================
+         DETAIL_FORMATION.HTML — Outils & Études de cas
+         Inséré juste après la section #programme existante
+         ================================================ -->
+    {% if formation.outils_enseignes.all %}
+    <section class="pv-section">
+        <h2 class="pv-section-titre">🛠️ Outils que tu vas maîtriser</h2>
+        <div style="display:flex; flex-wrap:wrap; gap:10px;">
+            {% for outil in formation.outils_enseignes.all %}
+            <span style="background:var(--gris-clair); padding:8px 16px; border-radius:20px; font-size:13px; font-weight:600; color:var(--bleu-principal);">
+                {{ outil.icone }} {{ outil.nom }}
+            </span>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if formation.etudes_de_cas.all %}
+    <section class="pv-section">
+        <h2 class="pv-section-titre">📋 Études de cas pratiques</h2>
+        {% for cas in formation.etudes_de_cas.all %}
+        <div style="background:var(--gris-clair); border-radius:14px; padding:20px; margin-bottom:12px;">
+            <h4 style="color:var(--bleu-principal); margin-bottom:8px;">{{ cas.titre }}</h4>
+            <p style="font-size:13px; color:var(--gris-texte);"><strong>Contexte :</strong> {{ cas.contexte }}</p>
+            <p style="font-size:13px; color:var(--gris-texte); margin-top:6px;"><strong>Objectif :</strong> {{ cas.objectif }}</p>
+        </div>
+        {% endfor %}
+    </section>
+    {% endif %}
 
     <!-- ================================================
          7. CE QUI EST INCLUS

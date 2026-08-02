@@ -205,7 +205,12 @@
                         </div>
                         <div class="mega-col">
                             <p class="mega-col-titre">⚡ {% trans "Accès rapide" %}</p>
-                            <a href="{% url 'formations' %}" class="mega-lien"><span class="mega-lien-icone">🎁</span><div><span class="mega-lien-nom">{% trans "Formations Gratuites" %}</span><span class="mega-lien-desc">{% trans "Commence sans payer" %}</span></div></a>
+                            <a href="{% url 'formations_gratuites' %}" class="mega-lien"><span class="mega-lien-icone">🎁</span>
+                        <div>
+                        <span class="mega-lien-nom">{% trans "Formations Gratuites" %}</span>
+                        <span class="mega-lien-desc">{% trans "Commence sans payer" %}</span>
+                        </div>
+                        </a>
                             <a href="{% url 'parcours' %}" class="mega-lien"><span class="mega-lien-icone">🚀</span><div><span class="mega-lien-nom">{% trans "Parcours Professionnels" %}</span><span class="mega-lien-desc">{% trans "Programmes complets" %}</span></div></a>
                             <a href="{% url 'simulateur' %}" class="mega-lien"><span class="mega-lien-icone">🎯</span><div><span class="mega-lien-nom">{% trans "Simulateur de Carrière" %}</span><span class="mega-lien-desc">{% trans "Découvre ton métier" %}</span></div></a>
                         </div>
@@ -299,6 +304,7 @@
             <a href="{% url 'orientation_ia' %}" class="drawer-lien drawer-lien-highlight">🎯 {% trans "Trouver mon parcours" %}</a>
             <a href="{% url 'simulateur' %}" class="drawer-lien">🎯 {% trans "Simulateur" %}</a>
             <a href="{% url 'forum_liste' %}" class="drawer-lien">💬 {% trans "Forum" %}</a>
+            <a href="{% url 'formations_gratuites' %}" class="drawer-lien">🎁 {% trans "Formations Gratuites" %}</a>
             <a href="{% url 'ressources' %}" class="drawer-lien">📖 {% trans "Ressources" %}</a>
             <a href="{% url 'chat_ia' %}" class="drawer-lien">🤖 Blessy AI</a>
             <a href="{% url 'apropos' %}" class="drawer-lien">ℹ️ {% trans "À propos" %}</a>

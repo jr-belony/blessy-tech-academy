@@ -193,4 +193,6 @@ urlpatterns = [
     path('ambassadeurs/', views.ambassadeurs, name='ambassadeurs'),
     path('nos-ambassadeurs/', views.nos_ambassadeurs, name='nos_ambassadeurs'),
     path('confiance-securite/', views.faq_confiance, name='faq_confiance'),
+    path('nos-ecoles/', views.nos_ecoles, name='nos_ecoles'),
+    path('formations-gratuites/', views.formations_gratuites, name='formations_gratuites'),
 ]

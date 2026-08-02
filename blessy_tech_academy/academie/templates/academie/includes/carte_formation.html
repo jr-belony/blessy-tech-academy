@@ -31,9 +31,14 @@
 
     <!-- Contenu -->
     <div class="cfv2-corps">
-        {% if formation.ecole %}
-        <div class="cfv2-ecole">{{ formation.ecole.icone }} {{ formation.ecole.nom }}</div>
-        {% endif %}
+        <!-- AFFICHAGE FORCÉ DE L'ÉCOLE -->
+        <div style="font-size:14px; font-weight:600; color:#00B4D8; margin-bottom:4px;">
+            {% if formation.ecole %}
+                {{ formation.ecole.icone }} {{ formation.ecole.nom }}
+            {% else %}
+                ⚠️ École non définie
+            {% endif %}
+        </div>
         <h3 class="cfv2-titre">{{ formation.nom }}</h3>
         <p class="cfv2-desc">{{ formation.description|truncatewords:16 }}</p>
     </div>
@@ -53,20 +58,26 @@
         {% endif %}
     </div>
 
-    <!-- CTAs — 2 boutons hiérarchisés -->
-    <div class="cfv2-footer">
+    <!-- CTAs — 2 boutons avec affichage FORCÉ -->
+    <div style="display:flex; flex-direction:column; gap:10px; margin-top:16px;">
         {% if formation.slug %}
-        <a href="{% url 'detail_formation_slug' formation.slug %}" class="cfv2-btn-secondaire">
+        <!-- Bouton "Voir le programme" -->
+        <a href="{% url 'detail_formation_slug' formation.slug %}"
+           style="display:block; text-align:center; background:#f0f4f8; color:#0B2447; padding:10px; border-radius:8px; text-decoration:none; font-weight:600; font-size:14px; border:1px solid #d1d9e6;">
             📋 Voir le programme
         </a>
-        <a href="{% url 'detail_formation_slug' formation.slug %}" class="cfv2-btn-principal">
+        <!-- Bouton "Commencer maintenant" -->
+        <a href="{% url 'detail_formation_slug' formation.slug %}"
+           style="display:block; text-align:center; background:linear-gradient(135deg,#FF6B35,#e85a2a); color:white; padding:12px; border-radius:8px; text-decoration:none; font-weight:700; font-size:15px; box-shadow:0 4px 12px rgba(255,107,53,0.3);">
             🚀 Commencer maintenant
         </a>
         {% else %}
-        <a href="{% url 'detail_formation' formation.id %}" class="cfv2-btn-secondaire">
+        <a href="{% url 'detail_formation' formation.id %}"
+           style="display:block; text-align:center; background:#f0f4f8; color:#0B2447; padding:10px; border-radius:8px; text-decoration:none; font-weight:600; font-size:14px; border:1px solid #d1d9e6;">
             📋 Voir le programme
         </a>
-        <a href="{% url 'detail_formation' formation.id %}" class="cfv2-btn-principal">
+        <a href="{% url 'detail_formation' formation.id %}"
+           style="display:block; text-align:center; background:linear-gradient(135deg,#FF6B35,#e85a2a); color:white; padding:12px; border-radius:8px; text-decoration:none; font-weight:700; font-size:15px; box-shadow:0 4px 12px rgba(255,107,53,0.3);">
             🚀 Commencer maintenant
         </a>
         {% endif %}

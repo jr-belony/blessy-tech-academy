@@ -1426,3 +1426,20 @@ from .models import Ambassadeur
 class AmbassadeurAdmin(admin.ModelAdmin):
     list_display = ['utilisateur', 'niveau', 'visible_publiquement', 'date_nomination']
     list_editable = ['visible_publiquement']
+
+
+# ================================================
+# ADMIN.PY — Administration Outil + EtudeDeCas
+# ================================================
+from .models import Outil, EtudeDeCas
+
+@admin.register(Outil)
+class OutilAdmin(admin.ModelAdmin):
+    list_display = ['icone', 'nom', 'site_officiel']
+    filter_horizontal = ['formations']
+    search_fields = ['nom']
+
+@admin.register(EtudeDeCas)
+class EtudeDeCasAdmin(admin.ModelAdmin):
+    list_display = ['titre', 'formation', 'module_lie', 'ordre']
+    list_filter = ['formation']
