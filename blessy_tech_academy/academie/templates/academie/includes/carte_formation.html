@@ -45,16 +45,20 @@
 
     <!-- Stats rapides -->
     <div class="cfv2-stats">
-        <span>⏱ {{ formation.duree_mois }} mois</span>
+        <span>⏱ {{ formation.duree }} {{ formation.get_duree_unite_display }}</span>
         <span>📦 {{ formation.modules.count }} modules</span>
     </div>
 
-    <!-- Prix -->
+    <!-- Prix — MODIFIÉ pour USD/HTG -->
     <div class="cfv2-prix-zone">
         {% if formation.gratuit %}
-        <span class="cfv2-prix cfv2-prix-gratuit">Gratuit</span>
+            <span class="cfv2-prix cfv2-prix-gratuit">Gratuit</span>
         {% else %}
-        <span class="cfv2-prix">{{ formation.prix }} $</span>
+            {% if devise == 'HTG' %}
+                <span class="cfv2-prix">{{ formation.prix_htg|floatformat:0 }} HTG</span>
+            {% else %}
+                <span class="cfv2-prix">{{ formation.prix }} USD</span>
+            {% endif %}
         {% endif %}
     </div>
 

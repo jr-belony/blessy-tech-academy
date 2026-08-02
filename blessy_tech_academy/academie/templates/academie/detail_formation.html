@@ -32,7 +32,7 @@
             <p class="pv-hero-sous">{{ formation.description }}</p>
 
             <div class="pv-hero-meta">
-                <span>⏱ {{ formation.duree_mois }} mois</span>
+                <span>⏱ {{ formation.duree }} {{ formation.get_duree_unite_display }}</span>
                 <span>📦 {{ nb_modules }} modules</span>
                 <span>📄 {{ nb_lecons }} leçons</span>
                 <span>🎓 {{ formation.get_niveau_display }}</span>
@@ -46,14 +46,23 @@
             <div class="pv-promo-bandeau">🔥 {{ promo_active.bandeau_texte|default:"Offre spéciale en cours" }}</div>
             {% endif %}
 
+            <!-- PRIX — MODIFIÉ pour USD/HTG -->
             <div class="pv-prix-zone">
                 {% if formation.gratuit %}
-                <span class="pv-prix-principal pv-prix-gratuit">Gratuit</span>
+                    <span class="pv-prix-principal pv-prix-gratuit">Gratuit</span>
                 {% else %}
                     {% if promo_active %}
-                    <span class="pv-prix-barre">{{ formation.prix }} $</span>
+                        {% if devise == 'HTG' %}
+                            <span class="pv-prix-barre">{{ formation.prix_htg|floatformat:0 }} HTG</span>
+                        {% else %}
+                            <span class="pv-prix-barre">{{ formation.prix }} USD</span>
+                        {% endif %}
                     {% endif %}
-                    <span class="pv-prix-principal">{{ prix_final }} $</span>
+                    {% if devise == 'HTG' %}
+                        <span class="pv-prix-principal">{{ prix_htg|floatformat:0 }} HTG</span>
+                    {% else %}
+                        <span class="pv-prix-principal">{{ prix_final }} USD</span>
+                    {% endif %}
                 {% endif %}
             </div>
 
@@ -387,7 +396,7 @@
     </section>
 
     <!-- ================================================
-         10. CTA FINAL
+         10. CTA FINAL — MODIFIÉ pour USD/HTG
          ================================================ -->
     <section class="pv-cta-final">
         {% if not deja_inscrit %}
@@ -396,7 +405,14 @@
         {% if formation.gratuit %}
         <a href="{% if user.is_authenticated %}#programme{% else %}{% url 'inscription_compte' %}{% endif %}" class="pv-btn-cta" style="max-width:340px; margin:0 auto;">🚀 Commencer maintenant</a>
         {% else %}
-        <a href="{% if user.is_authenticated %}{% url 'initier_achat' formation.id %}{% else %}{% url 'connexion' %}?next={% url 'initier_achat' formation.id %}{% endif %}" class="pv-btn-cta" style="max-width:340px; margin:0 auto;">🚀 Commencer maintenant — {{ prix_final }} $</a>
+        <a href="{% if user.is_authenticated %}{% url 'initier_achat' formation.id %}{% else %}{% url 'connexion' %}?next={% url 'initier_achat' formation.id %}{% endif %}" class="pv-btn-cta" style="max-width:340px; margin:0 auto;">
+            🚀 Commencer maintenant — 
+            {% if devise == 'HTG' %}
+                {{ prix_htg|floatformat:0 }} HTG
+            {% else %}
+                {{ prix_final }} USD
+            {% endif %}
+        </a>
         {% endif %}
         {% endif %}
     </section>
@@ -578,7 +594,7 @@ document.addEventListener('DOMContentLoaded', function() {
     "hasCourseInstance": {
         "@type": "CourseInstance",
         "courseMode": "online",
-        "courseWorkload": "P{{ formation.duree_mois }}M"
+        "courseWorkload": "P{{ formation.duree }}{% if formation.duree_unite == 'mois' %}M{% elif formation.duree_unite == 'jours' %}D{% else %}H{% endif %}"
     }
 }
 </script>

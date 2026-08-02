@@ -79,7 +79,7 @@ INSTALLED_APPS = [
     'billing',
     'academie.apps.AcademieConfig',  # ← modifié pour charger la config personnalisée
     'crm',
-    'forum', 
+    'forum',
     'content',
     'storages'
 ]
@@ -599,3 +599,9 @@ DRAMATIQ_BROKER = {
 }
 
 DRAMATIQ_TASKS_DATABASE = "default"
+
+
+# ================================================
+# Taux de change pour la conversion USD → HTG
+# ================================================
+TAUX_USD_HTG = config('TAUX_USD_HTG', default=133, cast=int)

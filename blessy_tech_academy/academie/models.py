@@ -268,6 +268,9 @@ class Formation(models.Model):
         ('intermediaire', 'Intermédiaire'),
         ('avance', 'Avancé'),
         ('professionnel', 'Professionnel'),
+        ('expert', 'Expert'),
+        ('debutant_avance', 'Débutant → Avancé'),
+        ('intermediaire_expert', 'Intermédiaire → Expert'),
     ]
 
     ecole = models.ForeignKey(Ecole, on_delete=models.CASCADE, related_name='formations', null=True, blank=True)
@@ -276,9 +279,14 @@ class Formation(models.Model):
     icone = models.CharField(max_length=10, default='📚')
     illustration = models.CharField(max_length=10, blank=True, default='', help_text="Émoji d'illustration (💻 🤖 🔐 📈 ...)")
     description = models.TextField(blank=True)
-    duree_mois = models.IntegerField(default=1)
+    duree = models.IntegerField(default=1, help_text="Valeur numérique de la durée")
+    duree_unite = models.CharField(
+        max_length=10,
+        choices=[('heures', 'Heures'), ('jours', 'Jours'), ('semaines', 'Semaines'), ('mois', 'Mois')],
+        default='mois'
+    )
     prix = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    niveau = models.CharField(max_length=20, choices=NIVEAUX, default='debutant')
+    niveau = models.CharField(max_length=30, choices=NIVEAUX, default='debutant')
     debouches = models.TextField(blank=True)
     prerequis = models.TextField(blank=True)
     certifications = models.TextField(blank=True)
@@ -299,6 +307,7 @@ class Formation(models.Model):
     public_cible = models.CharField(max_length=300, blank=True, help_text="Ex: Débutants, professionnels en reconversion")
     badge_associe = models.CharField(max_length=100, blank=True, help_text="Badge attribué à 100%")
     delivre_certificat = models.BooleanField(default=True, help_text="Cocher si cette formation délivre un certificat")
+
     class Meta:
         app_label = 'academie'
         db_table = 'academie_formation'
@@ -323,7 +332,6 @@ class Formation(models.Model):
                 i += 1
             self.slug = slug_candidat
         super().save(*args, **kwargs)
-
 
     def progression_pour(self, utilisateur):
         """Version optimisée — 1 seule requête au lieu de 2, avec cache."""
@@ -356,7 +364,16 @@ class Formation(models.Model):
         cache.set(cache_key, pourcentage, 300)  # 5 minutes
         return pourcentage
 
+    def prix_htg(self):
+        """Retourne le prix en HTG arrondi à l'entier."""
+        from django.conf import settings
+        return int(self.prix * settings.TAUX_USD_HTG)
 
+    def prix_formate(self, devise='USD'):
+        """Retourne le prix formaté selon la devise choisie."""
+        if devise == 'HTG':
+            return f"{self.prix_htg():,} HTG".replace(',', ' ')
+        return f"{self.prix:.2f} USD"
 class Module(models.Model):
     formation = models.ForeignKey(Formation, on_delete=models.CASCADE, related_name='modules')
     titre = models.CharField(max_length=200)
@@ -515,9 +532,14 @@ class Parcours(models.Model):
     titre = models.CharField(max_length=200)
     icone = models.CharField(max_length=10, default='🚀')
     description = models.TextField(blank=True)
-    duree_mois = models.IntegerField(default=12)
+    duree = models.IntegerField(default=12, help_text="Valeur numérique de la durée")
+    duree_unite = models.CharField(
+        max_length=10,
+        choices=[('heures', 'Heures'), ('jours', 'Jours'), ('semaines', 'Semaines'), ('mois', 'Mois')],
+        default='mois'
+    )
     prix = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    formations = models.ManyToManyField(Formation, blank=True, related_name='parcours_list')
+    formations = models.ManyToManyField('Formation', blank=True, related_name='parcours_list')
     actif = models.BooleanField(default=True)
     metiers_vises = models.TextField(blank=True, help_text="Métiers visés par ce parcours")
     projets_inclus = models.TextField(blank=True, help_text="Projets concrets inclus dans le parcours")
@@ -534,7 +556,21 @@ class Parcours(models.Model):
     def __str__(self):
         return self.titre
 
+    def duree_formatee(self):
+        """Retourne la durée formatée (ex: '3 mois', '2 semaines')"""
+        return f"{self.duree} {self.get_duree_unite_display()}"
 
+    def prix_htg(self):
+        """Retourne le prix en HTG arrondi à l'entier."""
+        from django.conf import settings
+        return int(self.prix * settings.TAUX_USD_HTG)
+
+    def prix_formate(self, devise='USD'):
+        """Retourne le prix formaté selon la devise choisie."""
+        if devise == 'HTG':
+            return f"{self.prix_htg():,} HTG".replace(',', ' ')
+        return f"{self.prix:.2f} USD"
+    
 class Competence(models.Model):
     CATEGORIES = [
         ('technique', '💻 Technique'),

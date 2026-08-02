@@ -27,6 +27,7 @@ from ..models import (
     Inscription,
 )
 from academie.models import Competence
+from .learning_views import get_devise  # IMPORT AJOUTÉ
 
 
 # ================================================
@@ -164,9 +165,7 @@ def mon_portfolio(request):
                     formation = Formation.objects.get(id=formation_liee_id)
                     competences_formation = formation.competences.all()
                     if competences_formation.exists():
-                        # Associer les compétences au projet
                         projet.competences_demontrees.set(competences_formation)
-                        # Valider chaque compétence avec source 'projet'
                         for competence in competences_formation:
                             cv, created = CompetenceValidee.objects.get_or_create(
                                 utilisateur=request.user,
@@ -354,7 +353,7 @@ def resultats_et_preuves(request):
     temoignages_publies = Temoignage.objects.filter(approuve=True).select_related('formation_suivie').order_by('-date_creation')[:12]
     certificats_recents = Certificat.objects.filter(
         statut='valide'
-    ).select_related('utilisateur', 'formation').order_by('-date_emission')[:8]   # ← corrigé
+    ).select_related('utilisateur', 'formation').order_by('-date_emission')[:8]
 
     projets_valides = ProjetEtudiant.objects.filter(
         valide_par_formateur__isnull=False
@@ -411,6 +410,9 @@ def certifications(request):
     """Catalogue public des certifications délivrées par BTA."""
     from ..models import Formation, Competence, Ecole
 
+    # --- Gestion de la devise ---
+    devise = get_devise(request)
+
     formations_avec_certificat = Formation.objects.filter(
         actif=True,
         delivre_certificat=True
@@ -420,9 +422,12 @@ def certifications(request):
         'learning_outcomes'
     ).order_by('ecole__nom', 'nom')
 
+    # Ajouter prix_htg à chaque formation
+    for formation in formations_avec_certificat:
+        formation.prix_htg = formation.prix_htg()
+
     total_certifications = formations_avec_certificat.count()
 
-    # CORRECTION : utiliser 'formations' (ManyToMany) au lieu de 'formation'
     toutes_competences = Competence.objects.filter(
         formations__in=formations_avec_certificat
     ).distinct().order_by('nom')
@@ -436,6 +441,9 @@ def certifications(request):
         'intermediaire': 'Intermédiaire',
         'avance': 'Avancé',
         'professionnel': 'Professionnel',
+        'expert': 'Expert',
+        'debutant_avance': 'Débutant → Avancé',
+        'intermediaire_expert': 'Intermédiaire → Expert',
     }
 
     context = {
@@ -447,10 +455,10 @@ def certifications(request):
             for niv in niveaux_disponibles
         ],
         'NIVEAUX_MAPPING': NIVEAUX_MAPPING,
+        'devise': devise,  # AJOUTÉ
     }
 
     return render(request, 'academie/certifications.html', context)
-
 
 
 # ================================================
@@ -511,9 +519,12 @@ def support(request):
     """Page Support — réutilise le formulaire Inscription (CRM) avec source='support'."""
     if request.method == 'POST':
         Inscription.objects.create(
-            prenom=request.POST.get('prenom', ''), nom=request.POST.get('nom', ''),
-            email=request.POST.get('email', ''), message=request.POST.get('message', ''),
-            sujet='Demande de support', source_lead='site',
+            prenom=request.POST.get('prenom', ''),
+            nom=request.POST.get('nom', ''),
+            email=request.POST.get('email', ''),
+            message=request.POST.get('message', ''),
+            sujet='Demande de support',
+            source_lead='site',
         )
         messages.success(request, "✅ Ta demande a été envoyée. Notre équipe te répond sous 24h.")
         return redirect('support')
@@ -531,9 +542,17 @@ def espace_entreprises(request):
     from django.contrib import messages
     from django.shortcuts import redirect, render
 
+    # --- Gestion de la devise ---
+    devise = get_devise(request)
+
     total_talents_formes = User.objects.filter(acces_debloques__isnull=False).distinct().count()
     total_competences_disponibles = Competence.objects.count()
     ecoles_phares = Ecole.objects.filter(est_ecole_phare=True)
+
+    # Ajouter prix_htg aux formations des écoles phares (pour futur affichage)
+    for ecole in ecoles_phares:
+        for formation in ecole.formations.all():
+            formation.prix_htg = formation.prix_htg()
 
     if request.method == 'POST':
         Inscription.objects.create(
@@ -552,6 +571,7 @@ def espace_entreprises(request):
         'total_talents_formes': total_talents_formes,
         'total_competences_disponibles': total_competences_disponibles,
         'ecoles_phares': ecoles_phares,
+        'devise': devise,  # AJOUTÉ
     })
 
 
@@ -571,7 +591,6 @@ def blog_actualites(request):
 
     en_vedette = articles.filter(en_vedette=True).first()
 
-    # Pagination (9 articles par page)
     paginator = Paginator(articles.exclude(id=en_vedette.id) if en_vedette else articles, 9)
     page_number = request.GET.get('page', 1)
     try:

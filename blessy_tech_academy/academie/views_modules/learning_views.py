@@ -58,6 +58,18 @@ from ..xp_utils import ajouter_xp
 from .. import notifications
 from ..decorators import exiger_acces_formation
 
+
+# ================================================
+# Fonction utilitaire — Gestion de la devise
+# ================================================
+
+def get_devise(request):
+    """Retourne la devise active (HTG ou USD) depuis la session ou l'URL."""
+    if 'devise' in request.GET:
+        request.session['devise'] = request.GET['devise']
+    return request.session.get('devise', 'USD')
+
+
 # ================================================
 # Vues : Formations
 # ================================================
@@ -90,11 +102,18 @@ def formations(request):
 
     parcours_list = Parcours.objects.prefetch_related('formations').filter(actif=True)
 
+    # --- Gestion de la devise ---
+    devise = get_devise(request)
+    for ecole in ecoles:
+        for formation in ecole.formations.all():
+            formation.prix_htg = formation.prix_htg()
+
     contexte = {
         'ecoles': ecoles,
         'page_obj': ecoles,
         'parcours_list': parcours_list,
-        'ecole_active': ecole_id,  # utile pour le template si besoin
+        'ecole_active': ecole_id,
+        'devise': devise,  # AJOUTÉ
     }
     cache.set(cache_key, contexte, 600)  # 10 minutes
     return render(request, 'academie/formations.html', contexte)
@@ -132,8 +151,8 @@ def detail_formation(request, formation_id):
         ]
     else:
         formation.debouches_liste = []
+
     # Pré-calcul accessibilité séquentielle pour le template
-    # Évite de recalculer est_accessible_pour() N fois dans le template Django
     if request.user.is_authenticated and formation.sequentiel_obligatoire:
         for module in formation.modules.all():
             for lecon in module.lecons.all():
@@ -143,6 +162,10 @@ def detail_formation(request, formation_id):
         for module in formation.modules.all():
             for lecon in module.lecons.all():
                 lecon.accessible = True
+
+    # --- Gestion de la devise ---
+    devise = get_devise(request)
+    prix_htg = formation.prix_htg()
 
     return render(
         request,
@@ -159,8 +182,11 @@ def detail_formation(request, formation_id):
             "duree_totale_heures": round(duree_totale_minutes / 60, 1),
             "formations_similaires": formations_similaires,
             "debouches_liste": formation.debouches_liste,
+            "devise": devise,      # AJOUTÉ
+            "prix_htg": prix_htg,  # AJOUTÉ
         },
     )
+
 
 def detail_formation_slug(request, formation_slug):
     formation = Formation.objects.filter(slug=formation_slug, actif=True).first()
@@ -242,7 +268,7 @@ def marquer_lecon_terminee(request, lecon_id):
                     notifications.notifier_formation_completee(request.user, formation.nom)
                     # --- Validation des compétences liées à la formation complétée ---
                     CompetenceValidee.valider_pour_formation_completee(request.user, formation)
-                    # Insérer juste après CompetenceValidee.valider_pour_formation_completee(...)
+                    # --- Attribution badge auto ---
                     if formation.badge_associe and formation.progression_pour(request.user) == 100:
                         from academie.models import BadgeForum
                         BadgeForum.objects.get_or_create(
@@ -329,7 +355,6 @@ def passer_quiz(request, quiz_id):
     return render(request, "academie/passer_quiz.html", {"quiz": quiz})
 
 
-
 # ================================================
 # Vues : Parcours et orientation
 # ================================================
@@ -340,11 +365,18 @@ def parcours_professionnels(request):
         .filter(actif=True)
         .order_by("ordre")
     )
+
+    # --- Gestion de la devise ---
+    devise = get_devise(request)
+    for parcours in parcours_list:
+        parcours.prix_htg = parcours.prix_htg()
+
     return render(
         request,
         "academie/parcours.html",
         {
             "parcours_list": parcours_list,
+            "devise": devise,  # AJOUTÉ
         },
     )
 
@@ -865,6 +897,7 @@ def soumettre_examen(request, examen_id):
         },
     )
 
+
 # ================================================
 # Vues : Réactions génériques (sujets/réponses)
 # ================================================
@@ -1005,7 +1038,7 @@ def soumettre_projet(request, formation_id):
 
 
 @login_required(login_url='/connexion/')
-@staff_member_required   # ou un décorateur personnalisé si disponible
+@staff_member_required
 def evaluer_soumissions(request):
     """Vue formateur — liste des soumissions à évaluer."""
     soumissions = SoumissionProjet.objects.filter(statut='en_attente').select_related('utilisateur', 'formation')
@@ -1062,8 +1095,14 @@ def formations_gratuites(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    # --- Gestion de la devise ---
+    devise = get_devise(request)
+    for formation in page_obj:
+        formation.prix_htg = formation.prix_htg()
+
     return render(request, 'academie/formations_gratuites.html', {
         'formations': page_obj,
         'page_obj': page_obj,
         'nb_formations_gratuites': formations.count(),
+        'devise': devise,  # AJOUTÉ
     })

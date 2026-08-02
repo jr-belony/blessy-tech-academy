@@ -141,7 +141,7 @@
                     {{ formation.description|truncatewords:18 }}
                 </p>
                 <div class="gratuite-page-meta">
-                    <span>⏱ {{ formation.duree_mois }} mois</span>
+                    <span>⏱ {{ formation.duree }} {{ formation.get_duree_unite_display }}</span>
                     <span style="color: #22c55e; font-weight: 800;">GRATUIT</span>
                 </div>
                 {% if formation.slug %}
@@ -242,7 +242,7 @@
                 <!-- Stats -->
                 <div class="carte-moderne-stats">
                     <div class="carte-stat">
-                        <span class="carte-stat-val">{{ formation.duree_mois }}</span>
+                        <span class="carte-stat-val">{{ formation.duree }} {{ formation.get_duree_unite_display }}</span>
                         <span class="carte-stat-label">mois</span>
                     </div>
                     <div class="carte-stat-sep"></div>
@@ -327,7 +327,7 @@
                     <div>
                         <h3 class="parcours-page-titre">{{ parcours.titre }}</h3>
                         <p class="parcours-page-meta">
-                            ⏱ {{ parcours.duree_mois }} mois
+                            ⏱ {{ parcours.duree }} {{ parcours.get_duree_unite_display }}
                             · {{ parcours.formations.count }} formations
                         </p>
                     </div>

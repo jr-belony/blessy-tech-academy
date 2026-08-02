@@ -363,7 +363,7 @@
                                 {{ etape.formation_icone }} {{ etape.formation_nom }}
                             </h4>
                             <div class="sim-etape-meta">
-                                <span>⏱ {{ etape.duree_mois }} mois</span>
+                                <span>⏱ {{ etape.duree }} {{ etape.get_duree_unite_display }}</span>
                                 <span>{{ etape.prix }} USD</span>
                             </div>
                         </div>

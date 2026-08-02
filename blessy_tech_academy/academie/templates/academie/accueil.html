@@ -1069,7 +1069,7 @@
 
                 <!-- Méta -->
                 <div class="gratuite-meta">
-                    <span>⏱ {{ formation.duree_mois }} mois</span>
+                    <span>⏱ {{ formation.duree }} {{ formation.get_duree_unite_display }}</span>
                     <span class="gratuite-prix">GRATUIT</span>
                 </div>
 
@@ -1177,7 +1177,7 @@
                 <!-- Stats -->
                 <div class="phare-stats">
                     <div class="phare-stat">
-                        <span class="phare-stat-val">{{ formation.duree_mois }}</span>
+                        <span class="phare-stat-val">{{ formation.duree }} {{ formation.get_duree_unite_display }}</span>
                         <span class="phare-stat-label">mois</span>
                     </div>
                     <div class="phare-stat-sep"></div>
@@ -1767,7 +1767,7 @@
                     <span class="parcours-icone">{{ parcours.icone }}</span>
                     <div>
                         <h3 class="parcours-titre">{{ parcours.titre }}</h3>
-                        <p class="parcours-duree">⏱ {{ parcours.duree_mois }} mois</p>
+                        <p class="parcours-duree">⏱ {{ parcours.duree }} {{ parcours.get_duree_unite_display }}</p>
                     </div>
                 </div>
 

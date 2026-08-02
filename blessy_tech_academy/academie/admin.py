@@ -118,15 +118,17 @@ class FormationAdmin(RolePermissionMixin, AdminThemeMixin, SortableAdminBase, Si
         "nom",
         "ecole",
         "niveau",
-        "duree_mois",
+        "duree_formatee",
         "prix",
         "actif",
+        "gratuit",
+        "delivre_certificat",
         "bouton_workspace",
     ]
-    list_filter = ["actif", "niveau", "ecole"]
+    list_filter = ["actif", "niveau", "ecole", "gratuit", "delivre_certificat"]
     search_fields = ["nom", "description"]
     autocomplete_fields = ["formation_upgrade"]
-    list_editable = ["actif"]
+    list_editable = ["actif", "gratuit"]
     inlines = [ModuleInline, LearningOutcomeInline]
 
     fieldsets = [
@@ -139,10 +141,12 @@ class FormationAdmin(RolePermissionMixin, AdminThemeMixin, SortableAdminBase, Si
                     "icone",
                     "description",
                     "niveau",
-                    "duree_mois",
+                    "duree",
+                    "duree_unite",
                     "prix",
                     "actif",
                     "gratuit",
+                    "delivre_certificat",
                     "formation_upgrade",
                 ]
             },
@@ -154,9 +158,33 @@ class FormationAdmin(RolePermissionMixin, AdminThemeMixin, SortableAdminBase, Si
                 "classes": ["collapse"],
             },
         ),
+        (
+            "Pédagogie & Public",
+            {
+                "fields": [
+                    "methode_pedagogique",
+                    "criteres_evaluation",
+                    "public_cible",
+                    "badge_associe",
+                ],
+                "classes": ["collapse"],
+            },
+        ),
+        (
+            "Carrière & Salaire",
+            {
+                "fields": ["salaire_haiti", "salaire_international", "competences_acquises"],
+                "classes": ["collapse"],
+            },
+        ),
     ]
 
     actions = ["partager_sur_reseaux"]
+
+    def duree_formatee(self, obj):
+        return f"{obj.duree} {obj.get_duree_unite_display()}"
+    duree_formatee.short_description = "Durée"
+    duree_formatee.admin_order_field = "duree"
 
     @admin.action(
         description="📢 Partager les formations sélectionnées sur les réseaux sociaux (simulation)"
@@ -383,7 +411,7 @@ class ParcoursAdmin(AdminThemeMixin, admin.ModelAdmin):
     list_display = [
         "icone",
         "titre",
-        "duree_mois",
+        "duree_formatee",
         "prix",
         "nombre_formations",
         "actif",
@@ -392,6 +420,7 @@ class ParcoursAdmin(AdminThemeMixin, admin.ModelAdmin):
 
     list_filter = [
         "actif",
+        "duree_unite",
     ]
 
     search_fields = [
@@ -416,11 +445,19 @@ class ParcoursAdmin(AdminThemeMixin, admin.ModelAdmin):
                     "icone",
                     "titre",
                     "description",
-                    "duree_mois",
+                    "duree",
+                    "duree_unite",
                     "prix",
                     "actif",
                     "ordre",
                 ]
+            },
+        ),
+        (
+            "Carrière & Métiers",
+            {
+                "fields": ["metiers_vises", "projets_inclus", "certifications_incluses"],
+                "classes": ["collapse"],
             },
         ),
         (
@@ -432,12 +469,14 @@ class ParcoursAdmin(AdminThemeMixin, admin.ModelAdmin):
         ),
     ]
 
-    class Media:
-        js = ["academie/admin/generer_parcours.js"]
+    def duree_formatee(self, obj):
+        """Retourne la durée formatée (ex: '3 mois', '2 semaines')"""
+        return f"{obj.duree} {obj.get_duree_unite_display()}"
+    duree_formatee.short_description = "Durée"
+    duree_formatee.admin_order_field = "duree"
 
     def nombre_formations(self, obj):
         return obj.formations.count()
-
     nombre_formations.short_description = "Formations"
 
     def has_module_permission(self, request):
@@ -450,8 +489,9 @@ class ParcoursAdmin(AdminThemeMixin, admin.ModelAdmin):
             ]
         except Exception:
             return False
-        
 
+    class Media:
+        js = ["academie/admin/generer_parcours.js"]
 
 # ================================================
 # ADMIN.PY — SujetAdmin (gestion des sujets du forum)
