@@ -297,7 +297,7 @@ class Formation(models.Model):
     methode_pedagogique = models.TextField(blank=True, help_text="Ex: 100% pratique, projets réels, feedback formateur")
     criteres_evaluation = models.TextField(blank=True, help_text="Ex: Quiz formatifs, projet pratique, examen final sommatif")
     public_cible = models.CharField(max_length=300, blank=True, help_text="Ex: Débutants, professionnels en reconversion")
-
+    badge_associe = models.CharField(max_length=100, blank=True, help_text="Badge attribué à 100%")
     class Meta:
         app_label = 'academie'
         db_table = 'academie_formation'
@@ -1319,3 +1319,34 @@ class EtudeDeCas(models.Model):
 
     def __str__(self):
         return f"{self.titre} — {self.formation.nom}"
+
+
+# ================================================
+# MODELS.PY — Evenement (webinaires, hackathons, sessions live)
+# Prépare l'extensibilité listée : "webinaires, classes virtuelles, hackathons"
+# ================================================
+
+class Evenement(models.Model):
+    TYPES = [('webinaire', '🎥 Webinaire'), ('hackathon', '💻 Hackathon'), ('atelier', '🛠️ Atelier'), ('remise_certificats', '🎓 Remise de certificats')]
+
+    titre = models.CharField(max_length=200)
+    type_evenement = models.CharField(max_length=20, choices=TYPES, default='webinaire')
+    description = models.TextField()
+    date_debut = models.DateTimeField()
+    date_fin = models.DateTimeField(null=True, blank=True)
+    lien_inscription = models.URLField(blank=True)
+    lien_visio = models.URLField(blank=True)
+    formation_liee = models.ForeignKey('Formation', on_delete=models.SET_NULL, null=True, blank=True)
+    image = models.ImageField(upload_to='evenements/', null=True, blank=True)
+    publie = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['date_debut']
+        verbose_name = 'Événement'
+        verbose_name_plural = 'Événements'
+
+    def __str__(self):
+        return self.titre
+
+    def est_passe(self):
+        return timezone.now() > (self.date_fin or self.date_debut)

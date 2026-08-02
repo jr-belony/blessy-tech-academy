@@ -23,6 +23,8 @@ from ..models import (
     Temoignage,
     CompetenceValidee,
     DemandeTemoignage,
+    Evenement,
+    Inscription,
 )
 from academie.models import Competence
 
@@ -399,3 +401,125 @@ def nos_ambassadeurs(request):
 def faq_confiance(request):
     """FAQ globale sur la confiance et la sécurité — rassure les visiteurs."""
     return render(request, 'academie/faq_confiance.html')
+
+
+# ================================================
+# Vues : Catalogue des Certifications
+# ================================================
+
+def certifications(request):
+    """
+    Catalogue public des certifications délivrées par BTA.
+    Affiche toutes les formations qui délivrent un certificat,
+    avec les infos : nom, prérequis, compétences validées, durée.
+    """
+    # Récupère toutes les formations actives qui délivrent un certificat
+    formations_avec_certificat = Formation.objects.filter(
+        actif=True,
+        delivre_certificat=True
+    ).select_related('ecole').prefetch_related(
+        'modules',
+        'competences',
+        'learning_outcomes'
+    ).order_by('ecole__nom', 'nom')
+
+    # Comptage du nombre total de certifications
+    total_certifications = formations_avec_certificat.count()
+
+    # Compétences distinctes disponibles (pour facettage/filtrage éventuel)
+    toutes_competences = Competence.objects.filter(
+        formation__in=formations_avec_certificat
+    ).distinct().order_by('nom')
+
+    # Niveaux disponibles pour filtrage
+    niveaux_disponibles = formations_avec_certificat.values_list(
+        'niveau', flat=True
+    ).distinct().order_by('niveau')
+
+    # Mapping des niveaux pour affichage
+    NIVEAUX_MAPPING = {
+        'debutant': 'Débutant',
+        'intermediaire': 'Intermédiaire',
+        'avance': 'Avancé',
+        'pro': 'Professionnel',
+    }
+
+    context = {
+        'formations': formations_avec_certificat,
+        'total_certifications': total_certifications,
+        'toutes_competences': toutes_competences,
+        'niveaux_disponibles': [
+            {'value': niv, 'label': NIVEAUX_MAPPING.get(niv, niv.capitalize())}
+            for niv in niveaux_disponibles
+        ],
+        'NIVEAUX_MAPPING': NIVEAUX_MAPPING,
+    }
+
+    return render(request, 'academie/certifications.html', context)
+
+
+# ================================================
+# VIEWS.PY — Galerie publique des portfolios apprenants
+# ================================================
+
+def galerie_portfolios(request):
+    """Liste des apprenants ayant un portfolio public actif (au moins 1 projet)."""
+    utilisateurs_avec_portfolio = User.objects.filter(
+        projets__isnull=False
+    ).distinct().annotate(nb_projets=Count('projets'))
+
+    return render(request, 'academie/galerie_portfolios.html', {
+        'apprenants': utilisateurs_avec_portfolio,
+    })
+
+
+# ================================================
+# VIEWS.PY — Galerie publique des projets — validés en priorité
+# ================================================
+
+def galerie_projets(request):
+    """Tous les projets publics, projets validés par formateur en premier."""
+    projets = ProjetEtudiant.objects.select_related('auteur', 'formation_liee').order_by(
+        '-valide_par_formateur', '-date_creation'
+    )
+    return render(request, 'academie/galerie_projets.html', {'projets': projets})
+
+
+# ================================================
+# VIEWS.PY — Page Témoignages dédiée
+# ================================================
+
+def temoignages_page(request):
+    temoignages = Temoignage.objects.filter(approuve=True).select_related('formation_suivie').order_by('-en_vedette', '-date_creation')
+    return render(request, 'academie/temoignages.html', {'temoignages': temoignages})
+
+
+# ================================================
+# VIEWS.PY — Page Événements (webinaires, hackathons)
+# ================================================
+
+def evenements(request):
+    a_venir = Evenement.objects.filter(publie=True, date_debut__gte=timezone.now()).order_by('date_debut')
+    passes = Evenement.objects.filter(publie=True, date_debut__lt=timezone.now()).order_by('-date_debut')[:6]
+    return render(request, 'academie/evenements.html', {'a_venir': a_venir, 'passes': passes})
+
+
+# ================================================
+# VIEWS.PY — FAQ globale + Support (formulaire léger)
+# ================================================
+
+def faq_globale(request):
+    return render(request, 'academie/faq_globale.html')
+
+
+def support(request):
+    """Page Support — réutilise le formulaire Inscription (CRM) avec source='support'."""
+    if request.method == 'POST':
+        Inscription.objects.create(
+            prenom=request.POST.get('prenom', ''), nom=request.POST.get('nom', ''),
+            email=request.POST.get('email', ''), message=request.POST.get('message', ''),
+            sujet='Demande de support', source_lead='site',
+        )
+        messages.success(request, "✅ Ta demande a été envoyée. Notre équipe te répond sous 24h.")
+        return redirect('support')
+    return render(request, 'academie/support.html')

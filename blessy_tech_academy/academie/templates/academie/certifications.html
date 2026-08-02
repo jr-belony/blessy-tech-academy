@@ -1,0 +1,35 @@
+<!-- ================================================
+     CERTIFICATIONS.HTML — Catalogue certifications
+     ================================================ -->
+{% extends 'academie/base.html' %}
+{% block titre %}Certifications — Blessy Tech Academy{% endblock %}
+{% block meta_description %}Découvre toutes les certifications vérifiables délivrées par Blessy Tech Academy — {{ total_certificats_delivres }} certificats déjà émis.{% endblock %}
+{% block contenu %}
+
+<section style="background:linear-gradient(135deg,#050d1a,#003B8E); padding:70px 40px; text-align:center;">
+    <h1 style="color:white; font-size:34px; font-weight:800;">🏆 Certifications Vérifiables</h1>
+    <p style="color:rgba(255,255,255,0.65); margin-top:12px;">{{ total_certificats_delivres }} certificat{{ total_certificats_delivres|pluralize }} réel{{ total_certificats_delivres|pluralize }} déjà délivré{{ total_certificats_delivres|pluralize }}</p>
+    <a href="{% url 'verifier_certificat_public' 'BTA-EXEMPLE' %}" style="display:inline-block; margin-top:20px; color:#00B5E2; text-decoration:underline; font-size:13px;">🔍 Vérifier un certificat existant</a>
+</section>
+
+<div style="max-width:1000px; margin:0 auto; padding:50px 20px; display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:20px;">
+    {% for formation in formations_certifiantes %}
+    <div style="background:white; border:1.5px solid #e2e8f0; border-radius:16px; padding:24px;">
+        <div style="font-size:32px; margin-bottom:10px;">{{ formation.icone }}</div>
+        <h4 style="color:#003B8E; margin-bottom:6px;">{{ formation.nom }}</h4>
+        <p style="font-size:12px; color:#a0aec0; margin-bottom:12px;">{{ formation.ecole.nom }}</p>
+        <p style="font-size:13px; color:#718096;">{{ formation.certifications|truncatewords:20 }}</p>
+        {% if formation.competences.all %}
+        <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:12px;">
+            {% for comp in formation.competences.all|slice:":4" %}
+            <span style="background:rgba(0,181,226,0.1); color:#00B5E2; padding:3px 10px; border-radius:10px; font-size:11px;">{{ comp.nom }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <a href="{% url 'detail_formation' formation.id %}" style="display:block; margin-top:14px; color:#FF6B00; font-weight:700; font-size:13px; text-decoration:none;">Voir la formation →</a>
+    </div>
+    {% empty %}
+    <p style="grid-column:1/-1; text-align:center; color:#a0aec0;">Le catalogue de certifications s'enrichit progressivement.</p>
+    {% endfor %}
+</div>
+{% endblock %}

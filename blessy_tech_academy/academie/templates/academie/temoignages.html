@@ -1,0 +1,27 @@
+<!-- ================================================
+     TEMOIGNAGES.HTML — Page dédiée témoignages
+     ================================================ -->
+{% extends 'academie/base.html' %}
+{% block titre %}Témoignages — Blessy Tech Academy{% endblock %}
+{% block contenu %}
+<section style="background:linear-gradient(135deg,#050d1a,#003B8E); padding:60px 40px; text-align:center;">
+    <h1 style="color:white; font-size:32px;">💬 Témoignages authentiques</h1>
+</section>
+<div style="max-width:1000px; margin:0 auto; padding:50px 20px; display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:20px;">
+    {% for t in temoignages %}
+    <div style="background:#f8fafc; border-radius:16px; padding:24px;">
+        <div style="color:#FF6B00; margin-bottom:10px;">{% for i in "12345" %}{% if forloop.counter <= t.note %}★{% else %}☆{% endif %}{% endfor %}</div>
+        <p style="font-style:italic; color:#334155;">"{{ t.texte }}"</p>
+        <div style="margin-top:14px; display:flex; align-items:center; gap:10px;">
+            <div style="width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#00B5E2,#FF6B00); display:flex; align-items:center; justify-content:center; color:white; font-weight:800; font-size:12px;">{{ t.initiales }}</div>
+            <div>
+                <div style="font-weight:700; color:#003B8E; font-size:13px;">{{ t.prenom_nom }}</div>
+                <div style="font-size:11px; color:#a0aec0;">{{ t.formation_suivie.nom }}</div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p style="grid-column:1/-1; text-align:center; color:#a0aec0;">Les premiers témoignages arrivent bientôt.</p>
+    {% endfor %}
+</div>
+{% endblock %}

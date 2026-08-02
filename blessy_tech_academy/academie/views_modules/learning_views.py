@@ -215,6 +215,7 @@ def lire_lecon(request, lecon_id):
         },
     )
 
+
 @login_required(login_url="/connexion/")
 @exiger_acces_formation(lambda lecon_id: Lecon.objects.get(id=lecon_id).module.formation)
 def marquer_lecon_terminee(request, lecon_id):
@@ -225,11 +226,9 @@ def marquer_lecon_terminee(request, lecon_id):
                 utilisateur=request.user,
                 lecon=lecon,
             )
-
             progression.terminee = not progression.terminee
             progression.date_completion = timezone.now() if progression.terminee else None
             progression.save()
-
             # ===== ENREGISTREMENT DU STREAK =====
             from ..models import StreakEtudiant
             streak, _ = StreakEtudiant.objects.get_or_create(utilisateur=request.user)
@@ -243,6 +242,12 @@ def marquer_lecon_terminee(request, lecon_id):
                     notifications.notifier_formation_completee(request.user, formation.nom)
                     # --- Validation des compétences liées à la formation complétée ---
                     CompetenceValidee.valider_pour_formation_completee(request.user, formation)
+                    # Insérer juste après CompetenceValidee.valider_pour_formation_completee(...)
+                    if formation.badge_associe and formation.progression_pour(request.user) == 100:
+                        from academie.models import BadgeForum
+                        BadgeForum.objects.get_or_create(
+                            utilisateur=request.user, type_badge='expert_50'
+                        )
 
             formation = lecon.module.formation
             nouveau_pourcentage = formation.progression_pour(request.user)
@@ -261,6 +266,7 @@ def marquer_lecon_terminee(request, lecon_id):
             return JsonResponse({"erreur": str(e)}, status=500)
 
     return JsonResponse({"erreur": "Méthode non autorisée"}, status=405)
+
 
 # ================================================
 # Vues Quiz (complément)

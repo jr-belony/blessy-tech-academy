@@ -1,0 +1,19 @@
+<!-- ================================================
+     SUPPORT.HTML — Page support léger
+     ================================================ -->
+{% extends 'academie/base.html' %}
+{% block titre %}Support — Blessy Tech Academy{% endblock %}
+{% block contenu %}
+<section style="max-width:500px; margin:60px auto; padding:0 20px;">
+    <h1 style="color:#003B8E;">🆘 Besoin d'aide ?</h1>
+    <p style="color:#718096; margin-bottom:24px;">Réponds sous 24h, ou parle directement à <a href="{% url 'chat_ia' %}">Blessy AI</a> pour une réponse immédiate.</p>
+    <form method="POST" style="background:white; border:1.5px solid #e2e8f0; border-radius:16px; padding:24px;">
+        {% csrf_token %}
+        <input type="text" name="prenom" placeholder="Prénom" required style="width:100%; padding:12px; border:1.5px solid #e2e8f0; border-radius:8px; margin-bottom:12px;">
+        <input type="text" name="nom" placeholder="Nom" required style="width:100%; padding:12px; border:1.5px solid #e2e8f0; border-radius:8px; margin-bottom:12px;">
+        <input type="email" name="email" placeholder="Email" required style="width:100%; padding:12px; border:1.5px solid #e2e8f0; border-radius:8px; margin-bottom:12px;">
+        <textarea name="message" placeholder="Décris ton problème" rows="4" required style="width:100%; padding:12px; border:1.5px solid #e2e8f0; border-radius:8px; margin-bottom:16px;"></textarea>
+        <button type="submit" style="width:100%; padding:14px; background:#003B8E; color:white; border:none; border-radius:10px; font-weight:800;">Envoyer</button>
+    </form>
+</section>
+{% endblock %}

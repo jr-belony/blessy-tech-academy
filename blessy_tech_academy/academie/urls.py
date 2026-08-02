@@ -195,4 +195,10 @@ urlpatterns = [
     path('confiance-securite/', views.faq_confiance, name='faq_confiance'),
     path('nos-ecoles/', views.nos_ecoles, name='nos_ecoles'),
     path('formations-gratuites/', views.formations_gratuites, name='formations_gratuites'),
+    path('certifications/', views.certifications, name='certifications'),
+    path('portfolios-apprenants/', views.galerie_portfolios, name='galerie_portfolios'),
+    path('projets-apprenants/', views.galerie_projets, name='galerie_projets'),
+    path('temoignages/', views.temoignages_page, name='temoignages_page'),
+    path('evenements/', views.evenements, name='evenements'),
+    path('faq/', views.faq_globale, name='faq_globale'),
 ]

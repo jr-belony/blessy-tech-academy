@@ -1,0 +1,25 @@
+<!-- ================================================
+     EVENEMENTS.HTML — Webinaires, hackathons, ateliers
+     ================================================ -->
+{% extends 'academie/base.html' %}
+{% block titre %}Événements — Blessy Tech Academy{% endblock %}
+{% block contenu %}
+<section style="background:linear-gradient(135deg,#050d1a,#003B8E); padding:60px 40px; text-align:center;">
+    <h1 style="color:white; font-size:32px;">📅 Événements & Webinaires</h1>
+</section>
+<div style="max-width:800px; margin:0 auto; padding:50px 20px;">
+    <h3 style="color:#003B8E; margin-bottom:16px;">🔜 À venir</h3>
+    {% for ev in a_venir %}
+    <div style="background:white; border:1.5px solid #e2e8f0; border-radius:14px; padding:20px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <span style="font-size:11px; font-weight:700; color:#FF6B00;">{{ ev.get_type_evenement_display }}</span>
+            <h4 style="color:#003B8E;">{{ ev.titre }}</h4>
+            <p style="font-size:12px; color:#a0aec0;">{{ ev.date_debut|date:"d/m/Y à H:i" }}</p>
+        </div>
+        {% if ev.lien_inscription %}<a href="{{ ev.lien_inscription }}" target="_blank" style="padding:8px 16px; background:#003B8E; color:white; border-radius:8px; text-decoration:none; font-size:12px; font-weight:700;">S'inscrire</a>{% endif %}
+    </div>
+    {% empty %}
+    <p style="color:#a0aec0;">Aucun événement prévu pour le moment.</p>
+    {% endfor %}
+</div>
+{% endblock %}
