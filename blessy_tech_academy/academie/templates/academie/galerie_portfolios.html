@@ -1,24 +1,355 @@
-<!-- ================================================
-     GALERIE_PORTFOLIOS.HTML — Portfolios des apprenants
-     ================================================ -->
 {% extends 'academie/base.html' %}
-{% block titre %}Portfolios de nos apprenants — Blessy Tech Academy{% endblock %}
+
+{% block titre %}Portfolios des Apprenants — Blessy Tech Academy{% endblock %}
+{% block meta_description %}Découvrez les portfolios et projets réalisés par les apprenants de Blessy Tech Academy. Inspirez-vous des réussites de la communauté.{% endblock %}
+
 {% block contenu %}
-<section style="background:linear-gradient(135deg,#050d1a,#003B8E); padding:60px 40px; text-align:center;">
-    <h1 style="color:white; font-size:32px;">🎨 Portfolios de nos apprenants</h1>
-    <p style="color:rgba(255,255,255,0.6);">Des preuves concrètes de compétences réelles.</p>
+
+<section class="page-header">
+    <div class="container">
+        <h1>🎨 Portfolios des Apprenants</h1>
+        <p class="subtitle">Découvrez les réalisations concrètes de nos étudiants et laissez-vous inspirer</p>
+    </div>
 </section>
-<div style="max-width:1000px; margin:0 auto; padding:50px 20px; display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:16px;">
-    {% for apprenant in apprenants %}
-    <a href="{% url 'portfolio_public' apprenant.username %}" style="text-decoration:none; background:white; border:1.5px solid #e2e8f0; border-radius:14px; padding:20px; text-align:center;">
-        <div style="width:56px; height:56px; border-radius:14px; background:linear-gradient(135deg,#00B5E2,#FF6B00); display:flex; align-items:center; justify-content:center; color:white; font-weight:800; margin:0 auto 10px;">
-            {{ apprenant.first_name|first|upper|default:apprenant.username|first|upper }}
+
+<section class="galerie-section">
+    <div class="container">
+        <!-- Statistiques -->
+        <div class="stats-banner">
+            <div class="stat-item">
+                <span class="stat-number">{{ stats.total_projets }}</span>
+                <span class="stat-label">Projets réalisés</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">{{ stats.total_apprenants }}</span>
+                <span class="stat-label">Apprenants actifs</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">{{ stats.total_competences }}</span>
+                <span class="stat-label">Compétences validées</span>
+            </div>
         </div>
-        <div style="font-weight:700; color:#003B8E; font-size:13px;">{{ apprenant.first_name|default:apprenant.username }}</div>
-        <div style="font-size:11px; color:#a0aec0;">{{ apprenant.nb_projets }} projet{{ apprenant.nb_projets|pluralize }}</div>
-    </a>
-    {% empty %}
-    <p style="grid-column:1/-1; text-align:center; color:#a0aec0;">Les premiers portfolios arrivent bientôt.</p>
-    {% endfor %}
-</div>
+
+        <!-- Compétences populaires -->
+        {% if competences_populaires %}
+        <div class="competences-populaires">
+            <p class="section-label">🔥 Compétences les plus fréquentes</p>
+            <div class="competences-tags">
+                {% for comp in competences_populaires %}
+                    <span class="competence-tag">{{ comp.icone }} {{ comp.nom }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Grille des portfolios -->
+        {% if page_obj %}
+            <div class="portfolios-grid">
+                {% for projet in page_obj %}
+                    <div class="portfolio-card">
+                        <div class="portfolio-header">
+                            <div class="portfolio-user">
+                                <div class="user-avatar">
+                                    {{ projet.utilisateur.username|make_list|first|upper }}
+                                </div>
+                                <div class="user-info">
+                                    <a href="{% url 'portfolio_public' projet.utilisateur.username %}" class="user-name">
+                                        {{ projet.utilisateur.get_full_name|default:projet.utilisateur.username }}
+                                    </a>
+                                    <span class="user-formation">{{ projet.formation.icone }} {{ projet.formation.nom }}</span>
+                                </div>
+                            </div>
+                            {% if projet.formation.ecole %}
+                                <span class="portfolio-ecole">{{ projet.formation.ecole.icone }} {{ projet.formation.ecole.nom }}</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="portfolio-body">
+                            <h3>{{ projet.titre }}</h3>
+                            <p class="portfolio-desc">{{ projet.description|truncatewords:25 }}</p>
+
+                            {% if projet.competences_a_valider.all %}
+                                <div class="portfolio-competences">
+                                    <strong>Compétences mises en œuvre :</strong>
+                                    <div class="competences-tags">
+                                        {% for comp in projet.competences_a_valider.all|slice:":4" %}
+                                            <span class="competence-tag">{{ comp.icone }} {{ comp.nom }}</span>
+                                        {% endfor %}
+                                        {% if projet.competences_a_valider.count > 4 %}
+                                            <span class="competence-tag">+{{ projet.competences_a_valider.count|add:"-4" }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            <div class="portfolio-footer">
+                                {% if projet.lien_livrable %}
+                                    <a href="{{ projet.lien_livrable }}" target="_blank" class="btn-lien">
+                                        🔗 Voir le projet
+                                    </a>
+                                {% elif projet.fichier_livrable %}
+                                    <a href="{{ projet.fichier_livrable.url }}" target="_blank" class="btn-lien">
+                                        📎 Voir le fichier
+                                    </a>
+                                {% else %}
+                                    <span class="btn-lien disabled">Projet en cours de publication</span>
+                                {% endif %}
+                                <span class="portfolio-date">{{ projet.date_soumission|date:"d/m/Y" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+                <div class="pagination">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}" class="page-link">←</a>
+                    {% endif %}
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <span class="page-link current">{{ num }}</span>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <a href="?page={{ num }}" class="page-link">{{ num }}</a>
+                        {% endif %}
+                    {% endfor %}
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}" class="page-link">→</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="empty-state">
+                <p style="font-size:24px;">🌟 Aucun portfolio pour le moment</p>
+                <p>Soyez le premier à partager votre projet !</p>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<style>
+.page-header {
+    background: linear-gradient(135deg, #0B2447, #1a3a6a);
+    color: white;
+    padding: 60px 0;
+    text-align: center;
+}
+.page-header h1 {
+    font-size: 40px;
+    font-weight: 800;
+    margin-bottom: 10px;
+}
+.page-header .subtitle {
+    font-size: 18px;
+    color: rgba(255,255,255,0.7);
+    max-width: 600px;
+    margin: 0 auto;
+}
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+.stats-banner {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+    background: #f8fafc;
+    border-radius: 16px;
+    padding: 30px;
+    margin: 40px 0;
+    border: 1px solid #e2e8f0;
+}
+.stat-item {
+    text-align: center;
+}
+.stat-number {
+    display: block;
+    font-size: 32px;
+    font-weight: 800;
+    color: #0B2447;
+}
+.stat-label {
+    font-size: 14px;
+    color: #4a5568;
+    font-weight: 500;
+}
+.competences-populaires {
+    margin: 30px 0;
+}
+.section-label {
+    font-weight: 600;
+    font-size: 14px;
+    color: #4a5568;
+    margin-bottom: 8px;
+}
+.competences-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.competence-tag {
+    background: #f0f4f8;
+    color: #0B2447;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 13px;
+    font-weight: 500;
+}
+.portfolios-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+    margin: 30px 0 40px;
+}
+.portfolio-card {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+.portfolio-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+}
+.portfolio-header {
+    padding: 16px 20px 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+.portfolio-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #0B2447;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+.user-info {
+    display: flex;
+    flex-direction: column;
+}
+.user-name {
+    font-weight: 600;
+    color: #0B2447;
+    font-size: 14px;
+    text-decoration: none;
+}
+.user-name:hover {
+    color: #00B4D8;
+}
+.user-formation {
+    font-size: 12px;
+    color: #718096;
+}
+.portfolio-ecole {
+    font-size: 12px;
+    font-weight: 600;
+    color: #00B4D8;
+    background: rgba(0,180,216,0.1);
+    padding: 4px 12px;
+    border-radius: 12px;
+}
+.portfolio-body {
+    padding: 8px 20px 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.portfolio-body h3 {
+    font-size: 17px;
+    font-weight: 700;
+    color: #0B2447;
+    margin: 0 0 6px;
+}
+.portfolio-desc {
+    font-size: 14px;
+    color: #4a5568;
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+.portfolio-competences {
+    margin-bottom: 12px;
+}
+.portfolio-competences strong {
+    display: block;
+    font-size: 13px;
+    color: #0B2447;
+    margin-bottom: 4px;
+}
+.portfolio-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid #f0f4f8;
+}
+.btn-lien {
+    background: #0B2447;
+    color: white;
+    padding: 6px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+.btn-lien:hover {
+    background: #00B4D8;
+}
+.btn-lien.disabled {
+    background: #e2e8f0;
+    color: #a0aec0;
+    cursor: not-allowed;
+}
+.portfolio-date {
+    font-size: 12px;
+    color: #a0aec0;
+}
+.pagination {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin: 20px 0 40px;
+}
+.page-link {
+    display: inline-block;
+    padding: 8px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #0B2447;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+.page-link:hover {
+    background: #f0f4f8;
+}
+.page-link.current {
+    background: #0B2447;
+    color: white;
+    border-color: #0B2447;
+}
+.empty-state {
+    text-align: center;
+    padding: 60px 0;
+    color: #4a5568;
+}
+</style>
 {% endblock %}

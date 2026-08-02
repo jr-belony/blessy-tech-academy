@@ -408,12 +408,9 @@ def faq_confiance(request):
 # ================================================
 
 def certifications(request):
-    """
-    Catalogue public des certifications délivrées par BTA.
-    Affiche toutes les formations qui délivrent un certificat,
-    avec les infos : nom, prérequis, compétences validées, durée.
-    """
-    # Récupère toutes les formations actives qui délivrent un certificat
+    """Catalogue public des certifications délivrées par BTA."""
+    from ..models import Formation, Competence, Ecole
+
     formations_avec_certificat = Formation.objects.filter(
         actif=True,
         delivre_certificat=True
@@ -423,25 +420,22 @@ def certifications(request):
         'learning_outcomes'
     ).order_by('ecole__nom', 'nom')
 
-    # Comptage du nombre total de certifications
     total_certifications = formations_avec_certificat.count()
 
-    # Compétences distinctes disponibles (pour facettage/filtrage éventuel)
+    # CORRECTION : utiliser 'formations' (ManyToMany) au lieu de 'formation'
     toutes_competences = Competence.objects.filter(
-        formation__in=formations_avec_certificat
+        formations__in=formations_avec_certificat
     ).distinct().order_by('nom')
 
-    # Niveaux disponibles pour filtrage
     niveaux_disponibles = formations_avec_certificat.values_list(
         'niveau', flat=True
     ).distinct().order_by('niveau')
 
-    # Mapping des niveaux pour affichage
     NIVEAUX_MAPPING = {
         'debutant': 'Débutant',
         'intermediaire': 'Intermédiaire',
         'avance': 'Avancé',
-        'pro': 'Professionnel',
+        'professionnel': 'Professionnel',
     }
 
     context = {
@@ -456,6 +450,7 @@ def certifications(request):
     }
 
     return render(request, 'academie/certifications.html', context)
+
 
 
 # ================================================
@@ -523,3 +518,72 @@ def support(request):
         messages.success(request, "✅ Ta demande a été envoyée. Notre équipe te répond sous 24h.")
         return redirect('support')
     return render(request, 'academie/support.html')
+
+
+# ================================================
+# VIEWS.PY — Espace Entreprises (B2B — vitrine partenariat, distinct du Recrutement)
+# ================================================
+
+def espace_entreprises(request):
+    """Page B2B — pourquoi une entreprise devrait collaborer avec BTA."""
+    from ..models import Competence, Ecole, Inscription
+    from django.contrib.auth.models import User
+    from django.contrib import messages
+    from django.shortcuts import redirect, render
+
+    total_talents_formes = User.objects.filter(acces_debloques__isnull=False).distinct().count()
+    total_competences_disponibles = Competence.objects.count()
+    ecoles_phares = Ecole.objects.filter(est_ecole_phare=True)
+
+    if request.method == 'POST':
+        Inscription.objects.create(
+            prenom=request.POST.get('prenom', ''),
+            nom=request.POST.get('nom', ''),
+            email=request.POST.get('email', ''),
+            telephone=request.POST.get('telephone', ''),
+            message=request.POST.get('message', ''),
+            sujet=f"Entreprise : {request.POST.get('entreprise', '')}",
+            source_lead='site',
+        )
+        messages.success(request, "✅ Merci ! Notre équipe partenariat vous recontacte sous 48h.")
+        return redirect('espace_entreprises')
+
+    return render(request, 'academie/espace_entreprises.html', {
+        'total_talents_formes': total_talents_formes,
+        'total_competences_disponibles': total_competences_disponibles,
+        'ecoles_phares': ecoles_phares,
+    })
+
+
+# ================================================
+# VIEWS.PY — Blog/Actualités — réutilise Article existant, filtré
+# ================================================
+
+def blog_actualites(request):
+    """Blog dédié — réutilise Article.type_contenu déjà existant."""
+    from ..models import Article
+    from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
+    articles = Article.objects.filter(
+        publie=True,
+        type_contenu__in=['actualite', 'article', 'etude_cas']
+    ).order_by('-date_publication')
+
+    en_vedette = articles.filter(en_vedette=True).first()
+
+    # Pagination (9 articles par page)
+    paginator = Paginator(articles.exclude(id=en_vedette.id) if en_vedette else articles, 9)
+    page_number = request.GET.get('page', 1)
+    try:
+        page_obj = paginator.page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+
+    return render(request, 'academie/blog_actualites.html', {
+        'page_obj': page_obj,
+        'articles': page_obj,
+        'article_vedette': en_vedette,
+        'total_articles': articles.count(),
+    })

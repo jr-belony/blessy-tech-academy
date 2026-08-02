@@ -254,52 +254,71 @@ def dashboard(request):
 # Recherche
 # ================================================
 
-def recherche(request):
-    """Recherche globale — formations, articles, forum — via PostgreSQL full-text search."""
-    terme = request.GET.get('q', '').strip()
+# ================================================
+# VIEWS.PY — Recherche avancée (filtres multi-critères)
+# Compatible avec le template recherche.html existant
+# ================================================
 
-    resultats_formations = []
-    resultats_articles = []
-    resultats_forum = []
+def recherche(request):
+    """Recherche globale enrichie — full-text + filtres école/niveau/gratuit."""
+    from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
+    from django.db.models import Q
+    from ..models import Formation, Article, Sujet, Ecole
+
+    terme = request.GET.get('q', '').strip()
+    ecole_id = request.GET.get('ecole', '')
+    niveau = request.GET.get('niveau', '')
+    gratuit_seulement = request.GET.get('gratuit') == '1'
+
+    resultats_formations = Formation.objects.filter(actif=True).select_related('ecole')
 
     if terme:
         query = SearchQuery(terme, config='french')
-
-        resultats_formations = Formation.objects.filter(actif=True).annotate(
-            rang=SearchRank(SearchVector('nom', weight='A', config='french') + SearchVector('description', weight='B', config='french'), query)
-        ).filter(rang__gt=0.01).order_by('-rang')[:10]
+        resultats_formations = resultats_formations.annotate(
+            rang=SearchRank(
+                SearchVector('nom', weight='A') + SearchVector('description', weight='B'),
+                query
+            )
+        ).filter(rang__gt=0.01).order_by('-rang')
 
         if not resultats_formations:
             resultats_formations = Formation.objects.filter(
-                actif=True
-            ).filter(Q(nom__icontains=terme) | Q(description__icontains=terme))[:10]
+                Q(actif=True, nom__icontains=terme) |
+                Q(actif=True, description__icontains=terme)
+            )
 
-        resultats_articles = Article.objects.filter(publie=True).annotate(
-            rang=SearchRank(SearchVector('titre', weight='A', config='french') + SearchVector('resume', weight='B', config='french'), query)
-        ).filter(rang__gt=0.01).order_by('-rang')[:10]
+    if ecole_id:
+        resultats_formations = resultats_formations.filter(ecole_id=ecole_id)
+    if niveau:
+        resultats_formations = resultats_formations.filter(niveau=niveau)
+    if gratuit_seulement:
+        resultats_formations = resultats_formations.filter(gratuit=True)
 
-        if not resultats_articles:
-            resultats_articles = Article.objects.filter(
-                publie=True
-            ).filter(Q(titre__icontains=terme) | Q(resume__icontains=terme))[:10]
+    # Limiter à 20 formations pour l'affichage
+    resultats_formations = resultats_formations[:20]
 
-        resultats_forum = Sujet.objects.annotate(
-            rang=SearchRank(SearchVector('titre', weight='A', config='french') + SearchVector('contenu', weight='B', config='french'), query)
-        ).filter(rang__gt=0.01).order_by('-rang')[:10]
+    resultats_articles = (
+        Article.objects.filter(publie=True, titre__icontains=terme)
+        .select_related('auteur')[:10]
+        if terme else []
+    )
 
-        if not resultats_forum:
-            resultats_forum = Sujet.objects.filter(
-                Q(titre__icontains=terme) | Q(contenu__icontains=terme)
-            )[:10]
-
-    nb_total = len(resultats_formations) + len(resultats_articles) + len(resultats_forum)
+    resultats_forum = (
+        Sujet.objects.filter(titre__icontains=terme)
+        .select_related('auteur')[:10]
+        if terme else []
+    )
 
     return render(request, 'academie/recherche.html', {
         'terme': terme,
         'resultats_formations': resultats_formations,
         'resultats_articles': resultats_articles,
         'resultats_forum': resultats_forum,
-        'nb_total': nb_total,
+        'ecoles': Ecole.objects.all(),
+        'ecole_filtre': ecole_id,
+        'niveau_filtre': niveau,
+        'gratuit_filtre': gratuit_seulement,
+        'nb_total': len(resultats_formations) + len(resultats_articles) + len(resultats_forum),
     })
 
 

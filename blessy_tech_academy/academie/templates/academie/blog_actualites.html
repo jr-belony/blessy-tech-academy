@@ -1,0 +1,33 @@
+<!-- ================================================
+     BLOG_ACTUALITES.HTML — Réutilise Article existant, vue dédiée
+     ================================================ -->
+{% extends 'academie/base.html' %}
+{% block titre %}Blog & Actualités — Blessy Tech Academy{% endblock %}
+{% block contenu %}
+<section style="background:linear-gradient(135deg,#050d1a,#003B8E); padding:60px 40px; text-align:center;">
+    <h1 style="color:white; font-size:32px;">📰 Blog & Actualités Tech</h1>
+</section>
+
+<div style="max-width:1000px; margin:0 auto; padding:50px 20px;">
+    {% if article_vedette %}
+    <a href="{% url 'detail_article' article_vedette.slug %}" style="display:block; background:linear-gradient(135deg,#003B8E,#1a3a6a); border-radius:20px; padding:32px; text-decoration:none; margin-bottom:32px;">
+        <span style="color:#00B5E2; font-size:12px; font-weight:700; text-transform:uppercase;">⭐ À la une</span>
+        <h2 style="color:white; margin:10px 0;">{{ article_vedette.titre }}</h2>
+        <p style="color:rgba(255,255,255,0.7); font-size:14px;">{{ article_vedette.resume }}</p>
+    </a>
+    {% endif %}
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:20px;">
+        {% for a in articles %}
+        <a href="{% url 'detail_article' a.slug %}" style="text-decoration:none; background:white; border:1.5px solid #e2e8f0; border-radius:14px; padding:20px;">
+            <span style="font-size:11px; font-weight:700; color:#00B5E2; text-transform:uppercase;">{{ a.get_type_contenu_display }}</span>
+            <h4 style="color:#003B8E; margin:8px 0;">{{ a.titre }}</h4>
+            <p style="font-size:13px; color:#718096;">{{ a.resume|truncatewords:15 }}</p>
+            <span style="font-size:11px; color:#a0aec0;">{{ a.date_publication|date:"d M Y" }} · {{ a.temps_lecture }} min</span>
+        </a>
+        {% empty %}
+        <p style="grid-column:1/-1; text-align:center; color:#a0aec0;">Premiers articles bientôt disponibles.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

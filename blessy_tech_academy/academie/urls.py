@@ -201,4 +201,8 @@ urlpatterns = [
     path('temoignages/', views.temoignages_page, name='temoignages_page'),
     path('evenements/', views.evenements, name='evenements'),
     path('faq/', views.faq_globale, name='faq_globale'),
+    path('faq-globale/', views.faq_globale, name='faq_globale_alt'),
+    path('espace-entreprises/', views.espace_entreprises, name='espace_entreprises'),
+    path('blog/', views.blog_actualites, name='blog_actualites'),
+    path('support/', views.contact, name='support'),
 ]

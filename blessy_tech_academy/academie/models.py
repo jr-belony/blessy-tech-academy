@@ -298,6 +298,7 @@ class Formation(models.Model):
     criteres_evaluation = models.TextField(blank=True, help_text="Ex: Quiz formatifs, projet pratique, examen final sommatif")
     public_cible = models.CharField(max_length=300, blank=True, help_text="Ex: Débutants, professionnels en reconversion")
     badge_associe = models.CharField(max_length=100, blank=True, help_text="Badge attribué à 100%")
+    delivre_certificat = models.BooleanField(default=True, help_text="Cocher si cette formation délivre un certificat")
     class Meta:
         app_label = 'academie'
         db_table = 'academie_formation'

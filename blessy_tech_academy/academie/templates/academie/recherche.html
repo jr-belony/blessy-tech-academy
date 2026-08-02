@@ -1,49 +1,20 @@
 <!-- ================================================
-     RECHERCHE.HTML — Résultats de recherche full-text
+     RECHERCHE.HTML — Filtres avancés (insérer après le <h1> existant)
      ================================================ -->
-{% extends 'academie/base.html' %}
-{% block titre %}Recherche : {{ terme }} — Blessy Tech Academy{% endblock %}
-{% block contenu %}
-
-<section style="max-width:800px; margin:0 auto; padding:60px 20px;">
-    <h1 style="color:var(--bleu-principal);">🔍 Résultats pour « {{ terme }} »</h1>
-    <p style="color:var(--gris-texte); margin-bottom:32px;">{{ nb_total }} résultat{{ nb_total|pluralize }} trouvé{{ nb_total|pluralize }}</p>
-
-    {% if resultats_formations %}
-    <div style="margin-bottom:32px;">
-        <h3 style="color:var(--bleu-electrique); font-size:14px; text-transform:uppercase;">📚 Formations</h3>
-        {% for f in resultats_formations %}
-        <a href="{% url 'detail_formation' f.id %}" style="display:block; padding:14px; background:white; border:1px solid #e2e8f0; border-radius:10px; margin-bottom:8px; text-decoration:none; color:var(--bleu-principal); font-weight:600;">
-            {{ f.icone }} {{ f.nom }}
-        </a>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    {% if resultats_articles %}
-    <div style="margin-bottom:32px;">
-        <h3 style="color:var(--bleu-electrique); font-size:14px; text-transform:uppercase;">📝 Articles</h3>
-        {% for a in resultats_articles %}
-        <a href="{% url 'detail_article' a.slug %}" style="display:block; padding:14px; background:white; border:1px solid #e2e8f0; border-radius:10px; margin-bottom:8px; text-decoration:none; color:var(--bleu-principal); font-weight:600;">
-            📄 {{ a.titre }}
-        </a>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    {% if resultats_forum %}
-    <div style="margin-bottom:32px;">
-        <h3 style="color:var(--bleu-electrique); font-size:14px; text-transform:uppercase;">💬 Forum</h3>
-        {% for s in resultats_forum %}
-        <a href="{% url 'forum_detail' s.id %}" style="display:block; padding:14px; background:white; border:1px solid #e2e8f0; border-radius:10px; margin-bottom:8px; text-decoration:none; color:var(--bleu-principal); font-weight:600;">
-            💬 {{ s.titre }}
-        </a>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    {% if nb_total == 0 and terme %}
-    <p style="text-align:center; color:var(--gris-texte); padding:40px;">Aucun résultat. Essaie d'autres mots-clés.</p>
-    {% endif %}
-</section>
-{% endblock %}
+<form method="GET" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:24px; padding:16px; background:var(--gris-clair); border-radius:12px;">
+    <input type="text" name="q" value="{{ terme }}" placeholder="Rechercher..." style="flex:1; min-width:200px; padding:10px; border:1.5px solid #e2e8f0; border-radius:8px;">
+    <select name="ecole" style="padding:10px; border:1.5px solid #e2e8f0; border-radius:8px;">
+        <option value="">Toutes les écoles</option>
+        {% for e in ecoles %}<option value="{{ e.id }}" {% if ecole_filtre == e.id|stringformat:"s" %}selected{% endif %}>{{ e.nom }}</option>{% endfor %}
+    </select>
+    <select name="niveau" style="padding:10px; border:1.5px solid #e2e8f0; border-radius:8px;">
+        <option value="">Tous niveaux</option>
+        <option value="debutant" {% if niveau_filtre == 'debutant' %}selected{% endif %}>Débutant</option>
+        <option value="intermediaire" {% if niveau_filtre == 'intermediaire' %}selected{% endif %}>Intermédiaire</option>
+        <option value="avance" {% if niveau_filtre == 'avance' %}selected{% endif %}>Avancé</option>
+    </select>
+    <label style="display:flex; align-items:center; gap:6px; font-size:13px;">
+        <input type="checkbox" name="gratuit" value="1" {% if gratuit_filtre %}checked{% endif %}> Gratuit seulement
+    </label>
+    <button type="submit" style="padding:10px 20px; background:#003B8E; color:white; border:none; border-radius:8px; font-weight:700;">Filtrer</button>
+</form>
