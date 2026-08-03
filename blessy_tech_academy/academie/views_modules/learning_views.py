@@ -76,6 +76,8 @@ def get_devise(request):
 
 def formations(request):
     """Page catalogue formations — paginée, avec cache invalidable par version."""
+    from ..models import Formation  # ← AJOUT (si pas déjà importé en haut)
+    
     ecole_id = request.GET.get('ecole')
     version_cache = cache.get('formations_cache_version', 1)
     page_num = request.GET.get('page', 1)
@@ -108,15 +110,23 @@ def formations(request):
         for formation in ecole.formations.all():
             formation.prix_htg = formation.prix_htg()
 
+    # --- FIL D'ARIANE ---
+    fil_ariane_etapes = [
+        {'nom': 'Formations', 'url': None},
+    ]
+
     contexte = {
         'ecoles': ecoles,
         'page_obj': ecoles,
         'parcours_list': parcours_list,
         'ecole_active': ecole_id,
-        'devise': devise,  # AJOUTÉ
+        'devise': devise,
+        'fil_ariane_etapes': fil_ariane_etapes,  # AJOUTÉ
+        'formations_count': Formation.objects.filter(actif=True).count(),  # AJOUTÉ
     }
     cache.set(cache_key, contexte, 600)  # 10 minutes
     return render(request, 'academie/formations.html', contexte)
+
 
 
 def detail_formation(request, formation_id):
@@ -162,10 +172,19 @@ def detail_formation(request, formation_id):
         for module in formation.modules.all():
             for lecon in module.lecons.all():
                 lecon.accessible = True
-
     # --- Gestion de la devise ---
     devise = get_devise(request)
     prix_htg = formation.prix_htg()
+    # --- FIL D'ARIANE ---
+    fil_ariane_etapes = [
+        {'nom': 'Formations', 'url': '/formations/'},
+    ]
+    if formation.ecole:
+        fil_ariane_etapes.append({
+            'nom': formation.ecole.nom,
+            'url': f'/formations/?ecole={formation.ecole.id}'
+        })
+    fil_ariane_etapes.append({'nom': formation.nom, 'url': None})
 
     return render(
         request,
@@ -182,11 +201,11 @@ def detail_formation(request, formation_id):
             "duree_totale_heures": round(duree_totale_minutes / 60, 1),
             "formations_similaires": formations_similaires,
             "debouches_liste": formation.debouches_liste,
-            "devise": devise,      # AJOUTÉ
-            "prix_htg": prix_htg,  # AJOUTÉ
+            "devise": devise,
+            "prix_htg": prix_htg,
+            "fil_ariane_etapes": fil_ariane_etapes,  # AJOUTÉ
         },
     )
-
 
 def detail_formation_slug(request, formation_slug):
     formation = Formation.objects.filter(slug=formation_slug, actif=True).first()

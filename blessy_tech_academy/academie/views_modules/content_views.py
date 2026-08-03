@@ -69,15 +69,21 @@ def detail_article(request, slug):
         id=article.id
     )[:3]
 
+    # --- FIL D'ARIANE ---
+    fil_ariane_etapes = [
+        {'nom': 'Blog & Actualités', 'url': '/blog/'},
+        {'nom': article.titre, 'url': None},
+    ]
+
     return render(
         request,
         "academie/detail_article.html",
         {
             "article": article,
             "articles_lies": articles_lies,
+            "fil_ariane_etapes": fil_ariane_etapes,  # AJOUTÉ
         },
     )
-
 
 # ================================================
 # Espace Recrutement / Portfolio
@@ -600,9 +606,15 @@ def blog_actualites(request):
     except EmptyPage:
         page_obj = paginator.page(paginator.num_pages)
 
+    # --- FIL D'ARIANE ---
+    fil_ariane_etapes = [
+        {'nom': 'Blog & Actualités', 'url': None},
+    ]
+
     return render(request, 'academie/blog_actualites.html', {
         'page_obj': page_obj,
         'articles': page_obj,
         'article_vedette': en_vedette,
         'total_articles': articles.count(),
+        'fil_ariane_etapes': fil_ariane_etapes,  # AJOUTÉ
     })

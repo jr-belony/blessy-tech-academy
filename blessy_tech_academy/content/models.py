@@ -219,6 +219,37 @@ class Certificat(models.Model):
     def save(self, *args, **kwargs):
         if not self.numero:
             self.numero = self._generer_numero_lisible()
+
+        # duree_heures auto-calculée
+        if not self.duree_heures and self.formation:
+            # Calcul réel basé sur les leçons existantes si disponibles
+            from django.db.models import Sum
+            from academie.models import Lecon
+            
+            total_minutes = Lecon.objects.filter(
+                module__formation=self.formation
+            ).aggregate(t=Sum('duree_minutes'))['t'] or 0
+
+            if total_minutes > 0:
+                self.duree_heures = round(total_minutes / 60)
+            else:
+                # Fallback si aucune leçon chronométrée : estimation via duree
+                if self.formation.duree_unite == 'heures':
+                    self.duree_heures = self.formation.duree
+                elif self.formation.duree_unite == 'jours':
+                    self.duree_heures = self.formation.duree * 8  # 8h par jour
+                elif self.formation.duree_unite == 'semaines':
+                    self.duree_heures = self.formation.duree * 20  # 20h par semaine
+                else:  # mois
+                    self.duree_heures = self.formation.duree * 20  # 20h par mois
+
+        if not self.resultat_final and self.examen_origine:
+            derniere_tentative = self.examen_origine.tentatives.filter(
+                utilisateur=self.utilisateur, reussi=True
+            ).order_by('-date_passage').first()
+            if derniere_tentative:
+                self.resultat_final = derniere_tentative.pourcentage
+
         super().save(*args, **kwargs)
         if not self.qr_code_image:
             self._generer_qr_code()

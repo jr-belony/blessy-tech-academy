@@ -9,12 +9,12 @@
     <!-- ================================================
     BASE.HTML — Surcharge CSS dynamique selon Academie active
     ================================================ -->
-<style>
-    :root {
-        --bleu-principal: {{ couleur_principale_dynamique }};
-        --bleu-electrique: {{ couleur_accent_dynamique }};
-    }
-</style>
+    <style>
+        :root {
+            --bleu-principal: {{ couleur_principale_dynamique }};
+            --bleu-electrique: {{ couleur_accent_dynamique }};
+        }
+    </style>
     <link rel="stylesheet" href="{% static 'academie/style.css' %}">
     <link rel="stylesheet" href="{% static 'academie/css/animations.css' %}">
     <link rel="stylesheet" href="{% static 'academie/css/dark-mode.css' %}">
@@ -59,14 +59,14 @@
     </script>
 
     <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "EducationalOrganization",
-        "name": "Blessy Tech Academy",
-        "url": "https://blessy-tech-academy-production.up.railway.app",
-        "description": "École de haute technologie moderne d'Haïti",
-        "address": {"@type": "PostalAddress", "addressLocality": "Pétionville", "addressCountry": "HT"}
-    }
+        {
+            "@context": "https://schema.org",
+            "@type": "EducationalOrganization",
+            "name": "Blessy Tech Academy",
+            "url": "https://blessy-tech-academy-production.up.railway.app",
+            "description": "École de haute technologie moderne d'Haïti",
+            "address": {"@type": "PostalAddress", "addressLocality": "Pétionville", "addressCountry": "HT"}
+        }
     </script>
 </head>
 <body>
@@ -100,16 +100,95 @@
                     <div class="mega-menu-inner">
                         <div class="mega-col">
                             <p class="mega-col-titre">📚 {% trans "Continuer d'apprendre" %}</p>
-                            <a href="{% url 'formations' %}" class="mega-lien"><span class="mega-lien-icone">📖</span><div><span class="mega-lien-nom">{% trans "Toutes les formations" %}</span><span class="mega-lien-desc">{% trans "Catalogue complet" %}</span></div></a>
-                            <a href="{% url 'parcours' %}" class="mega-lien"><span class="mega-lien-icone">🚀</span><div><span class="mega-lien-nom">{% trans "Parcours Professionnels" %}</span><span class="mega-lien-desc">{% trans "Programmes multi-formations" %}</span></div></a>
-                            <a href="{% url 'simulateur' %}" class="mega-lien"><span class="mega-lien-icone">🎯</span><div><span class="mega-lien-nom">{% trans "Simulateur de Carrière" %}</span><span class="mega-lien-desc">{% trans "Découvre ton métier idéal" %}</span></div></a>
+                            <a href="{% url 'formations' %}" class="mega-lien">
+                                <span class="mega-lien-icone">📖</span>
+                                <div>
+                                    <span class="mega-lien-nom">{% trans "Toutes les formations" %}</span>
+                                    <span class="mega-lien-desc">{% trans "Catalogue complet" %}</span>
+                                </div>
+                            </a>
+                            <a href="{% url 'parcours' %}" class="mega-lien">
+                                <span class="mega-lien-icone">🚀</span>
+                                <div>
+                                    <span class="mega-lien-nom">{% trans "Parcours Professionnels" %}</span>
+                                    <span class="mega-lien-desc">{% trans "Programmes multi-formations" %}</span>
+                                </div>
+                            </a>
+                            <a href="{% url 'simulateur' %}" class="mega-lien">
+                                <span class="mega-lien-icone">🎯</span>
+                                <div>
+                                    <span class="mega-lien-nom">{% trans "Simulateur de Carrière" %}</span>
+                                    <span class="mega-lien-desc">{% trans "Découvre ton métier idéal" %}</span>
+                                </div>
+                            </a>
                         </div>
+
                         <div class="mega-col">
                             <p class="mega-col-titre">👤 {% trans "Mon espace" %}</p>
-                            <a href="{% url 'mon_portfolio' %}" class="mega-lien"><span class="mega-lien-icone">🎨</span><div><span class="mega-lien-nom">{% trans "Mon Portfolio" %}</span><span class="mega-lien-desc">{% trans "Mes projets réalisés" %}</span></div></a>
-                            <a href="{% url 'espace_recrutement' %}" class="mega-lien"><span class="mega-lien-icone">💼</span><div><span class="mega-lien-nom">{% trans "Espace Recrutement" %}</span><span class="mega-lien-desc">{% trans "Vitrine des talents BTA" %}</span></div></a>
-                            <a href="{% url 'classement' %}" class="mega-lien"><span class="mega-lien-icone">🏆</span><div><span class="mega-lien-nom">{% trans "Classement" %}</span><span class="mega-lien-desc">{% trans "Les héros du forum" %}</span></div></a>
+                            <a href="{% url 'mon_portfolio' %}" class="mega-lien">
+                                <span class="mega-lien-icone">🎨</span>
+                                <div>
+                                    <span class="mega-lien-nom">{% trans "Mon Portfolio" %}</span>
+                                    <span class="mega-lien-desc">{% trans "Mes projets réalisés" %}</span>
+                                </div>
+                            </a>
+                            <a href="{% url 'mon_profil_competences' %}" class="mega-lien">
+                                <span class="mega-lien-icone">🎯</span>
+                                <div>
+                                    <span class="mega-lien-nom">{% trans "Mes Compétences" %}</span>
+                                    <span class="mega-lien-desc">{% trans "Preuves validées" %}</span>
+                                </div>
+                            </a>
+                            <a href="{% url 'mon_parrainage' %}" class="mega-lien">
+                                <span class="mega-lien-icone">🤝</span>
+                                <div>
+                                    <span class="mega-lien-nom">{% trans "Parrainer un ami" %}</span>
+                                    <span class="mega-lien-desc">{% trans "Invite tes proches" %}</span>
+                                </div>
+                            </a>
+                            <a href="{% url 'mes_commandes' %}" class="mega-lien">
+                                <span class="mega-lien-icone">🧾</span>
+                                <div>
+                                    <span class="mega-lien-nom">{% trans "Mes commandes" %}</span>
+                                    <span class="mega-lien-desc">{% trans "Factures et paiements" %}</span>
+                                </div>
+                            </a>
                         </div>
+
+                        <!-- ====== NOUVELLE COLONNE : Découvrir (connecté) ====== -->
+                        <div class="mega-col">
+                            <p class="mega-col-titre">📊 {% trans "Découvrir" %}</p>
+                            <a href="{% url 'certifications' %}" class="mega-lien">
+                                <span class="mega-lien-icone">🏆</span>
+                                <div>
+                                    <span class="mega-lien-nom">{% trans "Certifications" %}</span>
+                                    <span class="mega-lien-desc">{% trans "Catalogue complet" %}</span>
+                                </div>
+                            </a>
+                            <a href="{% url 'evenements' %}" class="mega-lien">
+                                <span class="mega-lien-icone">📅</span>
+                                <div>
+                                    <span class="mega-lien-nom">{% trans "Événements" %}</span>
+                                    <span class="mega-lien-desc">{% trans "Webinaires, ateliers" %}</span>
+                                </div>
+                            </a>
+                            <a href="{% url 'espace_recrutement' %}" class="mega-lien">
+                                <span class="mega-lien-icone">💼</span>
+                                <div>
+                                    <span class="mega-lien-nom">{% trans "Espace Recrutement" %}</span>
+                                    <span class="mega-lien-desc">{% trans "Vitrine des talents" %}</span>
+                                </div>
+                            </a>
+                            <a href="{% url 'hub_explorer' %}" class="mega-lien">
+                                <span class="mega-lien-icone">🧭</span>
+                                <div>
+                                    <span class="mega-lien-nom">{% trans "Tout explorer" %}</span>
+                                    <span class="mega-lien-desc">{% trans "Vue d'ensemble" %}</span>
+                                </div>
+                            </a>
+                        </div>
+                        <!-- ====== FIN NOUVELLE COLONNE ====== -->
+
                         <div class="mega-col mega-col-cta">
                             <div class="mega-cta-card">
                                 <div class="mega-cta-emoji">🤖</div>
@@ -151,7 +230,10 @@
                 <div class="user-dropdown" id="user-dropdown">
                     <div class="user-dropdown-header">
                         <div class="user-dropdown-avatar">{{ user.first_name|first|upper|default:user.username|first|upper }}</div>
-                        <div><div class="user-dropdown-nom">{{ user.first_name }} {{ user.last_name }}</div><div class="user-dropdown-email">{{ user.email|truncatechars:25 }}</div></div>
+                        <div>
+                            <div class="user-dropdown-nom">{{ user.first_name }} {{ user.last_name }}</div>
+                            <div class="user-dropdown-email">{{ user.email|truncatechars:25 }}</div>
+                        </div>
                     </div>
                     <div class="user-dropdown-liens">
                         <a href="{% url 'dashboard' %}" class="user-dropdown-lien"><span>📊</span> {% trans "Mon Dashboard" %}</a>
@@ -200,39 +282,102 @@
                         <!-- Colonne 1 : Nos Écoles -->
                         <div class="mega-col">
                             <p class="mega-col-titre">🏫 {% trans "Nos Écoles" %}</p>
-                            <a href="{% url 'formations' %}" class="mega-lien"><span class="mega-lien-icone">💻</span><div><span class="mega-lien-nom">{% trans "Développement" %}</span><span class="mega-lien-desc">Python, Web, Bases de données</span></div></a>
-                            <a href="{% url 'formations' %}" class="mega-lien"><span class="mega-lien-icone">🤖</span><div><span class="mega-lien-nom">{% trans "Intelligence Artificielle" %}</span><span class="mega-lien-desc">IA, Prompt Engineering</span></div></a>
-                            <a href="{% url 'formations' %}" class="mega-lien"><span class="mega-lien-icone">🎨</span><div><span class="mega-lien-nom">{% trans "Créative" %}</span><span class="mega-lien-desc">Design, Contenu, Branding</span></div></a>
-                            <a href="{% url 'formations' %}" class="mega-lien"><span class="mega-lien-icone">📊</span><div><span class="mega-lien-nom">{% trans "Business Numérique" %}</span><span class="mega-lien-desc">Marketing, Entrepreneuriat</span></div></a>
+                            <a href="{% url 'formations' %}" class="mega-lien">
+                                <span class="mega-lien-icone">💻</span>
+                                <div>
+                                    <span class="mega-lien-nom">{% trans "Développement" %}</span>
+                                    <span class="mega-lien-desc">Python, Web, Bases de données</span>
+                                </div>
+                            </a>
+                            <a href="{% url 'formations' %}" class="mega-lien">
+                                <span class="mega-lien-icone">🤖</span>
+                                <div>
+                                    <span class="mega-lien-nom">{% trans "Intelligence Artificielle" %}</span>
+                                    <span class="mega-lien-desc">IA, Prompt Engineering</span>
+                                </div>
+                            </a>
+                            <a href="{% url 'formations' %}" class="mega-lien">
+                                <span class="mega-lien-icone">🎨</span>
+                                <div>
+                                    <span class="mega-lien-nom">{% trans "Créative" %}</span>
+                                    <span class="mega-lien-desc">Design, Contenu, Branding</span>
+                                </div>
+                            </a>
+                            <a href="{% url 'formations' %}" class="mega-lien">
+                                <span class="mega-lien-icone">📊</span>
+                                <div>
+                                    <span class="mega-lien-nom">{% trans "Business Numérique" %}</span>
+                                    <span class="mega-lien-desc">Marketing, Entrepreneuriat</span>
+                                </div>
+                            </a>
                         </div>
+
                         <!-- Colonne 2 : Accès rapide -->
                         <div class="mega-col">
                             <p class="mega-col-titre">⚡ {% trans "Accès rapide" %}</p>
-                            <a href="{% url 'formations_gratuites' %}" class="mega-lien"><span class="mega-lien-icone">🎁</span><div><span class="mega-lien-nom">{% trans "Formations Gratuites" %}</span><span class="mega-lien-desc">{% trans "Commence sans payer" %}</span></div></a>
-                            <a href="{% url 'parcours' %}" class="mega-lien"><span class="mega-lien-icone">🚀</span><div><span class="mega-lien-nom">{% trans "Parcours Professionnels" %}</span><span class="mega-lien-desc">{% trans "Programmes complets" %}</span></div></a>
-                            <a href="{% url 'certifications' %}" class="mega-lien"><span class="mega-lien-icone">🏆</span><div><span class="mega-lien-nom">{% trans "Certifications" %}</span><span class="mega-lien-desc">{% trans "Catalogue vérifiable" %}</span></div></a>
-                            <a href="{% url 'simulateur' %}" class="mega-lien"><span class="mega-lien-icone">🎯</span><div><span class="mega-lien-nom">{% trans "Simulateur de Carrière" %}</span><span class="mega-lien-desc">{% trans "Découvre ton métier" %}</span></div></a>
+                            <a href="{% url 'formations_gratuites' %}" class="mega-lien">
+                                <span class="mega-lien-icone">🎁</span>
+                                <div>
+                                    <span class="mega-lien-nom">{% trans "Formations Gratuites" %}</span>
+                                    <span class="mega-lien-desc">{% trans "Commence sans payer" %}</span>
+                                </div>
+                            </a>
+                            <a href="{% url 'parcours' %}" class="mega-lien">
+                                <span class="mega-lien-icone">🚀</span>
+                                <div>
+                                    <span class="mega-lien-nom">{% trans "Parcours Professionnels" %}</span>
+                                    <span class="mega-lien-desc">{% trans "Programmes complets" %}</span>
+                                </div>
+                            </a>
+                            <a href="{% url 'certifications' %}" class="mega-lien">
+                                <span class="mega-lien-icone">🏆</span>
+                                <div>
+                                    <span class="mega-lien-nom">{% trans "Certifications" %}</span>
+                                    <span class="mega-lien-desc">{% trans "Catalogue vérifiable" %}</span>
+                                </div>
+                            </a>
+                            <a href="{% url 'simulateur' %}" class="mega-lien">
+                                <span class="mega-lien-icone">🎯</span>
+                                <div>
+                                    <span class="mega-lien-nom">{% trans "Simulateur de Carrière" %}</span>
+                                    <span class="mega-lien-desc">{% trans "Découvre ton métier" %}</span>
+                                </div>
+                            </a>
                         </div>
-                        <!-- Colonne 3 : Preuve & Communauté (NOUVELLE) -->
+
+                        <!-- Colonne 3 : Preuve & Communauté -->
                         <div class="mega-col">
                             <p class="mega-col-titre">📊 {% trans "Preuve & Communauté" %}</p>
                             <a href="{% url 'resultats_et_preuves' %}" class="mega-lien">
                                 <span class="mega-lien-icone">📊</span>
-                                <div><span class="mega-lien-nom">{% trans "Résultats réels" %}</span><span class="mega-lien-desc">{% trans "Données 100% vérifiées" %}</span></div>
+                                <div>
+                                    <span class="mega-lien-nom">{% trans "Résultats réels" %}</span>
+                                    <span class="mega-lien-desc">{% trans "Données 100% vérifiées" %}</span>
+                                </div>
                             </a>
                             <a href="{% url 'galerie_projets' %}" class="mega-lien">
                                 <span class="mega-lien-icone">💼</span>
-                                <div><span class="mega-lien-nom">{% trans "Projets des apprenants" %}</span><span class="mega-lien-desc">{% trans "Preuves concrètes" %}</span></div>
+                                <div>
+                                    <span class="mega-lien-nom">{% trans "Projets des apprenants" %}</span>
+                                    <span class="mega-lien-desc">{% trans "Preuves concrètes" %}</span>
+                                </div>
                             </a>
                             <a href="{% url 'temoignages_page' %}" class="mega-lien">
                                 <span class="mega-lien-icone">💬</span>
-                                <div><span class="mega-lien-nom">{% trans "Témoignages" %}</span><span class="mega-lien-desc">{% trans "Expériences authentiques" %}</span></div>
+                                <div>
+                                    <span class="mega-lien-nom">{% trans "Témoignages" %}</span>
+                                    <span class="mega-lien-desc">{% trans "Expériences authentiques" %}</span>
+                                </div>
                             </a>
                             <a href="{% url 'blog_actualites' %}" class="mega-lien">
                                 <span class="mega-lien-icone">📰</span>
-                                <div><span class="mega-lien-nom">{% trans "Blog & Actualités" %}</span><span class="mega-lien-desc">{% trans "Veille technologique" %}</span></div>
+                                <div>
+                                    <span class="mega-lien-nom">{% trans "Blog & Actualités" %}</span>
+                                    <span class="mega-lien-desc">{% trans "Veille technologique" %}</span>
+                                </div>
                             </a>
                         </div>
+
                         <!-- Colonne 4 : CTA -->
                         <div class="mega-col mega-col-cta">
                             <div class="mega-cta-card">
@@ -292,7 +437,10 @@
         {% if user.is_authenticated %}
         <div class="drawer-user">
             <div class="drawer-user-avatar">{{ user.first_name|first|upper|default:user.username|first|upper }}</div>
-            <div><div class="drawer-user-nom">{{ user.first_name|default:user.username }}</div><div class="drawer-user-role">{% trans "Étudiant BTA" %}</div></div>
+            <div>
+                <div class="drawer-user-nom">{{ user.first_name|default:user.username }}</div>
+                <div class="drawer-user-role">{% trans "Étudiant BTA" %}</div>
+            </div>
         </div>
         <nav class="drawer-nav">
             <a href="{% url 'dashboard' %}" class="drawer-lien">📊 {% trans "Dashboard" %}</a>
@@ -318,6 +466,7 @@
             {% endif %}
             <a href="{% url 'deconnexion' %}" class="drawer-lien drawer-lien-danger">👋 {% trans "Se déconnecter" %}</a>
         </nav>
+
         {% else %}
         <nav class="drawer-nav">
             <a href="{% url 'accueil' %}" class="drawer-lien" onclick="fermerMenu()">🏠 {% trans "Accueil" %}</a>
@@ -366,6 +515,7 @@
 </div>
 
 <main>
+    
     {% if messages %}
     <div class="messages-container">
         {% for message in messages %}<div class="message message-{{ message.tags }}">{{ message }}</div>{% endfor %}
@@ -435,310 +585,959 @@
         <p>&copy; 2026 Blessy Tech Academy — {% trans "Tous droits réservés" %}</p>
     </div>
 </footer>
+
 <style>
+    /* ================================================
+       CSS HEADER v3.1 — Corrigé responsive mobile complet
+       ================================================ */
+    .header-bta {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        background: rgba(11, 36, 71, 0.95);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        transition: all 0.3s ease;
+    }
+    .header-bta.scrolled {
+        background: rgba(5, 13, 26, 0.98);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .header-inner {
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: 0 40px;
+        height: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+    }
 
+    .header-logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        flex-shrink: 0;
+    }
+    .logo-icon-wrapper {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #00B4D8, #0090b8);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+        box-shadow: 0 4px 14px rgba(0,180,216,0.4);
+    }
+    .logo-textes {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.1;
+    }
+    .logo-principal {
+        font-size: 16px;
+        font-weight: 800;
+        color: white;
+        letter-spacing: -0.3px;
+    }
+    .logo-secondaire {
+        font-size: 11px;
+        font-weight: 500;
+        color: rgba(255,255,255,0.5);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
 
-/* ================================================
-   CSS HEADER v3.1 — Corrigé responsive mobile complet
-   ================================================ */
-.header-bta { position: sticky; top: 0; z-index: 1000; background: rgba(11, 36, 71, 0.95); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.06); transition: all 0.3s ease; }
-.header-bta.scrolled { background: rgba(5, 13, 26, 0.98); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
-.header-inner { max-width: 1300px; margin: 0 auto; padding: 0 40px; height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .header-nav {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex: 1;
+        justify-content: center;
+    }
+    .nav-lien {
+        position: relative;
+        color: rgba(255,255,255,0.75);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        padding: 8px 14px;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+    }
+    .nav-lien:hover {
+        color: white;
+        background: rgba(255,255,255,0.08);
+    }
+    .nav-actif {
+        color: white;
+        background: rgba(0,180,216,0.12);
+    }
+    .nav-actif::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 20px;
+        height: 2px;
+        background: #00B4D8;
+        border-radius: 2px;
+    }
+    .nav-lien-ai {
+        background: rgba(0,180,216,0.1);
+        border: 1px solid rgba(0,180,216,0.2);
+        color: #00B4D8;
+        font-weight: 600;
+    }
+    .nav-lien-ai:hover {
+        background: rgba(0,180,216,0.2);
+        color: #00B4D8;
+    }
+    .bai-pulse-dot {
+        width: 6px;
+        height: 6px;
+        background: #22c55e;
+        border-radius: 50%;
+        animation: pulse-dot-header 2s infinite;
+    }
+    @keyframes pulse-dot-header {
+        0%,100%{opacity:1;transform:scale(1);}
+        50%{opacity:0.5;transform:scale(0.8);}
+    }
 
-.header-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; flex-shrink: 0; }
-.logo-icon-wrapper { width: 40px; height: 40px; background: linear-gradient(135deg, #00B4D8, #0090b8); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; box-shadow: 0 4px 14px rgba(0,180,216,0.4); }
-.logo-textes { display: flex; flex-direction: column; line-height: 1.1; }
-.logo-principal { font-size: 16px; font-weight: 800; color: white; letter-spacing: -0.3px; }
-.logo-secondaire { font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.5); letter-spacing: 1px; text-transform: uppercase; }
+    .nav-dropdown-wrapper {
+        position: relative;
+    }
+    .dropdown-chevron {
+        transition: transform 0.2s;
+        opacity: 0.6;
+    }
+    .nav-dropdown-wrapper:hover .dropdown-chevron {
+        transform: rotate(180deg);
+        opacity: 1;
+    }
 
-.header-nav { display: flex; align-items: center; gap: 4px; flex: 1; justify-content: center; }
-.nav-lien { position: relative; color: rgba(255,255,255,0.75); text-decoration: none; font-size: 14px; font-weight: 500; padding: 8px 14px; border-radius: 8px; transition: all 0.2s ease; background: none; border: none; cursor: pointer; font-family: inherit; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
-.nav-lien:hover { color: white; background: rgba(255,255,255,0.08); }
-.nav-actif { color: white; background: rgba(0,180,216,0.12); }
-.nav-actif::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 20px; height: 2px; background: #00B4D8; border-radius: 2px; }
-.nav-lien-ai { background: rgba(0,180,216,0.1); border: 1px solid rgba(0,180,216,0.2); color: #00B4D8; font-weight: 600; }
-.nav-lien-ai:hover { background: rgba(0,180,216,0.2); color: #00B4D8; }
-.bai-pulse-dot { width: 6px; height: 6px; background: #22c55e; border-radius: 50%; animation: pulse-dot-header 2s infinite; }
-@keyframes pulse-dot-header { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.5;transform:scale(0.8);} }
+    /* ===== MÉGA-MENU — VERSION 4 COLONNES ===== */
+    .mega-menu {
+        position: absolute;
+        top: calc(100% + 12px);
+        left: 50%;
+        transform: translateX(-50%) translateY(-8px);
+        width: 920px;
+        background: rgba(11,36,71,0.98);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 20px;
+        box-shadow: 0 40px 80px rgba(0,0,0,0.4);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        pointer-events: none;
+        z-index: 1000;
+    }
+    .mega-menu-inner {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 0.8fr;
+        gap: 0;
+        padding: 8px;
+    }
+    .mega-col {
+        padding: 20px;
+    }
+    .mega-col:not(:last-child) {
+        border-right: 1px solid rgba(255,255,255,0.06);
+    }
+    .mega-col-titre {
+        font-size: 11px;
+        font-weight: 700;
+        color: rgba(255,255,255,0.4);
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin-bottom: 12px;
+    }
+    .mega-lien {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 10px;
+        border-radius: 10px;
+        text-decoration: none;
+        transition: background 0.2s;
+        margin-bottom: 2px;
+    }
+    .mega-lien:hover {
+        background: rgba(255,255,255,0.07);
+    }
+    .mega-lien-icone {
+        font-size: 20px;
+        width: 36px;
+        height: 36px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .mega-lien-nom {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: rgba(255,255,255,0.9);
+        margin-bottom: 2px;
+    }
+    .mega-lien-desc {
+        display: block;
+        font-size: 11px;
+        color: rgba(255,255,255,0.4);
+    }
+    .mega-col-cta {
+        display: flex;
+        align-items: center;
+    }
+    .mega-cta-card {
+        background: linear-gradient(135deg, rgba(0,180,216,0.1), rgba(11,36,71,0.5));
+        border: 1px solid rgba(0,180,216,0.2);
+        border-radius: 16px;
+        padding: 24px 20px;
+        text-align: center;
+        width: 100%;
+    }
+    .mega-cta-emoji {
+        font-size: 36px;
+        margin-bottom: 12px;
+    }
+    .mega-cta-titre {
+        font-size: 15px;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 8px;
+    }
+    .mega-cta-desc {
+        font-size: 12px;
+        color: rgba(255,255,255,0.55);
+        line-height: 1.5;
+        margin-bottom: 16px;
+    }
+    .mega-cta-btn {
+        display: block;
+        background: linear-gradient(135deg, #FF6B35, #e85a2a);
+        color: white;
+        padding: 10px 16px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 700;
+    }
 
-.nav-dropdown-wrapper { position: relative; }
-.dropdown-chevron { transition: transform 0.2s; opacity: 0.6; }
-.nav-dropdown-wrapper:hover .dropdown-chevron { transform: rotate(180deg); opacity: 1; }
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+    .icon-btn {
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.12);
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        position: relative;
+        text-decoration: none;
+    }
+    .icon-btn:hover {
+        background: rgba(255,255,255,0.15);
+    }
+    .lang-selector-desktop {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+    }
+    .lang-link {
+        text-decoration: none;
+        font-size: 15px;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+    }
+    .lang-link:hover, .lang-active {
+        opacity: 1;
+    }
 
-/* ===== MÉGA-MENU — VERSION 4 COLONNES ===== */
-.mega-menu { position: absolute; top: calc(100% + 12px); left: 50%; transform: translateX(-50%) translateY(-8px); width: 920px; background: rgba(11,36,71,0.98); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; box-shadow: 0 40px 80px rgba(0,0,0,0.4); opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); pointer-events: none; z-index: 1000; }
-.mega-menu-inner { display: grid; grid-template-columns: 1fr 1fr 1fr 0.8fr; gap: 0; padding: 8px; }
-.mega-col { padding: 20px; }
-.mega-col:not(:last-child) { border-right: 1px solid rgba(255,255,255,0.06); }
-.mega-col-titre { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; }
-.mega-lien { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 10px; text-decoration: none; transition: background 0.2s; margin-bottom: 2px; }
-.mega-lien:hover { background: rgba(255,255,255,0.07); }
-.mega-lien-icone { font-size: 20px; width: 36px; height: 36px; background: rgba(255,255,255,0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.mega-lien-nom { display: block; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9); margin-bottom: 2px; }
-.mega-lien-desc { display: block; font-size: 11px; color: rgba(255,255,255,0.4); }
-.mega-col-cta { display: flex; align-items: center; }
-.mega-cta-card { background: linear-gradient(135deg, rgba(0,180,216,0.1), rgba(11,36,71,0.5)); border: 1px solid rgba(0,180,216,0.2); border-radius: 16px; padding: 24px 20px; text-align: center; width: 100%; }
-.mega-cta-emoji { font-size: 36px; margin-bottom: 12px; }
-.mega-cta-titre { font-size: 15px; font-weight: 700; color: white; margin-bottom: 8px; }
-.mega-cta-desc { font-size: 12px; color: rgba(255,255,255,0.55); line-height: 1.5; margin-bottom: 16px; }
-.mega-cta-btn { display: block; background: linear-gradient(135deg, #FF6B35, #e85a2a); color: white; padding: 10px 16px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 700; }
+    .btn-header-connexion {
+        color: rgba(255,255,255,0.8);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        padding: 8px 16px;
+        border-radius: 8px;
+    }
+    .btn-header-connexion:hover {
+        color: white;
+        background: rgba(255,255,255,0.08);
+    }
+    .btn-header-cta {
+        background: linear-gradient(135deg, #FF6B35, #e85a2a);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
+        box-shadow: 0 4px 14px rgba(255,107,53,0.35);
+        transition: all 0.3s;
+    }
+    .btn-header-cta:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(255,107,53,0.45);
+    }
 
-.header-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-.icon-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: white; width: 40px; height: 40px; border-radius: 10px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; position: relative; text-decoration: none; }
-.icon-btn:hover { background: rgba(255,255,255,0.15); }
-.lang-selector-desktop { display: flex; gap: 6px; align-items: center; }
-.lang-link { text-decoration: none; font-size: 15px; opacity: 0.7; transition: opacity 0.2s; }
-.lang-link:hover, .lang-active { opacity: 1; }
+    .notif-wrapper {
+        position: relative;
+    }
+    .notif-badge {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        background: #FF6B35;
+        color: white;
+        font-size: 10px;
+        font-weight: 800;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .notif-dropdown {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        width: 260px;
+        background: rgba(11,36,71,0.98);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-8px);
+        transition: all 0.3s;
+        z-index: 1000;
+        overflow: hidden;
+    }
+    .notif-dropdown.ouvert {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+    .notif-header {
+        padding: 16px;
+        font-weight: 700;
+        color: white;
+        font-size: 14px;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .notif-liste {
+        padding: 8px;
+    }
+    .notif-voir-tout {
+        display: block;
+        padding: 10px 12px;
+        color: #00B4D8;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+    }
 
-.btn-header-connexion { color: rgba(255,255,255,0.8); text-decoration: none; font-size: 14px; font-weight: 500; padding: 8px 16px; border-radius: 8px; }
-.btn-header-connexion:hover { color: white; background: rgba(255,255,255,0.08); }
-.btn-header-cta { background: linear-gradient(135deg, #FF6B35, #e85a2a); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 700; white-space: nowrap; box-shadow: 0 4px 14px rgba(255,107,53,0.35); transition: all 0.3s; }
-.btn-header-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,107,53,0.45); }
+    .user-menu-wrapper {
+        position: relative;
+    }
+    .user-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 10px;
+        padding: 6px 12px 6px 6px;
+        cursor: pointer;
+        color: white;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .user-btn:hover {
+        background: rgba(255,255,255,0.14);
+    }
+    .user-avatar {
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(135deg, #00B4D8, #0090b8);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 13px;
+        color: white;
+    }
+    .user-nom {
+        max-width: 80px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .user-dropdown {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        width: 260px;
+        background: rgba(11,36,71,0.98);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-8px);
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        z-index: 1000;
+        overflow: hidden;
+    }
+    .user-dropdown.ouvert {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+    .user-dropdown-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .user-dropdown-avatar {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #00B4D8, #FF6B35);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 15px;
+        color: white;
+        flex-shrink: 0;
+    }
+    .user-dropdown-nom {
+        font-size: 14px;
+        font-weight: 700;
+        color: white;
+    }
+    .user-dropdown-email {
+        font-size: 11px;
+        color: rgba(255,255,255,0.45);
+        margin-top: 2px;
+    }
+    .user-dropdown-liens {
+        padding: 8px;
+    }
+    .user-dropdown-lien {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 13px;
+        color: rgba(255,255,255,0.8);
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    .user-dropdown-lien:hover {
+        background: rgba(255,255,255,0.07);
+        color: white;
+    }
+    .user-dropdown-footer {
+        padding: 8px;
+        border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .user-dropdown-deconnexion {
+        display: block;
+        padding: 10px 12px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 13px;
+        color: #fc8181;
+        font-weight: 500;
+    }
+    .user-dropdown-deconnexion:hover {
+        background: rgba(252,129,129,0.1);
+    }
 
-.notif-wrapper { position: relative; }
-.notif-badge { position: absolute; top: -4px; right: -4px; background: #FF6B35; color: white; font-size: 10px; font-weight: 800; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-.notif-dropdown { position: absolute; top: calc(100% + 10px); right: 0; width: 260px; background: rgba(11,36,71,0.98); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); opacity: 0; visibility: hidden; transform: translateY(-8px); transition: all 0.3s; z-index: 1000; overflow: hidden; }
-.notif-dropdown.ouvert { opacity: 1; visibility: visible; transform: translateY(0); }
-.notif-header { padding: 16px; font-weight: 700; color: white; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); }
-.notif-liste { padding: 8px; }
-.notif-voir-tout { display: block; padding: 10px 12px; color: #00B4D8; text-decoration: none; font-size: 13px; font-weight: 600; }
+    .burger-btn {
+        display: none;
+        flex-direction: column;
+        gap: 5px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 8px;
+        transition: background 0.2s;
+        position: relative;
+        z-index: 1001;
+    }
+    .burger-btn:hover {
+        background: rgba(255,255,255,0.08);
+    }
+    .burger-line {
+        display: block;
+        width: 22px;
+        height: 2px;
+        background: white;
+        border-radius: 2px;
+        transition: all 0.3s;
+    }
+    .burger-btn.actif .burger-line:nth-child(1) {
+        transform: rotate(45deg) translate(5px, 5px);
+    }
+    .burger-btn.actif .burger-line:nth-child(2) {
+        opacity: 0;
+    }
+    .burger-btn.actif .burger-line:nth-child(3) {
+        transform: rotate(-45deg) translate(5px, -5px);
+    }
 
-.user-menu-wrapper { position: relative; }
-.user-btn { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 6px 12px 6px 6px; cursor: pointer; color: white; font-family: inherit; font-size: 13px; font-weight: 600; transition: all 0.2s; }
-.user-btn:hover { background: rgba(255,255,255,0.14); }
-.user-avatar { width: 32px; height: 32px; background: linear-gradient(135deg, #00B4D8, #0090b8); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; color: white; }
-.user-nom { max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.user-dropdown { position: absolute; top: calc(100% + 10px); right: 0; width: 260px; background: rgba(11,36,71,0.98); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); opacity: 0; visibility: hidden; transform: translateY(-8px); transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 1000; overflow: hidden; }
-.user-dropdown.ouvert { opacity: 1; visibility: visible; transform: translateY(0); }
-.user-dropdown-header { display: flex; align-items: center; gap: 12px; padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.06); }
-.user-dropdown-avatar { width: 40px; height: 40px; background: linear-gradient(135deg, #00B4D8, #FF6B35); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px; color: white; flex-shrink: 0; }
-.user-dropdown-nom { font-size: 14px; font-weight: 700; color: white; }
-.user-dropdown-email { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 2px; }
-.user-dropdown-liens { padding: 8px; }
-.user-dropdown-lien { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; text-decoration: none; font-size: 13px; color: rgba(255,255,255,0.8); font-weight: 500; transition: all 0.2s; }
-.user-dropdown-lien:hover { background: rgba(255,255,255,0.07); color: white; }
-.user-dropdown-footer { padding: 8px; border-top: 1px solid rgba(255,255,255,0.06); }
-.user-dropdown-deconnexion { display: block; padding: 10px 12px; border-radius: 8px; text-decoration: none; font-size: 13px; color: #fc8181; font-weight: 500; }
-.user-dropdown-deconnexion:hover { background: rgba(252,129,129,0.1); }
+    .nav-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(4px);
+        z-index: 9998;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    .nav-overlay.actif {
+        display: block;
+        opacity: 1;
+    }
 
-.burger-btn { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 8px; border-radius: 8px; transition: background 0.2s; position: relative; z-index: 1001; }
-.burger-btn:hover { background: rgba(255,255,255,0.08); }
-.burger-line { display: block; width: 22px; height: 2px; background: white; border-radius: 2px; transition: all 0.3s; }
-.burger-btn.actif .burger-line:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
-.burger-btn.actif .burger-line:nth-child(2) { opacity: 0; }
-.burger-btn.actif .burger-line:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+    .mobile-drawer {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 320px;
+        max-width: 90vw;
+        height: 100vh;
+        height: 100dvh;
+        background: #050d1a;
+        border-left: 1px solid rgba(255,255,255,0.08);
+        z-index: 9999;
+        transition: right 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    .mobile-drawer.ouvert {
+        right: 0;
+    }
+    .drawer-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        flex-shrink: 0;
+    }
+    .drawer-fermer {
+        background: rgba(255,255,255,0.08);
+        border: none;
+        color: white;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .drawer-fermer:hover {
+        background: rgba(255,255,255,0.15);
+    }
+    .drawer-contenu {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px;
+        -webkit-overflow-scrolling: touch;
+    }
+    .drawer-user {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 12px;
+        margin-bottom: 16px;
+    }
+    .drawer-user-avatar {
+        width: 44px;
+        height: 44px;
+        background: linear-gradient(135deg, #00B4D8, #FF6B35);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 16px;
+        color: white;
+        flex-shrink: 0;
+    }
+    .drawer-user-nom {
+        font-size: 15px;
+        font-weight: 700;
+        color: white;
+    }
+    .drawer-user-role {
+        font-size: 12px;
+        color: rgba(255,255,255,0.45);
+        margin-top: 2px;
+    }
+    .drawer-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .drawer-lien {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 13px 16px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-size: 15px;
+        color: rgba(255,255,255,0.8);
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    .drawer-lien:hover, .drawer-lien:active {
+        background: rgba(255,255,255,0.07);
+        color: white;
+    }
+    .drawer-lien-highlight {
+        background: rgba(255,107,53,0.1);
+        color: #FF6B35;
+        font-weight: 700;
+        border: 1px solid rgba(255,107,53,0.2);
+    }
+    .drawer-lien-danger {
+        color: #fc8181;
+    }
+    .drawer-separateur {
+        height: 1px;
+        background: rgba(255,255,255,0.06);
+        margin: 8px 0;
+    }
+    .drawer-cta {
+        padding: 16px;
+        border-top: 1px solid rgba(255,255,255,0.06);
+        flex-shrink: 0;
+    }
+    .btn-drawer-cta {
+        display: block;
+        text-align: center;
+        background: linear-gradient(135deg, #FF6B35, #e85a2a);
+        color: white;
+        padding: 14px 24px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 15px;
+        box-shadow: 0 4px 14px rgba(255,107,53,0.35);
+    }
 
-.nav-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 9998; opacity: 0; transition: opacity 0.3s; }
-.nav-overlay.actif { display: block; opacity: 1; }
+    .recherche-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(5,13,26,0.75);
+        backdrop-filter: blur(8px);
+        z-index: 10000;
+        align-items: flex-start;
+        justify-content: center;
+        padding-top: 100px;
+    }
+    .recherche-modal-overlay.actif {
+        display: flex;
+    }
+    .recherche-modal {
+        background: white;
+        border-radius: 20px;
+        max-width: 600px;
+        width: 90%;
+        box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+        animation: apparition-modal 0.25s ease-out;
+        overflow: hidden;
+    }
+    @keyframes apparition-modal {
+        from { opacity: 0; transform: translateY(-8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .recherche-modal-input-zone {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 20px 24px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .recherche-modal-input-zone input {
+        flex: 1;
+        border: none;
+        outline: none;
+        font-size: 16px;
+        font-family: inherit;
+    }
+    .recherche-modal-fermer {
+        background: var(--gris-clair);
+        border: none;
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+    .recherche-modal-suggestions {
+        padding: 16px 24px 24px;
+    }
+    .recherche-modal-hint {
+        font-size: 11px;
+        font-weight: 700;
+        color: #a0aec0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 10px;
+    }
+    .recherche-suggestion-item {
+        display: block;
+        padding: 10px 12px;
+        border-radius: 8px;
+        text-decoration: none;
+        color: var(--bleu-principal);
+        font-size: 14px;
+        font-weight: 500;
+    }
+    .recherche-suggestion-item:hover {
+        background: var(--gris-clair);
+    }
 
-.mobile-drawer { position: fixed; top: 0; right: -100%; width: 320px; max-width: 90vw; height: 100vh; height: 100dvh; background: #050d1a; border-left: 1px solid rgba(255,255,255,0.08); z-index: 9999; transition: right 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); display: flex; flex-direction: column; overflow: hidden; }
-.mobile-drawer.ouvert { right: 0; }
-.drawer-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; }
-.drawer-fermer { background: rgba(255,255,255,0.08); border: none; color: white; width: 36px; height: 36px; border-radius: 8px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
-.drawer-fermer:hover { background: rgba(255,255,255,0.15); }
-.drawer-contenu { flex: 1; overflow-y: auto; padding: 16px; -webkit-overflow-scrolling: touch; }
-.drawer-user { display: flex; align-items: center; gap: 12px; padding: 16px; background: rgba(255,255,255,0.05); border-radius: 12px; margin-bottom: 16px; }
-.drawer-user-avatar { width: 44px; height: 44px; background: linear-gradient(135deg, #00B4D8, #FF6B35); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; color: white; flex-shrink: 0; }
-.drawer-user-nom { font-size: 15px; font-weight: 700; color: white; }
-.drawer-user-role { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 2px; }
-.drawer-nav { display: flex; flex-direction: column; gap: 2px; }
-.drawer-lien { display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-radius: 10px; text-decoration: none; font-size: 15px; color: rgba(255,255,255,0.8); font-weight: 500; transition: all 0.2s; }
-.drawer-lien:hover, .drawer-lien:active { background: rgba(255,255,255,0.07); color: white; }
-.drawer-lien-highlight { background: rgba(255,107,53,0.1); color: #FF6B35; font-weight: 700; border: 1px solid rgba(255,107,53,0.2); }
-.drawer-lien-danger { color: #fc8181; }
-.drawer-separateur { height: 1px; background: rgba(255,255,255,0.06); margin: 8px 0; }
-.drawer-cta { padding: 16px; border-top: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
-.btn-drawer-cta { display: block; text-align: center; background: linear-gradient(135deg, #FF6B35, #e85a2a); color: white; padding: 14px 24px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 15px; box-shadow: 0 4px 14px rgba(255,107,53,0.35); }
+    body.menu-ouvert-mobile {
+        overflow: hidden !important;
+        position: fixed;
+        width: 100%;
+    }
 
-.recherche-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(5,13,26,0.75); backdrop-filter: blur(8px); z-index: 10000; align-items: flex-start; justify-content: center; padding-top: 100px; }
-.recherche-modal-overlay.actif { display: flex; }
-.recherche-modal { background: white; border-radius: 20px; max-width: 600px; width: 90%; box-shadow: 0 40px 100px rgba(0,0,0,0.5); animation: apparition-modal 0.25s ease-out; overflow: hidden; }
-@keyframes apparition-modal { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
-.recherche-modal-input-zone { display: flex; align-items: center; gap: 12px; padding: 20px 24px; border-bottom: 1px solid #e2e8f0; }
-.recherche-modal-input-zone input { flex: 1; border: none; outline: none; font-size: 16px; font-family: inherit; }
-.recherche-modal-fermer { background: var(--gris-clair); border: none; width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-size: 14px; flex-shrink: 0; }
-.recherche-modal-suggestions { padding: 16px 24px 24px; }
-.recherche-modal-hint { font-size: 11px; font-weight: 700; color: #a0aec0; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
-.recherche-suggestion-item { display: block; padding: 10px 12px; border-radius: 8px; text-decoration: none; color: var(--bleu-principal); font-size: 14px; font-weight: 500; }
-.recherche-suggestion-item:hover { background: var(--gris-clair); }
+    /* ============ RESPONSIVE — CORRECTIONS CRITIQUES ============ */
+    @media (max-width: 1100px) {
+        .header-nav { display: none !important; }
+        .burger-btn { display: flex !important; }
+        .btn-header-cta { display: none !important; }
+        .lang-selector-desktop { display: none !important; }
+    }
 
-body.menu-ouvert-mobile { overflow: hidden !important; position: fixed; width: 100%; }
-
-/* ============ RESPONSIVE — CORRECTIONS CRITIQUES ============ */
-@media (max-width: 1100px) {
-    .header-nav { display: none !important; }
-    .burger-btn { display: flex !important; }
-    .btn-header-cta { display: none !important; }
-    .lang-selector-desktop { display: none !important; }
-}
-
-@media (max-width: 768px) {
-    .header-inner { padding: 0 16px !important; height: 60px !important; }
-    .btn-header-connexion { display: none !important; }
-    .icon-btn { width: 34px !important; height: 34px !important; font-size: 14px !important; }
-    .user-nom { display: none !important; }
-    .logo-textes { display: none !important; }
-    .header-logo { gap: 0 !important; }
-    .header-actions { gap: 6px !important; flex-shrink: 0 !important; }
-    .mega-menu { display: none !important; }
-    .mobile-drawer { width: 85vw !important; max-width: 320px !important; }
-    .recherche-modal { width: 95% !important; margin: 0 10px; }
-    .recherche-modal-overlay { padding-top: 50px !important; }
-}
+    @media (max-width: 768px) {
+        .header-inner { padding: 0 16px !important; height: 60px !important; }
+        .btn-header-connexion { display: none !important; }
+        .icon-btn { width: 34px !important; height: 34px !important; font-size: 14px !important; }
+        .user-nom { display: none !important; }
+        .logo-textes { display: none !important; }
+        .header-logo { gap: 0 !important; }
+        .header-actions { gap: 6px !important; flex-shrink: 0 !important; }
+        .mega-menu { display: none !important; }
+        .mobile-drawer { width: 85vw !important; max-width: 320px !important; }
+        .recherche-modal { width: 95% !important; margin: 0 10px; }
+        .recherche-modal-overlay { padding-top: 50px !important; }
+    }
 </style>
 
 <script src="{% static 'academie/js/animations.js' %}"></script>
 
 <script>
-/* ================================================
-   JS HEADER v3.2 — Gestion du burger avec fallback
-   ================================================ */
+    /* ================================================
+       JS HEADER v3.2 — Gestion du burger avec fallback
+       ================================================ */
 
-// Fonction principale d'ouverture/fermeture
-function toggleMenu() {
-    const drawer = document.getElementById('mobile-drawer');
-    const overlay = document.getElementById('nav-overlay');
-    const burger = document.getElementById('burger-btn');
-    if (!drawer || !overlay || !burger) return;
+    // Fonction principale d'ouverture/fermeture
+    function toggleMenu() {
+        const drawer = document.getElementById('mobile-drawer');
+        const overlay = document.getElementById('nav-overlay');
+        const burger = document.getElementById('burger-btn');
+        if (!drawer || !overlay || !burger) return;
 
-    const estOuvert = drawer.classList.contains('ouvert');
-    drawer.classList.toggle('ouvert');
-    overlay.classList.toggle('actif');
-    burger.classList.toggle('actif');
+        const estOuvert = drawer.classList.contains('ouvert');
+        drawer.classList.toggle('ouvert');
+        overlay.classList.toggle('actif');
+        burger.classList.toggle('actif');
 
-    document.body.classList.toggle('menu-ouvert-mobile', !estOuvert);
-}
-
-function fermerMenu() {
-    const drawer = document.getElementById('mobile-drawer');
-    const overlay = document.getElementById('nav-overlay');
-    const burger = document.getElementById('burger-btn');
-    if (drawer) drawer.classList.remove('ouvert');
-    if (overlay) overlay.classList.remove('actif');
-    if (burger) burger.classList.remove('actif');
-    document.body.classList.remove('menu-ouvert-mobile');
-}
-
-// ---- Écouteur direct sur le bouton burger ----
-document.addEventListener('DOMContentLoaded', function() {
-    const burger = document.getElementById('burger-btn');
-    if (burger) {
-        burger.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleMenu();
-        });
+        document.body.classList.toggle('menu-ouvert-mobile', !estOuvert);
     }
 
-    // Fermeture automatique si on clique sur un lien dans le drawer
-    document.querySelectorAll('.drawer-lien, .btn-drawer-cta').forEach(function(lien) {
-        lien.addEventListener('click', fermerMenu);
-    });
-
-    // Fermeture au clic sur l'overlay
-    const overlay = document.getElementById('nav-overlay');
-    if (overlay) {
-        overlay.addEventListener('click', fermerMenu);
+    function fermerMenu() {
+        const drawer = document.getElementById('mobile-drawer');
+        const overlay = document.getElementById('nav-overlay');
+        const burger = document.getElementById('burger-btn');
+        if (drawer) drawer.classList.remove('ouvert');
+        if (overlay) overlay.classList.remove('actif');
+        if (burger) burger.classList.remove('actif');
+        document.body.classList.remove('menu-ouvert-mobile');
     }
 
-    // Fermeture si la fenêtre repasse en mode desktop
-    window.addEventListener('resize', function() {
-        if (window.innerWidth > 1100) fermerMenu();
-    });
-
-    // ---- DROPDOWN UTILISATEUR (Admin) ----
-    const userBtn = document.getElementById('user-btn');
-    const userDropdown = document.getElementById('user-dropdown');
-    if (userBtn && userDropdown) {
-        userBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            e.preventDefault();
-            userDropdown.classList.toggle('ouvert');
-        });
-    }
-
-    // ---- NOTIFICATIONS ----
-    const notifBtn = document.querySelector('.notif-wrapper .icon-btn');
-    const notifDropdown = document.getElementById('notif-dropdown');
-    if (notifBtn && notifDropdown) {
-        notifBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            notifDropdown.classList.toggle('ouvert');
-        });
-    }
-
-    // ---- FERMETURE DES DROPDOWNS AU CLIC AILLEURS ----
-    document.addEventListener('click', function(e) {
-        if (userDropdown && !userBtn.contains(e.target) && !userDropdown.contains(e.target)) {
-            userDropdown.classList.remove('ouvert');
+    // ---- Écouteur direct sur le bouton burger ----
+    document.addEventListener('DOMContentLoaded', function() {
+        const burger = document.getElementById('burger-btn');
+        if (burger) {
+            burger.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleMenu();
+            });
         }
-        if (notifDropdown && !notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
-            notifDropdown.classList.remove('ouvert');
+
+        // Fermeture automatique si on clique sur un lien dans le drawer
+        document.querySelectorAll('.drawer-lien, .btn-drawer-cta').forEach(function(lien) {
+            lien.addEventListener('click', fermerMenu);
+        });
+
+        // Fermeture au clic sur l'overlay
+        const overlay = document.getElementById('nav-overlay');
+        if (overlay) {
+            overlay.addEventListener('click', fermerMenu);
+        }
+
+        // Fermeture si la fenêtre repasse en mode desktop
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 1100) fermerMenu();
+        });
+
+        // ---- DROPDOWN UTILISATEUR (Admin) ----
+        const userBtn = document.getElementById('user-btn');
+        const userDropdown = document.getElementById('user-dropdown');
+        if (userBtn && userDropdown) {
+            userBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                userDropdown.classList.toggle('ouvert');
+            });
+        }
+
+        // ---- NOTIFICATIONS ----
+        const notifBtn = document.querySelector('.notif-wrapper .icon-btn');
+        const notifDropdown = document.getElementById('notif-dropdown');
+        if (notifBtn && notifDropdown) {
+            notifBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                notifDropdown.classList.toggle('ouvert');
+            });
+        }
+
+        // ---- FERMETURE DES DROPDOWNS AU CLIC AILLEURS ----
+        document.addEventListener('click', function(e) {
+            if (userDropdown && !userBtn.contains(e.target) && !userDropdown.contains(e.target)) {
+                userDropdown.classList.remove('ouvert');
+            }
+            if (notifDropdown && !notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
+                notifDropdown.classList.remove('ouvert');
+            }
+        });
+    });
+
+    // ---- Gestion du scroll (header) ----
+    window.addEventListener('scroll', function() {
+        const header = document.getElementById('header-bta');
+        if (header) header.classList.toggle('scrolled', window.scrollY > 20);
+    });
+
+    // ---- Autres fonctions existantes (gardées inchangées) ----
+    function toggleNotifs() {
+        document.getElementById('notif-dropdown').classList.toggle('ouvert');
+    }
+
+    function ouvrirRecherche() {
+        document.getElementById('recherche-modal-overlay').classList.add('actif');
+        setTimeout(function() { document.getElementById('recherche-modal-input').focus(); }, 100);
+    }
+
+    function fermerRecherche() {
+        document.getElementById('recherche-modal-overlay').classList.remove('actif');
+    }
+
+    document.getElementById('recherche-modal-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && this.value.trim()) {
+            document.getElementById('recherche-modal-hidden').value = this.value.trim();
+            document.getElementById('recherche-modal-form').submit();
+        }
+        if (e.key === 'Escape') fermerRecherche();
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            ouvrirRecherche();
         }
     });
-});
 
-// ---- Gestion du scroll (header) ----
-window.addEventListener('scroll', function() {
-    const header = document.getElementById('header-bta');
-    if (header) header.classList.toggle('scrolled', window.scrollY > 20);
-});
-
-// ---- Autres fonctions existantes (gardées inchangées) ----
-function toggleNotifs() {
-    document.getElementById('notif-dropdown').classList.toggle('ouvert');
-}
-
-function ouvrirRecherche() {
-    document.getElementById('recherche-modal-overlay').classList.add('actif');
-    setTimeout(function() { document.getElementById('recherche-modal-input').focus(); }, 100);
-}
-function fermerRecherche() {
-    document.getElementById('recherche-modal-overlay').classList.remove('actif');
-}
-
-document.getElementById('recherche-modal-input').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && this.value.trim()) {
-        document.getElementById('recherche-modal-hidden').value = this.value.trim();
-        document.getElementById('recherche-modal-form').submit();
-    }
-    if (e.key === 'Escape') fermerRecherche();
-});
-
-document.addEventListener('keydown', function(e) {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        ouvrirRecherche();
-    }
-});
-
-// ---- Dark mode ----
-const body = document.body;
-const toggleBtn = document.getElementById('dark-mode-toggle');
-if (toggleBtn) {
-    if (localStorage.getItem('dark-mode') === 'enabled') {
-        body.classList.add('dark-mode');
-        toggleBtn.textContent = '☀️';
-    }
-    toggleBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        body.classList.toggle('dark-mode');
-        if (body.classList.contains('dark-mode')) {
-            localStorage.setItem('dark-mode', 'enabled');
+    // ---- Dark mode ----
+    const body = document.body;
+    const toggleBtn = document.getElementById('dark-mode-toggle');
+    if (toggleBtn) {
+        if (localStorage.getItem('dark-mode') === 'enabled') {
+            body.classList.add('dark-mode');
             toggleBtn.textContent = '☀️';
-        } else {
-            localStorage.setItem('dark-mode', 'disabled');
-            toggleBtn.textContent = '🌙';
         }
-    });
-}
+        toggleBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            body.classList.toggle('dark-mode');
+            if (body.classList.contains('dark-mode')) {
+                localStorage.setItem('dark-mode', 'enabled');
+                toggleBtn.textContent = '☀️';
+            } else {
+                localStorage.setItem('dark-mode', 'disabled');
+                toggleBtn.textContent = '🌙';
+            }
+        });
+    }
 
-// ---- PWA ----
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register("{% static 'academie/sw.js' %}").then(function(reg) {
-        console.log('✅ Service Worker BTA enregistré');
-    });
-}
+    // ---- PWA ----
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register("{% static 'academie/sw.js' %}").then(function(reg) {
+            console.log('✅ Service Worker BTA enregistré');
+        });
+    }
 </script>
 
 </body>

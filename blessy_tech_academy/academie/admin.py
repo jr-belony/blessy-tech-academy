@@ -113,7 +113,8 @@ class FormationAdmin(RolePermissionMixin, AdminThemeMixin, SortableAdminBase, Si
 
     list_display = [
         "icone", "nom", "ecole", "niveau", "duree_formatee",
-        "prix", "actif", "gratuit", "delivre_certificat", "bouton_workspace"
+        "prix", "actif", "gratuit", "delivre_certificat",
+        "bouton_workspace", "bouton_workspace_liste"
     ]
     list_filter = ["actif", "niveau", "ecole", "gratuit", "delivre_certificat", "badge_associe"]
     search_fields = ["nom", "description", "badge_associe"]
@@ -121,52 +122,35 @@ class FormationAdmin(RolePermissionMixin, AdminThemeMixin, SortableAdminBase, Si
     list_editable = ["actif", "gratuit", "prix"]
     inlines = [ModuleInline, LearningOutcomeInline]
 
+    # Fieldsets FormationAdmin optimisés pour rédaction rapide
     fieldsets = [
-        (
-            "Informations principales",
-            {
-                "fields": [
-                    "ecole",
-                    "nom",
-                    "icone",
-                    "description",
-                    "niveau",
-                    "duree",
-                    "duree_unite",
-                    "prix",
-                    "actif",
-                    "gratuit",
-                    "delivre_certificat",
-                    "formation_upgrade",
-                ]
-            },
-        ),
-        (
-            "Contenu détaillé",
-            {
-                "fields": ["debouches", "prerequis", "certifications"],
-                "classes": ["collapse"],
-            },
-        ),
-        (
-            "Pédagogie & Public",
-            {
-                "fields": [
-                    "methode_pedagogique",
-                    "criteres_evaluation",
-                    "public_cible",
-                    "badge_associe",
-                ],
-                "classes": ["collapse"],
-            },
-        ),
-        (
-            "Carrière & Salaire",
-            {
-                "fields": ["salaire_haiti", "salaire_international", "competences_acquises"],
-                "classes": ["collapse"],
-            },
-        ),
+        ('📌 Identité', {
+            'fields': ['ecole', 'nom', 'slug', 'icone', 'niveau', 'gratuit', 'actif'],
+            'description': "Le slug se génère automatiquement — laisse-le vide."
+        }),
+        ('📝 Présentation (page de vente)', {
+            'fields': ['description', 'public_cible', 'debouches', 'prerequis'],
+        }),
+        ('📐 Pédagogie', {
+            'fields': ['methode_pedagogique', 'criteres_evaluation', 'certifications'],
+            'description': "Remplis ces champs pour que les nouvelles sections de la page de vente s'affichent."
+        }),
+        ('💰 Commercial', {
+            'fields': ['duree', 'duree_unite', 'prix', 'formation_upgrade'],
+        }),
+        ('🏆 Compétences & Badge', {
+            'fields': ['competences_acquises', 'badge_associe'],
+            'classes': ['collapse'],
+        }),
+        ('📊 Salaires indicatifs', {
+            'fields': ['salaire_haiti', 'salaire_international'],
+            'classes': ['collapse'],
+        }),
+        ('⚙️ Options avancées', {
+            'fields': ['sequentiel_obligatoire', 'delivre_certificat'],
+            'classes': ['collapse'],
+            'description': "Active si les leçons doivent être suivies dans l'ordre strict."
+        }),
     ]
 
     actions = [
@@ -220,6 +204,14 @@ class FormationAdmin(RolePermissionMixin, AdminThemeMixin, SortableAdminBase, Si
         )
     bouton_workspace.short_description = "Workspace"
 
+    def bouton_workspace_liste(self, obj):
+        from django.utils.html import format_html
+        return format_html(
+            '<a href="/admin/formation/{}/workspace/" style="background:#003B8E; color:white; padding:4px 12px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:700;">✏️ Rédiger</a>',
+            obj.id
+        )
+    bouton_workspace_liste.short_description = 'Rédaction'
+
     def has_change_permission(self, request, obj=None):
         if request.user.is_superuser:
             return True
@@ -234,6 +226,7 @@ class FormationAdmin(RolePermissionMixin, AdminThemeMixin, SortableAdminBase, Si
 
     class Media:
         js = ["academie/admin/generer_ia.js", "academie/admin/generer_programme.js"]
+
 
 
 # ================================================
@@ -539,13 +532,31 @@ class ArticleAdmin(AdminThemeMixin, SimpleHistoryAdmin):
     prepopulated_fields = {"slug": ("titre",)}
     readonly_fields = ["date_publication", "date_modification", "apercu_seo", "apercu_responsive"]
 
+    # Fieldsets ArticleAdmin optimisés pour rédaction rapide
     fieldsets = [
-        ("Informations principales", {"fields": ["titre", "slug", "categorie", "resume", "temps_lecture", "formation_liee", "auteur"]}),
-        ("Contenu", {"fields": ["contenu"]}),
-        ("👁️ Prévisualisation Responsive", {"fields": ["apercu_responsive"]}),
-        ("🔍 Référencement SEO", {"fields": ["meta_titre", "meta_description", "mots_cles", "noindex", "apercu_seo"], "classes": ["collapse"]}),
-        ("Publication", {"fields": ["publie", "en_vedette", "date_publication", "date_modification"]}),
+        ('📌 Identité', {
+            'fields': ['titre', 'slug', 'categorie', 'type_contenu', 'academie'],
+            'description': "Le slug se génère automatiquement — laisse-le vide."
+        }),
+        ('📝 Contenu', {
+            'fields': ['resume', 'contenu', 'temps_lecture'],
+        }),
+        ('🔗 Liens', {
+            'fields': ['formation_liee', 'articles_associes', 'fichier_telechargeable'],
+            'classes': ['collapse'],
+        }),
+        ('🔍 SEO', {
+            'fields': ['meta_titre', 'meta_description', 'mots_cles', 'noindex', 'apercu_seo'],
+            'classes': ['collapse'],
+        }),
+        ('👁️ Prévisualisation', {'fields': ['apercu_responsive']}),
+        ('🚀 Publication', {
+            'fields': ['publie', 'en_vedette', 'auteur'],
+        }),
     ]
+    # Auto-remplissage auteur (gain de temps)
+    def get_changeform_initial_data(self, request):
+        return {'auteur': request.user.id}
 
     actions = ["publier_articles", "depublier_articles", "mettre_en_vedette", "retirer_vedette"]
 

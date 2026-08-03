@@ -110,6 +110,12 @@ def forum_detail(request, sujet_id):
             messages.success(request, "✅ Réponse publiée !")
             return redirect("forum_detail", sujet_id=sujet_id)
 
+    # --- FIL D'ARIANE ---
+    fil_ariane_etapes = [
+        {'nom': 'Forum', 'url': '/forum/'},
+        {'nom': sujet.titre, 'url': None},
+    ]
+
     return render(
         request,
         "academie/forum/detail.html",
@@ -117,9 +123,9 @@ def forum_detail(request, sujet_id):
             "sujet": sujet,
             "likes_sujets": likes_sujets,
             "likes_reponses": likes_reponses,
+            "fil_ariane_etapes": fil_ariane_etapes,  # AJOUTÉ
         },
     )
-
 
 @ratelimit(key='user', rate='10/h', method='POST', block=True)
 @login_required(login_url="/connexion/")

@@ -17,7 +17,7 @@
             Nos Formations
         </h1>
         <p class="formations-hero-sous">
-            {{ ecoles|length }} écoles spécialisées · Des parcours du débutant au professionnel
+            {{ ecoles|length }} écoles spécialisées · {{ formations_count }} formations · Des parcours du débutant au professionnel
         </p>
 
         <!-- Barre de recherche -->
@@ -239,11 +239,11 @@
                     </p>
                 </div>
 
-                <!-- Stats -->
+                <!-- Stats avec devise -->
                 <div class="carte-moderne-stats">
                     <div class="carte-stat">
                         <span class="carte-stat-val">{{ formation.duree }} {{ formation.get_duree_unite_display }}</span>
-                        <span class="carte-stat-label">mois</span>
+                        <span class="carte-stat-label">Durée</span>
                     </div>
                     <div class="carte-stat-sep"></div>
                     <div class="carte-stat">
@@ -253,9 +253,13 @@
                     <div class="carte-stat-sep"></div>
                     <div class="carte-stat">
                         <span class="carte-stat-val" style="color:var(--orange-accent);">
-                            {{ formation.prix }}$
+                            {% if devise == 'HTG' %}
+                                {{ formation.prix_htg|floatformat:0 }} HTG
+                            {% else %}
+                                {{ formation.prix }} USD
+                            {% endif %}
                         </span>
-                        <span class="carte-stat-label">USD</span>
+                        <span class="carte-stat-label">{% if devise == 'HTG' %}HTG{% else %}USD{% endif %}</span>
                     </div>
                 </div>
 
@@ -351,7 +355,13 @@
                 <div class="parcours-page-footer">
                     <div class="parcours-page-prix">
                         <span class="parcours-prix-label">Total</span>
-                        <span class="parcours-prix-val">{{ parcours.prix }} USD</span>
+                        <span class="parcours-prix-val">
+                            {% if devise == 'HTG' %}
+                                {{ parcours.prix_htg|floatformat:0 }} HTG
+                            {% else %}
+                                {{ parcours.prix }} USD
+                            {% endif %}
+                        </span>
                     </div>
                     <a href="{% url 'contact' %}" class="btn-parcours-page">
                         S'inscrire →

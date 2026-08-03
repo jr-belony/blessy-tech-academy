@@ -397,8 +397,14 @@ class Module(models.Model):
 class Lecon(models.Model):
     module = models.ForeignKey(Module, on_delete=models.CASCADE, related_name='lecons')
     titre = models.CharField(max_length=200)
-    resume = models.TextField(blank=True)
-    contenu = models.TextField(blank=True)
+    resume = models.TextField(
+        blank=True,
+        help_text="1-2 phrases — apparaît dans le programme de la formation"
+    )
+    contenu = models.TextField(
+        blank=True,
+        help_text="Contenu complet de la leçon — CKEditor : texte, images, code, tableaux"
+    )
     duree_minutes = models.IntegerField(default=10)
     ordre = models.IntegerField(default=0)
 
@@ -421,12 +427,14 @@ class Lecon(models.Model):
 
         if not formation.sequentiel_obligatoire:
             return True, ""
+
         # Récupère TOUTES les leçons de la formation, triées par ordre module puis leçon
         toutes_lecons = list(
             Lecon.objects.filter(module__formation=formation)
             .select_related('module')
             .order_by('module__ordre', 'ordre')
         )
+
         try:
             index_actuel = toutes_lecons.index(self)
         except ValueError:
@@ -437,7 +445,9 @@ class Lecon(models.Model):
 
         lecon_precedente = toutes_lecons[index_actuel - 1]
         terminee = ProgressionLecon.objects.filter(
-            utilisateur=utilisateur, lecon=lecon_precedente, terminee=True
+            utilisateur=utilisateur,
+            lecon=lecon_precedente,
+            terminee=True
         ).exists()
 
         if not terminee:
