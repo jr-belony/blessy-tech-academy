@@ -1,0 +1,110 @@
+<!-- ================================================
+     HUB_EXPLORER.HTML — Vue d'ensemble navigable du catalogue complet
+     ================================================ -->
+{% extends 'academie/base.html' %}
+{% block titre %}Explorer — Blessy Tech Academy{% endblock %}
+{% block meta_description %}Découvrez tout ce que Blessy Tech Academy propose : formations, certifications, projets, témoignages, événements et bien plus.{% endblock %}
+
+{% block contenu %}
+
+<section style="background:linear-gradient(135deg,#050d1a,#0B2447); padding:70px 40px; text-align:center; position:relative; overflow:hidden;">
+    <div style="position:absolute; inset:0; background-image:linear-gradient(rgba(0,180,216,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,180,216,0.05) 1px,transparent 1px); background-size:40px 40px;"></div>
+    <div style="position:relative; z-index:2;">
+        <h1 style="color:white; font-size:38px; font-weight:800; margin-bottom:12px;">🧭 Explorer Blessy Tech Academy</h1>
+        <p style="color:rgba(255,255,255,0.7); font-size:17px; max-width:600px; margin:0 auto;">Tout ce que notre plateforme a à offrir, en un seul endroit.</p>
+    </div>
+</section>
+
+<div style="max-width:1100px; margin:0 auto; padding:50px 20px;">
+
+    <!-- Statistiques -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px; background:#f8fafc; border-radius:16px; padding:24px; margin-bottom:48px; border:1px solid #e2e8f0;">
+        <div style="text-align:center;"><span style="display:block; font-size:32px; font-weight:800; color:#0B2447;">{{ formations_count|default:0 }}</span><span style="font-size:14px; color:#4a5568; font-weight:500;">Formations</span></div>
+        <div style="text-align:center;"><span style="display:block; font-size:32px; font-weight:800; color:#0B2447;">{{ articles_count|default:0 }}</span><span style="font-size:14px; color:#4a5568; font-weight:500;">Articles</span></div>
+        <div style="text-align:center;"><span style="display:block; font-size:32px; font-weight:800; color:#0B2447;">{{ projets_count|default:0 }}</span><span style="font-size:14px; color:#4a5568; font-weight:500;">Projets</span></div>
+        <div style="text-align:center;"><span style="display:block; font-size:32px; font-weight:800; color:#0B2447;">{{ temoignages_count|default:0 }}</span><span style="font-size:14px; color:#4a5568; font-weight:500;">Témoignages</span></div>
+    </div>
+
+    <!-- Catégorie 1 : Apprendre -->
+    <h3 style="color:#0B2447; font-size:20px; font-weight:700; margin-bottom:16px; padding-bottom:8px; border-bottom:2px solid #e2e8f0;">🎓 Apprendre</h3>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; margin-bottom:40px;">
+        <a href="{% url 'nos_ecoles' %}" class="hub-carte">🏫 Nos 6 Écoles</a>
+        <a href="{% url 'formations' %}" class="hub-carte">📚 Toutes les formations</a>
+        <a href="{% url 'formations_gratuites' %}" class="hub-carte">🎁 Formations Gratuites</a>
+        <a href="{% url 'parcours' %}" class="hub-carte">🚀 Parcours Professionnels</a>
+        <a href="{% url 'simulateur' %}" class="hub-carte">🎯 Simulateur de Carrière</a>
+        <a href="{% url 'certifications' %}" class="hub-carte">🏆 Certifications</a>
+    </div>
+
+    <!-- Catégorie 2 : Preuve & Résultats -->
+    <h3 style="color:#0B2447; font-size:20px; font-weight:700; margin-bottom:16px; padding-bottom:8px; border-bottom:2px solid #e2e8f0;">📊 Preuve & Résultats</h3>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; margin-bottom:40px;">
+        <a href="{% url 'resultats_et_preuves' %}" class="hub-carte">📊 Résultats réels</a>
+        <a href="{% url 'galerie_projets' %}" class="hub-carte">💼 Projets des apprenants</a>
+        <a href="{% url 'galerie_portfolios' %}" class="hub-carte">🎨 Portfolios</a>
+        <a href="{% url 'temoignages_page' %}" class="hub-carte">💬 Témoignages</a>
+        <a href="{% url 'nos_ambassadeurs' %}" class="hub-carte">🚀 Nos Ambassadeurs</a>
+    </div>
+
+    <!-- Catégorie 3 : Communauté -->
+    <h3 style="color:#0B2447; font-size:20px; font-weight:700; margin-bottom:16px; padding-bottom:8px; border-bottom:2px solid #e2e8f0;">👥 Communauté</h3>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; margin-bottom:40px;">
+        <a href="{% url 'forum_liste' %}" class="hub-carte">💬 Forum</a>
+        <a href="{% url 'evenements' %}" class="hub-carte">📅 Événements</a>
+        <a href="{% url 'blog_actualites' %}" class="hub-carte">📰 Blog & Actualités</a>
+        <a href="{% url 'chat_ia' %}" class="hub-carte">🤖 Blessy AI</a>
+    </div>
+
+    <!-- Catégorie 4 : Entreprises & Partenaires -->
+    <h3 style="color:#0B2447; font-size:20px; font-weight:700; margin-bottom:16px; padding-bottom:8px; border-bottom:2px solid #e2e8f0;">🏢 Entreprises & Partenaires</h3>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; margin-bottom:40px;">
+        <a href="{% url 'espace_recrutement' %}" class="hub-carte">🎯 Espace Recrutement</a>
+        <a href="{% url 'espace_entreprises' %}" class="hub-carte">🏢 Espace Entreprises</a>
+        <a href="{% url 'partenariats' %}" class="hub-carte">🤝 Partenaires</a>
+    </div>
+
+    <!-- Catégorie 5 : Ressources & Aide -->
+    <h3 style="color:#0B2447; font-size:20px; font-weight:700; margin-bottom:16px; padding-bottom:8px; border-bottom:2px solid #e2e8f0;">📖 Ressources & Aide</h3>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px;">
+        <a href="{% url 'ressources' %}" class="hub-carte">📖 Ressources</a>
+        <a href="{% url 'faq_globale' %}" class="hub-carte">❓ FAQ</a>
+        <a href="{% url 'support' %}" class="hub-carte">🆘 Support</a>
+        <a href="{% url 'faq_confiance' %}" class="hub-carte">🔒 Confiance & Sécurité</a>
+        <a href="{% url 'contact' %}" class="hub-carte">✉️ Contact</a>
+    </div>
+
+    <!-- Appel à l'action -->
+    <div style="background:linear-gradient(135deg,#0B2447,#1a3a6a); border-radius:20px; padding:40px; text-align:center; margin-top:48px;">
+        <h2 style="color:white; font-size:24px; font-weight:700; margin-bottom:8px;">🎯 Prêt à commencer ?</h2>
+        <p style="color:rgba(255,255,255,0.7); margin-bottom:20px;">Explorez nos formations et trouvez celle qui vous correspond.</p>
+        <a href="{% url 'orientation_ia' %}" style="display:inline-block; background:linear-gradient(135deg,#FF6B35,#e85a2a); color:white; padding:14px 32px; border-radius:10px; font-weight:700; text-decoration:none; box-shadow:0 8px 30px rgba(255,107,53,0.4); transition:transform 0.2s;">
+            Trouver ma formation avec l'IA →
+        </a>
+    </div>
+
+</div>
+
+<style>
+.hub-carte {
+    display: block;
+    background: white;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 18px 20px;
+    text-decoration: none;
+    color: #0B2447;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+.hub-carte:hover {
+    border-color: #00B4D8;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,180,216,0.12);
+}
+@media (max-width: 768px) {
+    .hub-carte { padding: 14px 16px; font-size: 13px; }
+}
+</style>
+
+{% endblock %}

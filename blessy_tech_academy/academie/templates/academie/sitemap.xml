@@ -1,17 +1,35 @@
+<!-- ================================================
+     SITEMAP.XML — Catalogue complet (remplace le contenu existant)
+     ================================================ -->
 {% load static %}<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url><loc>{{ request.scheme }}://{{ request.get_host }}/</loc><priority>1.0</priority></url>
     <url><loc>{{ request.scheme }}://{{ request.get_host }}{% url 'formations' %}</loc><priority>0.9</priority></url>
+    <url><loc>{{ request.scheme }}://{{ request.get_host }}{% url 'nos_ecoles' %}</loc><priority>0.9</priority></url>
+    <url><loc>{{ request.scheme }}://{{ request.get_host }}{% url 'formations_gratuites' %}</loc><priority>0.9</priority></url>
     <url><loc>{{ request.scheme }}://{{ request.get_host }}{% url 'parcours' %}</loc><priority>0.8</priority></url>
-    <url><loc>{{ request.scheme }}://{{ request.get_host }}{% url 'apropos' %}</loc><priority>0.7</priority></url>
-    <url><loc>{{ request.scheme }}://{{ request.get_host }}{% url 'contact' %}</loc><priority>0.7</priority></url>
-    <url><loc>{{ request.scheme }}://{{ request.get_host }}{% url 'ressources' %}</loc><priority>0.7</priority></url>
-    {% for article in articles %}
-    <url><loc>{{ request.scheme }}://{{ request.get_host }}{% url 'detail_article' article.slug %}</loc><priority>0.6</priority></url>
-    {% endfor %}
+    <url><loc>{{ request.scheme }}://{{ request.get_host }}{% url 'certifications' %}</loc><priority>0.8</priority></url>
+    <url><loc>{{ request.scheme }}://{{ request.get_host }}{% url 'resultats_et_preuves' %}</loc><priority>0.8</priority></url>
+    <url><loc>{{ request.scheme }}://{{ request.get_host }}{% url 'galerie_projets' %}</loc><priority>0.7</priority></url>
+    <url><loc>{{ request.scheme }}://{{ request.get_host }}{% url 'galerie_portfolios' %}</loc><priority>0.7</priority></url>
+    <url><loc>{{ request.scheme }}://{{ request.get_host }}{% url 'temoignages_page' %}</loc><priority>0.7</priority></url>
+    <url><loc>{{ request.scheme }}://{{ request.get_host }}{% url 'blog_actualites' %}</loc><priority>0.7</priority></url>
+    <url><loc>{{ request.scheme }}://{{ request.get_host }}{% url 'evenements' %}</loc><priority>0.6</priority></url>
+    <url><loc>{{ request.scheme }}://{{ request.get_host }}{% url 'partenariats' %}</loc><priority>0.6</priority></url>
+    <url><loc>{{ request.scheme }}://{{ request.get_host }}{% url 'espace_entreprises' %}</loc><priority>0.6</priority></url>
+    <url><loc>{{ request.scheme }}://{{ request.get_host }}{% url 'espace_recrutement' %}</loc><priority>0.6</priority></url>
+    <url><loc>{{ request.scheme }}://{{ request.get_host }}{% url 'apropos' %}</loc><priority>0.6</priority></url>
+    <url><loc>{{ request.scheme }}://{{ request.get_host }}{% url 'ressources' %}</loc><priority>0.6</priority></url>
+    <url><loc>{{ request.scheme }}://{{ request.get_host }}{% url 'faq_globale' %}</loc><priority>0.5</priority></url>
+    <url><loc>{{ request.scheme }}://{{ request.get_host }}{% url 'contact' %}</loc><priority>0.5</priority></url>
+
     {% for formation in formations %}
     {% if formation.slug %}
-    <url><loc>{{ request.scheme }}://{{ request.get_host }}{% url 'detail_formation_slug' formation.slug %}</loc><priority>0.8</priority></url>
+    <url><loc>{{ request.scheme }}://{{ request.get_host }}{% url 'detail_formation_slug' formation.slug %}</loc><priority>0.85</priority></url>
     {% endif %}
+    {% endfor %}
+
+    {% for article in articles %}
+    <url><loc>{{ request.scheme }}://{{ request.get_host }}{% url 'detail_article' article.slug %}</loc><priority>0.6</priority></url>
     {% endfor %}
 </urlset>

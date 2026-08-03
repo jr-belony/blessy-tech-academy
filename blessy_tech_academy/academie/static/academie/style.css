@@ -516,13 +516,22 @@ footer {
     color: rgba(255,255,255,0.7);
 }
 
+/* ================================================
+   Footer — 5 colonnes
+   ================================================ */
 .footer-contenu {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 40px;
-    padding: 60px 40px 40px;
-    max-width: 1100px;
+    grid-template-columns: 1.3fr 1fr 1fr 1fr 1fr;
+    gap: 32px;
+    max-width: 1300px;
     margin: 0 auto;
+    padding: 50px 40px;
+}
+@media (max-width: 900px) {
+    .footer-contenu { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 500px) {
+    .footer-contenu { grid-template-columns: 1fr; }
 }
 
 .footer-bloc h4 {

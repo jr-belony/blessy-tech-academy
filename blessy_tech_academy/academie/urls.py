@@ -205,4 +205,5 @@ urlpatterns = [
     path('espace-entreprises/', views.espace_entreprises, name='espace_entreprises'),
     path('blog/', views.blog_actualites, name='blog_actualites'),
     path('support/', views.contact, name='support'),
+    path('explorer/', views.hub_explorer, name='hub_explorer'),
 ]

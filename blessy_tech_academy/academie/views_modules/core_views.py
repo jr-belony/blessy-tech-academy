@@ -470,9 +470,14 @@ def set_lang_ht(request):
     return response
 
 
+# ================================================
+# VIEWS.PY — Enrichissement sitemap_xml() avec toutes les formations
+# Remplace la version existante (qui n'avait que les articles)
+# ================================================
+
 def sitemap_xml(request):
     articles = Article.objects.filter(publie=True)
-    formations = Formation.objects.filter(actif=True, slug__isnull=False)
+    formations = Formation.objects.filter(actif=True).exclude(slug='')
     return render(request, 'academie/sitemap.xml', {
         'articles': articles,
         'formations': formations,
@@ -553,3 +558,18 @@ def telecharger_certificat(request, formation_id):
     except Exception as e:
         messages.error(request, f"❌ Erreur lors de la génération du certificat : {str(e)}")
         return redirect("detail_formation", formation_id=formation_id)
+
+
+# ================================================
+# VIEWS.PY — Hub Explorer — vue d'ensemble visuelle du catalogue complet
+# ================================================
+
+def hub_explorer(request):
+    from ..models import Formation, Article, ProjetEtudiant, Temoignage
+    context = {
+        'formations_count': Formation.objects.filter(actif=True).count(),
+        'articles_count': Article.objects.filter(publie=True).count(),
+        'projets_count': ProjetEtudiant.objects.count(),
+        'temoignages_count': Temoignage.objects.filter(approuve=True).count(),
+    }
+    return render(request, 'academie/hub_explorer.html', context)
