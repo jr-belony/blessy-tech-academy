@@ -412,9 +412,10 @@ class ParcoursAdmin(AdminThemeMixin, admin.ModelAdmin):
     search_fields = ["titre", "description"]
     list_editable = ["actif", "ordre"]
     filter_horizontal = ["formations"]
+    prepopulated_fields = {"slug": ("titre",)}  # ← AJOUTÉ
 
     fieldsets = [
-        ("Informations principales", {"fields": ["icone", "titre", "description", "duree", "duree_unite", "prix", "actif", "ordre"]}),
+        ("Informations principales", {"fields": ["icone", "titre", "slug", "description", "duree", "duree_unite", "prix", "actif", "ordre"]}),
         ("Carrière & Métiers", {"fields": ["metiers_vises", "projets_inclus", "certifications_incluses"], "classes": ["collapse"]}),
         ("Formations incluses", {"fields": ["formations"], "description": "Sélectionne les formations qui composent ce parcours."}),
     ]

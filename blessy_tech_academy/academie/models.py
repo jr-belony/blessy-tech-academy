@@ -540,6 +540,7 @@ class ResultatQuiz(models.Model):
 
 class Parcours(models.Model):
     titre = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=250, unique=True, null=True, blank=True, db_index=True)
     icone = models.CharField(max_length=10, default='🚀')
     description = models.TextField(blank=True)
     duree = models.IntegerField(default=12, help_text="Valeur numérique de la durée")
@@ -566,6 +567,18 @@ class Parcours(models.Model):
     def __str__(self):
         return self.titre
 
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+            base_slug = slugify(self.titre)
+            slug_candidat = base_slug
+            i = 1
+            while Parcours.objects.filter(slug=slug_candidat).exclude(pk=self.pk).exists():
+                slug_candidat = f"{base_slug}-{i}"
+                i += 1
+            self.slug = slug_candidat
+        super().save(*args, **kwargs)
+
     def duree_formatee(self):
         """Retourne la durée formatée (ex: '3 mois', '2 semaines')"""
         return f"{self.duree} {self.get_duree_unite_display()}"
@@ -579,8 +592,9 @@ class Parcours(models.Model):
         """Retourne le prix formaté selon la devise choisie."""
         if devise == 'HTG':
             return f"{self.prix_htg():,} HTG".replace(',', ' ')
-        return f"{self.prix:.2f} USD"
-    
+        return f"{self.prix:.2f} USD"  
+
+
 class Competence(models.Model):
     CATEGORIES = [
         ('technique', '💻 Technique'),
