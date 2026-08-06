@@ -12,6 +12,8 @@ from .models import (
 )
 from users.admin import RolePermissionMixin
 from .models import AlerteFraude
+from users.admin import BaseAdminMixin 
+
 
 
 
@@ -114,15 +116,13 @@ class OrderItemInline(admin.TabularInline):
 # Rôle : Finance et Admin uniquement
 # ================================================
 @admin.register(Order)
-class OrderAdmin(RolePermissionMixin, admin.ModelAdmin):
+class OrderAdmin(BaseAdminMixin, admin.ModelAdmin):
     roles_autorises = ['admin', 'comptable']
     list_display = ['reference', 'utilisateur', 'total', 'statut', 'date_creation']
     list_filter = ['statut', 'devise']
     search_fields = ['reference', 'utilisateur__username']
     inlines = [OrderItemInline]
     readonly_fields = ['reference', 'sous_total', 'reduction_totale', 'total']
-
-
 
 # ================================================
 # ADMIN.PY — TransactionAdmin (validation des paiements)

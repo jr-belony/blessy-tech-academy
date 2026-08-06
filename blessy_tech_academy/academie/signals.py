@@ -21,6 +21,8 @@ from django.db.models.signals import post_save, pre_save, post_delete
 from django.dispatch import receiver
 from PIL import Image
 
+from content.models import Certificat  # <-- Chemin corrigé ici
+
 from .models import (
     ConnexionUtilisateur,
     ProjetEtudiant,
@@ -28,6 +30,8 @@ from .models import (
     Formation,
     ProgressionLecon,
     AccesFormationDebloque,
+    Ecole,
+    Partenaire,
 )
 
 logger = logging.getLogger('academie')
@@ -243,3 +247,53 @@ def synchroniser_acces_formation(sender, instance, created, **kwargs):
         if acces.commande_origine is None and instance.commande_origine:
             acces.commande_origine = instance.commande_origine
             acces.save()
+
+
+# ================================================
+# SIGNAL — Invalidation cache Ecole (nos_ecoles)
+# ================================================
+@receiver(post_save, sender=Ecole)
+@receiver(post_delete, sender=Ecole)
+def invalider_cache_ecoles(sender, **kwargs):
+    from django.core.cache import cache
+    if hasattr(cache, 'delete_pattern'):
+        cache.delete_pattern('*nos_ecoles*')
+    else:
+        cache.clear()  # fallback (moins précis, mais fonctionnel)
+
+
+# ================================================
+# SIGNAL — Invalidation cache Partenaire (partenariats)
+# ================================================
+@receiver(post_save, sender=Partenaire)
+@receiver(post_delete, sender=Partenaire)
+def invalider_cache_partenaires(sender, **kwargs):
+    from django.core.cache import cache
+    if hasattr(cache, 'delete_pattern'):
+        cache.delete_pattern('*partenariats*')
+    else:
+        cache.clear()  # fallback
+
+
+# ================================================
+# SIGNALS.PY — Génération automatique du PDF officiel unique 
+# quelle que soit l'origine du certificat (cohorte OU classique)
+# ================================================
+
+@receiver(post_save, sender=Certificat)
+def generer_pdf_officiel_automatique(sender, instance, created, **kwargs):
+    """Applique le design PDF officiel unique à TOUS les certificats, sans exception."""
+    if created and not instance.fichier_pdf:
+        from academie.services.certificat_pdf import generer_pdf_certificat_officiel
+        try:
+            pdf_bytes = generer_pdf_certificat_officiel(instance)
+            if pdf_bytes:
+                from django.core.files.base import ContentFile
+                instance.fichier_pdf.save(
+                    f"certificat_{instance.numero}.pdf",
+                    ContentFile(pdf_bytes)
+                )
+                instance.save(update_fields=['fichier_pdf'])
+                logger.info(f"✅ PDF généré pour le certificat {instance.numero}")
+        except Exception as e:
+            logger.error(f"❌ Erreur génération PDF certificat {instance.numero} : {e}")

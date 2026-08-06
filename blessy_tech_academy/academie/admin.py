@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from adminsortable2.admin import SortableAdminBase, SortableInlineAdminMixin
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Avg, Count, Q, Sum
 from django.shortcuts import get_object_or_404, render
@@ -45,10 +45,13 @@ from .models import (
     Cohorte,
     ProjetEtudiant,
     Certificat,
+    EligibiliteCertification,
+    Partenaire,
 )
 
 from users.admin import RolePermissionMixin
 from users.models import Enseignant
+from content.models import WorkflowArticle  
 
 # ================================================
 # Thème CSS global pour tout l'admin
@@ -296,6 +299,9 @@ class QuizAdmin(RolePermissionMixin, AdminThemeMixin, admin.ModelAdmin):
     search_fields = ["titre"]
     list_editable = ["actif", "limite_temps_minutes"]
     inlines = [QuestionInline]
+    
+    # --- NOUVEAU ---
+    filter_horizontal = ['competences_liees']
 
     actions = ["activer_quiz", "desactiver_quiz"]
 
@@ -311,6 +317,7 @@ class QuizAdmin(RolePermissionMixin, AdminThemeMixin, admin.ModelAdmin):
 
     class Media:
         js = ["academie/admin/generer_quiz.js"]
+
 
 
 # ================================================
@@ -524,12 +531,12 @@ class ReactionAdmin(AdminThemeMixin, admin.ModelAdmin):
 @admin.register(Article)
 class ArticleAdmin(AdminThemeMixin, SimpleHistoryAdmin):
     list_display = [
-        "titre", "categorie", "auteur", "en_vedette", "badge_publie",
+        "titre", "categorie", "auteur", "en_vedette", "statut_editorial",
         "temps_lecture", "date_publication", "bouton_apercu"
     ]
-    list_filter = ["categorie", "publie", "en_vedette", "formation_liee", "academie"]
+    list_filter = ["categorie", "statut_editorial", "en_vedette", "formation_liee", "academie"]
     search_fields = ["titre", "resume", "contenu", "mots_cles"]
-    list_editable = ["en_vedette"]
+    list_editable = ["en_vedette", "statut_editorial"]
     prepopulated_fields = {"slug": ("titre",)}
     readonly_fields = ["date_publication", "date_modification", "apercu_seo", "apercu_responsive"]
 
@@ -552,7 +559,7 @@ class ArticleAdmin(AdminThemeMixin, SimpleHistoryAdmin):
         }),
         ('👁️ Prévisualisation', {'fields': ['apercu_responsive']}),
         ('🚀 Publication', {
-            'fields': ['publie', 'en_vedette', 'auteur'],
+            'fields': ['statut_editorial', 'relu_par', 'en_vedette', 'auteur'],
         }),
     ]
     # Auto-remplissage auteur (gain de temps)
@@ -563,12 +570,12 @@ class ArticleAdmin(AdminThemeMixin, SimpleHistoryAdmin):
 
     @admin.action(description="✅ Publier les articles sélectionnés")
     def publier_articles(self, request, queryset):
-        count = queryset.update(publie=True)
+        count = queryset.update(statut_editorial='publie')
         self.message_user(request, f"✅ {count} article(s) publié(s).")
 
     @admin.action(description="⛔ Dépublier les articles sélectionnés")
     def depublier_articles(self, request, queryset):
-        count = queryset.update(publie=False)
+        count = queryset.update(statut_editorial='brouillon')
         self.message_user(request, f"⛔ {count} article(s) dépublié(s).")
 
     @admin.action(description="⭐ Mettre en vedette")
@@ -580,13 +587,6 @@ class ArticleAdmin(AdminThemeMixin, SimpleHistoryAdmin):
     def retirer_vedette(self, request, queryset):
         count = queryset.update(en_vedette=False)
         self.message_user(request, f"⭐ {count} article(s) retiré(s) de la vedette.")
-
-    def badge_publie(self, obj):
-        from django.utils.html import format_html
-        if obj.publie:
-            return format_html('<span style="background:#22c55e;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">Publié</span>')
-        return format_html('<span style="background:#a0aec0;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">Brouillon</span>')
-    badge_publie.short_description = "Statut"
 
     def bouton_apercu(self, obj):
         from django.utils.html import format_html
@@ -785,16 +785,78 @@ class WorkflowFormationAdmin(admin.ModelAdmin):
     list_display = ["formation", "etat_actuel", "score_checklist_affiche", "demande_par", "valide_par", "date_derniere_transition"]
     list_filter = ["etat_actuel"]
     readonly_fields = ["date_creation", "date_derniere_transition"]
+    actions = ["action_envoyer_en_revision", "action_valider", "action_publier"]
 
     def score_checklist_affiche(self, obj):
         return f"{obj.score_checklist()}%"
     score_checklist_affiche.short_description = "Checklist"
+
+    @admin.action(description="🔍 Envoyer en révision")
+    def action_envoyer_en_revision(self, request, queryset):
+        reussis = 0
+        for wf in queryset:
+            succes, _ = wf.transitionner('en_revision', request.user)
+            if succes:
+                reussis += 1
+        self.message_user(request, f"✅ {reussis}/{queryset.count()} formation(s) envoyée(s) en révision")
+
+    @admin.action(description="✅ Valider")
+    def action_valider(self, request, queryset):
+        reussis = 0
+        for wf in queryset:
+            succes, _ = wf.transitionner('validee', request.user)
+            if succes:
+                reussis += 1
+        self.message_user(request, f"✅ {reussis}/{queryset.count()} formation(s) validée(s)")
+
+    @admin.action(description="🌐 Publier")
+    def action_publier(self, request, queryset):
+        reussis, echecs = 0, 0
+        for wf in queryset:
+            succes, message = wf.transitionner('publiee', request.user)
+            if succes:
+                reussis += 1
+            else:
+                echecs += 1
+        self.message_user(request, f"✅ {reussis} publiée(s), ⚠️ {echecs} bloquée(s) (checklist incomplète)")
 
     def has_module_permission(self, request):
         if request.user.is_superuser:
             return True
         try:
             return request.user.profil.role in ["admin"]
+        except Exception:
+            return False
+
+
+@admin.register(WorkflowArticle)
+class WorkflowArticleAdmin(admin.ModelAdmin):
+    list_display = ['article', 'etat_actuel', 'score_checklist_affiche', 'demande_par', 'valide_par', 'date_derniere_transition']
+    list_filter = ['etat_actuel']
+    readonly_fields = ['date_creation', 'date_derniere_transition']
+    actions = ['action_publier_articles']
+
+    def score_checklist_affiche(self, obj):
+        return f"{obj.score_checklist()}%"
+    score_checklist_affiche.short_description = "Checklist"
+
+    @admin.action(description="🌐 Publier les articles sélectionnés")
+    def action_publier_articles(self, request, queryset):
+        reussis = 0
+        for wf in queryset:
+            wf.etat_actuel = 'publie'
+            wf.valide_par = request.user
+            wf.save()
+            wf.article.statut_editorial = 'publie'
+            wf.article.save()
+            reussis += 1
+        self.message_user(request, f"✅ {reussis} article(s) publié(s)")
+
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ["admin", "marketing"]
         except Exception:
             return False
 
@@ -833,12 +895,57 @@ class AcademieAdmin(admin.ModelAdmin):
 # ================================================
 # ADMIN — Partenaires API
 # ================================================
+from django.shortcuts import redirect
+from django.utils.html import format_html
+
 @admin.register(PartenaireAPI)
 class PartenaireAPIAdmin(admin.ModelAdmin):
-    list_display = ["nom", "email_contact", "type_partenaire", "academie_associee", "actif"]
+    list_display = [
+        "nom", "email_contact", "type_partenaire", "academie_associee",
+        "scopes", "limite_requetes_heure", "date_expiration", "actif", "bouton_rotation"
+    ]
     list_filter = ["type_partenaire", "academie_associee", "actif"]
     search_fields = ["nom", "email_contact"]
-    list_editable = ["actif"]
+    list_editable = ["actif", "limite_requetes_heure"]
+    fields = [
+        "nom", "email_contact", "cle_api", "type_partenaire", "academie_associee",
+        "scopes", "limite_requetes_heure", "date_expiration", "actif", "bouton_rotation"
+    ]
+    readonly_fields = ["cle_api", "bouton_rotation"]
+
+    def bouton_rotation(self, obj):
+        if obj.pk:
+            return format_html(
+                '<a href="/admin/partenaire/{}/rotation-cle/" style="background:#ef4444; color:white; padding:4px 12px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:700;" onclick="return confirm(\'⚠️ L\\\'ancienne clé sera immédiatement invalidée. Continuer ?\');">🔄 Rotation clé</a>',
+                obj.pk
+            )
+        return "—"
+    bouton_rotation.short_description = "Sécurité"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                '<int:partenaire_id>/rotation-cle/',
+                self.admin_site.admin_view(self.rotation_cle_view),
+                name='partenaire_rotation_cle',
+            ),
+        ]
+        return custom_urls + urls
+
+    def rotation_cle_view(self, request, partenaire_id):
+        """Vue admin pour la rotation de clé API."""
+        if not request.user.is_superuser:
+            messages.error(request, "Seul un superadmin peut effectuer cette action.")
+            return redirect('admin:academie_partenaireapi_changelist')
+
+        partenaire = PartenaireAPI.objects.get(id=partenaire_id)
+        partenaire.faire_tourner_la_cle()
+        messages.success(
+            request,
+            f"✅ Clé API de « {partenaire.nom} » régénérée avec succès. Nouvelle clé : {partenaire.cle_api}"
+        )
+        return redirect('admin:academie_partenaireapi_change', partenaire_id)
 
     def has_module_permission(self, request):
         if request.user.is_superuser:
@@ -897,7 +1004,6 @@ class CohorteAdmin(admin.ModelAdmin):
 # ================================================
 # ADMIN — Partenaire (vitrine)
 # ================================================
-from .models import Partenaire
 
 @admin.register(Partenaire)
 class PartenaireAdmin(admin.ModelAdmin):
@@ -962,6 +1068,14 @@ class GestionCoursAdminSite(AdminThemeMixin):
             path("dashboard-executif/", admin.site.admin_view(self.vue_dashboard_executif), name="dashboard_executif"),
             path('monitoring-partenaires/', admin.site.admin_view(self.vue_monitoring_partenaires), name='monitoring-partenaires'),
             path('cohorte/<int:cohorte_id>/', admin.site.admin_view(self.vue_dashboard_cohorte), name='dashboard_cohorte'),
+
+            # --- AJOUT : rotation de clé partenaire ---
+            path(
+                'partenaire/<int:partenaire_id>/rotation-cle/',
+                admin.site.admin_view(self.vue_rotation_cle_partenaire),
+                name='rotation_cle_partenaire',
+            ),
+            path('dashboard-temoignages/', admin.site.admin_view(self.vue_dashboard_temoignages), name='dashboard_temoignages'),
         ]
         return custom_urls + original_urls
 
@@ -1031,8 +1145,13 @@ class GestionCoursAdminSite(AdminThemeMixin):
         formations_en_revision = WorkflowFormation.objects.filter(etat_actuel="en_revision").filter(filtre_workflow).count()
         leads_non_traites = Inscription.objects.filter(statut_lead="nouveau").filter(filtre_inscription).count()
         tentatives_30j = TentativeExamen.objects.filter(date_debut__gte=il_y_a_30j).filter(filtre_examen).count()
-        taux_reussite_examens = TentativeExamen.objects.filter(date_debut__gte=il_y_a_30j, reussi__isnull=False).filter(filtre_examen).aggregate(taux=Avg("reussi"))["taux"]
-        taux_reussite_examens_pct = round(taux_reussite_examens * 100, 1) if taux_reussite_examens else None
+        stats_examens_30j = TentativeExamen.objects.filter(date_debut__gte=il_y_a_30j).filter(filtre_examen).aggregate(
+            total=Count('id'),
+            reussies=Count('id', filter=Q(reussi=True))
+        )
+        taux_reussite_examens_pct = round(
+            (stats_examens_30j['reussies'] / stats_examens_30j['total']) * 100, 1
+        ) if stats_examens_30j['total'] else None
         tentatives_academie = TentativeExamen.objects.filter(filtre_examen).count()
         articles_publies = Article.objects.filter(publie=True).count()
         articles_sans_seo = Article.objects.filter(publie=True, meta_description="").count()
@@ -1150,6 +1269,53 @@ class GestionCoursAdminSite(AdminThemeMixin):
             'membres_details': membres_details,
         })
 
+    @staff_member_required
+    def vue_dashboard_temoignages(self, request):
+        from django.db.models import Avg, Count
+        from django.utils import timezone
+        from datetime import timedelta
+
+        temoignages = Temoignage.objects.filter(approuve=True)
+
+        nb_total = temoignages.count()
+        moyenne_generale = round(temoignages.aggregate(m=Avg('note'))['m'] or 0, 1)
+        taux_satisfaction = round(
+            (temoignages.filter(note__gte=4).count() / nb_total * 100) if nb_total else 0
+        )
+
+        formations_mieux_notees = temoignages.values('formation_suivie__nom').annotate(
+            moyenne=Avg('note'), nb=Count('id')
+        ).filter(nb__gte=1).order_by('-moyenne')[:5]
+
+        ecoles_mieux_notees = temoignages.values('formation_suivie__ecole__nom').annotate(
+            moyenne=Avg('note'), nb=Count('id')
+        ).filter(nb__gte=1).order_by('-moyenne')[:5]
+
+        # Évolution mensuelle (6 derniers mois)
+        evolution = []
+        labels = []
+        data = []
+        for i in range(5, -1, -1):
+            debut_mois = (timezone.now() - timedelta(days=30 * i)).replace(day=1)
+            fin_mois = debut_mois + timedelta(days=32)
+            nb_mois = temoignages.filter(date_creation__gte=debut_mois, date_creation__lt=fin_mois).count()
+            evolution.append({'mois': debut_mois.strftime('%b %Y'), 'nb': nb_mois})
+            labels.append(debut_mois.strftime('%b %Y'))
+            data.append(nb_mois)
+
+        return render(request, 'admin/dashboard_temoignages.html', {
+            'title': '💬 Statistiques Témoignages',
+            'site_header': admin.site.site_header,
+            'nb_total': nb_total,
+            'moyenne_generale': moyenne_generale,
+            'taux_satisfaction': taux_satisfaction,
+            'formations_mieux_notees': formations_mieux_notees,
+            'ecoles_mieux_notees': ecoles_mieux_notees,
+            'evolution': evolution,
+            'chart_labels': labels,   # <-- Nouveau
+            'chart_data': data,        # <-- Nouveau
+        })
+
     def vue_dashboard_quotas_ia(self, request):
         from django.core.cache import cache
         from .services.ia_service import QUOTA_QUOTIDIEN_GEMINI, _circuit_ouvert
@@ -1168,6 +1334,19 @@ class GestionCoursAdminSite(AdminThemeMixin):
             "pourcentage_utilise": pourcentage_utilise,
             "circuit_ouvert": _circuit_ouvert(),
         })
+
+    # --- NOUVELLE VUE : rotation de clé partenaire ---
+    @staff_member_required
+    def vue_rotation_cle_partenaire(self, request, partenaire_id):
+        """Vue admin pour la rotation de clé API d'un partenaire."""
+        from .models import PartenaireAPI
+        partenaire = PartenaireAPI.objects.get(id=partenaire_id)
+        partenaire.faire_tourner_la_cle()
+        messages.success(
+            request,
+            f"✅ Nouvelle clé générée pour {partenaire.nom}. Communique-la de façon sécurisée."
+        )
+        return redirect(f'/admin/academie/partenaireapi/{partenaire_id}/change/')
 
 
 # ================================================
@@ -1244,3 +1423,130 @@ class EnrollmentAdmin(admin.ModelAdmin):
     list_display = ['utilisateur', 'formation', 'origine', 'statut', 'date_inscription']
     list_filter = ['origine', 'statut']
     search_fields = ['utilisateur__username', 'formation__nom']
+
+
+# ================================================
+# ADMIN — EligibiliteCertification (processus contrôlé pour cohortes)
+# ================================================
+
+@admin.register(EligibiliteCertification)
+class EligibiliteCertificationAdmin(admin.ModelAdmin):
+    list_display = [
+        'utilisateur',
+        'cohorte',
+        'formation',
+        'frais_paye',
+        'valide_par',
+        'date_validation',
+        'certificat_genere',
+        'boutons_actions',
+    ]
+    list_filter = ['cohorte', 'frais_paye', 'formation']
+    search_fields = ['utilisateur__username', 'formation__nom']
+    readonly_fields = ['date_creation', 'certificat_genere', 'date_validation', 'valide_par']
+
+    def boutons_actions(self, obj):
+        boutons = []
+
+        # 1. Si frais non payés et pas encore de certificat → bouton "Valider paiement"
+        if not obj.frais_paye and not obj.certificat_genere:
+            boutons.append(
+                f'<a href="/admin/eligibilite/{obj.id}/valider-paiement/" '
+                f'style="background:#22c55e;color:white;padding:4px 10px;border-radius:6px;'
+                f'text-decoration:none;font-size:11px;font-weight:700;margin-right:4px;">'
+                f'✓ Valider paiement</a>'
+            )
+
+        # 2. Si frais payés et pas encore de certificat → bouton "Générer certificat"
+        if obj.frais_paye and not obj.certificat_genere:
+            boutons.append(
+                f'<a href="/admin/eligibilite/{obj.id}/generer/" '
+                f'style="background:#003B8E;color:white;padding:4px 10px;border-radius:6px;'
+                f'text-decoration:none;font-size:11px;font-weight:700;margin-right:4px;">'
+                f'🎓 Générer certificat</a>'
+            )
+
+        # 3. Si certificat déjà généré → bouton PDF et/ou Annuler
+        if obj.certificat_genere:
+            if obj.certificat_genere.fichier_pdf:
+                boutons.append(
+                    f'<a href="{obj.certificat_genere.fichier_pdf.url}" '
+                    f'style="background:#00B5E2;color:white;padding:4px 10px;border-radius:6px;'
+                    f'text-decoration:none;font-size:11px;font-weight:700;margin-right:4px;">'
+                    f'📥 PDF</a>'
+                )
+            if obj.certificat_genere.statut == 'valide':
+                boutons.append(
+                    f'<a href="/admin/eligibilite/{obj.id}/annuler/" '
+                    f'onclick="return confirm(\'⚠️ Annuler ce certificat ?\');" '
+                    f'style="background:#ef4444;color:white;padding:4px 10px;border-radius:6px;'
+                    f'text-decoration:none;font-size:11px;font-weight:700;">'
+                    f'🚫 Annuler</a>'
+                )
+
+        return format_html(''.join(boutons)) if boutons else "—"
+    boutons_actions.short_description = 'Actions'
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                '<int:eligibilite_id>/valider-paiement/',
+                self.admin_site.admin_view(self.valider_paiement_view),
+                name='eligibilite_valider_paiement',
+            ),
+            path(
+                '<int:eligibilite_id>/generer/',
+                self.admin_site.admin_view(self.generer_certificat_view),
+                name='eligibilite_generer_certificat',
+            ),
+            path(
+                '<int:eligibilite_id>/annuler/',
+                self.admin_site.admin_view(self.annuler_certificat_view),
+                name='eligibilite_annuler_certificat',
+            ),
+        ]
+        return custom_urls + urls
+
+    def valider_paiement_view(self, request, eligibilite_id):
+        """Marque les frais comme payés et met à jour le statut."""
+        eligibilite = EligibiliteCertification.objects.get(id=eligibilite_id)
+        if not eligibilite.frais_paye:
+            eligibilite.frais_paye = True
+            eligibilite.save()
+            messages.success(request, f"✅ Paiement validé pour {eligibilite.utilisateur.username}")
+        else:
+            messages.warning(request, "Les frais sont déjà marqués comme payés.")
+        return redirect('admin:academie_eligibilitecertification_change', eligibilite_id)
+
+    def generer_certificat_view(self, request, eligibilite_id):
+        """Génère le certificat final via la méthode valider() du modèle."""
+        eligibilite = EligibiliteCertification.objects.get(id=eligibilite_id)
+        try:
+            certificat = eligibilite.valider(request.user)
+            messages.success(request, f"🎓 Certificat généré avec succès : {certificat.numero}")
+        except ValueError as e:
+            messages.error(request, f"❌ {str(e)}")
+        return redirect('admin:academie_eligibilitecertification_change', eligibilite_id)
+
+    def annuler_certificat_view(self, request, eligibilite_id):
+        """Révoque le certificat associé (annulation)."""
+        eligibilite = EligibiliteCertification.objects.get(id=eligibilite_id)
+        if eligibilite.certificat_genere:
+            certificat = eligibilite.certificat_genere
+            certificat.revoquer(admin=request.user, raison="Annulation admin")
+            eligibilite.certificat_genere = None
+            eligibilite.frais_paye = False
+            eligibilite.save()
+            messages.success(request, f"🚫 Certificat {certificat.numero} annulé.")
+        else:
+            messages.warning(request, "Aucun certificat à annuler pour cette éligibilité.")
+        return redirect('admin:academie_eligibilitecertification_change', eligibilite_id)
+
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profil.role in ['admin', 'formateur']
+        except Exception:
+            return False

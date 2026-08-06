@@ -42,6 +42,10 @@ class ProfilUtilisateur(models.Model):
         related_name="membres",
         help_text="Académies auxquelles cet utilisateur a accès (étudiant multi-académie ou formateur multi-académie)",
     )
+    consentement_profil_public = models.BooleanField(
+        default=False,
+        help_text="Autorise l'affichage public de témoignage+certificat+portfolio+badges réunis"
+    )
     # === Champs additionnels ===
     bio_formateur = models.TextField(blank=True)
     specialites = models.CharField(

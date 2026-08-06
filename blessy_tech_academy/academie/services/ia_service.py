@@ -170,7 +170,7 @@ def construire_prompt_chat(
     if formations_disponibles:
         prompt += "\nFormations disponibles :\n"
         for formation in formations_disponibles[:5]:
-            prompt += f"- {formation.nom} ({formation.duree_mois} mois, {formation.prix} USD)\n"
+            prompt += f"- {formation.nom} ({formation.duree} {formation.get_duree_unite_display()}, {formation.prix} USD)\n"
 
     prompt += f"\nQuestion actuelle de l'étudiant : {question}"
     return prompt
@@ -240,7 +240,7 @@ def recommander_formations(interets, formations_disponibles):
         client = initialiser_ia()
         formations_texte = "\n".join(
             [
-                f"- {f.nom} : {f.description} ({f.duree_mois} mois, {f.prix} USD)"
+                f"- {f.nom} : {f.description} ({f.duree} {f.get_duree_unite_display()}, {f.prix} USD)"
                 for f in formations_disponibles
             ]
         )
@@ -402,7 +402,7 @@ def generer_parcours_oriente(profil, objectif, disponibilite, details, formation
         client = initialiser_ia()
         formations_texte = "\n".join(
             [
-                f"- ID:{f.id} | {f.nom} ({f.duree_mois} mois, {f.prix} USD) | Niveau: {f.niveau} | École: {f.ecole}"
+                f"- ID:{f.id} | {f.nom} ({f.duree} {f.get_duree_unite_display()}, {f.prix} USD) | Niveau: {f.niveau} | École: {f.ecole}"
                 for f in formations_disponibles
             ]
         )

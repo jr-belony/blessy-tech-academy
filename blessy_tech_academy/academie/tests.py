@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import Client, TestCase
+from django.test import Client, TestCase, client
 from django.test.utils import CaptureQueriesContext
 from django.db import connection
 from django.urls import reverse
@@ -65,7 +65,7 @@ class BaseTestCase(TestCase):
             gratuit=True,
             actif=True,
             prix=0,
-            duree_mois=1,  # Ajouté car requis (NOT NULL)
+  # Ajouté car requis (NOT NULL)
         )
         self.formation_payante = Formation.objects.create(
             nom="Formation Payante",
@@ -73,7 +73,7 @@ class BaseTestCase(TestCase):
             gratuit=False,
             actif=True,
             prix=100,
-            duree_mois=3,  # Ajouté car requis (NOT NULL)
+  # Ajouté car requis (NOT NULL)
         )
         WorkflowFormation.objects.get_or_create(formation=self.formation_payante)
 
@@ -254,7 +254,7 @@ class PaymentCenterTestCase(TestCase):
             nom="Python Test",
             icone="🐍",
             description="Formation test",
-            duree_mois=3,
+
             prix=100,
             niveau="debutant",
             actif=True,
@@ -387,7 +387,7 @@ class PaymentCenterTestCase(TestCase):
             nom="Gratuite Test",
             icone="🎁",
             description="Test",
-            duree_mois=1,
+
             prix=0,
             gratuit=True,
             actif=True,
@@ -400,7 +400,7 @@ class PaymentCenterTestCase(TestCase):
             nom="Autre Formation",
             icone="📚",
             description="Test",
-            duree_mois=2,
+
             prix=50,
             actif=True,
         )
@@ -494,11 +494,11 @@ class MultiAcademieIsolationTestCase(TestCase):
 
         self.formation_a = Formation.objects.create(
             ecole=self.ecole_a, nom='Formation A', icone='📚', description='Test',
-            duree_mois=1, prix=0, actif=True,
+ prix=0, actif=True,
         )
         self.formation_b = Formation.objects.create(
             ecole=self.ecole_b, nom='Formation B', icone='📚', description='Test',
-            duree_mois=1, prix=0, actif=True,
+ prix=0, actif=True,
         )
 
     def test_formations_isolees_par_academie(self):
@@ -547,7 +547,7 @@ class CompetenceModelTestCase(TestCase):
         self.ecole = Ecole.objects.create(nom='Ecole Comp', icone='🏫', ordre=1)
         self.formation = Formation.objects.create(
             ecole=self.ecole, nom='Formation Comp', icone='📚', description='Test',
-            duree_mois=1, prix=0, actif=True,
+ prix=0, actif=True,
         )
 
     def test_competence_slug_auto_genere(self):
@@ -655,7 +655,7 @@ class ExtractionAppBillingTestCase(TestCase):
         ecole = Ecole.objects.create(nom='Ecole Billing', icone='🏫', ordre=1)
         formation = Formation.objects.create(
             ecole=ecole, nom='Formation Billing', icone='📚', description='Test',
-            duree_mois=1, prix=100, actif=True,
+ prix=100, actif=True,
         )
         commande = Order.objects.create(utilisateur=user, total=0)
         OrderItem.objects.create(
@@ -686,7 +686,7 @@ class ExtractionAppLearningTestCase(TestCase):
 
     def test_hierarchie_pedagogique_intacte(self):
         ecole = Ecole.objects.create(nom='Test Learning', icone='🏫', ordre=1)
-        formation = Formation.objects.create(ecole=ecole, nom='Test', icone='📚', description='x', duree_mois=1, prix=0, actif=True)
+        formation = Formation.objects.create(ecole=ecole, nom='Test', icone='📚', description='x', prix=0, actif=True)
         module = Module.objects.create(formation=formation, titre='M1', ordre=1)
         Lecon.objects.create(module=module, titre='L1', ordre=1)
         self.assertEqual(module.nombre_lecons(), 1)
@@ -704,7 +704,7 @@ class SecuritePaiementAuditTestCase(TestCase):
         self.ecole = Ecole.objects.create(nom='Ecole Fraude', icone='🏫', ordre=1)
         self.formation = Formation.objects.create(
             ecole=self.ecole, nom='Formation Fraude', icone='📚', description='Test',
-            duree_mois=1, prix=100, actif=True,
+ prix=100, actif=True,
         )
 
     def test_paiement_succes_sans_transaction_ne_debloque_pas(self):
@@ -736,7 +736,7 @@ class VerrouillageContenuAuditTestCase(TestCase):
         self.ecole = Ecole.objects.create(nom='Ecole IDOR', icone='🏫', ordre=1)
         self.formation = Formation.objects.create(
             ecole=self.ecole, nom='Formation IDOR', icone='📚', description='Test',
-            duree_mois=1, prix=100, actif=True,
+ prix=100, actif=True,
         )
         self.module = Module.objects.create(formation=self.formation, titre='M1', ordre=1)
         self.lecon = Lecon.objects.create(module=self.module, titre='L1', contenu='Contenu premium', ordre=1)
@@ -781,7 +781,7 @@ class AccesFormationCleNaturelleTestCase(TestCase):
         user = User.objects.create_user(username='cle_test', password='test1234')
         ecole = Ecole.objects.create(nom='Ecole Cle', icone='🏫', ordre=1)
         formation = Formation.objects.create(
-            ecole=ecole, nom='Formation Cle', icone='📚', description='Test', duree_mois=1, prix=0, actif=True,
+            ecole=ecole, nom='Formation Cle', icone='📚', description='Test', prix=0, actif=True,
         )
         AccesFormationDebloque.objects.create(utilisateur=user, formation=formation, nom_formation_snapshot=formation.nom)
 
@@ -800,7 +800,7 @@ class RechercheFullTextTestCase(TestCase):
         self.ecole = Ecole.objects.create(nom='Ecole Recherche', icone='🏫', ordre=1)
         self.formation = Formation.objects.create(
             ecole=self.ecole, nom='Développement Python Avancé', icone='🐍',
-            description='Apprends Python en profondeur', duree_mois=3, prix=0, actif=True,
+            description='Apprends Python en profondeur', prix=0, actif=True,
         )
 
     def test_recherche_trouve_formation_par_nom(self):
@@ -825,7 +825,7 @@ class PerformanceN1TestCase(TestCase):
         for i in range(10):
             formation = Formation.objects.create(
                 ecole=self.ecole, nom=f'Formation {i}', icone='📚', description='Test',
-                duree_mois=1, prix=0, actif=True,
+ prix=0, actif=True,
             )
             module = Module.objects.create(formation=formation, titre='M1', ordre=1)
             Lecon.objects.create(module=module, titre='L1', ordre=1)
@@ -858,7 +858,7 @@ class CertificatVerificationTestCase(TestCase):
         self.ecole = Ecole.objects.create(nom='Ecole Cert', icone='🏫', ordre=1)
         self.formation = Formation.objects.create(
             ecole=self.ecole, nom='Formation Cert', icone='📜', description='Test',
-            duree_mois=1, prix=0, actif=True,
+ prix=0, actif=True,
         )
 
     def test_numero_certificat_non_devinable(self):
@@ -873,12 +873,16 @@ class CertificatVerificationTestCase(TestCase):
         user = User.objects.create_user(username='cert_test2', password='test1234')
         cert = Certificat.objects.create(utilisateur=user, formation=self.formation)
         client = Client()
-        reponse = client.get(reverse('verifier_certificat_public', kwargs={'numero_certificat': cert.numero}))
+        # Correction : utiliser cert.uuid au lieu de cert.public_id
+        reponse = client.get(reverse('verifier_certificat_public', kwargs={'uuid': cert.uuid}))
         self.assertContains(reponse, 'authentique')
 
+        
     def test_verification_publique_certificat_invalide(self):
+        import uuid as uuid_lib
         client = Client()
-        reponse = client.get(reverse('verifier_certificat_public', kwargs={'numero_certificat': 'NUMERO_INEXISTANT_123'}))
+        uuid_inexistant = uuid_lib.uuid4()
+        reponse = client.get(reverse('verifier_certificat_public', kwargs={'uuid': uuid_inexistant}))
         self.assertContains(reponse, 'introuvable')
 
 
@@ -895,10 +899,10 @@ class MultiAcademieApprofondisTestCase(TestCase):
         self.ecole_a = Ecole.objects.create(nom='Ecole A', icone='🏫', academie=self.academie_a, ordre=1)
         self.ecole_b = Ecole.objects.create(nom='Ecole B', icone='🏫', academie=self.academie_b, ordre=1)
         self.formation_a = Formation.objects.create(
-            ecole=self.ecole_a, nom='F-A', icone='📚', description='x', duree_mois=1, prix=0, actif=True,
+            ecole=self.ecole_a, nom='F-A', icone='📚', description='x', prix=0, actif=True,
         )
         self.formation_b = Formation.objects.create(
-            ecole=self.ecole_b, nom='F-B', icone='📚', description='x', duree_mois=1, prix=0, actif=True,
+            ecole=self.ecole_b, nom='F-B', icone='📚', description='x', prix=0, actif=True,
         )
         self.user_a = User.objects.create_user(username='user_academie_a', password='test1234')
 
@@ -948,7 +952,7 @@ class CompetenceValideeTestCase(TestCase):
         self.user = User.objects.create_user(username='comp_test', password='test1234')
         self.ecole = Ecole.objects.create(nom='Ecole Comp', icone='🏫', ordre=1)
         self.formation = Formation.objects.create(
-            ecole=self.ecole, nom='Formation Comp', icone='📚', description='x', duree_mois=1, prix=0, actif=True,
+            ecole=self.ecole, nom='Formation Comp', icone='📚', description='x', prix=0, actif=True,
         )
         self.competence = Competence.objects.create(nom='Python Test')
         self.examen = Examen.objects.create(formation=self.formation, titre='Exam Test')

@@ -144,6 +144,7 @@ urlpatterns = [
         views.ajouter_interaction_crm,
         name="ajouter_interaction_crm",
     ),
+    path('admin/certification/<int:eligibilite_id>/annuler/', views.admin_annuler_certificat, name='admin_annuler_certificat'),
     # === Workflow Formation (machine à états) ===
     path(
         "admin/workflow/<int:formation_id>/transition/",
@@ -208,4 +209,6 @@ urlpatterns = [
     path('blog/', views.blog_actualites, name='blog_actualites'),
     path('support/', views.contact, name='support'),
     path('explorer/', views.hub_explorer, name='hub_explorer'),
+    path('certification/<int:eligibilite_id>/paiement/', views.initier_paiement_certification, name='initier_paiement_certification'),
+    path('ecole/<int:ecole_id>/', views.detail_ecole, name='detail_ecole'),
 ]

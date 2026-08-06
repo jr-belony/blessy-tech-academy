@@ -1,0 +1,15 @@
+<!-- ================================================
+     ADMIN/CONFIRMER_ANNULATION_CERTIFICAT.HTML
+     ================================================ -->
+{% extends "admin/base_backoffice.html" %}
+{% block bo_contenu %}
+<h1 style="color:#ef4444;">🚫 Annuler le certificat</h1>
+<div class="bo-card" style="border-left:4px solid #ef4444;">
+    <p><strong>{{ eligibilite.certificat_genere.numero }}</strong> — {{ eligibilite.utilisateur.username }}</p>
+    <form method="POST" style="margin-top:16px;">
+        {% csrf_token %}
+        <textarea name="raison" placeholder="Raison de l'annulation (obligatoire, tracée dans le registre immuable)" required style="width:100%; padding:12px; border:1px solid var(--bo-gris-bordure); border-radius:8px; margin-bottom:16px;"></textarea>
+        <button type="submit" style="width:100%; padding:14px; background:#ef4444; color:white; border:none; border-radius:10px; font-weight:800;">🚫 Confirmer l'annulation</button>
+    </form>
+</div>
+{% endblock %}

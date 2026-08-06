@@ -1123,3 +1123,35 @@ def dashboard_cohorte(request, cohorte_id):
         'title': f'Dashboard Cohorte — {cohorte.nom}',
     }
     return render(request, 'admin/dashboard_cohorte.html', context)
+
+
+# ================================================
+# ADMIN — Annulation d'un certificat depuis une éligibilité
+# ================================================
+
+@staff_member_required
+def admin_annuler_certificat(request, eligibilite_id):
+    from ..models import EligibiliteCertification
+
+    eligibilite = get_object_or_404(EligibiliteCertification, id=eligibilite_id)
+
+    if not eligibilite.certificat_genere:
+        messages.error(request, "❌ Aucun certificat à annuler pour cette éligibilité.")
+        return redirect('admin:academie_eligibilitecertification_changelist')
+
+    if request.method == 'POST':
+        raison = request.POST.get('raison', 'Annulé par décision administrative')
+        certificat = eligibilite.certificat_genere
+        certificat.revoquer(admin=request.user, raison=raison)
+        # Remise à zéro de l'éligibilité
+        eligibilite.certificat_genere = None
+        eligibilite.frais_paye = False
+        eligibilite.statut = 'en_cours'
+        eligibilite.save()
+        messages.success(request, f"🚫 Certificat {certificat.numero} annulé.")
+        return redirect('admin:academie_eligibilitecertification_changelist')
+
+    return render(request, 'admin/confirmer_annulation_certificat.html', {
+        'eligibilite': eligibilite,
+        'certificat': eligibilite.certificat_genere,
+    })

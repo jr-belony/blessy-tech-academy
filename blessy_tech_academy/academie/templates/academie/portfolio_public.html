@@ -50,5 +50,26 @@
     {% endfor %}
     {% endif %}
 
+    <!-- ================================================
+         TÉMOIGNAGE + BADGES (si consentement)
+         ================================================ -->
+    {% if temoignage %}
+    <div style="margin-top:40px; background:#f8fafc; border-radius:16px; padding:24px;">
+        <h3 style="color:#003B8E; margin-bottom:12px;">💬 Son témoignage</h3>
+        <p style="font-style:italic;">"{{ temoignage.texte }}"</p>
+    </div>
+    {% endif %}
+
+    {% if badges %}
+    <div style="margin-top:24px;">
+        <h3 style="color:#003B8E; margin-bottom:12px;">🎖️ Badges</h3>
+        <div style="display:flex; flex-wrap:wrap; gap:8px;">
+            {% for b in badges %}
+            <span style="background:rgba(0,181,226,0.1); color:#00B5E2; padding:6px 14px; border-radius:16px; font-size:12px; font-weight:600;">{{ b.get_type_badge_display }}</span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
 </div>
 {% endblock %}

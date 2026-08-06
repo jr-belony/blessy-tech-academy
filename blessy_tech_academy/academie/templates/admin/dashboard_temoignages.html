@@ -1,0 +1,64 @@
+<!-- ================================================
+     ADMIN/DASHBOARD_TEMOIGNAGES.HTML — Statistiques complètes demandées
+     ================================================ -->
+{% extends "admin/base_backoffice.html" %}
+{% block bo_contenu %}
+<h1 style="color:var(--bo-texte);">💬 Statistiques Témoignages</h1>
+
+<div class="bo-kpi-grille">
+    <div class="bo-kpi-card"><div class="bo-kpi-label">Nombre total</div><div class="bo-kpi-valeur">{{ nb_total }}</div></div>
+    <div class="bo-kpi-card"><div class="bo-kpi-label">Moyenne générale</div><div class="bo-kpi-valeur">{{ moyenne_generale }}/5</div></div>
+    <div class="bo-kpi-card"><div class="bo-kpi-label">Taux de satisfaction</div><div class="bo-kpi-valeur">{{ taux_satisfaction }}%</div></div>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:24px;">
+    <div class="bo-card">
+        <h3>🏆 Formations les mieux notées</h3>
+        {% for f in formations_mieux_notees %}
+        <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--bo-gris-bordure);">
+            <span>{{ f.formation_suivie__nom }}</span><strong>{{ f.moyenne|floatformat:1 }}⭐ ({{ f.nb }})</strong>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="bo-card">
+        <h3>🏫 Écoles les mieux notées</h3>
+        {% for e in ecoles_mieux_notees %}
+        <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--bo-gris-bordure);">
+            <span>{{ e.formation_suivie__ecole__nom }}</span><strong>{{ e.moyenne|floatformat:1 }}⭐ ({{ e.nb }})</strong>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="bo-card">
+    <h3>📈 Évolution mensuelle</h3>
+    <canvas id="chartEvolution" height="70"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Les données sont injectées via json_script, hors de portée du linter JS -->
+{{ chart_labels|json_script:"chart-labels" }}
+{{ chart_data|json_script:"chart-data" }}
+
+<script>
+// Lecture des données depuis les balises JSON
+const labels = JSON.parse(document.getElementById('chart-labels').textContent);
+const dataValues = JSON.parse(document.getElementById('chart-data').textContent);
+
+new Chart(document.getElementById('chartEvolution'), {
+    type: 'line',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: 'Témoignages',
+            data: dataValues,
+            borderColor: '#00B5E2',
+            backgroundColor: 'rgba(0,181,226,0.1)',
+            fill: true,
+            tension: 0.3
+        }]
+    }
+});
+</script>
+{% endblock %}

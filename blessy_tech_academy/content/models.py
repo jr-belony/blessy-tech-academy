@@ -47,6 +47,26 @@ class Article(models.Model):
     date_publication = models.DateTimeField(auto_now_add=True)
     date_modification = models.DateTimeField(auto_now=True)
 
+    # --- NOUVEAUX CHAMPS POUR LE WORKFLOW ÉDITORIAL LÉGER ---
+    STATUTS_EDITORIAUX = [
+        ('brouillon', '📝 Brouillon'),
+        ('en_relecture', '🔍 En relecture'),
+        ('publie', '🌐 Publié'),
+        ('archive', '📦 Archivé'),
+    ]
+    statut_editorial = models.CharField(
+        max_length=15,
+        choices=STATUTS_EDITORIAUX,
+        default='brouillon'
+    )
+    relu_par = models.ForeignKey(
+        'auth.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='articles_relus'
+    )
+
     class Meta:
         app_label = 'academie'
         db_table = 'academie_article'
@@ -58,9 +78,14 @@ class Article(models.Model):
         return self.titre
 
     def save(self, *args, **kwargs):
+        # Génération automatique du slug
         if not self.slug:
             from django.utils.text import slugify
             self.slug = slugify(self.titre)
+
+        # Synchronisation cohérente : publie reflète statut_editorial
+        self.publie = (self.statut_editorial == 'publie')
+
         super().save(*args, **kwargs)
 
     def temps_lecture_estime(self):
@@ -96,6 +121,111 @@ class Article(models.Model):
         if not self.mots_cles:
             suggestions.append("Renseigne des mots-clés principaux")
         return suggestions
+
+
+class WorkflowArticle(models.Model):
+    """Workflow de publication pour un article — similaire à WorkflowFormation."""
+
+    ETATS = [
+        ('brouillon', '📝 Brouillon'),
+        ('en_revision', '🔍 En révision'),
+        ('valide', '✅ Validé'),
+        ('publie', '🌐 Publié'),
+        ('archive', '📦 Archivé'),
+    ]
+
+    TRANSITIONS_AUTORISEES = {
+        'brouillon': ['en_revision', 'archive'],
+        'en_revision': ['brouillon', 'valide'],
+        'valide': ['publie', 'brouillon'],
+        'publie': ['archive'],
+        'archive': [],
+    }
+
+    article = models.OneToOneField(
+        'Article',
+        on_delete=models.CASCADE,
+        related_name='workflow'
+    )
+    etat_actuel = models.CharField(
+        max_length=20,
+        choices=ETATS,
+        default='brouillon'
+    )
+    demande_par = models.ForeignKey(
+        'auth.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='workflows_articles_demandes'
+    )
+    valide_par = models.ForeignKey(
+        'auth.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='workflows_articles_valides'
+    )
+    checklist_seo_complet = models.BooleanField(default=False)
+    checklist_image_presente = models.BooleanField(default=False)
+    commentaire_revision = models.TextField(blank=True)
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_derniere_transition = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = 'academie'
+        db_table = 'academie_workflowarticle'
+        verbose_name = 'Workflow article'
+        verbose_name_plural = 'Workflows articles'
+
+    def __str__(self):
+        return f"{self.article.titre} — {self.get_etat_actuel_display()}"
+
+    def peut_transitionner_vers(self, nouvel_etat):
+        """Vérifie si la transition est autorisée."""
+        return nouvel_etat in self.TRANSITIONS_AUTORISEES.get(self.etat_actuel, [])
+
+    def score_checklist(self):
+        """Calcule le pourcentage de checklist complétée."""
+        items = [self.checklist_seo_complet, self.checklist_image_presente]
+        return round((sum(items) / len(items)) * 100)
+
+    def transitionner(self, nouvel_etat, utilisateur, commentaire=''):
+        """
+        Effectue une transition d'état si elle est autorisée.
+        Met à jour l'article.publie en fonction de l'état.
+        """
+        if not self.peut_transitionner_vers(nouvel_etat):
+            return False, f"Transition '{self.etat_actuel}' → '{nouvel_etat}' non autorisée."
+
+        # Exemple de règle : pour passer à 'publie', la checklist doit être à 100%
+        if nouvel_etat == 'publie' and self.score_checklist() < 100:
+            return False, f"Checklist incomplète ({self.score_checklist()}%)."
+
+        ancien_etat = self.etat_actuel
+        self.etat_actuel = nouvel_etat
+
+        if nouvel_etat == 'publie':
+            self.valide_par = utilisateur
+            self.article.publie = True
+            self.article.save(update_fields=['publie'])
+        elif nouvel_etat in ['archive', 'brouillon']:
+            self.article.publie = False
+            self.article.save(update_fields=['publie'])
+
+        if commentaire:
+            self.commentaire_revision = commentaire
+
+        self.save()
+
+        from users.models import LogAudit
+        LogAudit.objects.create(
+            utilisateur=utilisateur,
+            action='publication_article',
+            description=f"Article '{self.article.titre}' : {ancien_etat} → {nouvel_etat}",
+            objet_type='Article',
+            objet_id=self.article.id,
+        )
+        return True, f"Transition réussie vers '{self.get_etat_actuel_display()}'"
 
 
 class OutilRecommande(models.Model):
@@ -189,6 +319,13 @@ class Certificat(models.Model):
 
     utilisateur = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='certificats')
     formation = models.ForeignKey('academie.Formation', on_delete=models.SET_NULL, null=True, blank=True)
+    parcours_origine = models.ForeignKey(
+        'Parcours',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='certificats_delivres'
+    )
     examen_origine = models.ForeignKey('academie.Examen', on_delete=models.SET_NULL, null=True, blank=True)
 
     # --- IDENTIFIANTS PUBLICS (UUID public) ---

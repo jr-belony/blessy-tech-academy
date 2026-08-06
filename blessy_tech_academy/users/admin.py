@@ -118,3 +118,26 @@ class PushSubscriptionAdmin(admin.ModelAdmin):
 class NotificationPushEnvoyeeAdmin(admin.ModelAdmin):
     list_display = ['utilisateur', 'type_notification', 'titre', 'envoyee_avec_succes', 'date_envoi']
     list_filter = ['type_notification', 'envoyee_avec_succes']
+
+
+# ================================================
+# BaseAdminMixin — Standard unifié pour tous les admins BTA
+# ================================================
+
+class BaseAdminMixin(RolePermissionMixin):
+    """
+    Standard unifié pour tout nouvel admin BTA — hérite automatiquement 
+    de la sécurité RBAC + conventions cohérentes (pagination, tri par 
+    date récente par défaut si le champ existe).
+    """
+    list_per_page = 30
+    save_on_top = True
+    list_max_show_all = 200
+
+    def get_ordering(self, request):
+        """Tri intelligent par défaut : date de création descendante si le champ existe."""
+        champs = [f.name for f in self.model._meta.get_fields()]
+        for candidat in ['date_creation', 'date_debut', 'date_debut_prevue']:
+            if candidat in champs:
+                return [f'-{candidat}']
+        return super().get_ordering(request)

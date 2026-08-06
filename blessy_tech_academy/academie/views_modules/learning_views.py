@@ -48,6 +48,7 @@ from ..models import (
     SoumissionProjet,
     TentativeExamen,
     WorkflowFormation,
+    Temoignage,
 )
 from ..services.ia_service import (
     attribuer_badges,
@@ -128,7 +129,6 @@ def formations(request):
     return render(request, 'academie/formations.html', contexte)
 
 
-
 def detail_formation(request, formation_id):
     formation = Formation.objects.prefetch_related("modules__lecons").get(
         id=formation_id, actif=True
@@ -162,16 +162,43 @@ def detail_formation(request, formation_id):
     else:
         formation.debouches_liste = []
 
-    # Pré-calcul accessibilité séquentielle pour le template
+    # ================================================
+    # CORRECTIF PERFORMANCE : accessibilité séquentielle optimisée
+    # Remplace la double boucle "for module... for lecon..." existante
+    # ================================================
     if request.user.is_authenticated and formation.sequentiel_obligatoire:
+        # Récupérer toutes les leçons terminées en une seule requête
+        lecons_terminees_ids = set(
+            ProgressionLecon.objects.filter(
+                utilisateur=request.user,
+                lecon__module__formation=formation,
+                terminee=True
+            ).values_list('lecon_id', flat=True)
+        )
+
+        # Toutes les leçons ordonnées par module puis ordre
+        toutes_lecons_ordonnees = list(
+            Lecon.objects.filter(module__formation=formation)
+            .order_by('module__ordre', 'ordre')
+        )
+
+        lecon_precedente_terminee = True  # première leçon toujours accessible
+        lecons_accessibilite = {}
+        for lecon in toutes_lecons_ordonnees:
+            lecons_accessibilite[lecon.id] = lecon_precedente_terminee
+            lecon_precedente_terminee = lecon.id in lecons_terminees_ids
+
+        # Assigner l'accessibilité à chaque leçon (pas de boucle imbriquée)
         for module in formation.modules.all():
             for lecon in module.lecons.all():
-                accessible, _ = lecon.est_accessible_pour(request.user)
-                lecon.accessible = accessible
+                lecon.accessible = lecons_accessibilite.get(lecon.id, True)
     else:
+        # Si séquentiel désactivé, tout est accessible
         for module in formation.modules.all():
             for lecon in module.lecons.all():
                 lecon.accessible = True
+    # ================================================
+
     # --- Gestion de la devise ---
     devise = get_devise(request)
     prix_htg = formation.prix_htg()
@@ -206,6 +233,7 @@ def detail_formation(request, formation_id):
             "fil_ariane_etapes": fil_ariane_etapes,  # AJOUTÉ
         },
     )
+
 
 def detail_formation_slug(request, formation_slug):
     formation = Formation.objects.filter(slug=formation_slug, actif=True).first()
@@ -344,9 +372,14 @@ def passer_quiz(request, quiz_id):
             if reponse_utilisateur == question.bonne_reponse:
                 score += 1
 
-        ResultatQuiz.objects.create(
+        # Stocker le résultat pour le passer à la validation des compétences
+        resultat = ResultatQuiz.objects.create(
             utilisateur=request.user, quiz=quiz, score=score, total_questions=total
         )
+
+        # --- NOUVEAU : Déclenchement de la validation des compétences ---
+        CompetenceValidee.valider_pour_quiz(request.user, quiz, resultat)
+        # -----------------------------------------------------------------
 
         attribuer_badges(request.user)
 
@@ -372,7 +405,6 @@ def passer_quiz(request, quiz_id):
         )
 
     return render(request, "academie/passer_quiz.html", {"quiz": quiz})
-
 
 # ================================================
 # Vues : Parcours et orientation
@@ -866,25 +898,52 @@ def soumettre_examen(request, examen_id):
         from ..xp_utils import ajouter_xp
         ajouter_xp(request.user, examen.xp_recompense or 50)
 
-        if examen.type_evaluation in ['sommative', 'finale']:
-            competences_validees = CompetenceValidee.valider_pour_examen(
-                request.user, examen, tentative
-            )
-            for comp_validee in competences_validees:
-                notifications.creer_notification(
-                    request.user,
-                    "🏆 Nouvelle compétence validée !",
-                    f"Tu maîtrises maintenant {comp_validee.competence.nom} ({comp_validee.get_niveau_display()}).",
-                    "/mon-profil-competences/"
-                )
-        else:
-            competences_validees = []
+        # ================================================================
+        # CORRECTIF DE PORTÉE : déclenchement conditionnel
+        # ================================================================
+        from academie.models import obtenir_cohorte_active_pour, EligibiliteCertification
 
-        if examen.certificat_auto:
-            Certificat.objects.get_or_create(
+        cohorte_active = obtenir_cohorte_active_pour(request.user, examen.formation)
+
+        if cohorte_active:
+            # ---- Membre de la Cohorte Pilote → processus CONTRÔLÉ ----
+            eligibilite, _ = EligibiliteCertification.objects.get_or_create(
                 utilisateur=request.user,
                 formation=examen.formation,
+                defaults={'cohorte': cohorte_active}
             )
+            # On peut stocker la note de l'examen dans un champ dédié si besoin
+            # (exemple: eligibilite.note_theorique = tentative.pourcentage)
+            # Puis vérifier l'éligibilité (par exemple si frais payés et validé admin)
+            devenu_eligible = eligibilite.est_eligible()  # ou une méthode personnalisée
+
+            if devenu_eligible:
+                messages.info(request, "🎓 Tu es maintenant éligible au certificat ! Consulte 'Mes Certifications' pour la suite.")
+        else:
+            # ---- Étudiant classique → système EXISTANT inchangé ----
+            competences_validees = []
+            if examen.type_evaluation in ['sommative', 'finale']:
+                competences_validees = CompetenceValidee.valider_pour_examen(
+                    request.user, examen, tentative
+                )
+                for comp_validee in competences_validees:
+                    notifications.creer_notification(
+                        request.user,
+                        "🏆 Nouvelle compétence validée !",
+                        f"Tu maîtrises maintenant {comp_validee.competence.nom} ({comp_validee.get_niveau_display()}).",
+                        "/mon-profil-competences/"
+                    )
+            else:
+                competences_validees = []
+
+            if examen.certificat_auto:
+                Certificat.objects.get_or_create(
+                    utilisateur=request.user,
+                    formation=examen.formation,
+                )
+        # ================================================================
+        # FIN CORRECTIF
+        # ================================================================
 
     if score < 70:
         contexte_feedback = f"L'étudiant a obtenu {score}% à l'examen {examen.titre}. Donne un conseil bref et motivant en 2 phrases."
@@ -912,10 +971,9 @@ def soumettre_examen(request, examen_id):
             "score": score,
             "reussi": tentative.reussi,
             "feedback_ia": feedback_ia,
-            "competences_validees": competences_validees,
+            "competences_validees": competences_validees if not cohorte_active else [],
         },
     )
-
 
 # ================================================
 # Vues : Réactions génériques (sujets/réponses)
@@ -1096,12 +1154,29 @@ def valider_soumission(request, soumission_id):
     return redirect('evaluer_soumissions')
 
 
+@cache_page(60 * 30)  # 30 minutes — change rarement
 def nos_ecoles(request):
     """Page dédiée présentant les 6 écoles, phares mises en valeur visuellement."""
     ecoles_phares = Ecole.objects.filter(est_ecole_phare=True).prefetch_related('formations')
     autres_ecoles = Ecole.objects.filter(est_ecole_phare=False).prefetch_related('formations')
     return render(request, 'academie/nos_ecoles.html', {
         'ecoles_phares': ecoles_phares, 'autres_ecoles': autres_ecoles,
+    })
+
+
+# ================================================
+# VIEWS.PY — Page École — affiche ses formations ET ses témoignages
+# ================================================
+
+def detail_ecole(request, ecole_id):
+    ecole = Ecole.objects.prefetch_related('formations').get(id=ecole_id)
+    temoignages_ecole = Temoignage.objects.filter(
+        approuve=True, formation_suivie__ecole=ecole
+    ).order_by('-en_vedette', '-date_creation')[:9]
+
+    return render(request, 'academie/detail_ecole.html', {
+        'ecole': ecole,
+        'temoignages': temoignages_ecole,
     })
 
 

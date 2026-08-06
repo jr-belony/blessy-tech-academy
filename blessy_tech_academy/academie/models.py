@@ -146,6 +146,20 @@ class PartenaireAPI(models.Model):
         related_name="partenaires_api",
         help_text="Si défini, ce partenaire n'accède qu'aux données de cette académie. Vide = accès toutes académies.",
     )
+    scopes = models.JSONField(
+        default=list,
+        help_text="Liste des permissions accordées à ce partenaire, ex: ['formations.lire']"
+    )
+    # --- NOUVEAUX CHAMPS ---
+    limite_requetes_heure = models.IntegerField(
+        default=100,
+        help_text="Nombre max de requêtes par heure"
+    )
+    date_expiration = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Date d'expiration de la clé API"
+    )
     actif = models.BooleanField(default=True)
     date_creation = models.DateTimeField(auto_now_add=True)
 
@@ -158,7 +172,33 @@ class PartenaireAPI(models.Model):
     def __str__(self):
         return self.nom
 
+    # ================================================
+    # MÉTHODES DÉJÀ AJOUTÉES
+    # ================================================
 
+    def a_le_scope(self, scope):
+        """Vérifie qu'un partenaire a explicitement le droit d'accéder à cette ressource."""
+        return scope in (self.scopes or [])
+
+    def faire_tourner_la_cle(self):
+        """Génère une nouvelle clé API — invalide immédiatement l'ancienne."""
+        import uuid
+        self.cle_api = f"bta_{uuid.uuid4().hex}"
+        self.save(update_fields=['cle_api'])
+
+    # ================================================
+    # NOUVELLES MÉTHODES
+    # ================================================
+
+    def a_le_scope(self, scope):
+        """Vérifie qu'un partenaire a explicitement le droit d'accéder à cette ressource."""
+        return scope in (self.scopes or [])
+
+    def faire_tourner_la_cle(self):
+        """Génère une nouvelle clé API — invalide immédiatement l'ancienne."""
+        import uuid
+        self.cle_api = f"bta_{uuid.uuid4().hex}"
+        self.save(update_fields=['cle_api'])
 class LogRequetePartenaire(models.Model):
     partenaire = models.ForeignKey(
         PartenaireAPI,
@@ -184,7 +224,6 @@ class LogRequetePartenaire(models.Model):
         blank=True,
         help_text="Adresse IP d'origine de la requête"
     )
-
     class Meta:
         app_label = 'academie'
         db_table = 'academie_logrequetepartenaire'
@@ -494,6 +533,13 @@ class Quiz(models.Model):
     melanger_questions = models.BooleanField(default=True)
     melanger_reponses = models.BooleanField(default=True)
     type_evaluation = models.CharField(max_length=15, choices=TYPES_EVALUATION, default='formative')
+    # --- NOUVEAU CHAMP ---
+    competences_liees = models.ManyToManyField(
+        'Competence',
+        blank=True,
+        related_name='quiz_lies',
+        help_text="Compétences validées si l'étudiant réussit ce quiz (évaluations sommatives/finales)"
+    )
     date_creation = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -513,7 +559,6 @@ class Quiz(models.Model):
     @property
     def nombre_questions(self):
         return self.question_set.count()
-
 
 class Question(models.Model):
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='question_set')
@@ -1075,6 +1120,36 @@ class CompetenceValidee(models.Model):
                 creees.append(obj)
         return creees
 
+    @staticmethod
+    def valider_pour_quiz(utilisateur, quiz, resultat_quiz):
+        """
+        Symétrique de valider_pour_examen() — traite maintenant les Quiz
+        de la même façon que les Examens pour la validation de compétences.
+        Nécessite que le quiz ait des compétences liées (via competences_liees).
+        """
+        if quiz.type_evaluation not in ['sommative', 'finale']:
+            return []  # formatif = pratique, ne valide pas encore
+
+        pourcentage = resultat_quiz.pourcentage()
+        seuil_reussite = 70  # seuil par défaut cohérent avec Examen
+        if pourcentage < seuil_reussite:
+            return []
+
+        niveau = 'expert' if pourcentage >= 90 else 'confirme' if pourcentage >= 75 else 'acquis'
+        creees = []
+
+        for competence in quiz.competences_liees.all():
+            obj, cree = CompetenceValidee.objects.get_or_create(
+                utilisateur=utilisateur, competence=competence,
+                source_type='quiz', quiz_origine=quiz, examen_origine=None,
+                defaults={'niveau': niveau, 'formation_origine': quiz.formation, 'score_obtenu': pourcentage}
+            )
+            if cree:
+                creees.append(obj)
+
+        return creees
+    
+
 
 # ================================================
 # MODELS.PY — SoumissionProjet — Évaluation pratique par formateur
@@ -1162,6 +1237,15 @@ class Cohorte(models.Model):
     date_fin_prevue = models.DateField()
     actif = models.BooleanField(default=True)
 
+    # --- NOUVEAU CHAMP AJOUTÉ ---
+    frais_montant = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        help_text="Montant des frais de certification en USD"
+    )
+    # -------------------------
+
     class Meta:
         verbose_name = 'Cohorte'
         verbose_name_plural = 'Cohortes'
@@ -1170,42 +1254,46 @@ class Cohorte(models.Model):
     def __str__(self):
         return self.nom
 
-    # ---- Toutes les stats ci-dessous = requêtes RÉELLES, zéro donnée fictive ----
-
     def nb_inscrits(self):
         return self.membres.count()
 
     def nb_presents(self):
-        """Présent = a au moins une ProgressionLecon enregistrée (activité réelle détectée)."""
         return self.membres.filter(progressions__isnull=False).distinct().count()
 
     def progression_moyenne(self):
-        """Moyenne réelle de progression sur les formations de la cohorte."""
-        membres = self.membres.all()
-        formations = self.formations.all()
-        if not membres or not formations:
+        from django.db.models import Count, Q
+        membres_ids = list(self.membres.values_list('id', flat=True))
+        formations_ids = list(self.formations.values_list('id', flat=True))
+        if not membres_ids or not formations_ids:
             return 0
-        total = 0
-        compte = 0
-        for membre in membres:
-            for formation in formations:
-                total += formation.progression_pour(membre)
-                compte += 1
-        return round(total / compte) if compte else 0
+        stats = ProgressionLecon.objects.filter(
+            utilisateur_id__in=membres_ids,
+            lecon__module__formation_id__in=formations_ids
+        ).aggregate(
+            total=Count('id'),
+            terminees=Count('id', filter=Q(terminee=True))
+        )
+        if not stats['total']:
+            return 0
+        return round((stats['terminees'] / stats['total']) * 100)
 
     def nb_completions_100pct(self):
-        """Nombre réel de membres ayant terminé TOUTES les formations à 100%."""
-        formations = list(self.formations.all())
-        if not formations:
+        from django.db.models import Count, Q
+        membres_ids = list(self.membres.values_list('id', flat=True))
+        formations_ids = list(self.formations.values_list('id', flat=True))
+        if not membres_ids or not formations_ids:
             return 0
-        complets = 0
-        for membre in self.membres.all():
-            if all(f.progression_pour(membre) == 100 for f in formations):
-                complets += 1
+        resultats = ProgressionLecon.objects.filter(
+            utilisateur_id__in=membres_ids,
+            lecon__module__formation_id__in=formations_ids
+        ).values('utilisateur_id').annotate(
+            total=Count('id'),
+            terminees=Count('id', filter=Q(terminee=True))
+        )
+        complets = sum(1 for r in resultats if r['total'] > 0 and r['total'] == r['terminees'])
         return complets
 
     def moyenne_examens(self):
-        """Moyenne réelle des tentatives d'examen réussies des membres, sur les formations de la cohorte."""
         from django.db.models import Avg
         resultat = TentativeExamen.objects.filter(
             utilisateur__in=self.membres.all(),
@@ -1225,15 +1313,18 @@ class Cohorte(models.Model):
         ).count()
 
     def nb_temoignages_publies(self):
+        # Version optimisée (plus de boucle Python)
         return Temoignage.objects.filter(
-            formation_suivie__in=self.formations.all(), approuve=True,
-            prenom_nom__in=[m.get_full_name() or m.username for m in self.membres.all()]
+            formation_suivie__in=self.formations.all(),
+            approuve=True,
+            prenom_nom__in=self.membres.values_list('username', flat=True)
         ).count()
 
     def nb_competences_validees(self):
         return CompetenceValidee.objects.filter(
             utilisateur__in=self.membres.all(), formation_origine__in=self.formations.all()
         ).values('competence').distinct().count()
+
 
 
 # ================================================
@@ -1544,3 +1635,130 @@ class RegistreEmissionCertificat(models.Model):
 
     def delete(self, *args, **kwargs):
         raise ValueError("❌ Le registre d'émission est immuable — suppression interdite.")
+    
+
+# ================================================
+# MODELS.PY — EligibiliteCertification (processus contrôlé pour cohortes)
+# ================================================
+
+class EligibiliteCertification(models.Model):
+    """
+    Processus contrôlé de certification pour les membres d'une cohorte pilote.
+    L'étudiant doit payer des frais de certification et obtenir une validation
+    administrative avant que le Certificat final soit émis.
+    """
+
+    utilisateur = models.ForeignKey(
+        'auth.User',
+        on_delete=models.CASCADE,
+        related_name='eligibilites_certification'
+    )
+    formation = models.ForeignKey(
+        'Formation',
+        on_delete=models.CASCADE,
+        related_name='eligibilites_certification'
+    )
+    cohorte = models.ForeignKey(
+        'Cohorte',
+        on_delete=models.CASCADE,
+        related_name='eligibilites_certification',
+        help_text="Ce processus contrôlé (frais + validation admin) s'applique UNIQUEMENT aux membres d'une cohorte"
+    )
+
+    frais_paye = models.BooleanField(default=False, help_text="Frais de certification acquittés")
+    valide_par = models.ForeignKey(
+        'auth.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='certifications_validees'
+    )
+    date_validation = models.DateTimeField(null=True, blank=True)
+    certificat_genere = models.ForeignKey(
+        'Certificat',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='eligibilite_origine'
+    )
+    date_creation = models.DateTimeField(auto_now_add=True)
+
+    # --- NOUVEAUX CHAMPS ---
+    note_theorique = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="Note de l'examen théorique sur 100")
+    note_projet = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="Note du projet sur 100")
+    moyenne_finale = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="Moyenne pondérée ou simple des notes")
+    STATUTS = [
+        ('en_cours', 'En cours'),
+        ('eligible', 'Éligible (certificat prêt)'),
+        ('certifie', 'Certifié'),
+        ('refuse', 'Refusé'),
+    ]
+    statut = models.CharField(max_length=10, choices=STATUTS, default='en_cours')
+
+    class Meta:
+        app_label = 'academie'
+        db_table = 'academie_eligibilitecertification'
+        unique_together = ['utilisateur', 'formation']
+        verbose_name = "Éligibilité certification"
+        verbose_name_plural = "Éligibilités certifications"
+
+    def __str__(self):
+        return f"{self.utilisateur.username} → {self.formation.nom} (cohorte {self.cohorte.nom})"
+
+    def est_eligible(self):
+        """Vérifie si tous les prérequis sont remplis pour générer le certificat."""
+        return self.frais_paye and self.valide_par is not None
+
+    def valider(self, admin_user):
+        """Valide l'éligibilité et génère le certificat si tout est OK."""
+        if not self.est_eligible():
+            raise ValueError("L'éligibilité n'est pas complète (frais non payés ou non validé).")
+        if self.certificat_genere:
+            return self.certificat_genere
+
+        from content.models import Certificat
+        certificat = Certificat.objects.create(
+            utilisateur=self.utilisateur,
+            formation=self.formation
+        )
+        self.certificat_genere = certificat
+        self.save()
+        return certificat
+
+    # --- NOUVELLES MÉTHODES ---
+    def calculer_moyenne(self):
+        """Calcule la moyenne des notes si disponibles."""
+        notes = []
+        if self.note_theorique is not None:
+            notes.append(float(self.note_theorique))
+        if self.note_projet is not None:
+            notes.append(float(self.note_projet))
+        if notes:
+            return round(sum(notes) / len(notes), 2)
+        return None
+
+    def verifier_et_mettre_a_jour_statut(self):
+        """Met à jour le statut en fonction des notes et du paiement."""
+        if self.certificat_genere:
+            self.statut = 'certifie'
+        elif self.frais_paye and self.note_theorique is not None and self.note_projet is not None:
+            self.statut = 'eligible'
+        else:
+            self.statut = 'en_cours'
+        self.save(update_fields=['statut'])
+
+
+
+# ================================================
+# MODELS.PY — Fonction utilitaire : cet étudiant est-il en cohorte 
+# pilote pour cette formation ? (détermine QUEL système s'applique)
+# ================================================
+
+def obtenir_cohorte_active_pour(utilisateur, formation):
+    """
+    Retourne la Cohorte active si l'utilisateur en est membre pour 
+    cette formation précise, sinon None (= processus classique s'applique).
+    """
+    return Cohorte.objects.filter(
+        membres=utilisateur, formations=formation, actif=True
+    ).first()

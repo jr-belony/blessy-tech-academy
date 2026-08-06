@@ -353,3 +353,36 @@ def stripe_webhook(request):
             pass
 
     return HttpResponse(status=200)
+
+
+# ================================================
+# VUE — Initier le paiement des frais de certification
+# ================================================
+
+@login_required(login_url='/connexion/')
+def initier_paiement_certification(request, eligibilite_id):
+    from academie.models import EligibiliteCertification
+
+    eligibilite = get_object_or_404(EligibiliteCertification, id=eligibilite_id, utilisateur=request.user)
+
+    # Vérifier que l'utilisateur est éligible (vous pouvez définir un champ statut si besoin)
+    if not eligibilite.est_eligible():
+        messages.error(request, "❌ Tu n'es pas encore éligible au certificat pour cette formation.")
+        return redirect('mes_certifications')
+
+    # Récupérer le montant depuis la cohorte
+    montant = eligibilite.cohorte.frais_montant if eligibilite.cohorte else 0
+
+    if montant <= 0:
+        # Certificat gratuit → on marque frais_paye et on passe directement à la validation admin
+        eligibilite.frais_paye = True
+        eligibilite.save()
+        messages.success(request, "✅ Certificat gratuit (cohorte pilote) — en attente de génération par l'administration.")
+        return redirect('mes_certifications')
+
+    # --- Si montant > 0, poursuivre avec le tunnel de paiement existant ---
+    # (votre code existant de création d'Order, OrderItem, etc.)
+    # Exemple (à adapter selon votre tunnel) :
+    # commande = Order.objects.create(utilisateur=request.user, total=montant)
+    # OrderItem.objects.create(...)
+    # return redirect('checkout', order_reference=commande.reference)

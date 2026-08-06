@@ -23,22 +23,21 @@ from .models import (
     AccesFormationDebloque,
     Article,
     PartenaireAPI,
-)
-
-from .models import (
     Formation,
     Parcours,
     ProgressionLecon,
     WorkflowFormation,
 )
 from .throttles import ThrottlePartenaireAPI
-from .api_partenaires import obtenir_partenaire_depuis_request
-
+from .api_partenaires import (
+    obtenir_partenaire_depuis_request,
+    journaliser_requete_partenaire,
+    exiger_scope,
+)
 
 # ================================================
 # Endpoints v1 (rétrocompatibles)
 # ================================================
-
 
 class FormationViewSet(viewsets.ReadOnlyModelViewSet):
     """GET /api/v1/formations/ — Liste publique des formations."""
@@ -77,7 +76,6 @@ def obtenir_token_api(request):
 # ================================================
 # Endpoints v2 (enrichis, filtrables, documentés)
 # ================================================
-
 
 class ParcoursViewSet(viewsets.ReadOnlyModelViewSet):
     """GET /api/v2/parcours/ — Parcours professionnels avec formations incluses."""
@@ -131,9 +129,8 @@ class FormationV2ViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 # ================================================
-# API_VIEWS.PY — Endpoint liste Academies
+# Endpoint liste Academies
 # ================================================
-
 
 class AcademieSerializer(serializers.ModelSerializer):
     class Meta:
@@ -161,7 +158,6 @@ class AcademieViewSet(viewsets.ReadOnlyModelViewSet):
 # AUTHENTIFICATION — Partenaire API (clé API)
 # ================================================
 
-
 class PartenaireAPIAuthentication(authentication.BaseAuthentication):
     """Authentifie un partenaire via son header X-API-Key."""
 
@@ -179,17 +175,7 @@ class PartenaireAPIAuthentication(authentication.BaseAuthentication):
 
 
 # ================================================
-# FONCTION UTILITAIRE — Journalisation requêtes partenaires
-# ================================================
-
-
-def journaliser_requete_partenaire(request, partenaire, code_http):
-    """Log basique des appels partenaires (peut être enrichi avec LogAudit)."""
-    print(f"[PARTENAIRE API] {partenaire.nom} - {request.path} - HTTP {code_http}")
-
-
-# ================================================
-# VUE — PartenaireFormationsView (avec accesseur explicite)
+# VUE — PartenaireFormationsView (avec décorateur de scope)
 # ================================================
 
 class PartenaireFormationsView(APIView):
@@ -201,12 +187,11 @@ class PartenaireFormationsView(APIView):
 
     authentication_classes = [PartenaireAPIAuthentication]
     permission_classes = []
-    throttle_classes = [ThrottlePartenaireAPI]   # ← RÉTABLI
+    throttle_classes = [ThrottlePartenaireAPI]
 
+    @exiger_scope('formations.lire')
     def get(self, request):
         partenaire = obtenir_partenaire_depuis_request(request)
-        if partenaire is None:
-            return Response({"erreur": "Authentification partenaire requise"}, status=401)
 
         formations = Formation.objects.filter(actif=True).select_related("ecole", "ecole__academie")
 
@@ -229,9 +214,8 @@ class PartenaireFormationsView(APIView):
         )
 
 
-    
 # ================================================
-# VUE — PartenaireEtudiantsFormesView (avec accesseur explicite)
+# VUE — PartenaireEtudiantsFormesView (avec décorateur de scope)
 # ================================================
 
 class PartenaireEtudiantsFormesView(APIView):
@@ -243,13 +227,11 @@ class PartenaireEtudiantsFormesView(APIView):
 
     authentication_classes = [PartenaireAPIAuthentication]
     permission_classes = []
-    throttle_classes = [ThrottlePartenaireAPI]   # ← RÉTABLI
+    throttle_classes = [ThrottlePartenaireAPI]
 
+    @exiger_scope('etudiants.lire')
     def get(self, request):
         partenaire = obtenir_partenaire_depuis_request(request)
-        if partenaire is None:
-            return Response({"erreur": "Authentification partenaire requise"}, status=401)
-
         formation_id = request.query_params.get("formation_id")
 
         if not formation_id:
@@ -282,12 +264,8 @@ class PartenaireEtudiantsFormesView(APIView):
 
 
 # ================================================
-# API_VIEWS.PY — CORRECTIF : Endpoint API workflow avec vérifications strictes
-# L'audit signale : "transitions non vérifiées côté front/API" — 
-# ce endpoint applique EXACTEMENT la même logique que transitionner()
-# du modèle, jamais de bypass possible
+# Endpoint workflow (déjà sécurisé, réutilise transitionner())
 # ================================================
-
 
 @api_view(['POST'])
 @permission_classes([IsAdminUser])

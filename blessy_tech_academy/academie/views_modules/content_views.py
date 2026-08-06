@@ -10,6 +10,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.views.decorators.cache import cache_page
 
 from ..models import (
     Article,
@@ -300,22 +301,6 @@ def mon_profil_competences(request):
     })
 
 
-def portfolio_public(request, username):
-    """Page portfolio publique — consultable par recruteurs sans connexion."""
-    utilisateur = get_object_or_404(User, username=username)
-    projets = ProjetEtudiant.objects.filter(auteur=utilisateur).prefetch_related('competences_demontrees')
-    competences_validees = CompetenceValidee.objects.filter(utilisateur=utilisateur).select_related('competence')
-    certificats = Certificat.objects.filter(utilisateur=utilisateur).select_related('formation')
-
-    return render(request, 'academie/portfolio_public.html', {
-        'profil_utilisateur': utilisateur,
-        'projets': projets,
-        'nb_competences': competences_validees.values('competence').distinct().count(),
-        'competences_validees': competences_validees[:12],
-        'certificats': certificats,
-    })
-
-
 def classement(request):
     profils = (
         ProfilUtilisateur.objects.select_related("utilisateur")
@@ -414,6 +399,7 @@ def resultats_et_preuves(request):
     })
 
 
+@cache_page(60 * 60)  # 1 heure — les partenaires changent très rarement
 def partenariats(request):
     """Page vitrine partenaires — vide au départ, structure prête pour Phase 4."""
     from ..models import Partenaire
@@ -444,6 +430,7 @@ def faq_confiance(request):
 # Vues : Catalogue des Certifications
 # ================================================
 
+@cache_page(60 * 20)  # 20 minutes
 def certifications(request):
     """Catalogue public des certifications délivrées par BTA."""
     from ..models import Formation, Competence, Ecole
@@ -650,3 +637,39 @@ def blog_actualites(request):
         'total_articles': articles.count(),
         'fil_ariane_etapes': fil_ariane_etapes,
     })
+
+
+# ================================================
+# VIEWS.PY — CORRECTIF : profil public enrichi selon consentement
+# ================================================
+def portfolio_public(request, username):
+    """Page portfolio publique — consultable par recruteurs sans connexion."""
+    utilisateur = get_object_or_404(User.objects.select_related('profil'), username=username)
+    profil = getattr(utilisateur, 'profil', None)
+
+    # Données de base toujours visibles
+    projets = ProjetEtudiant.objects.filter(auteur=utilisateur).prefetch_related('competences_demontrees')
+    competences_validees = CompetenceValidee.objects.filter(utilisateur=utilisateur).select_related('competence')
+    certificats = Certificat.objects.filter(utilisateur=utilisateur, statut='valide').select_related('formation')
+
+    contexte = {
+        'profil_utilisateur': utilisateur,
+        'projets': projets,
+        'nb_competences': competences_validees.values('competence').distinct().count(),
+        'competences_validees': competences_validees[:12],
+        'certificats': certificats,
+    }
+
+    # Données enrichies (uniquement si consentement)
+    if profil and profil.consentement_profil_public:
+        nom_complet = utilisateur.get_full_name() or utilisateur.username
+        temoignage = Temoignage.objects.filter(
+            prenom_nom__icontains=nom_complet,
+            approuve=True
+        ).first()
+        badges = BadgeForum.objects.filter(utilisateur=utilisateur).order_by('-date_obtention')
+
+        contexte['temoignage'] = temoignage
+        contexte['badges'] = badges
+
+    return render(request, 'academie/portfolio_public.html', contexte)
