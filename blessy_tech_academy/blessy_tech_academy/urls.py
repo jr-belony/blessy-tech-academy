@@ -37,12 +37,14 @@ urlpatterns = [
     path('api/v2/workflow/<int:formation_id>/transition/', api_workflow_transition, name='api_workflow_transition'),
 ]
 
-# Debug Toolbar (développement uniquement)
+# Debug Toolbar + fichiers statiques et médias (développement uniquement)
 if settings.DEBUG:
     import debug_toolbar
     urlpatterns += [
         path('__debug__/', include(debug_toolbar.urls)),
     ]
+    # Servir les fichiers statiques et médias en développement
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # ================================================

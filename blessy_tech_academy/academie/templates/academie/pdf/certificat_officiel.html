@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Certificat Blessy Tech Academy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 0;
+        }
+        body {
+            margin: 0; padding: 0;
+            background: #f8f9fa;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .page {
+            width: 297mm; height: 210mm;
+            padding: 20mm 22mm;
+            box-sizing: border-box;
+            position: relative;
+            background: #FFFFFF;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.8);
+        }
+
+        /* --- Éléments de sécurité & Identité --- */
+        .border-frame {
+            position: absolute;
+            top: 10mm; left: 10mm; right: 10mm; bottom: 10mm;
+            border: 2px solid #003B8E; /* Bordure plus fine et plus présente */
+            pointer-events: none;
+        }
+        .corner-accent {
+            position: absolute;
+            top: -2px; right: -2px;
+            width: 15mm; height: 2mm;
+            background: #FF6B00;
+            pointer-events: none;
+        }
+        .top-bar {
+            position: absolute;
+            top: 10mm; left: 10mm; right: 10mm;
+            height: 0.5mm;
+            background: #00B5E2;
+        }
+        .watermark {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            opacity: 0.05;
+            pointer-events: none;
+            max-width: 80%;
+        }
+
+        /* --- Structure du contenu --- */
+        .content {
+            position: relative; z-index: 2;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: space-between;
+            height: 100%;
+        }
+
+        /* Logo et Marque */
+        .logo-area { text-align: center; margin-bottom: 5px; }
+        .logo-area img { max-height: 28mm; max-width: 80mm; }
+        .brand-slogan {
+            font-size: 9pt; color: #4A5568; font-weight: 400;
+            letter-spacing: 1px; margin-top: 4px;
+            text-transform: uppercase;
+        }
+        .partner-logo {
+            margin-top: 5px; max-height: 8mm; max-width: 40mm;
+            opacity: 0.7; display: {% if partenaire_logo %}block{% else %}none{% endif %};
+        }
+
+        .title-area { text-align: center; margin-bottom: 6px; }
+        .title-text {
+            font-family: 'Inter', sans-serif; font-size: 22pt; font-weight: 700;
+            color: #003B8E; letter-spacing: 8px; text-transform: uppercase;
+            border-bottom: 2px solid #00B5E2; display: inline-block; padding-bottom: 8px;
+        }
+
+        /* Nom du bénéficiaire (La STAR) */
+        .student-area { text-align: center; margin-bottom: 8px; }
+        .student-name {
+            font-family: 'Cormorant Garamond', serif; font-size: 70pt; /* 2-3x plus grand */
+            font-weight: 700; color: #1A202C; line-height: 1.1;
+            margin: 10px 0 6px 0;
+        }
+        .attribution-block { font-size: 11pt; color: #4A5568; font-weight: 400; line-height: 1.5; }
+        .attribution-block strong { color: #003B8E; font-weight: 700; }
+
+        /* Formation et École */
+        .course-area { text-align: center; margin-bottom: 6px; }
+        .certification-label {
+            font-size: 10pt; color: #718096; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 3px; margin-bottom: 4px;
+        }
+        .course-name {
+            font-family: 'Inter', sans-serif; font-size: 22pt; font-weight: 700;
+            color: #003B8E; margin-bottom: 2px; letter-spacing: -0.5px;
+        }
+        .school-line {
+            font-size: 13pt; font-weight: 400; color: #718096;
+            letter-spacing: 1px;
+        }
+        .school-line strong { color: #00B5E2; font-weight: 500; }
+
+        .meta-row {
+            display: flex; gap: 30px; justify-content: center;
+            font-size: 11pt; color: #4A5568; margin-bottom: 5px; margin-top: 5px;
+        }
+        .meta-row strong { color: #003B8E; }
+
+        .mention-row {
+            font-size: 11pt; font-weight: 700; color: #FF6B00;
+            margin-top: -5px; margin-bottom: 8px;
+            display: {% if mention %}block{% else %}none{% endif %};
+        }
+
+        .footer-area {
+            width: 100%; display: flex; justify-content: space-between;
+            align-items: flex-end; border-top: 1px solid #E2E8F0; padding-top: 10px;
+            margin-top: 5px;
+        }
+
+        .signature-box { text-align: left; }
+        .signature-img { max-height: 28px; margin-bottom: 2px; } /* Emplacement pour la signature manuscrite */
+        .signer-name { font-weight: 700; font-size: 11pt; color: #1A202C; }
+        .signer-title { font-size: 9pt; color: #4A5568; }
+
+        .qr-box { text-align: right; }
+        .qr-box img { max-height: 55px; max-width: 55px; } /* QR Code légèrement plus grand */
+        .qr-text { font-size: 9pt; color: #4A5568; margin-top: 2px; }
+        .qr-text strong { color: #003B8E; }
+
+        .url-check {
+            position: absolute; bottom: 16mm; right: 20mm;
+            font-size: 7pt; color: #A0AEC0;
+        }
+
+        /* Version mobile */
+        @media (max-width: 768px) {
+            body { display: block; height: auto; background: white; }
+            .page { width: 100%; height: auto; min-height: 100vh; border: none; padding: 20px; }
+            .border-frame, .top-bar, .corner-accent { display: none; }
+            .student-name { font-size: 48pt; }
+            .course-name { font-size: 18pt; }
+            .meta-row { gap: 15px; flex-wrap: wrap; }
+            .footer-area { flex-direction: column-reverse; align-items: center; gap: 20px; }
+            .signature-box, .qr-box { text-align: center; width: 100%; }
+            .url-check { position: static; text-align: center; margin-top: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <!-- Éléments de structure et sécurité -->
+        <div class="border-frame"></div>
+        <div class="corner-accent"></div>
+        <div class="top-bar"></div>
+        <img src="{{ logo_url }}" class="watermark" />
+
+        <div class="content">
+            <div class="logo-area">
+                <img src="{{ logo_url }}" alt="Blessy Tech Academy" />
+                <div class="brand-slogan">L'École de la Haute Technologie Moderne d'Haïti</div>
+                <img src="{{ partenaire_logo }}" class="partner-logo" alt="Partenaire" />
+            </div>
+
+            <div class="title-area">
+                <div class="title-text">{{ type_certificat }}</div>
+            </div>
+
+            <div class="student-area">
+                <div class="student-name">
+                    {% if prenom and nom %}{{ prenom }} {{ nom }}{% else %}{{ username|default:"Étudiant" }}{% endif %}
+                </div>
+                <div class="attribution-block">
+                    Le présent certificat est décerné à 
+                    <strong>{% if prenom and nom %}{{ prenom }} {{ nom }}{% else %}{{ username|default:"Étudiant" }}{% endif %}</strong><br>
+                    pour avoir satisfait avec succès aux exigences de la formation certifiante
+                </div>
+            </div>
+
+            <div class="course-area">
+                <div class="certification-label">Formation certifiante</div>
+                <div class="course-name">{{ formation_nom }}</div>
+                <div class="school-line"><strong>École :</strong> {{ ecole_nom }}</div>
+            </div>
+
+            <div class="meta-row">
+                <div><strong>Date :</strong> {{ date_emission|date:"d F Y" }}</div>
+                <div><strong>N° :</strong> {{ numero_certificat }}</div>
+            </div>
+
+            <div class="mention-row">Mention : {{ mention }}</div>
+
+            <div class="footer-area">
+                <div class="signature-box">
+                    <!-- Pour la signature manuscrite en production, remplacez la ligne ci-dessous par : -->
+                    <!-- <img src="{{ signature_manuscrite_url }}" class="signature-img" /> -->
+                    <div class="signer-name">{{ signataire_nom }}</div>
+                    <div class="signer-title">{{ signataire_titre }}</div>
+                </div>
+
+                <div class="qr-box">
+                    <img src="data:image/png;base64,{{ qr_code_data }}" alt="QR Code" />
+                    <div class="qr-text">Scanner pour <strong>vérifier</strong></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mention de vérification plus discrète en pied de page -->
+        <div class="url-check">Certificat numérique vérifiable : {{ url_verification }}</div>
+    </div>
+</body>
+</html>

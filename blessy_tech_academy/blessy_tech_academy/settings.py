@@ -22,22 +22,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# The SECRET_KEY must be provided via environment variables in production.
-# Do NOT commit a .env file containing real secrets to version control.
 SECRET_KEY = config('SECRET_KEY')
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 # Email backend pour les tests en développement (affiche les emails dans le terminal)
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# ================================================
-# ÉTAPE 1 — Verrouillage ALLOWED_HOSTS
-# ================================================
-# En développement : localhost et 127.0.0.1 sont autorisés par défaut.
-# En production (DJANGO_PRODUCTION=true) : ALLOWED_HOSTS doit être défini
-# explicitement dans l'environnement et ne doit pas contenir '*'.
 ALLOWED_HOSTS = config(
     'ALLOWED_HOSTS',
     default='localhost,127.0.0.1',
@@ -55,7 +46,6 @@ CSRF_TRUSTED_ORIGINS = config(
 CSRF_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_SECURE = not DEBUG
 GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -77,13 +67,12 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.facebook',
     'users',
     'billing',
-    'academie.apps.AcademieConfig',  # ← modifié pour charger la config personnalisée
+    'academie.apps.AcademieConfig',
     'crm',
     'forum',
     'content',
     'storages'
 ]
-# Debug Toolbar (développement uniquement)
 if DEBUG:
     INSTALLED_APPS += ['debug_toolbar']
 
@@ -105,7 +94,6 @@ MIDDLEWARE.insert(0, 'academie.middleware.RequestIDMiddleware')
 MIDDLEWARE += ['academie.middleware.MonitoringPerformanceMiddleware']
 MIDDLEWARE += ['academie.middleware.AcademieCouranteMiddleware']
 
-# Debug Toolbar (développement uniquement)
 if DEBUG:
     MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
     INTERNAL_IPS = ['127.0.0.1']
@@ -131,77 +119,49 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'blessy_tech_academy.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
 DATABASES = {
     'default': dj_database_url.config(
-        default=config(
-            'DATABASE_URL',
-            default='sqlite:///db.sqlite3'
-        ),
+        default=config('DATABASE_URL', default='sqlite:///db.sqlite3'),
         conn_max_age=600
     )
 }
 
-# Password validation
-# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/6.0/topics/i18n/
-
 LANGUAGE_CODE = 'fr'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-LOCALE_PATHS = [
-    BASE_DIR / 'locale',
-]
+LOCALE_PATHS = [BASE_DIR / 'locale']
+LANGUAGES = [('fr', 'Français'), ('ht', 'Kreyòl')]
 
-LANGUAGES = [
-    ('fr', 'Français'),
-    ('ht', 'Kreyòl'),
-]
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
-
+# ================================================
+# STATIC FILES — CORRECTION APPLIQUÉE ICI
+# ================================================
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# Ajout du mappage ('img') pour rediriger /static/img/ vers le vrai dossier d'images
+STATICFILES_DIRS = [
+    ('img', BASE_DIR / 'academie' / 'static' / 'academie' / 'images'),
+    BASE_DIR / 'blessy_tech_academy' / 'static',
+]
+
 if DEBUG:
-    # En développement : Django sert directement les fichiers statiques
     STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 else:
-    # En production : WhiteNoise sert les fichiers (optimisés et compressés)
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
 
 # ================================================
 # CKEditor 5 Configuration
 # ================================================
-
 CKEDITOR_5_CONFIGS = {
     'default': {
         'toolbar': [
@@ -238,59 +198,36 @@ CKEDITOR_5_CONFIGS = {
         'language': 'fr',
     },
     'minimal': {
-        'toolbar': [
-            'bold', 'italic', 'underline', '|',
-            'bulletedList', 'numberedList', '|',
-            'link', '|',
-            'undo', 'redo'
-        ],
+        'toolbar': ['bold', 'italic', 'underline', '|', 'bulletedList', 'numberedList', '|', 'link', '|', 'undo', 'redo'],
         'height': 200,
         'width': '100%',
         'language': 'fr',
     }
 }
 
-# Dossier pour les images uploadées via CKEditor
 CKEDITOR_5_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-
-# Logging des erreurs en production (sans DEBUG=True)
+# Logging
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
-        'file': {
-            'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'errors.log',
-        },
-        'console': {
-            'level': 'ERROR',
-            'class': 'logging.StreamHandler',
-        },
+        'file': {'level': 'ERROR', 'class': 'logging.FileHandler', 'filename': BASE_DIR / 'errors.log'},
+        'console': {'level': 'ERROR', 'class': 'logging.StreamHandler'},
     },
     'loggers': {
-        'django': {
-            'handlers': ['file', 'console'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
+        'django': {'handlers': ['file', 'console'], 'level': 'ERROR', 'propagate': True},
     },
 }
 
-
-# Sites framework (requis par allauth)
 SITE_ID = 1
-
-# Allauth configuration
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
-
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
 ACCOUNT_LOGIN_METHODS = {'email'}
@@ -300,17 +237,11 @@ ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_LOGIN_ON_GET = True
 
-
-# ========== Sécurité des cookies ==========
-# 🔥 CORRECTIF : CSRF_COOKIE_HTTPONLY doit être False pour les requêtes AJAX
 CSRF_COOKIE_HTTPONLY = False
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = 'Strict'
 SESSION_COOKIE_SAMESITE = 'Strict'
-CSRF_COOKIE_SECURE = not DEBUG
-SESSION_COOKIE_SECURE = not DEBUG
 
-# ========== HSTS et HTTPS ==========
 if not DEBUG:
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
@@ -318,31 +249,13 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# ========== Protection XSS ==========
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
-
-# ========== Anti-clickjacking ==========
 X_FRAME_OPTIONS = 'DENY'
 
-# ========== Content Security Policy ==========
-# Note: Le CSP principal est géré par SecurityHeadersMiddleware
-# Ces variables sont utilisées comme fallback par Django
 CSP_DEFAULT_SRC = ("'self'",)
-CSP_SCRIPT_SRC = (
-    "'self'",
-    "https://cdn.ckeditor.com",
-    "https://cdn.jsdelivr.net",
-    "https://www.googletagmanager.com",
-    "https://www.google-analytics.com",
-)
-# 🔥 CORRECTIF : suppression de 'unsafe-inline' des styles (CSP renforcé)
-CSP_STYLE_SRC = (
-    "'self'",
-    "https://cdn.ckeditor.com",
-    "https://cdn.jsdelivr.net",
-    "https://fonts.googleapis.com",
-)
+CSP_SCRIPT_SRC = ("'self'", "https://cdn.ckeditor.com", "https://cdn.jsdelivr.net", "https://www.googletagmanager.com", "https://www.google-analytics.com")
+CSP_STYLE_SRC = ("'self'", "https://cdn.ckeditor.com", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com")
 CSP_IMG_SRC = ("'self'", "data:", "https:")
 CSP_FONT_SRC = ("'self'", "https://cdn.ckeditor.com", "https://fonts.gstatic.com")
 CSP_CONNECT_SRC = ("'self'", "https://www.google-analytics.com")
@@ -354,20 +267,12 @@ CSP_FRAME_SRC = ("'self'",)
 CSP_OBJECT_SRC = ("'none'",)
 
 if DEBUG:
-    # En développement, on assouplit pour permettre localhost
     CSP_DEFAULT_SRC = ("'self'", "http://127.0.0.1:8000", "http://localhost:8000")
     CSP_CONNECT_SRC = ("'self'", "http://127.0.0.1:8000", "http://localhost:8000", "https://www.google-analytics.com", "https://cdn.jsdelivr.net")
 else:
-    # En production, on renforce la sécurité
     CSP_UPGRADE_INSECURE_REQUESTS = True
 
-# ================================================
-# Configuration Email BTA
-# ================================================
-
 SITE_URL = config('SITE_URL', default='https://blessy-tech-academy-production.up.railway.app')
-
-# --- Adresses professionnelles dédiées ---
 EMAIL_CONTACT = 'contact@blessytechacademy.com'
 EMAIL_SUPPORT = 'support@blessytechacademy.com'
 EMAIL_ADMISSIONS = 'admissions@blessytechacademy.com'
@@ -376,121 +281,54 @@ EMAIL_FORMATIONS = 'formations@blessytechacademy.com'
 EMAIL_RECRUTEMENT = 'recrutement@blessytechacademy.com'
 EMAIL_NEWSLETTER = 'newsletter@blessytechacademy.com'
 EMAIL_NOREPLY = 'noreply@blessytechacademy.com'
-
 DEFAULT_FROM_EMAIL = EMAIL_NOREPLY
 
-# --- Backend SMTP (aujourd'hui) — bascule vers un provider en changeant UNIQUEMENT ici ---
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
 EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-
-# En développement, afficher les emails dans le terminal
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 
-# ========== Journalisation sécurité ==========
 LOGGING['loggers']['django.security'] = {
     'handlers': ['file', 'console'],
     'level': 'WARNING',
     'propagate': False,
 }
 
-
-# ================================================
-# Configuration passerelles de paiement
-# ================================================
-
 STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='')
 STRIPE_PUBLIC_KEY = config('STRIPE_PUBLIC_KEY', default='')
 STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET', default='')
-
 MONCASH_CLIENT_ID = config('MONCASH_CLIENT_ID', default='')
 MONCASH_CLIENT_SECRET = config('MONCASH_CLIENT_SECRET', default='')
 MONCASH_MODE = config('MONCASH_MODE', default='sandbox')
-
 PAYPAL_CLIENT_ID = config('PAYPAL_CLIENT_ID', default='')
 PAYPAL_CLIENT_SECRET = config('PAYPAL_CLIENT_SECRET', default='')
 PAYPAL_MODE = config('PAYPAL_MODE', default='sandbox')
 
-
-# === Organisation de l'admin Django (regroupement natif) ===
 ADMIN_GROUPING = {
     '🎓 Pédagogie': [
-        'Ecole',
-        'Formation',
-        'Module',
-        'Lecon',
-        'Quiz',
-        'Parcours',
-        'Article',
-        'OutilRecommande',
-        'Competence',
-        'CompetenceValidee',
-        'EtudeDeCas',
-        'Examen',
-        'QuestionExamen',
-        'ChoixExamen',
-        'TentativeExamen',
-        'WorkflowFormation',
+        'Ecole', 'Formation', 'Module', 'Lecon', 'Quiz', 'Parcours',
+        'Article', 'OutilRecommande', 'Competence', 'CompetenceValidee',
+        'EtudeDeCas', 'Examen', 'QuestionExamen', 'ChoixExamen',
+        'TentativeExamen', 'WorkflowFormation',
     ],
     '💳 Commerce': [
-        'Order',
-        'OrderItem',
-        'Transaction',
-        'Invoice',
-        'Refund',
-        'Coupon',
-        'Promotion',
-        'MoyenPaiement',
-        'AccesFormationDebloque',
-        'PlanAbonnement',
-        'Subscription',
-        'Affilie',
-        'CommissionAffiliation',
+        'Order', 'OrderItem', 'Transaction', 'Invoice', 'Refund',
+        'Coupon', 'Promotion', 'MoyenPaiement', 'AccesFormationDebloque',
+        'PlanAbonnement', 'Subscription', 'Affilie', 'CommissionAffiliation',
     ],
-    '👥 Communauté': [
-        'Sujet',
-        'Reponse',
-        'Reaction',
-        'ResultatQuiz',
-        'BadgeForum',
-    ],
-    '📢 Marketing': [
-        'Inscription',
-        'Temoignage',
-        'Partenaire',
-        'Ambassadeur',
-        'PartenaireAPI',
-    ],
-    '⚙️ Système': [
-        'Academie',
-        'ProfilUtilisateur',
-        'LogAudit',
-        'ConnexionUtilisateur',
-        'PartenaireAPI',  # si déjà ailleurs, à enlever
-        'AlertesFraude',
-        'Cohorte',
-    ],
+    '👥 Communauté': ['Sujet', 'Reponse', 'Reaction', 'ResultatQuiz', 'BadgeForum'],
+    '📢 Marketing': ['Inscription', 'Temoignage', 'Partenaire', 'Ambassadeur', 'PartenaireAPI'],
+    '⚙️ Système': ['Academie', 'ProfilUtilisateur', 'LogAudit', 'ConnexionUtilisateur', 'PartenaireAPI', 'AlertesFraude', 'Cohorte'],
     '📦 Autres': [
-        'Notification',
-        'PushSubscription',
-        'NotificationPushEnvoyee',
-        'HistoriqueConversationIA',
-        'Enseignant',
-        'ProjetEtudiant',
-        'SoumissionProjet',
-        'NoteLecon',
-        'StreakEtudiant',
+        'Notification', 'PushSubscription', 'NotificationPushEnvoyee',
+        'HistoriqueConversationIA', 'Enseignant', 'ProjetEtudiant',
+        'SoumissionProjet', 'NoteLecon', 'StreakEtudiant',
     ],
 }
-
-
-# ================================================
-# Django REST Framework
-# ================================================
 
 INSTALLED_APPS += ['drf_spectacular', 'django_filters']
 
@@ -508,10 +346,7 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle',
     ],
-    'DEFAULT_THROTTLE_RATES': {
-        'anon': '30/minute',
-        'user': '120/minute',
-    },
+    'DEFAULT_THROTTLE_RATES': {'anon': '30/minute', 'user': '120/minute'},
 }
 
 SPECTACULAR_SETTINGS = {
@@ -528,116 +363,56 @@ SPECTACULAR_SETTINGS = {
     ],
 }
 
-
-# ================================================
-# SETTINGS.PY — Cache Redis (fallback local si non configuré)
-# Variable Railway : REDIS_URL=redis://...
-# ================================================
-
 REDIS_URL = config('REDIS_URL', default='')
-
 if REDIS_URL:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-            'LOCATION': REDIS_URL,
-        }
-    }
+    CACHES = {'default': {'BACKEND': 'django.core.cache.backends.redis.RedisCache', 'LOCATION': REDIS_URL}}
 else:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        }
-    }
-
-
-# ================================================
-# SETTINGS.PY — Stockage média externalisé (S3-compatible)
-# CRITIQUE : Railway efface /media/ à chaque déploiement
-# Compatible AWS S3, Cloudflare R2 (moins cher), MinIO, Backblaze B2
-# ================================================
+    CACHES = {'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}}
 
 USE_S3_STORAGE = config('USE_S3_STORAGE', default=False, cast=bool)
-
-# ================================================
-# CORRECTIF CRITIQUE : Forcer S3 en production
-# ================================================
 if not DEBUG and not USE_S3_STORAGE:
-    raise ValueError(
-        "❌ USE_S3_STORAGE=True est OBLIGATOIRE en production. "
-        "Railway efface /media/ à chaque déploiement — configure "
-        "Cloudflare R2 ou AWS S3 avant de déployer (voir README.md)."
-    )
+    raise ValueError("❌ USE_S3_STORAGE=True est OBLIGATOIRE en production. Railway efface /media/ à chaque déploiement.")
 if USE_S3_STORAGE:
     AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default='')
     AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default='')
     AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default='')
-    AWS_S3_ENDPOINT_URL = config('AWS_S3_ENDPOINT_URL', default='')  # laisser vide pour AWS S3 natif, remplir pour R2/MinIO
+    AWS_S3_ENDPOINT_URL = config('AWS_S3_ENDPOINT_URL', default='')
     AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME', default='auto')
     AWS_DEFAULT_ACL = None
     AWS_S3_FILE_OVERWRITE = False
     AWS_QUERYSTRING_AUTH = True
     AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
-
     STORAGES = {
         "default": {"BACKEND": "storages.backends.s3boto3.S3Boto3Storage"},
         "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
     }
     MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/" if not AWS_S3_ENDPOINT_URL else f"{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/"
 else:
-    # Fallback local (dev uniquement — NE PAS utiliser en production Railway)
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media'
 
-
-# ================================================
-# SETTINGS.PY — Configuration django-ratelimit
-# ================================================
 RATELIMIT_VIEW = 'academie.views.vue_limite_depassee'
 
-
-# ================================================
-# SETTINGS.PY — CORS pour API partenaires/apps mobiles
-# ================================================
-
 INSTALLED_APPS += ['corsheaders']
-MIDDLEWARE.insert(1, 'corsheaders.middleware.CorsMiddleware')  # doit être haut dans la liste
-
+MIDDLEWARE.insert(1, 'corsheaders.middleware.CorsMiddleware')
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='').split(',') if config('CORS_ALLOWED_ORIGINS', default='') else []
-CORS_URLS_REGEX = r'^/api/.*$'  # CORS uniquement sur les routes API, pas sur le site public
-
-
-# ================================================
-# SETTINGS.PY — Sentry (tracking erreurs production)
-# Variable Railway : SENTRY_DSN=https://xxx@sentry.io/xxx
-# Créer un projet gratuit sur sentry.io (5000 erreurs/mois gratuit)
-# ================================================
+CORS_URLS_REGEX = r'^/api/.*$'
 
 SENTRY_DSN = config('SENTRY_DSN', default='')
-
 if SENTRY_DSN and not DEBUG:
     import sentry_sdk
     from sentry_sdk.integrations.django import DjangoIntegration
     from sentry_sdk.integrations.logging import LoggingIntegration
-
     sentry_logging = LoggingIntegration(level=None, event_level='ERROR')
-
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         integrations=[DjangoIntegration(), sentry_logging],
-        traces_sample_rate=0.1,  # 10% des requêtes tracées pour performance (évite surcharge quota gratuit)
-        send_default_pii=False,  # ne jamais envoyer de données personnelles étudiantes
+        traces_sample_rate=0.1,
+        send_default_pii=False,
         environment='production',
     )
 
-
-# ================================================
-# SETTINGS.PY — Configuration Dramatiq (file d'attente réelle)
-# Réutilise REDIS_URL déjà configuré précédemment
-# ================================================
-
 INSTALLED_APPS += ['django_dramatiq']
-
 DRAMATIQ_BROKER = {
     "BROKER": "dramatiq.brokers.redis.RedisBroker",
     "OPTIONS": {"url": REDIS_URL} if REDIS_URL else {"url": "redis://localhost:6379"},
@@ -650,11 +425,6 @@ DRAMATIQ_BROKER = {
         "django_dramatiq.middleware.AdminMiddleware",
     ],
 }
-
 DRAMATIQ_TASKS_DATABASE = "default"
 
-
-# ================================================
-# Taux de change pour la conversion USD → HTG
-# ================================================
 TAUX_USD_HTG = config('TAUX_USD_HTG', default=133, cast=int)

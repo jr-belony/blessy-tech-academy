@@ -1210,3 +1210,25 @@ def get_app_list_reorganise(self, request, app_label=None):
     return nouveau_app_list
 
 admin.site.get_app_list = get_app_list_reorganise.__get__(admin.site)
+
+
+# ================================================
+# ADMIN.PY — Registre d'émission certificat (Lecture seule stricte)
+# ================================================
+
+from .models import RegistreEmissionCertificat
+
+@admin.register(RegistreEmissionCertificat)
+class RegistreEmissionCertificatAdmin(admin.ModelAdmin):
+    list_display = ['certificat', 'action', 'effectue_par', 'date_evenement']
+    list_filter = ['action']
+    readonly_fields = [f.name for f in RegistreEmissionCertificat._meta.fields]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

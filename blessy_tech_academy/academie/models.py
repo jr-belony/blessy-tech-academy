@@ -317,6 +317,15 @@ class Formation(models.Model):
             models.Index(fields=['actif', 'niveau']),
             models.Index(fields=['ecole']),
         ]
+        # AJOUT : Permissions personnalisées pour Formation
+        permissions = [
+            ("view_formation_detail", "Peut voir le détail d'une formation"),
+            ("edit_formation", "Peut modifier une formation"),
+            ("can_delete_formation", "Peut supprimer une formation"),  # ← renommé
+            ("publish_formation", "Peut publier une formation"),
+            ("manage_formation_content", "Peut gérer le contenu d'une formation (modules, leçons)"),
+            ("view_formation_stats", "Peut voir les statistiques d'une formation"),
+        ]
 
     def __str__(self):
         return self.nom
@@ -374,6 +383,8 @@ class Formation(models.Model):
         if devise == 'HTG':
             return f"{self.prix_htg():,} HTG".replace(',', ' ')
         return f"{self.prix:.2f} USD"
+
+
 class Module(models.Model):
     formation = models.ForeignKey(Formation, on_delete=models.CASCADE, related_name='modules')
     titre = models.CharField(max_length=200)
@@ -454,6 +465,7 @@ class Lecon(models.Model):
             return False, f"Termine d'abord la leçon « {lecon_precedente.titre} »"
 
         return True, ""
+
 
 class ProgressionLecon(models.Model):
     utilisateur = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='progressions')
@@ -766,6 +778,7 @@ class Examen(models.Model):
     @property
     def questions(self):
         return self.questionexamen_set.all()
+
 
 class QuestionExamen(models.Model):
     examen = models.ForeignKey(Examen, on_delete=models.CASCADE)
@@ -1411,3 +1424,84 @@ class Evenement(models.Model):
 
     def est_passe(self):
         return timezone.now() > (self.date_fin or self.date_debut)
+
+
+# ================================================
+# [CORRECTIF AUDIT] Registre canonique des inscriptions (Enrollment)
+# ================================================
+
+class Enrollment(models.Model):
+    """Registre canonique des inscriptions (un étudiant, une formation, une date)."""
+    SOURCES = [
+        ('achat', 'Achat'),
+        ('gratuit', 'Offre gratuite'),
+        ('parrainage', 'Parrainage'),
+        ('admin', 'Attribution admin'),
+        ('promotion', 'Campagne promotionnelle'),
+    ]
+
+    utilisateur = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='enrollments')
+    formation = models.ForeignKey('academie.Formation', on_delete=models.CASCADE, related_name='enrollments')
+    date_inscription = models.DateTimeField(default=timezone.now)
+    source = models.CharField(max_length=20, choices=SOURCES, default='achat')
+    commande = models.ForeignKey('academie.Order', null=True, blank=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        app_label = 'academie'
+        db_table = 'academie_enrollment'
+        unique_together = ('utilisateur', 'formation')
+        verbose_name = 'Inscription'
+        verbose_name_plural = 'Inscriptions'
+
+    def __str__(self):
+        return f"{self.utilisateur.username} → {self.formation.nom} ({self.source})"
+
+
+
+# ================================================
+# REGISTRE D'ÉMISSION IMMUABLE (append‑only)
+# ================================================
+
+class RegistreEmissionCertificat(models.Model):
+    """
+    Journal immuable de tout événement affectant un certificat.
+    Ce modèle est en écriture seule : une fois créé, il ne peut être ni modifié ni supprimé.
+    """
+    ACTIONS = [
+        ('emission', '✅ Émission'),
+        ('revocation', '❌ Révocation'),
+        ('verification_externe', '🔍 Vérification consultée'),
+    ]
+
+    certificat = models.ForeignKey(
+        'Certificat',
+        on_delete=models.PROTECT,
+        related_name='registre'
+    )
+    action = models.CharField(max_length=25, choices=ACTIONS)
+    effectue_par = models.ForeignKey(
+        'auth.User',
+        on_delete=models.SET_NULL,
+        null=True
+    )
+    details = models.TextField(blank=True)
+    adresse_ip = models.GenericIPAddressField(null=True, blank=True)
+    date_evenement = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        app_label = 'academie'
+        db_table = 'academie_registre_emission_certificat'
+        ordering = ['date_evenement']
+        verbose_name = "Registre d'émission certificat"
+        verbose_name_plural = "Registre d'émission certificats"
+
+    def __str__(self):
+        return f"{self.get_action_display()} — {self.certificat.numero} — {self.date_evenement:%d/%m/%Y}"
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            raise ValueError("❌ Le registre d'émission est immuable — modification interdite.")
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValueError("❌ Le registre d'émission est immuable — suppression interdite.")

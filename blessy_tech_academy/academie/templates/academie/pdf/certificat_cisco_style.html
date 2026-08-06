@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Certificat {{ numero_certificat }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 0;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Lato', 'Helvetica', sans-serif;
+            background: white;
+        }
+        .certificat {
+            width: 100%;
+            height: 100vh;
+            padding: 40px 50px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border: 4px solid #0B2447;
+            border-radius: 12px;
+            background: white;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e0e4e8;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            color: #0B2447;
+            letter-spacing: 1px;
+        }
+        .logo span {
+            color: #00B4D8;
+        }
+        .badge {
+            background: #0B2447;
+            color: white;
+            padding: 6px 20px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .titre {
+            text-align: center;
+            margin: 20px 0 10px;
+        }
+        .titre h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 48px;
+            color: #0B2447;
+            letter-spacing: 2px;
+            margin: 0;
+        }
+        .titre .sous-titre {
+            font-size: 18px;
+            color: #6c757d;
+            font-weight: 300;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+        .nom {
+            font-family: 'Playfair Display', serif;
+            font-size: 40px;
+            font-weight: 700;
+            color: #0B2447;
+            text-align: center;
+            margin: 25px 0 10px;
+        }
+        .reconnaissance {
+            text-align: center;
+            font-size: 18px;
+            color: #2c3e50;
+            margin: 5px 0 15px;
+        }
+        .reconnaissance strong {
+            color: #0B2447;
+        }
+        .competences {
+            margin: 20px 40px;
+            padding: 15px 25px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #0B2447;
+        }
+        .competences h3 {
+            font-size: 14px;
+            color: #0B2447;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0 0 10px 0;
+            font-weight: 700;
+        }
+        .competences ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .competences li {
+            font-size: 13px;
+            color: #333;
+            padding: 4px 0 4px 20px;
+            position: relative;
+            line-height: 1.5;
+        }
+        .competences li::before {
+            content: "●";
+            color: #00B4D8;
+            position: absolute;
+            left: 0;
+            top: 4px;
+            font-size: 10px;
+        }
+        .bas {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e4e8;
+        }
+        .signature {
+            text-align: left;
+        }
+        .signature .nom-signature {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0B2447;
+        }
+        .signature .titre-signature {
+            font-size: 13px;
+            color: #6c757d;
+        }
+        .qr-section {
+            text-align: center;
+        }
+        .qr-section img {
+            width: 100px;
+            height: 100px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+        }
+        .qr-section p {
+            font-size: 11px;
+            color: #6c757d;
+            margin: 5px 0 0 0;
+            letter-spacing: 0.5px;
+        }
+        .date {
+            font-size: 14px;
+            color: #6c757d;
+            text-align: center;
+            margin: 15px 0 0 0;
+        }
+        .date strong {
+            color: #0B2447;
+        }
+        .pied {
+            text-align: center;
+            font-size: 10px;
+            color: #adb5bd;
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <div class="certificat">
+        <!-- En-tête -->
+        <div class="header">
+            <div class="logo">⚡ Blessy Tech <span>Academy</span></div>
+            <div class="badge">Certificat authentique</div>
+        </div>
+
+        <!-- Titre -->
+        <div class="titre">
+            <h1>Certificat de réussite</h1>
+            <div class="sous-titre">professionnelle</div>
+        </div>
+
+        <!-- Nom -->
+        <div class="nom">{{ prenom }} {{ nom }}</div>
+
+        <!-- Texte de reconnaissance -->
+        <div class="reconnaissance">
+            a validé l'intégralité du programme avec un niveau <strong>{{ formation.get_niveau_display|lower }}</strong>,<br>
+            après <strong>{{ formation.duree }}</strong> heures de formation et un examen final.
+        </div>
+
+        <!-- Compétences acquises -->
+        <div class="competences">
+            <h3>🎯 Compétences validées</h3>
+            <ul>
+                {% for competence in formation.competences.all|slice:":6" %}
+                    <li>{{ competence.nom }}</li>
+                {% empty %}
+                    <li>Compétences acquises dans le cadre de cette formation</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Bas : Date + QR + Signature -->
+        <div class="bas">
+            <div class="signature">
+                <div class="nom-signature">Jean Raymond Belony</div>
+                <div class="titre-signature">PDG, Blessy Tech Academy</div>
+            </div>
+            <div class="qr-section">
+                <img src="data:image/png;base64,{{ qr_code_base64 }}" alt="QR Code de vérification">
+                <p>Scannez pour vérifier</p>
+            </div>
+        </div>
+
+        <!-- Date -->
+        <div class="date">
+            Délivré le <strong>{{ date_emission }}</strong> · Numéro <strong>{{ numero_certificat }}</strong>
+        </div>
+
+        <!-- Pied -->
+        <div class="pied">
+            Vérifiable sur <a href="{{ url_verification }}" style="color:#007bff; text-decoration:none;">{{ url_verification }}</a>
+        </div>
+    </div>
+</body>
+</html>

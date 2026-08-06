@@ -24,6 +24,11 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+# ================================================
+# [AJOUT PLAYWRIGHT POUR LES PDFS]
+# ================================================
+from playwright.sync_api import sync_playwright
+
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import serializers
 from rest_framework.decorators import api_view, permission_classes
@@ -60,7 +65,7 @@ from ..models import (
     Transaction,
     WorkflowFormation,
 )
-from ..permissions import enregistrer_log, role_required
+from ..permissions import enregistrer_log, role_required, exiger_permission  # <-- AJOUT de exiger_permission
 from ..services.async_tasks import executer_en_arriere_plan
 from ..services.email_service import _envoyer_email
 from ..services.ia_service import (
@@ -194,8 +199,7 @@ def mettre_a_jour_checklist(request, formation_id):
 # Admin — Validation de transaction
 # ================================================
 
-@login_required
-@role_required("finance", "admin", "super_admin")
+@exiger_permission('paiement.valider')  # <-- NOUVEAU DÉCORATEUR
 def admin_valider_transaction(request, transaction_id):
     """Admin — valide un paiement et débloque automatiquement les accès."""
     trans = Transaction.objects.select_related("commande").get(id=transaction_id)
@@ -549,16 +553,14 @@ def export_ventes_excel(request):
     return response
 
 
+# ================================================
+# [CORRECTION APPLIQUÉE ICI] Export PDF des ventes (Playwright remplace WeasyPrint)
+# ================================================
+
 @login_required
 @role_required("finance", "admin", "super_admin")
 def export_ventes_pdf(request):
-    """Export PDF des ventes."""
-    try:
-        from weasyprint import HTML
-    except (ImportError, OSError):
-        messages.warning(request, "📄 L'export PDF n'est pas disponible. Utilisez l'export Excel.")
-        return redirect("/admin/dashboard-business/")
-
+    """Export PDF des ventes via Playwright (Standard A4 Portrait)."""
     commandes = Order.objects.filter(statut="paye").prefetch_related("items")
     ca_total = commandes.aggregate(total=Sum("total"))["total"] or 0
 
@@ -569,11 +571,31 @@ def export_ventes_pdf(request):
             "ca_total": ca_total,
             "date_generation": timezone.now(),
         },
+        request=request  # Important pour générer des liens absolus (CSS/Images) 
     )
-    pdf = HTML(string=html_string).write_pdf()
-    response = HttpResponse(pdf, content_type="application/pdf")
-    response["Content-Disposition"] = 'attachment; filename="rapport_ventes_bta.pdf"'
-    return response
+    
+    base_url = request.build_absolute_uri('/')
+
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
+            page.set_content(html_string, wait_until="networkidle", base_url=base_url)
+            
+            pdf_bytes = page.pdf(
+                format="A4",
+                landscape=False,  # Le rapport de ventes est en mode portrait
+                print_background=True,
+                margin={"top": "15mm", "bottom": "15mm", "left": "15mm", "right": "15mm"}
+            )
+            browser.close()
+
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="rapport_ventes_bta.pdf"'
+        return response
+    except Exception as e:
+        messages.error(request, f"❌ Erreur lors de la génération du PDF : {str(e)}")
+        return redirect("/admin/dashboard-business/")
 
 
 # ================================================

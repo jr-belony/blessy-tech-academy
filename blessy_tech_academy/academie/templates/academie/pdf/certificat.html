@@ -1,96 +1,193 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Certificat - {{ formation.nom }}</title>
-    <style>
-        @page {
-            size: A4 landscape;
-            margin: 0;
-        }
-        body {
-            font-family: 'Helvetica', Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-        }
-        .certificat {
-            width: 100%;
-            max-width: 900px;
-            border: 8px solid #0B2447;
-            border-radius: 20px;
-            padding: 60px 80px;
-            text-align: center;
-            position: relative;
-            background: white;
-            box-shadow: 0 0 40px rgba(0,0,0,0.05);
-        }
-        .certificat h1 {
-            font-size: 40px;
-            color: #0B2447;
-            margin-bottom: 10px;
-        }
-        .certificat h2 {
-            font-size: 28px;
-            color: #00B4D8;
-            margin: 20px 0;
-        }
-        .certificat .nom {
-            font-size: 36px;
-            font-weight: bold;
-            color: #0B2447;
-            margin: 20px 0 10px;
-        }
-        .certificat .formation-nom {
-            font-size: 24px;
-            color: #0B2447;
-            margin: 10px 0 30px;
-        }
-        .certificat .details {
-            font-size: 16px;
-            color: #555;
-            margin: 10px 0;
-        }
-        .certificat .numero {
-            font-size: 14px;
-            color: #777;
-            margin-top: 30px;
-        }
-        .qr-section {
-            margin-top: 20px;
-            text-align: center;
-        }
-        .qr-section img {
-            width: 100px;
-            height: 100px;
-        }
-        .qr-section p {
-            font-size: 11px;
-            color: #999;
-            margin-top: 5px;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Certificat {{ numero_certificat }}</title>
+<style>
+    @page {
+        size: A4 landscape;
+        margin: 1.5cm 2cm;
+    }
+    body {
+        font-family: 'Helvetica', Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #fff;
+    }
+    .certificat {
+        border: 4px solid #0B2447;
+        padding: 30px 40px;
+        border-radius: 12px;
+        text-align: center;
+        page-break-after: avoid;
+        page-break-inside: avoid;
+    }
+    .header {
+        border-bottom: 2px solid #ccc;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+        text-align: left;
+        font-size: 22px;
+        font-weight: bold;
+        color: #0B2447;
+    }
+    .header span.badge {
+        float: right;
+        background: #0B2447;
+        color: white;
+        padding: 4px 14px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: normal;
+    }
+    .titre h1 {
+        font-size: 32px;
+        color: #0B2447;
+        margin: 10px 0 0;
+        letter-spacing: 2px;
+    }
+    .sous-titre {
+        font-size: 16px;
+        color: #6c757d;
+        margin-bottom: 10px;
+    }
+    .nom {
+        font-size: 30px;
+        font-weight: bold;
+        color: #0B2447;
+        margin: 12px 0 5px;
+    }
+    .formation {
+        font-size: 20px;
+        color: #0B2447;
+        margin: 5px 0;
+    }
+    .detail {
+        font-size: 13px;
+        color: #333;
+        margin: 12px 0 15px;
+        line-height: 1.5;
+    }
+    .meta {
+        background: #f8f9fa;
+        padding: 8px 16px;
+        margin: 10px 0 15px;
+        font-size: 11px;
+        text-align: left;
+        border-radius: 6px;
+        border: 1px solid #eee;
+    }
+    .meta p {
+        margin: 4px 0;
+    }
+    .meta .label {
+        color: #6c757d;
+        display: inline-block;
+        width: 80px;
+    }
+    .meta .value {
+        color: #0B2447;
+        font-weight: bold;
+    }
+    .bas {
+        margin-top: 15px;
+        padding-top: 12px;
+        border-top: 1px solid #ddd;
+        display: table;
+        width: 100%;
+    }
+    .qr {
+        display: table-cell;
+        width: 25%;
+        text-align: left;
+        vertical-align: middle;
+    }
+    .qr img {
+        width: 80px;
+        height: 80px;
+    }
+    .signature {
+        display: table-cell;
+        width: 75%;
+        text-align: right;
+        vertical-align: middle;
+        font-size: 12px;
+        color: #6c757d;
+    }
+    .signature .nom-signature {
+        font-weight: bold;
+        font-size: 16px;
+        color: #0B2447;
+    }
+    .signature .lien {
+        font-size: 10px;
+        color: #007bff;
+        text-decoration: none;
+    }
+    .pied {
+        margin-top: 15px;
+        padding-top: 8px;
+        border-top: 1px solid #ddd;
+        font-size: 9px;
+        color: #aaa;
+        text-align: center;
+    }
+    .clearfix::after {
+        content: '';
+        display: block;
+        clear: both;
+    }
+</style>
 </head>
 <body>
-    <div class="certificat">
-        <h1>🎓 Certificat de réussite</h1>
-        <h2>Blessy Tech Academy</h2>
+<div class="certificat">
+    <!-- En-tête -->
+    <div class="header clearfix">
+        ⚡ Blessy Tech <span style="color:#00B4D8;">Academy</span>
+        <span class="badge">Certificat authentique</span>
+    </div>
 
-        <p style="font-size:18px; color:#555;">Ce certificat est décerné à</p>
-        <p class="nom">{{ prenom }} {{ nom }}</p>
-        <p style="font-size:18px; color:#555;">pour avoir complété avec succès la formation</p>
-        <p class="formation-nom">{{ formation.icone }} {{ formation.nom }}</p>
+    <!-- Titre -->
+    <div class="titre">
+        <h1>Certificat</h1>
+        <div class="sous-titre">de réussite professionnelle</div>
+    </div>
 
-        <p class="details">Date d'émission : {{ date_emission }}</p>
-        <p class="details">Numéro de certificat : <strong>{{ numero_certificat }}</strong></p>
+    <!-- Corps -->
+    <div class="nom">{{ prenom }} {{ nom }}</div>
+    <div class="formation">{{ formation.icone }} {{ formation.nom }}</div>
+    <div class="detail">
+        a validé l'intégralité du programme avec un niveau <strong>{{ formation.get_niveau_display|lower }}</strong>,<br>
+        après {{ formation.duree }} heures de formation et un examen final.
+    </div>
 
-        <div class="qr-section">
-            <img src="data:image/png;base64,{{ qr_code_base64 }}" alt="QR Code de vérification">
-            <p>Scannez ce QR code pour vérifier l'authenticité du certificat</p>
+    <!-- Métadonnées -->
+    <div class="meta">
+        <p><span class="label">Numéro :</span> <span class="value">{{ numero_certificat }}</span></p>
+        <p><span class="label">UUID :</span> <span class="value" style="font-family:monospace;">{{ uuid }}</span></p>
+        <p><span class="label">Résultat :</span> <span class="value">{{ formation.resultat_final|default:"—" }}%</span></p>
+        <p><span class="label">Date :</span> <span class="value">{{ date_emission }}</span></p>
+        <p><span class="label">Statut :</span> <span class="value" style="color:#22c55e;">✅ Valide</span></p>
+    </div>
+
+    <!-- Bas : QR + Signature -->
+    <div class="bas">
+        <div class="qr">
+            <img src="data:image/png;base64,{{ qr_code_base64 }}" alt="QR Code">
+        </div>
+        <div class="signature">
+            <div class="nom-signature">Jean Raymond Belony</div>
+            <div>PDG, Blessy Tech Academy</div>
+            <div style="margin-top:4px;">
+                <a href="{{ url_verification }}" class="lien">Vérifier en ligne</a>
+            </div>
         </div>
     </div>
+
+    <!-- Pied -->
+    <div class="pied">
+        Ce certificat est délivré par Blessy Tech Academy — L'école de la haute technologie moderne d'Haïti.
+    </div>
+</div>
 </body>
 </html>

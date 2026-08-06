@@ -2,7 +2,7 @@
 # CONTENT/MODELS.PY — Knowledge Center + Portfolio + Certificats extraits
 # app_label='academie' partout — zéro migration nécessaire
 # ================================================
-
+import uuid
 from django.db import models, transaction
 from django.utils import timezone
 from academie.validators import valider_document, valider_image
@@ -191,41 +191,95 @@ class Certificat(models.Model):
     formation = models.ForeignKey('academie.Formation', on_delete=models.SET_NULL, null=True, blank=True)
     examen_origine = models.ForeignKey('academie.Examen', on_delete=models.SET_NULL, null=True, blank=True)
 
-    numero = models.CharField(max_length=50, unique=True, db_index=True, blank=True, editable=False)
+    # --- IDENTIFIANTS PUBLICS (UUID public) ---
+    uuid = models.UUIDField(
+        default=uuid.uuid4,
+        editable=False,
+        unique=True,
+        db_index=True,
+        help_text="Identifiant universel public pour la vérification"
+    )
+    numero = models.CharField(
+        max_length=50,
+        unique=True,
+        db_index=True,
+        blank=True,
+        editable=False,
+        help_text="Numéro lisible (ex: BTA-2026-PRO-0001)"
+    )
+
+    # --- HASH D'INTÉGRITÉ (empreinte immuable) ---
+    hash = models.CharField(
+        max_length=64,
+        blank=True,
+        null=True,
+        help_text="SHA-256 du contenu du certificat pour vérification d'intégrité"
+    )
+
+    # --- MÉTA-DONNÉES ---
     niveau = models.CharField(max_length=20, choices=NIVEAUX, default='initiation')
     statut = models.CharField(max_length=15, choices=STATUTS, default='valide')
     duree_heures = models.IntegerField(default=0, help_text="Durée totale de la formation en heures")
     resultat_final = models.IntegerField(null=True, blank=True, help_text="Score/pourcentage final si examen")
 
+    # --- RÉVOCATION (avec traçabilité de l'auteur) ---
+    date_revocation = models.DateTimeField(null=True, blank=True, help_text="Date de révocation (si révoqué)")
+    raison_revocation = models.TextField(null=True, blank=True, help_text="Raison de la révocation")
+    revoque_par = models.ForeignKey(
+        'auth.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='certificats_revoques'
+    )
+
+    # --- FICHIERS ---
     qr_code_image = models.ImageField(upload_to='certificats/qr/', null=True, blank=True)
-    date_emission = models.DateTimeField(auto_now_add=True)
     fichier_pdf = models.FileField(
         upload_to='certificats/',
         null=True,
         blank=True,
         validators=[valider_document]
     )
-    verifie = models.BooleanField(default=False)
+    date_emission = models.DateTimeField(auto_now_add=True)
+    verifie = models.BooleanField(default=False, help_text="Indique si le certificat a été vérifié publiquement")
 
     class Meta:
         app_label = 'academie'
         db_table = 'academie_certificat'
         verbose_name = 'Certificat'
         verbose_name_plural = 'Certificats'
+        permissions = [
+            ("can_generate_certificat", "Peut générer un certificat"),
+            ("can_revoke_certificat", "Peut révoquer un certificat"),
+        ]
 
     def __str__(self):
         return f"{self.numero} — {self.utilisateur.username}"
 
+    def _generer_hash(self):
+        """Calcule le SHA-256 du contenu du certificat."""
+        import hashlib
+        contenu = (
+            f"{self.numero}"
+            f"{self.date_emission.isoformat()}"
+            f"{self.formation.nom if self.formation else 'N/A'}"
+            f"{self.utilisateur.username}"
+            f"{self.resultat_final or ''}"
+            f"{self.duree_heures}"
+        )
+        return hashlib.sha256(contenu.encode()).hexdigest()
+
     def save(self, *args, **kwargs):
+        # 1. Générer le numéro si absent
         if not self.numero:
             self.numero = self._generer_numero_lisible()
 
-        # duree_heures auto-calculée
+        # 2. Calculer la durée en heures
         if not self.duree_heures and self.formation:
-            # Calcul réel basé sur les leçons existantes si disponibles
             from django.db.models import Sum
             from academie.models import Lecon
-            
+
             total_minutes = Lecon.objects.filter(
                 module__formation=self.formation
             ).aggregate(t=Sum('duree_minutes'))['t'] or 0
@@ -233,16 +287,17 @@ class Certificat(models.Model):
             if total_minutes > 0:
                 self.duree_heures = round(total_minutes / 60)
             else:
-                # Fallback si aucune leçon chronométrée : estimation via duree
+                # Fallback basé sur la durée de la formation (heures/jours/semaines)
                 if self.formation.duree_unite == 'heures':
                     self.duree_heures = self.formation.duree
                 elif self.formation.duree_unite == 'jours':
-                    self.duree_heures = self.formation.duree * 8  # 8h par jour
+                    self.duree_heures = self.formation.duree * 8
                 elif self.formation.duree_unite == 'semaines':
-                    self.duree_heures = self.formation.duree * 20  # 20h par semaine
-                else:  # mois
-                    self.duree_heures = self.formation.duree * 20  # 20h par mois
+                    self.duree_heures = self.formation.duree * 20
+                else:
+                    self.duree_heures = self.formation.duree * 20
 
+        # 3. Récupérer le résultat final depuis l'examen
         if not self.resultat_final and self.examen_origine:
             derniere_tentative = self.examen_origine.tentatives.filter(
                 utilisateur=self.utilisateur, reussi=True
@@ -250,9 +305,18 @@ class Certificat(models.Model):
             if derniere_tentative:
                 self.resultat_final = derniere_tentative.pourcentage
 
+        # 4. Sauvegarder
         super().save(*args, **kwargs)
+
+        # 5. Générer le QR code si absent
         if not self.qr_code_image:
             self._generer_qr_code()
+
+        # 6. Générer le hash (après la sauvegarde pour avoir l'ID)
+        if not self.hash:
+            self.hash = self._generer_hash()
+            # Resauvegarder uniquement le hash pour ne pas boucler
+            Certificat.objects.filter(id=self.id).update(hash=self.hash)
 
     def _generer_numero_lisible(self):
         annee = timezone.now().year
@@ -289,9 +353,63 @@ class Certificat(models.Model):
         except ImportError:
             pass
 
+    def verifier_hash(self):
+        """Vérifie que le hash stocké correspond au recalcul."""
+        return self.hash == self._generer_hash()
+
+    def revoquer(self, admin, raison=""):
+        """
+        Révoque le certificat avec contrôle d'accès RBAC.
+        Seul un administrateur avec la permission 'certificat.revoquer' peut exécuter cette action.
+        """
+        from academie.permissions import peut
+        if not peut(admin, 'certificat.revoquer'):
+            raise PermissionError("Seul un administrateur peut révoquer un certificat.")
+
+        self.statut = 'revoque'
+        self.date_revocation = timezone.now()
+        self.raison_revocation = raison
+        self.revoque_par = admin
+        self.save(update_fields=['statut', 'date_revocation', 'raison_revocation', 'revoque_par'])
+
+        # Enregistrer dans l'historique
+        CertificatHistorique.objects.create(
+            certificat=self,
+            statut=self.statut,
+            raison=f"Révocation par {admin.username} : {raison}" if raison else f"Révocation par {admin.username}",
+            auteur=admin
+        )
+
+    def est_valide(self):
+        """Vérifie si le certificat est valide (non révoqué et non expiré)."""
+        return self.statut == 'valide'
+
     def competences_associees(self):
         from academie.models import CompetenceValidee
         return CompetenceValidee.objects.filter(
             utilisateur=self.utilisateur,
             formation_origine=self.formation
         ).select_related('competence')
+
+
+# ================================================
+# [AJOUT AUDIT] Registre d'historique immuable pour les certificats
+# ================================================
+
+class CertificatHistorique(models.Model):
+    """Registre immuable de tous les événements sur un certificat."""
+    certificat = models.ForeignKey(Certificat, on_delete=models.CASCADE, related_name='historique')
+    statut = models.CharField(max_length=15, choices=Certificat.STATUTS)
+    raison = models.TextField(blank=True)
+    date = models.DateTimeField(default=timezone.now)
+    auteur = models.ForeignKey('auth.User', null=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        app_label = 'academie'
+        db_table = 'academie_certificathistorique'
+        ordering = ['-date']
+        verbose_name = 'Historique certificat'
+        verbose_name_plural = 'Historique certificats'
+
+    def __str__(self):
+        return f"{self.certificat.numero} — {self.statut} ({self.date.strftime('%Y-%m-%d %H:%M')})"

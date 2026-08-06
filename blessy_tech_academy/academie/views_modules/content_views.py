@@ -26,8 +26,8 @@ from ..models import (
     Evenement,
     Inscription,
 )
-from academie.models import Competence
-from .learning_views import get_devise  # IMPORT AJOUTÉ
+from academie.models import Competence, RegistreEmissionCertificat  # AJOUT IMPORT
+from .learning_views import get_devise
 
 
 # ================================================
@@ -81,7 +81,7 @@ def detail_article(request, slug):
         {
             "article": article,
             "articles_lies": articles_lies,
-            "fil_ariane_etapes": fil_ariane_etapes,  # AJOUTÉ
+            "fil_ariane_etapes": fil_ariane_etapes,
         },
     )
 
@@ -214,24 +214,56 @@ def mon_portfolio(request):
 # Certificat et notifications
 # ================================================
 
-def verifier_certificat_public(request, numero_certificat):
-    """Vérification publique d'un certificat — accessible sans connexion."""
-    certificat = Certificat.objects.select_related('utilisateur', 'formation').filter(
-        numero=numero_certificat
-    ).first()
+def verifier_certificat_public(request, uuid):
+    """
+    Vérification publique renforcée — vérifie l'intégrité cryptographique + trace la consultation.
+    URL : /certificat/<uuid:uuid>/
+    """
+    certificat = Certificat.objects.select_related('utilisateur', 'formation').filter(uuid=uuid).first()
 
     if not certificat:
         return render(request, 'academie/verifier_certificat.html', {
             'valide': False,
-            'message': "Ce certificat n'existe pas ou le numéro est incorrect.",
+            'message': "Ce certificat n'existe pas ou l'identifiant est incorrect."
         })
 
+    # 1. Vérification d'intégrité — compare le hash stocké avec le recalcul
+    hash_actuel_attendu = certificat._generer_hash()
+    integrite_ok = (hash_actuel_attendu == certificat.hash)
+
+    # 2. Statut du certificat
+    if certificat.statut == 'revoque':
+        return render(request, 'academie/verifier_certificat.html', {
+            'valide': False,
+            'message': f"⚠️ Ce certificat a été révoqué le {certificat.date_revocation:%d/%m/%Y}.",
+            'certificat': certificat,
+            'integrite_verifiee': integrite_ok,
+        })
+
+    # 3. Enregistrer la consultation dans le registre immuable
+    ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', ''))
+    RegistreEmissionCertificat.objects.create(
+        certificat=certificat,
+        action='verification_externe',
+        adresse_ip=ip.split(',')[0] if ip else None,
+    )
+
+    # 4. Afficher les informations
     return render(request, 'academie/verifier_certificat.html', {
         'valide': True,
         'certificat': certificat,
+        'integrite_verifiee': integrite_ok,
         'nom_affiche': certificat.utilisateur.get_full_name() or certificat.utilisateur.username,
         'formation_nom': certificat.formation.nom if certificat.formation else "Formation supprimée",
         'date_obtention': certificat.date_emission,
+        'statut': certificat.get_statut_display(),
+        'uuid': certificat.uuid,
+        'numero': certificat.numero,
+        'hash_valide': integrite_ok,
+        'qr_code_url': certificat.qr_code_image.url if certificat.qr_code_image else None,
+        'niveau': certificat.get_niveau_display(),
+        'duree_heures': certificat.duree_heures,
+        'resultat_final': certificat.resultat_final,
     })
 
 
@@ -461,7 +493,7 @@ def certifications(request):
             for niv in niveaux_disponibles
         ],
         'NIVEAUX_MAPPING': NIVEAUX_MAPPING,
-        'devise': devise,  # AJOUTÉ
+        'devise': devise,
     }
 
     return render(request, 'academie/certifications.html', context)
@@ -577,7 +609,7 @@ def espace_entreprises(request):
         'total_talents_formes': total_talents_formes,
         'total_competences_disponibles': total_competences_disponibles,
         'ecoles_phares': ecoles_phares,
-        'devise': devise,  # AJOUTÉ
+        'devise': devise,
     })
 
 
@@ -616,5 +648,5 @@ def blog_actualites(request):
         'articles': page_obj,
         'article_vedette': en_vedette,
         'total_articles': articles.count(),
-        'fil_ariane_etapes': fil_ariane_etapes,  # AJOUTÉ
+        'fil_ariane_etapes': fil_ariane_etapes,
     })

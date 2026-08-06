@@ -18013,3 +18013,119 @@ Traceback (most recent call last):
     obj = self.var.resolve(context)
 RecursionError: maximum recursion depth exceeded
 "GET /formations/ HTTP/1.1" 500 4625369
+Internal Server Error: /certificat/296d5ab1-6e3c-4e52-965b-defd8e586475/telecharger/
+Traceback (most recent call last):
+  File "C:\projects\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\projects\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\projects\blessy_tech_academy\academie\views_modules\core_views.py", line 582, in telecharger_certificat_pdf
+    from weasyprint import HTML
+  File "C:\projects\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\projects\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\projects\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\projects\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\projects\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\cffi\api.py", line 143, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\cffi\api.py", line 827, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\projects\venv\Lib\site-packages\cffi\api.py", line 822, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+"GET /certificat/296d5ab1-6e3c-4e52-965b-defd8e586475/telecharger/ HTTP/1.1" 500 189050
+Internal Server Error: /certificat/296d5ab1-6e3c-4e52-965b-defd8e586475/telecharger/
+Traceback (most recent call last):
+  File "C:\projects\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\projects\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\projects\blessy_tech_academy\academie\views_modules\core_views.py", line 618, in telecharger_certificat_pdf
+    pisa_status = pisa.CreatePDF(html_certificat, dest=response)
+  File "C:\projects\venv\Lib\site-packages\xhtml2pdf\document.py", line 196, in pisaDocument
+    doc.build(context.story)
+    ~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\reportlab\platypus\doctemplate.py", line 1083, in build
+    self.handle_flowable(flowables)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\reportlab\platypus\doctemplate.py", line 932, in handle_flowable
+    if frame.add(f, canv, trySplit=self.allowSplitting):
+       ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\reportlab\platypus\frames.py", line 158, in _add
+    w, h = flowable.wrap(aW, h)
+           ~~~~~~~~~~~~~^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\xhtml2pdf\xhtml2pdf_reportlab.py", line 858, in wrap
+    return Table.wrap(self, availWidth, availHeight)
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\reportlab\platypus\tables.py", line 1364, in wrap
+    self._calc(availWidth, availHeight)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\reportlab\platypus\tables.py", line 750, in _calc
+    self._calc_height(availHeight,availWidth,W=W)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\reportlab\platypus\tables.py", line 717, in _calc_height
+    y = H[i] - c
+        ~~~~~^~~
+TypeError: unsupported operand type(s) for -: 'str' and 'int'
+"GET /certificat/296d5ab1-6e3c-4e52-965b-defd8e586475/telecharger/ HTTP/1.1" 500 171060
+Internal Server Error: /certificat/296d5ab1-6e3c-4e52-965b-defd8e586475/telecharger/
+Traceback (most recent call last):
+  File "C:\projects\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\projects\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\projects\blessy_tech_academy\academie\views_modules\core_views.py", line 618, in telecharger_certificat_pdf
+    pisa_status = pisa.CreatePDF(html_certificat, dest=response)
+  File "C:\projects\venv\Lib\site-packages\xhtml2pdf\document.py", line 196, in pisaDocument
+    doc.build(context.story)
+    ~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\reportlab\platypus\doctemplate.py", line 1083, in build
+    self.handle_flowable(flowables)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\reportlab\platypus\doctemplate.py", line 932, in handle_flowable
+    if frame.add(f, canv, trySplit=self.allowSplitting):
+       ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\reportlab\platypus\frames.py", line 158, in _add
+    w, h = flowable.wrap(aW, h)
+           ~~~~~~~~~~~~~^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\xhtml2pdf\xhtml2pdf_reportlab.py", line 858, in wrap
+    return Table.wrap(self, availWidth, availHeight)
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\reportlab\platypus\tables.py", line 1364, in wrap
+    self._calc(availWidth, availHeight)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\reportlab\platypus\tables.py", line 750, in _calc
+    self._calc_height(availHeight,availWidth,W=W)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\reportlab\platypus\tables.py", line 717, in _calc_height
+    y = H[i] - c
+        ~~~~~^~~
+TypeError: unsupported operand type(s) for -: 'str' and 'int'
+"GET /certificat/296d5ab1-6e3c-4e52-965b-defd8e586475/telecharger/ HTTP/1.1" 500 170992
+Internal Server Error: /certificat/296d5ab1-6e3c-4e52-965b-defd8e586475/telecharger/
+"GET /certificat/296d5ab1-6e3c-4e52-965b-defd8e586475/telecharger/ HTTP/1.1" 500 104
+Internal Server Error: /certificat/296d5ab1-6e3c-4e52-965b-defd8e586475/telecharger/
+Traceback (most recent call last):
+  File "C:\projects\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\projects\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\projects\blessy_tech_academy\academie\views_modules\core_views.py", line 645, in telecharger_certificat_pdf
+    'date_emission': certificat.date_emission.strftime('%-d %B %Y'),
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+ValueError: Invalid format string
+"GET /certificat/296d5ab1-6e3c-4e52-965b-defd8e586475/telecharger/ HTTP/1.1" 500 102551

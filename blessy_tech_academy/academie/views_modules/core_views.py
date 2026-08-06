@@ -23,6 +23,9 @@ from django_ratelimit.decorators import ratelimit
 from django.utils import timezone, translation
 from django.conf import settings
 from django.template.loader import render_to_string
+from django.shortcuts import get_object_or_404
+# [AJOUT PLAYWRIGHT] 
+from playwright.sync_api import sync_playwright 
 
 from academie.models import (
     Ecole, Formation, Article, Parcours, ProgressionLecon,
@@ -41,7 +44,6 @@ from academie.services.ia_service import (
 from academie.decorators import exiger_acces_formation
 
 logger = logging.getLogger('academie')
-
 
 # ================================================
 # Pages principales
@@ -494,17 +496,21 @@ def vue_limite_depassee(request, exception=None):
 
 
 # ================================================
-# Certificat PDF
+# Téléchargement PDF d'un certificat (par formation_id) — utilisateur connecté
 # ================================================
 
 @login_required(login_url="/connexion/")
 @exiger_acces_formation(lambda formation_id: Formation.objects.get(id=formation_id))
 def telecharger_certificat(request, formation_id):
+    """
+    Télécharge le certificat PDF pour une formation terminée à 100%.
+    URL : /formation/<int:formation_id>/certificat/
+    """
     import base64
     from io import BytesIO
     import qrcode
-    from weasyprint import HTML
-    from ..models import Certificat
+    from django.template.loader import render_to_string
+    from content.models import Certificat
 
     formation = Formation.objects.prefetch_related("modules__lecons").get(
         id=formation_id, actif=True
@@ -520,15 +526,14 @@ def telecharger_certificat(request, formation_id):
         )
         return redirect("detail_formation", formation_id=formation_id)
 
-    # Création / récupération du certificat — le numéro est généré automatiquement par le modèle
-    certificat, created = Certificat.objects.get_or_create(
+    certificat, _ = Certificat.objects.get_or_create(
         utilisateur=request.user,
         formation=formation,
-        defaults={}  # plus besoin de passer un numero manuel
+        defaults={}
     )
-    numero = certificat.numero   # format BTA-2026-XXX-0001
 
-    url_verification = request.build_absolute_uri(f"/certificat/{numero}/")
+    # --- QR Code ---
+    url_verification = request.build_absolute_uri(f"/certificat/{certificat.uuid}/")
     qr = qrcode.QRCode(version=1, box_size=10, border=2)
     qr.add_data(url_verification)
     qr.make(fit=True)
@@ -537,23 +542,46 @@ def telecharger_certificat(request, formation_id):
     img.save(buffer, format="PNG")
     qr_code_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
+    # Contexte pour le template
     contexte = {
-        "prenom": request.user.first_name or request.user.username,
-        "nom": request.user.last_name or "",
-        "formation": formation,
-        "date_emission": certificat.date_emission.strftime("%d %B %Y"),
-        "numero_certificat": numero,
-        "qr_code_base64": qr_code_base64,
-        "url_verification": url_verification,
+        'logo_url': request.build_absolute_uri('/static/img/logo-bta.png'),
+        'type_certificat': 'Certificat de Réussite',
+        'partenaire_logo': '',
+        'mention': '',
+        'prenom': request.user.first_name,
+        'nom': request.user.last_name,
+        'username': request.user.username,          # <-- AJOUTÉ
+        'formation_nom': formation.nom,
+        'ecole_nom': formation.ecole.nom,
+        'date_emission': certificat.date_emission,  # <-- Objet datetime (pour le filtre |date)
+        'numero_certificat': certificat.numero,
+        'uuid': str(certificat.uuid),
+        'qr_code_data': qr_code_base64,
+        'signataire_nom': 'Jean Raymond BELONY',
+        'signataire_titre': 'PDG & Fondateur',
+        'verification_text': 'Certificat vérifiable en ligne – blessytechacademy.com',
+        'url_verification': request.build_absolute_uri(f'/certificat/{certificat.uuid}/'),
     }
 
-    html_certificat = render_to_string("academie/pdf/certificat.html", contexte, request=request)
+    # Génération du HTML avec le modèle officiel
+    html = render_to_string("academie/pdf/certificat_officiel.html", contexte, request=request)
 
     try:
-        pdf = HTML(string=html_certificat, base_url=request.build_absolute_uri("/")).write_pdf()
-        nom_fichier = f"certificat-{formation.nom.replace(' ', '-').lower()}-BTA.pdf"
-        response = HttpResponse(pdf, content_type="application/pdf")
-        response["Content-Disposition"] = f'attachment; filename="{nom_fichier}"'
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
+            page.set_content(html, wait_until="networkidle")
+            
+            pdf_bytes = page.pdf(
+                format="A4",
+                landscape=True,
+                print_background=True,
+                margin={"top": "0mm", "bottom": "0mm", "left": "0mm", "right": "0mm"}
+            )
+            browser.close()
+
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="certificat-{certificat.numero}.pdf"'
         return response
     except Exception as e:
         messages.error(request, f"❌ Erreur lors de la génération du certificat : {str(e)}")
@@ -561,15 +589,82 @@ def telecharger_certificat(request, formation_id):
 
 
 # ================================================
+# Téléchargement PDF d'un certificat par UUID (public)
+# ================================================
+
+def telecharger_certificat_pdf(request, uuid):
+    """
+    Génère et télécharge un certificat au format PDF à partir de son UUID.
+    URL : /certificat/<uuid:uuid>/telecharger/
+    """
+    import base64
+    from io import BytesIO
+    import qrcode
+    from django.template.loader import render_to_string
+    from content.models import Certificat
+
+    certificat = get_object_or_404(Certificat, uuid=uuid)
+
+    # --- QR Code ---
+    url_verification = request.build_absolute_uri(f"/certificat/{certificat.uuid}/")
+    qr = qrcode.QRCode(version=1, box_size=10, border=2)
+    qr.add_data(url_verification)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+    qr_code_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+    # Contexte pour le template
+    contexte = {
+        'logo_url': request.build_absolute_uri('/static/img/logo-bta.png'),
+        'type_certificat': 'Certificat de Réussite',
+        'partenaire_logo': '',
+        'mention': '',
+        'prenom': certificat.utilisateur.first_name,
+        'nom': certificat.utilisateur.last_name,
+        'username': certificat.utilisateur.username,          # <-- AJOUTÉ
+        'formation_nom': certificat.formation.nom,
+        'ecole_nom': certificat.formation.ecole.nom,
+        'date_emission': certificat.date_emission,            # <-- Objet datetime
+        'numero_certificat': certificat.numero,
+        'uuid': str(certificat.uuid),
+        'qr_code_data': qr_code_base64,
+        'signataire_nom': 'Jean Raymond BELONY',
+        'signataire_titre': 'PDG & Fondateur',
+        'verification_text': 'Certificat vérifiable en ligne – blessytechacademy.com',
+        'url_verification': request.build_absolute_uri(f'/certificat/{certificat.uuid}/'),
+    }
+
+    # Génération du HTML avec le modèle officiel
+    html = render_to_string("academie/pdf/certificat_officiel.html", contexte, request=request)
+
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
+            page.set_content(html, wait_until="networkidle")
+            
+            pdf_bytes = page.pdf(
+                format="A4",
+                landscape=True,
+                print_background=True,
+                margin={"top": "0mm", "bottom": "0mm", "left": "0mm", "right": "0mm"}
+            )
+            browser.close()
+
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="certificat-{certificat.numero}.pdf"'
+        return response
+    except Exception as e:
+        return HttpResponse(f"Erreur lors de la génération du PDF : {str(e)}", status=500)
+
+
+
+# ================================================
 # VIEWS.PY — Hub Explorer — vue d'ensemble visuelle du catalogue complet
 # ================================================
 
 def hub_explorer(request):
-    from ..models import Formation, Article, ProjetEtudiant, Temoignage
-    context = {
-        'formations_count': Formation.objects.filter(actif=True).count(),
-        'articles_count': Article.objects.filter(publie=True).count(),
-        'projets_count': ProjetEtudiant.objects.count(),
-        'temoignages_count': Temoignage.objects.filter(approuve=True).count(),
-    }
-    return render(request, 'academie/hub_explorer.html', context)
+    """Page hub — rend visible et navigable tout ce qui a été construit."""
+    return render(request, 'academie/hub_explorer.html')

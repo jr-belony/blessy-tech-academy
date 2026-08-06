@@ -13,7 +13,7 @@ urlpatterns = [
     path("connexion/", views.connexion, name="connexion"),
     path("deconnexion/", views.deconnexion, name="deconnexion"),
     path("dashboard/", views.dashboard, name="dashboard"),
-    path("recherche/", views.recherche, name="recherche"),  # corrigé : recherche_formations → recherche
+    path("recherche/", views.recherche, name="recherche"),
     # Statistiques admin
     path("statistiques/", views.statistiques, name="statistiques"),
     # Intelligence Artificielle
@@ -79,8 +79,10 @@ urlpatterns = [
     ),
     path("orientation/", views.orientation_ia, name="orientation_ia"),
     path("forum/membres/", views.forum_membres, name="forum_membres"),
-    # --- Vérification publique de certificat (nouvelle) ---
-    path("certificat/<str:numero_certificat>/", views.verifier_certificat_public, name="verifier_certificat_public"),
+    # --- Vérification publique de certificat (UUID) ---
+    path("certificat/<uuid:uuid>/", views.verifier_certificat_public, name="verifier_certificat_public"),
+    # --- Téléchargement du certificat en PDF (UUID) ---
+    path("certificat/<uuid:uuid>/telecharger/", views.telecharger_certificat_pdf, name="telecharger_certificat_pdf"),
     path("notifications/", views.notifications_liste, name="notifications_liste"),
     path("classement/", views.classement, name="classement"),
     path("setlang/fr/", views.set_lang_fr, name="set_lang_fr"),
