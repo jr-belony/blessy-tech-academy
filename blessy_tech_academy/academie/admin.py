@@ -1232,3 +1232,15 @@ class RegistreEmissionCertificatAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+# ================================================
+# ADMIN.PY — Administration Enrollment (registre canonique)
+# ================================================
+from .models import Enrollment
+
+@admin.register(Enrollment)
+class EnrollmentAdmin(admin.ModelAdmin):
+    list_display = ['utilisateur', 'formation', 'origine', 'statut', 'date_inscription']
+    list_filter = ['origine', 'statut']
+    search_fields = ['utilisateur__username', 'formation__nom']

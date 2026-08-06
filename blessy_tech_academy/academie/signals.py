@@ -24,8 +24,10 @@ from PIL import Image
 from .models import (
     ConnexionUtilisateur,
     ProjetEtudiant,
+    Enrollment,
     Formation,
     ProgressionLecon,
+    AccesFormationDebloque,
 )
 
 logger = logging.getLogger('academie')
@@ -213,3 +215,31 @@ def invalider_cache_catalogue_formations(sender, **kwargs):
     """Invalide le cache du catalogue dès qu'une formation est modifiée/supprimée."""
     version_actuelle = cache.get('formations_cache_version', 1)
     cache.set('formations_cache_version', version_actuelle + 1, None)  # jamais expiré
+
+
+# ================================================
+# SIGNAL — Synchronisation Enrollment → AccesFormationDebloque
+# ================================================
+@receiver(post_save, sender=Enrollment)
+def synchroniser_acces_formation(sender, instance, created, **kwargs):
+    """
+    Crée ou met à jour AccesFormationDebloque lors d'une nouvelle inscription.
+    Assure la rétrocompatibilité : tout utilisateur inscrit via Enrollment
+    obtient automatiquement son accès technique dérivé.
+    """
+    # On ne crée l'accès que si l'inscription est active (statut='actif')
+    if instance.statut == 'actif':
+        acces, _ = AccesFormationDebloque.objects.get_or_create(
+            utilisateur=instance.utilisateur,
+            formation=instance.formation,
+            defaults={
+                'nom_formation_snapshot': instance.formation.nom,
+                'commande_origine': instance.commande_origine,
+            }
+        )
+        # Si l'accès existait déjà mais était lié à une commande différente,
+        # on peut éventuellement mettre à jour la commande_origine si elle est
+        # plus récente ou si elle était nulle. (Optionnel, selon votre logique métier)
+        if acces.commande_origine is None and instance.commande_origine:
+            acces.commande_origine = instance.commande_origine
+            acces.save()

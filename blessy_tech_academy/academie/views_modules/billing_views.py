@@ -19,7 +19,7 @@ from billing.models import (
     Invoice, AccesFormationDebloque, Promotion,
     AlerteFraude, detecter_fraude_potentielle,   # <-- ajouté
 )
-from academie.models import Formation
+from academie.models import Formation, Enrollment  # <-- AJOUT DE Enrollment
 from academie.payment_gateways import stripe_gateway, moncash_gateway, paypal_gateway
 from academie.permissions import enregistrer_log, role_required
 from academie.services.async_tasks import executer_en_arriere_plan
@@ -220,7 +220,7 @@ def paiement_succes(request, order_reference):
     """
     Page de retour après paiement externe — vérification active auprès du prestataire.
     """
-    from ..models import Order, Coupon, AccesFormationDebloque, Invoice, Transaction
+    from ..models import Order, Coupon, Invoice, Transaction
     from ..payment_gateways import moncash_gateway
 
     commande = Order.objects.select_related('moyen_paiement').get(
@@ -297,15 +297,16 @@ def paiement_succes(request, order_reference):
             transaction_recente.statut = 'reussie'
             transaction_recente.save()
 
+        # ========================================================
+        # REMPLACEMENT : AccesFormationDebloque -> Enrollment.inscrire()
+        # ========================================================
         for item in commande.items.select_related('formation').all():
             if item.formation:
-                AccesFormationDebloque.objects.get_or_create(
-                    utilisateur=commande.utilisateur,
-                    formation=item.formation,
-                    defaults={
-                        'nom_formation_snapshot': item.nom_produit_snapshot,
-                        'commande_origine': commande
-                    }
+                Enrollment.inscrire(
+                    commande.utilisateur,
+                    item.formation,
+                    origine='achat',
+                    commande_origine=commande
                 )
 
         Invoice.objects.get_or_create(commande=commande)
@@ -336,12 +337,16 @@ def stripe_webhook(request):
                 commande.statut = 'paye'
                 commande.date_paiement = timezone.now()
                 commande.save()
+                # ========================================================
+                # REMPLACEMENT : AccesFormationDebloque -> Enrollment.inscrire()
+                # ========================================================
                 for item in commande.items.all():
                     if item.formation:
-                        AccesFormationDebloque.objects.get_or_create(
-                            utilisateur=commande.utilisateur,
-                            nom_formation_snapshot=item.nom_produit_snapshot,
-                            defaults={'formation': item.formation, 'commande_origine': commande}
+                        Enrollment.inscrire(
+                            commande.utilisateur,
+                            item.formation,
+                            origine='achat',
+                            commande_origine=commande
                         )
                 Invoice.objects.get_or_create(commande=commande)
         except Order.DoesNotExist:

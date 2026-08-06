@@ -36,7 +36,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from users.models import Enseignant
-
+from academie.models import Enrollment
 from ..models import (
     AccesFormationDebloque,
     Article,
@@ -212,15 +212,16 @@ def admin_valider_transaction(request, transaction_id):
         commande.date_paiement = timezone.now()
         commande.save()
 
+        # ============================================================
+        # REMPLACEMENT : AccesFormationDebloque -> Enrollment.inscrire()
+        # ============================================================
         for item in commande.items.all():
             if item.formation:
-                AccesFormationDebloque.objects.get_or_create(
-                    utilisateur=commande.utilisateur,
-                    nom_formation_snapshot=item.nom_produit_snapshot,
-                    defaults={
-                        "formation": item.formation,
-                        "commande_origine": commande,
-                    },
+                Enrollment.inscrire(
+                    commande.utilisateur,
+                    item.formation,
+                    origine='achat',
+                    commande_origine=commande
                 )
 
         facture, _ = Invoice.objects.get_or_create(commande=commande)
@@ -276,6 +277,7 @@ def admin_valider_transaction(request, transaction_id):
         f"✅ Transaction validée — Accès débloqué pour {commande.utilisateur.username}",
     )
     return redirect("/admin/academie/transaction/")
+
 
 
 # ================================================

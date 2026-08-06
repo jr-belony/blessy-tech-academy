@@ -1427,35 +1427,74 @@ class Evenement(models.Model):
 
 
 # ================================================
-# [CORRECTIF AUDIT] Registre canonique des inscriptions (Enrollment)
+# Registre canonique des inscriptions (Enrollment)
 # ================================================
 
 class Enrollment(models.Model):
-    """Registre canonique des inscriptions (un étudiant, une formation, une date)."""
-    SOURCES = [
-        ('achat', 'Achat'),
-        ('gratuit', 'Offre gratuite'),
-        ('parrainage', 'Parrainage'),
-        ('admin', 'Attribution admin'),
-        ('promotion', 'Campagne promotionnelle'),
+    """
+    Registre canonique d'inscription — répond à UNE seule question :
+    "Cet utilisateur est-il inscrit à cette formation, et pourquoi ?"
+    Distinct de :
+    - AccesFormationDebloque (technique, peut être dérivé de ceci)
+    - ProgressionLecon (mesure l'avancement, pas le droit d'accès)
+    - Certificat (résultat final, pas la condition d'accès)
+    """
+
+    ORIGINES = [
+        ('achat', '💰 Achat payant'), ('gratuit', '🎁 Formation gratuite'),
+        ('cohorte', '👥 Cohorte pilote'), ('offert_admin', '🎟️ Offert par admin'),
+        ('parcours', '🚀 Inclus dans un parcours'),
     ]
+    STATUTS = [('actif', '✅ Actif'), ('suspendu', '⏸️ Suspendu'), ('termine', '🏁 Terminé'), ('expire', '⏳ Expiré')]
 
     utilisateur = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='enrollments')
     formation = models.ForeignKey('academie.Formation', on_delete=models.CASCADE, related_name='enrollments')
-    date_inscription = models.DateTimeField(default=timezone.now)
-    source = models.CharField(max_length=20, choices=SOURCES, default='achat')
-    commande = models.ForeignKey('academie.Order', null=True, blank=True, on_delete=models.SET_NULL)
+    origine = models.CharField(max_length=20, choices=ORIGINES)
+    statut = models.CharField(max_length=15, choices=STATUTS, default='actif')
+
+    commande_origine = models.ForeignKey('academie.Order', on_delete=models.SET_NULL, null=True, blank=True)
+    cohorte_origine = models.ForeignKey('academie.Cohorte', on_delete=models.SET_NULL, null=True, blank=True)
+    accorde_par = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='enrollments_accordes')
+
+    date_inscription = models.DateTimeField(auto_now_add=True)
+    date_expiration = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        app_label = 'academie'
-        db_table = 'academie_enrollment'
-        unique_together = ('utilisateur', 'formation')
-        verbose_name = 'Inscription'
-        verbose_name_plural = 'Inscriptions'
+        unique_together = ['utilisateur', 'formation']
+        verbose_name = 'Inscription (Enrollment)'
+        verbose_name_plural = 'Inscriptions (Enrollments)'
+        indexes = [
+            models.Index(fields=['utilisateur', 'statut']),
+            models.Index(fields=['formation', 'statut']),
+        ]
 
     def __str__(self):
-        return f"{self.utilisateur.username} → {self.formation.nom} ({self.source})"
+        return f"{self.utilisateur.username} → {self.formation.nom} ({self.get_statut_display()})"
 
+    def est_actif(self):
+        if self.statut != 'actif':
+            return False
+        if self.date_expiration and timezone.now() > self.date_expiration:
+            return False
+        return True
+
+    @staticmethod
+    def inscrire(utilisateur, formation, origine, **kwargs):
+        """
+        Point d'entrée UNIQUE pour toute inscription — remplace les créations 
+        dispersées d'AccesFormationDebloque dans le code existant.
+        Crée AUSSI l'AccesFormationDebloque dérivé pour rétrocompatibilité totale.
+        """
+        enrollment, cree = Enrollment.objects.get_or_create(
+            utilisateur=utilisateur, formation=formation,
+            defaults={'origine': origine, **kwargs}
+        )
+        # Dérive automatiquement l'accès technique existant (zéro casse)
+        AccesFormationDebloque.objects.get_or_create(
+            utilisateur=utilisateur, formation=formation,
+            defaults={'nom_formation_snapshot': formation.nom, 'commande_origine': kwargs.get('commande_origine')}
+        )
+        return enrollment
 
 
 # ================================================
