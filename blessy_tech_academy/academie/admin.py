@@ -1369,13 +1369,37 @@ admin.site.index_title = "Tableau de bord"
 
 def get_app_list_reorganise(self, request, app_label=None):
     app_list = admin.AdminSite.get_app_list(admin.site, request, app_label)
+    
+    # --- NOUVELLE STRUCTURE DES GROUPES ---
     sections = {
-        '🎓 Pédagogie': ['Ecole', 'Formation', 'Module', 'Lecon', 'Quiz', 'Question', 'Parcours', 'Examen', 'WorkflowFormation'],
+        '🎓 Pédagogie': ['Ecole', 'Formation', 'Module', 'Lecon', 'Quiz', 'Question', 'Parcours', 'Examen', 'WorkflowFormation', 'NoteLecon', 'GradebookEntry', 'LearningOutcome'],
+        '🧠 Banque de Questions & Évaluations': [
+            'ModuleBanque', 'CategorieBanque', 'SousCategorieBanque',
+            'QuestionBanque', 'VersionQuestionBanque', 'StatistiqueQuestion',
+            'GabaritExamen', 'CompositionGabarit',
+            'ExamenGenere', 'QuestionExamenGenere', 'ReponseEtudiantBanque'
+        ],
+        '🎓 Certifications & Preuves': [
+            'Certificat', 'CertificatHistorique', 'RegistreEmissionCertificat',
+            'EligibiliteCertification', 'AccesFormationDebloque',
+            'Competence', 'CompetenceValidee'
+        ],
         '💰 Commerce': ['Order', 'OrderItem', 'Transaction', 'Invoice', 'Coupon', 'Promotion', 'Subscription', 'PlanAbonnement', 'Affilie'],
-        '👥 Communauté': ['Sujet', 'Reponse', 'BadgeForum', 'ProjetEtudiant', 'Temoignage'],
-        '📢 Marketing': ['Article', 'OutilRecommande', 'Inscription', 'InteractionCRM'],
-        '⚙️ Système': ['ProfilUtilisateur', 'LogAudit', 'Academie', 'PartenaireAPI', 'MoyenPaiement'],
+        '👥 Communauté & Engagement': ['Sujet', 'Reponse', 'Reaction', 'BadgeForum', 'ProjetEtudiant', 'Temoignage', 'Ambassadeur'],
+        '📢 Marketing & Contenu': ['Article', 'OutilRecommande', 'Outil', 'EtudeDeCas', 'Evenement', 'Inscription', 'InteractionCRM', 'Partenaire'],
+        '⚙️ Système & Administration': [
+            'Academie', 'ProfilUtilisateur', 'Enseignant', 'LogAudit',
+            'PartenaireAPI', 'MoyenPaiement', 'AlerteFraude',
+            'PushSubscription', 'NotificationPushEnvoyee', 'HistoriqueConversationIA'
+        ],
+        '📦 Autres (Gouvernance & Divers)': [
+            'Cohorte', 'Enrollment', 'Parrainage', 'DemandeTemoignage',
+            'StreakEtudiant', 'DisponibiliteMentor', 'ReservationMentorat',
+            'SoumissionProjet', 'WorkflowArticle', 'NoteLecon', 'GradebookEntry'
+        ],
     }
+    # --- FIN DE LA MODIFICATION ---
+
     modeles_tous = []
     for app in app_list:
         modeles_tous.extend(app.get('models', []))
@@ -1384,10 +1408,12 @@ def get_app_list_reorganise(self, request, app_label=None):
         modeles_section = [m for m in modeles_tous if m['object_name'] in noms_modeles]
         if modeles_section:
             nouveau_app_list.append({'name': nom_section, 'app_label': nom_section, 'app_url': '#', 'models': modeles_section})
+    
     noms_classes = [n for liste in sections.values() for n in liste]
     modeles_restants = [m for m in modeles_tous if m['object_name'] not in noms_classes]
     if modeles_restants:
         nouveau_app_list.append({'name': '📦 Autres', 'app_label': 'autres', 'app_url': '#', 'models': modeles_restants})
+    
     return nouveau_app_list
 
 admin.site.get_app_list = get_app_list_reorganise.__get__(admin.site)
