@@ -2,6 +2,12 @@ from django.urls import path
 
 from . import views
 
+from .views_modules.learning_views import (
+    demarrer_examen_banque,
+    passer_examen_banque,
+    soumettre_examen_banque,
+)
+
 urlpatterns = [
     # Pages principales
     path("", views.accueil, name="accueil"),
@@ -208,6 +214,10 @@ urlpatterns = [
     path('espace-entreprises/', views.espace_entreprises, name='espace_entreprises'),
     path('blog/', views.blog_actualites, name='blog_actualites'),
     path('support/', views.contact, name='support'),
+    # Routes pour la Banque de Questions
+    path('examen-banque/<int:gabarit_id>/demarrer/', demarrer_examen_banque, name='demarrer_examen_banque'),
+    path('examen-banque/<int:examen_id>/', passer_examen_banque, name='passer_examen_banque'),
+    path('examen-banque/<int:examen_id>/soumettre/', soumettre_examen_banque, name='soumettre_examen_banque'),
     path('explorer/', views.hub_explorer, name='hub_explorer'),
     path('certification/<int:eligibilite_id>/paiement/', views.initier_paiement_certification, name='initier_paiement_certification'),
     path('ecole/<int:ecole_id>/', views.detail_ecole, name='detail_ecole'),

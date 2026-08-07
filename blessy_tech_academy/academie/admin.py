@@ -51,7 +51,9 @@ from .models import (
 
 from users.admin import RolePermissionMixin
 from users.models import Enseignant
-from content.models import WorkflowArticle  
+from content.models import WorkflowArticle 
+from django.http import HttpResponse
+
 
 # ================================================
 # Thème CSS global pour tout l'admin
@@ -1550,3 +1552,185 @@ class EligibiliteCertificationAdmin(admin.ModelAdmin):
             return request.user.profil.role in ['admin', 'formateur']
         except Exception:
             return False
+
+
+# ================================================
+# ADMIN.PY — Administration Banque de Questions
+# ================================================
+
+from academie.models_banque import (
+    ModuleBanque, CategorieBanque, SousCategorieBanque, QuestionBanque,
+    GabaritExamen, CompositionGabarit, ExamenGenere, StatistiqueQuestion,
+    VersionQuestionBanque,
+)
+from users.admin import RolePermissionMixin
+
+
+@admin.register(ModuleBanque)
+class ModuleBanqueAdmin(admin.ModelAdmin):
+    list_display = ['icone', 'nom', 'code', 'hors_examen_principal', 'ordre']
+    list_editable = ['ordre']
+
+
+@admin.register(CategorieBanque)
+class CategorieBanqueAdmin(admin.ModelAdmin):
+    list_display = ['nom', 'module', 'ordre']
+    list_filter = ['module']
+
+
+@admin.register(SousCategorieBanque)
+class SousCategorieBanqueAdmin(admin.ModelAdmin):
+    list_display = ['nom', 'categorie']
+    list_filter = ['categorie__module']
+
+
+class StatistiqueQuestionInline(admin.StackedInline):
+    model = StatistiqueQuestion
+    extra = 0
+    readonly_fields = ['nb_utilisations', 'nb_reussites', 'temps_moyen_secondes']
+
+
+@admin.register(QuestionBanque)
+class QuestionBanqueAdmin(RolePermissionMixin, admin.ModelAdmin):
+    roles_autorises = ['admin', 'formateur']
+    change_list_template = 'admin/questionbanque_changelist.html'  # <-- AJOUT
+
+    list_display = ['identifiant_unique', 'module', 'categorie', 'niveau', 'type_question', 'statut', 'points_ponderes_affiche', 'taux_reussite_affiche']
+    list_filter = ['module', 'niveau', 'type_question', 'statut', 'categorie']
+    search_fields = ['identifiant_unique', 'enonce', 'mots_cles']
+    readonly_fields = ['identifiant_unique', 'version']
+    inlines = [StatistiqueQuestionInline]
+    actions = ['action_dupliquer', 'action_archiver', 'action_activer']
+
+    fieldsets = [
+        ('📌 Classification', {'fields': ['module', 'categorie', 'sous_categorie', 'niveau', 'type_question', 'competence_evaluee']}),
+        ('📝 Contenu', {'fields': ['enonce', 'illustration', 'fichier_support']}),
+        ('✅ Réponses', {'fields': ['reponses_possibles', 'reponse_texte_courte']}),
+        ('🎓 Pédagogie', {'fields': ['explication_pedagogique', 'reference_cours', 'mots_cles']}),
+        ('⚙️ Paramètres', {'fields': ['temps_conseille_secondes', 'points_base']}),
+        ('🔐 Gouvernance', {'fields': ['statut', 'cree_par', 'valide_par']}),
+    ]
+
+    def points_ponderes_affiche(self, obj):
+        return obj.points_ponderes()
+    points_ponderes_affiche.short_description = 'Points pondérés'
+
+    def taux_reussite_affiche(self, obj):
+        stats = getattr(obj, 'statistiques', None)
+        return f"{stats.taux_reussite()}%" if stats else "—"
+    taux_reussite_affiche.short_description = 'Taux réussite'
+
+    @admin.action(description="📋 Dupliquer les questions sélectionnées")
+    def action_dupliquer(self, request, queryset):
+        for q in queryset:
+            q.dupliquer(request.user)
+        self.message_user(request, f"✅ {queryset.count()} question(s) dupliquée(s)")
+
+    @admin.action(description="📦 Archiver")
+    def action_archiver(self, request, queryset):
+        queryset.update(statut='archivee')
+
+    @admin.action(description="✅ Activer")
+    def action_activer(self, request, queryset):
+        queryset.update(statut='active')
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.cree_par = request.user
+        else:
+            obj.version += 1
+            VersionQuestionBanque.objects.create(
+                question=obj, numero_version=obj.version,
+                contenu_snapshot={'enonce': obj.enonce, 'reponses': obj.reponses_possibles},
+                modifie_par=request.user,
+            )
+        super().save_model(request, obj, form, change)
+
+    # ================================================================
+    # AJOUTS IMPORT / EXPORT CSV
+    # ================================================================
+    def get_urls(self):
+        from django.urls import path
+        urls = super().get_urls()
+        custom = [
+            path('export-csv/', self.admin_site.admin_view(self.exporter_csv), name='questionbanque_export'),
+            path('import-csv/', self.admin_site.admin_view(self.importer_csv), name='questionbanque_import'),
+        ]
+        return custom + urls
+
+    def exporter_csv(self, request):
+        import csv
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="banque_questions.csv"'
+        writer = csv.writer(response)
+        writer.writerow(['identifiant', 'module', 'categorie', 'niveau', 'type', 'enonce', 'reponses_json', 'explication', 'points'])
+        for q in QuestionBanque.objects.all():
+            writer.writerow([
+                q.identifiant_unique,
+                q.module.code,
+                q.categorie.nom,
+                q.niveau,
+                q.type_question,
+                q.enonce,
+                str(q.reponses_possibles),
+                q.explication_pedagogique,
+                q.points_base
+            ])
+        return response
+
+    def importer_csv(self, request):
+        if request.method == 'POST' and request.FILES.get('fichier_csv'):
+            import csv, io, json
+            fichier = io.TextIOWrapper(request.FILES['fichier_csv'].file, encoding='utf-8')
+            reader = csv.DictReader(fichier)
+            importees = 0
+            for ligne in reader:
+                module = ModuleBanque.objects.filter(code=ligne['module']).first()
+                categorie = CategorieBanque.objects.filter(module=module, nom=ligne['categorie']).first()
+                if module and categorie:
+                    QuestionBanque.objects.create(
+                        module=module,
+                        categorie=categorie,
+                        niveau=ligne['niveau'],
+                        type_question=ligne['type'],
+                        enonce=ligne['enonce'],
+                        reponses_possibles=json.loads(ligne['reponses_json']),
+                        explication_pedagogique=ligne['explication'],
+                        points_base=float(ligne['points']),
+                        cree_par=request.user,
+                        statut='brouillon',
+                    )
+                    importees += 1
+            messages.success(request, f"✅ {importees} question(s) importée(s)")
+            return redirect('..')
+        return render(request, 'admin/import_csv_questions.html')
+class CompositionGabaritInline(admin.TabularInline):
+    model = CompositionGabarit
+    extra = 1
+
+
+@admin.register(GabaritExamen)
+class GabaritExamenAdmin(admin.ModelAdmin):
+    list_display = ['nom', 'nombre_questions_total_affiche', 'points_total_affiche', 'duree_minutes', 'actif']
+    inlines = [CompositionGabaritInline]
+
+    def nombre_questions_total_affiche(self, obj):
+        return obj.nombre_questions_total()
+    nombre_questions_total_affiche.short_description = 'Nb questions'
+
+    def points_total_affiche(self, obj):
+        return obj.points_total()
+    points_total_affiche.short_description = 'Points totaux'
+
+
+@admin.register(ExamenGenere)
+class ExamenGenereAdmin(admin.ModelAdmin):
+    list_display = ['utilisateur', 'gabarit', 'statut', 'score_pourcentage', 'reussi', 'date_debut']
+    list_filter = ['statut', 'reussi', 'gabarit']
+    search_fields = ['utilisateur__username']
+
+
+@admin.register(StatistiqueQuestion)
+class StatistiqueQuestionAdmin(admin.ModelAdmin):
+    list_display = ['question', 'nb_utilisations', 'nb_reussites', 'temps_moyen_secondes']
+    readonly_fields = ['nb_utilisations', 'nb_reussites', 'temps_moyen_secondes']

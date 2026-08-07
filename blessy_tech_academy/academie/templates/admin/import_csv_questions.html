@@ -1,0 +1,20 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block content %}
+<div id="content-main">
+    <h1>📥 Importer des questions depuis un CSV</h1>
+    <p>Format attendu : identifiant, module, categorie, niveau, type, enonce, reponses_json, explication, points</p>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div style="padding: 20px; background: #f8fafc; border-radius: 8px;">
+            <label for="id_fichier_csv">Fichier CSV :</label>
+            <input type="file" name="fichier_csv" id="id_fichier_csv" accept=".csv" required>
+        </div>
+        <div style="margin-top: 20px;">
+            <button type="submit" class="button" style="background:#003B8E; color:white;">Importer</button>
+            <a href="{% url 'admin:academie_questionbanque_changelist' %}" class="button cancel-link">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

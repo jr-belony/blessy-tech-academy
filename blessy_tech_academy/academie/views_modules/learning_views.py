@@ -1200,3 +1200,91 @@ def formations_gratuites(request):
         'nb_formations_gratuites': formations.count(),
         'devise': devise,  # AJOUTÉ
     })
+
+
+# ================================================
+# LEARNING_VIEWS.PY — Passage d'examen issu de la Banque de Questions
+# ================================================
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect, render
+from academie.models_banque import GabaritExamen, ExamenGenere, ReponseEtudiantBanque, StatistiqueQuestion
+
+
+@login_required(login_url='/connexion/')
+def demarrer_examen_banque(request, gabarit_id):
+    """
+    Démarre un examen généré à partir d'un gabarit pour l'utilisateur connecté.
+    S'il existe déjà un examen en cours pour ce gabarit, il est réutilisé.
+    """
+    gabarit = get_object_or_404(GabaritExamen, id=gabarit_id, actif=True)
+
+    # Vérifier s'il y a un examen en cours pour ce gabarit
+    examen_en_cours = ExamenGenere.objects.filter(
+        utilisateur=request.user,
+        gabarit=gabarit,
+        statut='en_cours'
+    ).first()
+
+    if not examen_en_cours:
+        examen_en_cours = ExamenGenere.generer_pour(gabarit, request.user)
+
+    return redirect('passer_examen_banque', examen_id=examen_en_cours.id)
+
+
+@login_required(login_url='/connexion/')
+def passer_examen_banque(request, examen_id):
+    """
+    Affiche l'examen généré pour que l'étudiant réponde aux questions.
+    """
+    examen = get_object_or_404(ExamenGenere, id=examen_id, utilisateur=request.user, statut='en_cours')
+    questions = examen.questions_ordonnees.select_related('question').all()
+
+    return render(request, 'academie/passer_examen_banque.html', {
+        'examen': examen,
+        'questions': questions,
+    })
+
+
+@login_required(login_url='/connexion/')
+def soumettre_examen_banque(request, examen_id):
+    """
+    Traite la soumission de l'examen, enregistre les réponses, calcule le score
+    et met à jour les statistiques.
+    """
+    if request.method != 'POST':
+        return redirect('passer_examen_banque', examen_id=examen_id)
+
+    examen = get_object_or_404(ExamenGenere, id=examen_id, utilisateur=request.user, statut='en_cours')
+
+    # Enregistrer les réponses
+    for qeg in examen.questions_ordonnees.select_related('question').all():
+        # Récupérer la réponse brute (pour QCM, 'choix')
+        reponse_brute = request.POST.get(f'question_{qeg.question.id}', '')
+
+        # Créer ou récupérer l'objet réponse
+        reponse, _ = ReponseEtudiantBanque.objects.get_or_create(
+            examen=examen,
+            question=qeg.question,
+            defaults={
+                'points_attribues': qeg.points_attribues,
+                'reponse_donnee': {'choix': reponse_brute},
+            }
+        )
+        # Corriger automatiquement cette question
+        reponse.evaluer()
+
+        # Mettre à jour les statistiques de la question
+        stats, _ = StatistiqueQuestion.objects.get_or_create(question=qeg.question)
+        stats.nb_utilisations += 1
+        if reponse.est_correcte:
+            stats.nb_reussites += 1
+        stats.save()
+
+    # Calculer le score global et marquer l'examen comme terminé
+    resultat = examen.corriger()
+
+    return render(request, 'academie/resultat_examen_banque.html', {
+        'examen': examen,
+        'resultat': resultat,
+    })

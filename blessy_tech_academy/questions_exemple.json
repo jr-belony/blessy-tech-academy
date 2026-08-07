@@ -1,0 +1,56 @@
+{
+  "modules": [
+    {
+      "code": "INT",
+      "nom": "Internet & Réseaux",
+      "icone": "🌐",
+      "ordre": 1
+    }
+  ],
+  "categories": [
+    {
+      "module_code": "INT",
+      "nom": "Navigation Web",
+      "ordre": 1
+    }
+  ],
+  "sous_categories": [
+    {
+      "module_code": "INT",
+      "categorie_nom": "Navigation Web",
+      "nom": "Moteurs de recherche"
+    }
+  ],
+  "questions": [
+    {
+      "identifiant_unique": "INT-NAV-0001",
+      "module_code": "INT",
+      "categorie_nom": "Navigation Web",
+      "sous_categorie_nom": "Moteurs de recherche",
+      "niveau": "facile",
+      "type_question": "qcm",
+      "enonce": "Quel moteur de recherche est le plus utilisé au monde ?",
+      "reponses_possibles": [
+        {
+          "texte": "Google",
+          "correct": true
+        },
+        {
+          "texte": "Bing",
+          "correct": false
+        },
+        {
+          "texte": "Yahoo",
+          "correct": false
+        },
+        {
+          "texte": "DuckDuckGo",
+          "correct": false
+        }
+      ],
+      "explication_pedagogique": "Google domine le marché des moteurs de recherche.",
+      "temps_conseille_secondes": 30,
+      "points_base": 1.0
+    }
+  ]
+}

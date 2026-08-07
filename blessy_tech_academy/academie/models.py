@@ -29,6 +29,18 @@ from billing.models import (
 )
 from academie.validators import valider_image
 
+
+
+# ================================================
+# MODELS.PY — Import de la Banque de Questions
+# ================================================
+from academie.models_banque import (
+    ModuleBanque, CategorieBanque, SousCategorieBanque,
+    QuestionBanque, VersionQuestionBanque,
+    GabaritExamen, CompositionGabarit, ExamenGenere,
+    QuestionExamenGenere, ReponseEtudiantBanque, StatistiqueQuestion,
+)
+
 # ================================================
 # CONSTANTES PARTAGÉES
 # ================================================
@@ -1762,3 +1774,20 @@ def obtenir_cohorte_active_pour(utilisateur, formation):
     return Cohorte.objects.filter(
         membres=utilisateur, formations=formation, actif=True
     ).first()
+
+
+# Import des modèles de la banque de questions
+# Import des modèles de la banque de questions (nouvelle architecture)
+from .models_banque import (
+    ModuleBanque,
+    CategorieBanque,
+    SousCategorieBanque,
+    QuestionBanque,
+    VersionQuestionBanque,
+    GabaritExamen,
+    CompositionGabarit,
+    ExamenGenere,
+    QuestionExamenGenere,
+    ReponseEtudiantBanque,
+    StatistiqueQuestion,
+)
