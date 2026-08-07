@@ -1,0 +1,54 @@
+<!-- ================================================
+     RESULTAT_EXAMEN_BANQUE.HTML — Résultat détaillé par module + compétences
+     ================================================ -->
+{% extends 'academie/base.html' %}
+{% block titre %}Résultat de l'examen{% endblock %}
+{% block contenu %}
+<section style="max-width:600px; margin:60px auto; padding:0 20px; text-align:center;">
+    <div style="font-size:56px;">{% if resultat.reussi %}🎉{% else %}📚{% endif %}</div>
+    <h1 style="color:var(--bleu-principal);">{{ resultat.score_pourcentage|floatformat:1 }}%</h1>
+    <p style="color:{% if resultat.reussi %}#22c55e{% else %}#FF6B00{% endif %}; font-weight:700; font-size:18px;">
+        {% if resultat.reussi %}✅ Examen réussi !{% else %}📖 Continue tes efforts{% endif %}
+    </p>
+
+    <div style="background:white; border:1.5px solid #e2e8f0; border-radius:16px; padding:24px; margin-top:24px; text-align:left;">
+        <h3 style="color:var(--bleu-principal); margin-bottom:12px;">📊 Résultat par module</h3>
+        {% if resultat.resultats_par_module %}
+            {% for module, scores in resultat.resultats_par_module.items %}
+            <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #e2e8f0;">
+                <span>{{ module }}</span>
+                <strong>{{ scores.obtenu|floatformat:1 }}/{{ scores.max|floatformat:1 }} pts</strong>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="color:var(--gris-texte); font-size:14px;">Aucun détail par module disponible.</p>
+        {% endif %}
+    </div>
+
+    {% if resultat.competences_maitrisees %}
+    <div style="margin-top:20px; text-align:left;">
+        <p style="font-weight:700; color:#22c55e; margin-bottom:8px;">✅ Compétences maîtrisées</p>
+        <div style="display:flex; flex-wrap:wrap; gap:6px;">
+            {% for comp in resultat.competences_maitrisees %}
+            <span style="background:rgba(34,197,94,0.1); color:#22c55e; padding:4px 12px; border-radius:12px; font-size:12px;">{{ comp.nom }}</span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if resultat.competences_a_renforcer %}
+    <div style="margin-top:16px; text-align:left;">
+        <p style="font-weight:700; color:#FF6B00; margin-bottom:8px;">🔄 Compétences à renforcer</p>
+        <div style="display:flex; flex-wrap:wrap; gap:6px;">
+            {% for comp in resultat.competences_a_renforcer %}
+            <span style="background:rgba(255,107,0,0.1); color:#FF6B00; padding:4px 12px; border-radius:12px; font-size:12px;">{{ comp.nom }}</span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div style="margin-top:30px;">
+        <a href="{% url 'dashboard' %}" style="display:inline-block; padding:10px 24px; background:var(--bleu-principal); color:white; border-radius:8px; text-decoration:none;">Retour au tableau de bord</a>
+    </div>
+</section>
+{% endblock %}

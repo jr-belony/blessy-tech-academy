@@ -140,6 +140,9 @@ class QuestionBanque(models.Model):
     valide_par = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='questions_validees')
     date_creation = models.DateTimeField(auto_now_add=True)
     date_modification = models.DateTimeField(auto_now=True)
+    # MODELS_BANQUE.PY — Traçabilité de révision (feedback pilote)
+    commentaire_revision = models.TextField(blank=True, help_text="Notes sur pourquoi cette question a été signalée/ajustée suite au test pilote")
+    signalee_ambigue = models.BooleanField(default=False, help_text="Marquée par un apprenant ou l'admin comme potentiellement ambiguë")
 
     class Meta:
         verbose_name = 'Question (Banque)'
@@ -210,6 +213,13 @@ class GabaritExamen(models.Model):
 
     nom = models.CharField(max_length=200)
     formation_liee = models.ForeignKey('Formation', on_delete=models.SET_NULL, null=True, blank=True)
+    # --- NOUVEAUX CHAMPS ---
+    cohorte_pilote = models.ForeignKey(
+        'Cohorte', on_delete=models.SET_NULL, null=True, blank=True, related_name='gabarits_test',
+        help_text="Si défini, ce gabarit est en phase de TEST avec cette cohorte avant généralisation"
+    )
+    phase_test = models.BooleanField(default=False, help_text="Active le mode test — statistiques suivies de près pour ajustement")
+    # -----------------------
     duree_minutes = models.IntegerField(default=90)
     seuil_reussite = models.IntegerField(default=70)
     actif = models.BooleanField(default=True)
@@ -226,7 +236,6 @@ class GabaritExamen(models.Model):
 
     def points_total(self):
         return sum(c.nombre_questions * c.points_par_question for c in self.composition.all())
-
 
 class CompositionGabarit(models.Model):
     """Ligne de composition : X questions de tel module/niveau dans le gabarit."""
@@ -392,7 +401,8 @@ class ReponseEtudiantBanque(models.Model):
         elif q.type_question == 'choix_multiples':
             bonnes = set(r['texte'] for r in q.reponses_possibles if r.get('correct'))
             donnees = set(self.reponse_donnee.get('choix', []))
-            self.est_correcte = (bonnes == donnees)
+            # 🔁 Correction : vérifie que l'ensemble n'est pas vide
+            self.est_correcte = (bonnes == donnees) and len(bonnes) > 0
         elif q.type_question == 'reponse_courte':
             reponses_acceptees = [r.strip().lower() for r in q.reponse_texte_courte.split('|')]
             self.est_correcte = self.reponse_donnee.get('texte', '').strip().lower() in reponses_acceptees
@@ -403,10 +413,10 @@ class ReponseEtudiantBanque(models.Model):
         return self.est_correcte
 
 
+
 # ================================================
 # 4. STATISTIQUES — Analyse de la banque
 # ================================================
-
 class StatistiqueQuestion(models.Model):
     """Agrégats de performance par question — recalculés périodiquement."""
 

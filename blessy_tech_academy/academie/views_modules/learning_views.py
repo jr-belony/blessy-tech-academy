@@ -49,6 +49,7 @@ from ..models import (
     TentativeExamen,
     WorkflowFormation,
     Temoignage,
+    QuestionBanque,
 )
 from ..services.ia_service import (
     attribuer_badges,
@@ -1259,8 +1260,29 @@ def soumettre_examen_banque(request, examen_id):
 
     # Enregistrer les réponses
     for qeg in examen.questions_ordonnees.select_related('question').all():
-        # Récupérer la réponse brute (pour QCM, 'choix')
-        reponse_brute = request.POST.get(f'question_{qeg.question.id}', '')
+        q_type = qeg.question.type_question
+        q_id = qeg.question.id
+
+        # Collecte adaptée selon le type de question
+        if q_type == 'choix_multiples':
+            reponse_donnee = {'choix': request.POST.getlist(f'question_{q_id}_multi')}
+        elif q_type == 'classement':
+            ordre_donne = []
+            for i, element in enumerate(qeg.reponses_ordre_affiche):
+                position = request.POST.get(f'question_{q_id}_ordre_{i}', '')
+                ordre_donne.append({'element': element, 'position': position})
+            reponse_donnee = {'classement': ordre_donne}
+        elif q_type == 'association':
+            associations = []
+            for i, paire in enumerate(qeg.reponses_ordre_affiche):
+                valeur = request.POST.get(f'question_{q_id}_assoc_{i}', '')
+                associations.append({'gauche': paire.get('gauche'), 'reponse_donnee': valeur})
+            reponse_donnee = {'associations': associations}
+        else:
+            # qcm, vrai_faux, reponse_courte, completer, scenario_pro, etude_cas,
+            # analyse_prompt_ia, correction_word, analyse_excel, amelioration_ppt, analyse_image
+            reponse_brute = request.POST.get(f'question_{q_id}', '')
+            reponse_donnee = {'choix': reponse_brute, 'texte': reponse_brute}
 
         # Créer ou récupérer l'objet réponse
         reponse, _ = ReponseEtudiantBanque.objects.get_or_create(
@@ -1268,7 +1290,7 @@ def soumettre_examen_banque(request, examen_id):
             question=qeg.question,
             defaults={
                 'points_attribues': qeg.points_attribues,
-                'reponse_donnee': {'choix': reponse_brute},
+                'reponse_donnee': reponse_donnee,
             }
         )
         # Corriger automatiquement cette question
@@ -1288,3 +1310,21 @@ def soumettre_examen_banque(request, examen_id):
         'examen': examen,
         'resultat': resultat,
     })
+
+
+# ================================================
+# LEARNING_VIEWS.PY — Signalement question ambiguë par un pilote
+# Feedback direct pendant la phase de test — remonte au dashboard admin
+# ================================================
+
+@login_required(login_url='/connexion/')
+def signaler_question_ambigue(request, question_id):
+    if request.method == 'POST':
+        question = QuestionBanque.objects.get(id=question_id)
+        commentaire = request.POST.get('commentaire', '')
+        question.signalee_ambigue = True
+        question.commentaire_revision += f"\n[Signalée par {request.user.username}] {commentaire}"
+        question.statut = 'en_revision'
+        question.save()
+        return JsonResponse({'succes': True})
+    return JsonResponse({'erreur': 'Méthode non autorisée'}, status=405)

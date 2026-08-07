@@ -1078,6 +1078,7 @@ class GestionCoursAdminSite(AdminThemeMixin):
                 name='rotation_cle_partenaire',
             ),
             path('dashboard-temoignages/', admin.site.admin_view(self.vue_dashboard_temoignages), name='dashboard_temoignages'),
+            path('dashboard-analyse-banque/', admin.site.admin_view(self.vue_dashboard_analyse_banque), name='dashboard_analyse_banque'),
         ]
         return custom_urls + original_urls
 
@@ -1316,6 +1317,54 @@ class GestionCoursAdminSite(AdminThemeMixin):
             'evolution': evolution,
             'chart_labels': labels,   # <-- Nouveau
             'chart_data': data,        # <-- Nouveau
+        })
+
+
+    def vue_dashboard_analyse_banque(self, request):
+        from django.db.models import Avg, Count, Q as DjangoQ
+        from academie.models_banque import QuestionBanque, StatistiqueQuestion, ExamenGenere, GabaritExamen
+
+        gabarit = GabaritExamen.objects.filter(phase_test=True).first()
+
+        examens_termines = ExamenGenere.objects.filter(
+            gabarit=gabarit, statut='termine'
+        ).select_related('utilisateur') if gabarit else ExamenGenere.objects.none()
+
+        # Statistiques globales du test pilote
+        nb_participants = examens_termines.values('utilisateur').distinct().count()
+        score_moyen = examens_termines.aggregate(m=Avg('score_pourcentage'))['m'] or 0
+        nb_reussis = examens_termines.filter(reussi=True).count()
+
+        # Questions suspectes (trop faciles ou trop difficiles)
+        questions_utilisees = StatistiqueQuestion.objects.filter(
+            nb_utilisations__gte=1
+        ).select_related('question', 'question__module', 'question__categorie')
+
+        questions_a_revoir = [s for s in questions_utilisees if s.necessite_revision()]
+        questions_a_revoir.sort(key=lambda s: s.taux_reussite())
+
+        # Répartition par module
+        stats_par_module = {}
+        for s in questions_utilisees:
+            module_nom = s.question.module.nom
+            stats_par_module.setdefault(module_nom, {'utilisations': 0, 'reussites': 0})
+            stats_par_module[module_nom]['utilisations'] += s.nb_utilisations
+            stats_par_module[module_nom]['reussites'] += s.nb_reussites
+
+        for module_nom, data in stats_par_module.items():
+            data['taux'] = round((data['reussites'] / data['utilisations']) * 100) if data['utilisations'] else 0
+
+        return render(request, 'admin/dashboard_analyse_banque.html', {
+            'title': '🔍 Analyse Test Pilote — Banque de Questions',
+            'site_header': admin.site.site_header,
+            'gabarit': gabarit,
+            'nb_participants': nb_participants,
+            'score_moyen': round(score_moyen, 1),
+            'nb_reussis': nb_reussis,
+            'nb_total_termines': examens_termines.count(),
+            'questions_a_revoir': questions_a_revoir[:20],
+            'stats_par_module': stats_par_module,
+            'examens_detail': examens_termines.order_by('-score_pourcentage'),
         })
 
     def vue_dashboard_quotas_ia(self, request):

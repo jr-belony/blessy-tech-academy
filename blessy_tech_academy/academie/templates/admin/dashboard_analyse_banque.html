@@ -1,0 +1,166 @@
+<!-- ================================================
+     ADMIN/DASHBOARD_ANALYSE_BANQUE.HTML — Étape 3 : Analyse & Ajustement
+     ================================================ -->
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    .bo-kpi-grille {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin: 20px 0;
+    }
+    .bo-kpi-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 16px;
+        text-align: center;
+    }
+    .bo-kpi-label {
+        color: #4a5568;
+        font-size: 13px;
+    }
+    .bo-kpi-valeur {
+        font-size: 28px;
+        font-weight: 700;
+        color: #003B8E;
+        margin-top: 4px;
+    }
+    .bo-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .bo-card h3 {
+        margin-top: 0;
+        color: #003B8E;
+    }
+    .bo-gris-fond {
+        background: #f1f5f9;
+    }
+    .bo-gris-bordure {
+        border-color: #e2e8f0;
+    }
+    .bo-texte-secondaire {
+        color: #4a5568;
+    }
+    .bo-bleu {
+        color: #003B8E;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th {
+        text-align: left;
+        padding: 8px;
+        background: #f1f5f9;
+    }
+    td {
+        padding: 8px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+</style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">Accueil</a>
+    &rsaquo; <a href="{% url 'admin:index' %}">Administration</a>
+    &rsaquo; Analyse du test pilote
+</div>
+{% endblock %}
+
+{% block content %}
+<h1 style="color:#0B2447;">🔍 Analyse du Test Pilote — Banque de Questions</h1>
+<p style="color:#4a5568;">Gabarit : {{ gabarit.nom }} — {{ nb_participants }}/8 participant(s) ont terminé</p>
+
+<div class="bo-kpi-grille">
+    <div class="bo-kpi-card">
+        <div class="bo-kpi-label">Examens terminés</div>
+        <div class="bo-kpi-valeur">{{ nb_total_termines }}</div>
+    </div>
+    <div class="bo-kpi-card">
+        <div class="bo-kpi-label">Score moyen</div>
+        <div class="bo-kpi-valeur">{{ score_moyen }}%</div>
+    </div>
+    <div class="bo-kpi-card">
+        <div class="bo-kpi-label">Réussites</div>
+        <div class="bo-kpi-valeur">{{ nb_reussis }}/{{ nb_total_termines }}</div>
+    </div>
+</div>
+
+<div class="bo-card">
+    <h3>📊 Taux de réussite par module</h3>
+    {% for module_nom, data in stats_par_module.items %}
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #e2e8f0;">
+        <span>{{ module_nom }}</span>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <div style="background:#f1f5f9; border-radius:10px; height:8px; width:150px;">
+                <div style="background:{% if data.taux >= 70 %}#22c55e{% elif data.taux >= 50 %}#FF6B00{% else %}#ef4444{% endif %}; height:100%; width:{{ data.taux }}%; border-radius:10px;"></div>
+            </div>
+            <strong>{{ data.taux }}%</strong>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="bo-card" style="border-left:4px solid #ef4444;">
+    <h3>⚠️ Questions à revoir (trop faciles &gt;95% ou trop difficiles &lt;15%)</h3>
+    <p style="font-size:12px; color:#4a5568;">Ces questions nécessitent une révision avant l'extension à 300+ questions.</p>
+    <table>
+        <thead>
+            <tr style="background:#f1f5f9;">
+                <th>Identifiant</th>
+                <th>Énoncé</th>
+                <th>Taux réussite</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stat in questions_a_revoir %}
+            <tr>
+                <td>{{ stat.question.identifiant_unique }}</td>
+                <td style="font-size:12px;">{{ stat.question.enonce|truncatechars:60 }}</td>
+                <td style="text-align:center; color:{% if stat.taux_reussite >= 95 %}#22c55e{% else %}#ef4444{% endif %}; font-weight:700;">{{ stat.taux_reussite }}%</td>
+                <td><a href="/admin/academie/questionbanque/{{ stat.question.id }}/change/" style="color:#003B8E; font-weight:700; font-size:12px;">✏️ Réviser</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" style="padding:16px; text-align:center; color:#4a5568;">Aucune question suspecte détectée pour le moment — pas assez de données ou banque saine.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="bo-card">
+    <h3>👥 Détail par participant</h3>
+    <table>
+        <thead>
+            <tr style="background:#f1f5f9;">
+                <th>Participant</th>
+                <th>Score</th>
+                <th>Résultat</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for examen in examens_detail %}
+            <tr>
+                <td>{{ examen.utilisateur.first_name|default:examen.utilisateur.username }}</td>
+                <td style="text-align:center; font-weight:700;">{{ examen.score_pourcentage }}%</td>
+                <td style="text-align:center;">{% if examen.reussi %}✅{% else %}❌{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div style="margin-top:20px;">
+    <a href="{% url 'admin:index' %}" class="button">Retour au tableau de bord</a>
+</div>
+{% endblock %}

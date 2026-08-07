@@ -1,0 +1,118 @@
+<!-- ================================================
+     PASSER_EXAMEN_BANQUE.HTML — Interface passage examen banque
+     Inclut le signalement discret pour la phase pilote
+     ================================================ -->
+{% extends 'academie/base.html' %}
+{% block titre %}Examen de Certification{% endblock %}
+{% block contenu %}
+<section style="max-width:700px; margin:40px auto; padding:0 20px;">
+    <h1 style="color:var(--bleu-principal);">📝 Examen de Certification Officiel</h1>
+    <p style="color:var(--gris-texte);">{{ questions|length }} questions — Réponds avec attention.</p>
+
+    <form method="POST" action="{% url 'soumettre_examen_banque' examen.id %}">
+        {% csrf_token %}
+        {% for qeg in questions %}
+        <div style="background:white; border:1.5px solid #e2e8f0; border-radius:14px; padding:20px; margin-bottom:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <p style="font-weight:700; color:var(--bleu-principal);">{{ forloop.counter }}. {{ qeg.question.enonce }}</p>
+                <button type="button" class="signaler-btn" data-question-id="{{ qeg.question.id }}" title="Signaler cette question" style="background:none; border:none; color:#a0aec0; cursor:pointer; font-size:16px;">🚩</button>
+            </div>
+
+            <!-- ============================================== -->
+            <!-- RENDU UNIVERSEL SELON LE TYPE DE QUESTION -->
+            <!-- ============================================== -->
+            {% if qeg.question.type_question == 'qcm' or qeg.question.type_question == 'vrai_faux' or qeg.question.type_question == 'scenario_pro' or qeg.question.type_question == 'etude_cas' or qeg.question.type_question == 'analyse_prompt_ia' or qeg.question.type_question == 'correction_word' or qeg.question.type_question == 'analyse_excel' or qeg.question.type_question == 'amelioration_ppt' or qeg.question.type_question == 'analyse_image' %}
+                <!-- Types à choix unique (structure QCM-like) -->
+                {% for reponse in qeg.reponses_ordre_affiche %}
+                <label style="display:block; padding:10px 12px; background:#f8fafc; border-radius:8px; margin-bottom:8px; cursor:pointer;">
+                    <input type="radio" name="question_{{ qeg.question.id }}" value="{{ reponse.texte }}" required style="margin-right:8px;">
+                    {{ reponse.texte }}
+                </label>
+                {% endfor %}
+
+            {% elif qeg.question.type_question == 'choix_multiples' %}
+                <!-- Choix multiples : plusieurs bonnes réponses possibles -->
+                {% for reponse in qeg.reponses_ordre_affiche %}
+                <label style="display:block; padding:10px 12px; background:#f8fafc; border-radius:8px; margin-bottom:8px; cursor:pointer;">
+                    <input type="checkbox" name="question_{{ qeg.question.id }}_multi" value="{{ reponse.texte }}" style="margin-right:8px;">
+                    {{ reponse.texte }}
+                </label>
+                {% endfor %}
+
+            {% elif qeg.question.type_question == 'reponse_courte' or qeg.question.type_question == 'completer' %}
+                <!-- Réponse textuelle courte -->
+                <input type="text" name="question_{{ qeg.question.id }}" placeholder="Ta réponse..." required
+                       style="width:100%; padding:12px; border:1.5px solid #e2e8f0; border-radius:8px; margin-top:8px; font-size:14px;">
+
+            {% elif qeg.question.type_question == 'classement' %}
+                <!-- Classement : liste ordonnable (rendu simple en texte pour l'instant) -->
+                <p style="font-size:12px; color:#a0aec0; margin-bottom:8px;">Numérote chaque élément dans l'ordre (1, 2, 3...)</p>
+                {% for element in qeg.reponses_ordre_affiche %}
+                <div style="display:flex; align-items:center; gap:10px; padding:8px 12px; background:#f8fafc; border-radius:8px; margin-bottom:6px;">
+                    <input type="number" name="question_{{ qeg.question.id }}_ordre_{{ forloop.counter0 }}" min="1" max="{{ qeg.reponses_ordre_affiche|length }}" required
+                           style="width:50px; padding:6px; border:1.5px solid #e2e8f0; border-radius:6px; text-align:center;">
+                    <span>{{ element }}</span>
+                </div>
+                {% endfor %}
+
+            {% elif qeg.question.type_question == 'association' %}
+                <!-- Association : relier gauche/droite -->
+                {% for paire in qeg.reponses_ordre_affiche %}
+                <div style="display:flex; align-items:center; gap:10px; padding:8px 0;">
+                    <span style="flex:1; font-weight:600;">{{ paire.gauche }}</span>
+                    <span>→</span>
+                    <input type="text" name="question_{{ qeg.question.id }}_assoc_{{ forloop.counter0 }}" placeholder="Ta réponse..." data-gauche="{{ paire.gauche }}"
+                           style="flex:1; padding:8px; border:1.5px solid #e2e8f0; border-radius:6px;">
+                </div>
+                {% endfor %}
+
+            {% else %}
+                <!-- Filet de sécurité — ne laisse JAMAIS une question sans champ de réponse -->
+                <textarea name="question_{{ qeg.question.id }}" placeholder="Ta réponse..." rows="3"
+                          style="width:100%; padding:12px; border:1.5px solid #e2e8f0; border-radius:8px; margin-top:8px;"></textarea>
+            {% endif %}
+            <!-- ============================================== -->
+
+        </div>
+        {% endfor %}
+        <button type="submit" style="width:100%; padding:16px; background:var(--bleu-principal); color:white; border:none; border-radius:10px; font-weight:800;">✅ Soumettre l'examen</button>
+    </form>
+</section>
+
+<script>
+// Gestionnaire de signalement via délégation d'événement
+document.addEventListener('click', function(event) {
+    const button = event.target.closest('.signaler-btn');
+    if (!button) return;
+
+    const questionId = button.getAttribute('data-question-id');
+    const commentaire = prompt("Pourquoi cette question te semble-t-elle ambiguë ? (optionnel)");
+    if (commentaire === null) return;
+
+    const csrfToken = getCookie('csrftoken');
+
+    fetch(`/examen-banque/signaler/${questionId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrfToken
+        },
+        body: 'commentaire=' + encodeURIComponent(commentaire)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.succes) {
+            alert("✅ Merci, ton signalement a été transmis à l'équipe pédagogique.");
+        } else {
+            alert("❌ Erreur : " + (data.erreur || "Une erreur est survenue."));
+        }
+    });
+});
+
+function getCookie(name) {
+    const value = "; " + document.cookie;
+    const parts = value.split("; " + name + "=");
+    if (parts.length === 2) return parts.pop().split(";").shift();
+}
+</script>
+{% endblock %}

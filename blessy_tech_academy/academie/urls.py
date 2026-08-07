@@ -221,4 +221,5 @@ urlpatterns = [
     path('explorer/', views.hub_explorer, name='hub_explorer'),
     path('certification/<int:eligibilite_id>/paiement/', views.initier_paiement_certification, name='initier_paiement_certification'),
     path('ecole/<int:ecole_id>/', views.detail_ecole, name='detail_ecole'),
+    path('examen-banque/question/<int:question_id>/signaler/', views.signaler_question_ambigue, name='signaler_question_ambigue'),
 ]
