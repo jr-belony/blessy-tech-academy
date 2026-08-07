@@ -1078,6 +1078,8 @@ class GestionCoursAdminSite(AdminThemeMixin):
                 name='rotation_cle_partenaire',
             ),
             path('dashboard-temoignages/', admin.site.admin_view(self.vue_dashboard_temoignages), name='dashboard_temoignages'),
+            path('dashboard-correction-manuelle/', admin.site.admin_view(self.vue_correction_manuelle_banque), name='dashboard_correction_manuelle'),
+            path('exporter-rapport-analyse-banque/', admin.site.admin_view(self.exporter_rapport_analyse_banque), name='exporter_rapport_analyse_banque'),
             path('dashboard-analyse-banque/', admin.site.admin_view(self.vue_dashboard_analyse_banque), name='dashboard_analyse_banque'),
         ]
         return custom_urls + original_urls
@@ -1366,6 +1368,84 @@ class GestionCoursAdminSite(AdminThemeMixin):
             'stats_par_module': stats_par_module,
             'examens_detail': examens_termines.order_by('-score_pourcentage'),
         })
+
+
+    def exporter_rapport_analyse_banque(self, request):
+        """
+        Exporte un rapport CSV des statistiques de la banque de questions.
+        """
+        import csv
+        from django.http import HttpResponse
+        from academie.models_banque import StatistiqueQuestion
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="rapport_analyse_banque.csv"'
+
+        writer = csv.writer(response)
+        writer.writerow([
+            'Identifiant',
+            'Module',
+            'Catégorie',
+            'Niveau',
+            'Utilisations',
+            'Réussites',
+            'Taux réussite (%)',
+            'Nécessite révision'
+        ])
+
+        for stat in StatistiqueQuestion.objects.select_related('question__module', 'question__categorie').all():
+            writer.writerow([
+                stat.question.identifiant_unique,
+                stat.question.module.nom,
+                stat.question.categorie.nom,
+                stat.question.get_niveau_display(),
+                stat.nb_utilisations,
+                stat.nb_reussites,
+                stat.taux_reussite(),
+                'Oui' if stat.necessite_revision() else 'Non'
+            ])
+
+        return response
+
+
+    def vue_correction_manuelle_banque(self, request):
+        from academie.models_banque import ReponseEtudiantBanque
+
+        TYPES_CORRECTION_MANUELLE = [
+            'etude_cas', 'scenario_pro', 'analyse_prompt_ia',
+            'correction_word', 'analyse_excel', 'amelioration_ppt'
+        ]
+
+        if request.method == 'POST':
+            reponse_id = request.POST.get('reponse_id')
+            est_correcte = request.POST.get('decision') == 'correcte'
+            commentaire = request.POST.get('commentaire', '')
+
+            reponse = ReponseEtudiantBanque.objects.get(id=reponse_id)
+            reponse.est_correcte = est_correcte
+            reponse.reponse_donnee['correction_manuelle'] = est_correcte
+            reponse.reponse_donnee['commentaire_correcteur'] = commentaire
+            reponse.reponse_donnee['corrige_par'] = request.user.username
+            reponse.save()
+
+            # Recalcule le score de l'examen concerné après correction manuelle
+            reponse.examen.corriger()
+
+            messages.success(request, "✅ Réponse corrigée manuellement.")
+            return redirect('/admin/dashboard-correction-manuelle/')
+
+        reponses_en_attente = ReponseEtudiantBanque.objects.filter(
+            question__type_question__in=TYPES_CORRECTION_MANUELLE,
+            reponse_donnee__correction_manuelle__isnull=True
+        ).select_related('examen__utilisateur', 'question')
+
+        return render(request, 'admin/correction_manuelle_banque.html', {
+            'title': '✍️ Correction Manuelle — Banque de Questions',
+            'site_header': admin.site.site_header,
+            'reponses_en_attente': reponses_en_attente,
+        })
+
+
 
     def vue_dashboard_quotas_ia(self, request):
         from django.core.cache import cache

@@ -109,9 +109,7 @@ urlpatterns = [
     # === Synchronisation export/import ===
     path("admin/synchronisation/export/", views.admin_sync_export, name="admin_sync_export"),
     path("admin/synchronisation/import/", views.admin_sync_import, name="admin_sync_import"),
-    # ================================================
     # URLS.PY — Payment Center
-    # ================================================
     path("acheter/<int:formation_id>/", views.initier_achat, name="initier_achat"),
     path("checkout/<str:order_reference>/", views.checkout, name="checkout"),
     path(

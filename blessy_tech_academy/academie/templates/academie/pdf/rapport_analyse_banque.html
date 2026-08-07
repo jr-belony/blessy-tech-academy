@@ -1,0 +1,34 @@
+<!-- ================================================
+     PDF/RAPPORT_ANALYSE_BANQUE.HTML — Document de traçabilité décisionnelle
+     ================================================ -->
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<style>
+    body { font-family: Arial, sans-serif; color: #1a1a1a; padding: 20mm; }
+    h1 { color: #003B8E; } h2 { color: #00B5E2; margin-top: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #e2e8f0; padding: 8px; text-align: left; font-size: 12px; }
+    th { background: #f8fafc; }
+</style></head>
+<body>
+    <h1>🔍 Rapport d'Analyse — Test Pilote Banque de Questions</h1>
+    <p>Blessy Tech Academy — Généré le {{ date_rapport|date:"d/m/Y à H:i" }}</p>
+
+    <h2>📊 Synthèse</h2>
+    <table>
+        <tr><td>Gabarit testé</td><td>{{ gabarit.nom }}</td></tr>
+        <tr><td>Participants</td><td>{{ nb_participants }}/8</td></tr>
+        <tr><td>Score moyen</td><td>{{ score_moyen }}%</td></tr>
+        <tr><td>Taux de réussite</td><td>{{ nb_reussis }}/{{ nb_total }}</td></tr>
+    </table>
+
+    <h2>⚠️ Questions signalées pour révision</h2>
+    <table>
+        <tr><th>Identifiant</th><th>Énoncé</th><th>Commentaire</th></tr>
+        {% for q in questions_revisees %}
+        <tr><td>{{ q.identifiant_unique }}</td><td>{{ q.enonce|truncatechars:80 }}</td><td>{{ q.commentaire_revision|truncatechars:100 }}</td></tr>
+        {% endfor %}
+    </table>
+
+    <p style="margin-top:30px; font-size:11px; color:#718096;">Ce document constitue la trace décisionnelle de la validation de la banque de 150 questions avant son extension vers 300+.</p>
+</body></html>

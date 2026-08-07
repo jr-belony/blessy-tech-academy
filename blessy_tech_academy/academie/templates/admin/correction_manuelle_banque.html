@@ -1,0 +1,33 @@
+<!-- ================================================
+     ADMIN/CORRECTION_MANUELLE_BANQUE.HTML — File d'attente de correction
+     ================================================ -->
+{% extends "admin/base_backoffice.html" %}
+{% block bo_contenu %}
+<h1 style="color:var(--bo-texte);">✍️ Correction Manuelle</h1>
+<p style="color:var(--bo-texte-secondaire);">{{ reponses_en_attente|length }} réponse(s) en attente de jugement humain</p>
+
+{% for reponse in reponses_en_attente %}
+<div class="bo-card" style="margin-bottom:16px;">
+    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+        <strong style="color:var(--bo-bleu);">{{ reponse.examen.utilisateur.username }}</strong>
+        <span style="font-size:11px; color:var(--bo-texte-secondaire);">{{ reponse.question.identifiant_unique }} · {{ reponse.question.get_type_question_display }}</span>
+    </div>
+    <p style="font-weight:700; margin-bottom:8px;">{{ reponse.question.enonce }}</p>
+    <div style="background:var(--bo-gris-fond); padding:12px; border-radius:8px; margin-bottom:12px;">
+        <strong>Réponse donnée :</strong> {{ reponse.reponse_donnee.texte|default:reponse.reponse_donnee.choix }}
+    </div>
+    <div style="background:rgba(0,181,226,0.05); padding:12px; border-radius:8px; margin-bottom:12px; font-size:12px;">
+        <strong>Explication de référence :</strong> {{ reponse.question.explication_pedagogique }}
+    </div>
+    <form method="POST" style="display:flex; gap:10px; align-items:center;">
+        {% csrf_token %}
+        <input type="hidden" name="reponse_id" value="{{ reponse.id }}">
+        <input type="text" name="commentaire" placeholder="Commentaire (optionnel)" style="flex:1; padding:8px; border:1px solid var(--bo-gris-bordure); border-radius:6px;">
+        <button type="submit" name="decision" value="correcte" style="background:#22c55e; color:white; border:none; padding:8px 16px; border-radius:8px; font-weight:700; cursor:pointer;">✅ Correcte</button>
+        <button type="submit" name="decision" value="incorrecte" style="background:#ef4444; color:white; border:none; padding:8px 16px; border-radius:8px; font-weight:700; cursor:pointer;">❌ Incorrecte</button>
+    </form>
+</div>
+{% empty %}
+<p style="text-align:center; color:var(--bo-texte-secondaire); padding:40px;">Aucune réponse en attente de correction manuelle 🎉</p>
+{% endfor %}
+{% endblock %}
