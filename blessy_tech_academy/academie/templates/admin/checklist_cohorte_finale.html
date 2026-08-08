@@ -1,0 +1,22 @@
+<!-- ================================================
+     ADMIN/CHECKLIST_COHORTE_FINALE.HTML — Vue d'ensemble bout en bout
+     ================================================ -->
+{% extends "admin/base_backoffice.html" %}
+{% block bo_contenu %}
+<h1 style="color:var(--bo-texte);">Checklist Finale — Cohorte Pilote</h1>
+<table style="width:100%; border-collapse:collapse; background:white; border-radius:12px; overflow:hidden;">
+    <tr style="background:var(--bo-bleu); color:white;">
+        <th style="padding:10px;">Participant</th><th>Examen</th><th>Projet</th><th>Éligible</th><th>Certifié</th><th>Témoignage</th>
+    </tr>
+    {% for md in membres_detail %}
+    <tr style="border-bottom:1px solid var(--bo-gris-bordure);">
+        <td style="padding:10px;">{{ md.membre.first_name|default:md.membre.username }}</td>
+        <td style="text-align:center;">{% if md.a_examen %}✅{% else %}⏳{% endif %}</td>
+        <td style="text-align:center;">{% if md.a_projet %}✅{% else %}⏳{% endif %}</td>
+        <td style="text-align:center;">{% if md.eligible %}✅{% else %}⏳{% endif %}</td>
+        <td style="text-align:center;">{% if md.certifie %}✅{% else %}⏳{% endif %}</td>
+        <td style="text-align:center;">{% if md.a_temoigne %}✅{% else %}⏳{% endif %}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

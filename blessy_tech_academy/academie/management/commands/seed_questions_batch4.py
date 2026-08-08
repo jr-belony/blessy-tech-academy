@@ -60,9 +60,7 @@ QUESTIONS_BUREAUTIQUE = [
     {'categorie': 'Microsoft Excel', 'niveau': 'intermediaire', 'type': 'qcm', 'enonce': "À quoi sert la mise en forme conditionnelle dans Excel ?", 'reponses': [{'texte': 'Changer automatiquement l\'apparence d\'une cellule selon une condition (ex: rouge si négatif)', 'correct': True}, {'texte': 'Verrouiller définitivement une cellule', 'correct': False}, {'texte': 'Supprimer les doublons', 'correct': False}, {'texte': 'Trier les données alphabétiquement', 'correct': False}], 'explication': "La mise en forme conditionnelle applique automatiquement un style visuel (couleur, icône) selon des règles définies, rendant les données anormales ou importantes immédiatement visibles sans lecture attentive de chaque cellule.", 'mots_cles': 'mise en forme conditionnelle, visualisation données'},
     {'categorie': 'Microsoft Excel', 'niveau': 'avance', 'type': 'qcm', 'enonce': "Quelle fonction combine du texte de plusieurs cellules en une seule (ex: prénom + nom) ?", 'reponses': [{'texte': 'CONCATENER() ou l\'opérateur &', 'correct': True}, {'texte': 'SOMME()', 'correct': False}, {'texte': 'DIVISER()', 'correct': False}, {'texte': 'SEPARER()', 'correct': False}], 'explication': "CONCATENER() (ou plus simplement l'opérateur &) fusionne le contenu de plusieurs cellules texte en une seule chaîne — très utile pour créer des noms complets, des adresses ou des identifiants combinés.", 'mots_cles': 'CONCATENER, fusion texte, Excel avancé'},
     {'categorie': 'Microsoft Excel', 'niveau': 'professionnel', 'type': 'analyse_excel', 'enonce': "Une formule RECHERCHEV renvoie systématiquement #N/A alors que la valeur cherchée semble présente dans le tableau. Quelle cause technique fréquente devez-vous vérifier en premier ?", 'reponses': [{'texte': 'Un espace invisible ou une différence de format (texte vs nombre) entre la valeur cherchée et celle du tableau', 'correct': True}, {'texte': 'Excel est corrompu', 'correct': False}, {'texte': 'Il faut redémarrer l\'ordinateur', 'correct': False}, {'texte': 'La formule RECHERCHEV n\'existe plus', 'correct': False}], 'explication': "L'erreur #N/A sur une RECHERCHEV apparemment correcte vient très souvent d'une différence subtile invisible à l'œil nu : espace superflu, ou une valeur stockée en texte alors qu'elle est cherchée en tant que nombre (ou inversement).", 'mots_cles': 'erreur #N/A, diagnostic RECHERCHEV, format donnees'},
-    {'categorie': 'Microsoft PowerPoint', 'niveau': 'intermediaire', 'type': 'qcm', 'enonce': "Comment ajouter des notes du présentateur visibles uniquement par lui pendant la présentation ?",
-     'reponses': [{'texte': 'Via l\'onglet Affichage > Notes, des notes peuvent être ajoutées pour chaque diapositive et ne sont visibles que pour le présentateur', 'correct': True}, {'texte': 'Impossible, c\'est une fonctionnalité absente de PowerPoint', 'correct': False}, {'texte': 'En modifiant le fichier dans un éditeur de texte', 'correct': False}, {'texte': 'Par le menu Outils > Options', 'correct': False}],
-     'explication': "L'onglet Affichage > Notes permet d'ajouter des commentaires privés pour chaque diapositive, visibles uniquement en mode présentateur (et non sur l'écran projeté)."},
+    {'categorie': 'Microsoft PowerPoint', 'niveau': 'intermediaire', 'type': 'qcm', 'enonce': "Comment ajouter des notes du présentateur visibles uniquement par lui pendant la présentation ?", 'reponses': [{'texte': 'Via l\'onglet Affichage > Notes, des notes peuvent être ajoutées pour chaque diapositive et ne sont visibles que pour le présentateur', 'correct': True}, {'texte': 'Impossible, c\'est une fonctionnalité absente de PowerPoint', 'correct': False}, {'texte': 'En modifiant le fichier dans un éditeur de texte', 'correct': False}, {'texte': 'Par le menu Outils > Options', 'correct': False}], 'explication': "L'onglet Affichage > Notes permet d'ajouter des commentaires privés pour chaque diapositive, visibles uniquement en mode présentateur (et non sur l'écran projeté)."},
     {'categorie': 'Microsoft PowerPoint', 'niveau': 'facile', 'type': 'qcm', 'enonce': "Quel raccourci permet de lancer un diaporama depuis la diapositive courante ?", 'reponses': [{'texte': 'Maj + F5', 'correct': True}, {'texte': 'F5', 'correct': False}, {'texte': 'Ctrl + F5', 'correct': False}, {'texte': 'Alt + F5', 'correct': False}], 'explication': "Maj+F5 lance le diaporama depuis la diapositive actuellement sélectionnée, utile pour tester une section précise sans repartir du début.", 'mots_cles': 'PowerPoint, raccourci, diaporama'},
     {'categorie': 'Microsoft PowerPoint', 'niveau': 'avance', 'type': 'qcm', 'enonce': "Quel outil permet de créer un sommaire automatique des diapositives dans PowerPoint ?", 'reponses': [{'texte': 'Le mode Plan (Affichage > Plan) permet de générer un sommaire structuré', 'correct': True}, {'texte': 'Il n\'existe pas de sommaire automatique dans PowerPoint', 'correct': False}, {'texte': 'Il faut utiliser Word pour cela', 'correct': False}, {'texte': 'Le sommaire se génère en imprimant le diaporama', 'correct': False}], 'explication': "Le mode Plan (Affichage > Plan) permet de visualiser et organiser la structure de la présentation sous forme de titres, et d'en générer un sommaire.", 'mots_cles': 'PowerPoint, sommaire, plan'},
     {'categorie': 'Gestion des fichiers', 'niveau': 'intermediaire', 'type': 'qcm', 'enonce': "Quel est le principal avantage d'utiliser un service de stockage cloud (Google Drive, OneDrive) par rapport à un disque dur externe ?", 'reponses': [{'texte': 'Accessibilité depuis n\'importe quel appareil connecté et sauvegarde automatique', 'correct': True}, {'texte': 'C\'est toujours plus rapide qu\'un disque dur', 'correct': False}, {'texte': 'Cela ne nécessite pas de connexion Internet', 'correct': False}, {'texte': 'Les fichiers sont toujours plus petits', 'correct': False}], 'explication': "Le stockage cloud permet un accès universel à ses fichiers depuis tout appareil connecté, avec des sauvegardes automatiques, sans risque de perte physique.", 'mots_cles': 'cloud, stockage en ligne, accessibilité'},
@@ -75,6 +73,8 @@ class Command(BaseCommand):
     help = "Seed Batch 4 : 75 nouvelles questions (25 par module) — extension vers 300"
 
     def handle(self, *args, **options):
+        from academie.management.commands._helper_seed_idempotent import creer_question_si_absente
+
         modules = {
             'INT': (QUESTIONS_INTERNET, 'Internet, Recherche et Productivité'),
             'IA': (QUESTIONS_IA, 'Intelligence Artificielle'),
@@ -82,27 +82,33 @@ class Command(BaseCommand):
         }
 
         total_creees = 0
+        total_ignorees = 0
+
         for code, (questions, nom_module) in modules.items():
             module = ModuleBanque.objects.filter(code=code).first()
             if not module:
-                self.stdout.write(self.style.ERROR(f"❌ Module {code} introuvable — lance d'abord creer_taxonomie_banque"))
+                self.stdout.write(self.style.ERROR(f"❌ Module {code} introuvable"))
                 continue
 
             for q in questions:
                 categorie = CategorieBanque.objects.filter(module=module, nom=q['categorie']).first()
                 if not categorie:
-                    self.stdout.write(self.style.WARNING(f"⚠️ Catégorie '{q['categorie']}' introuvable pour {code}, ignorée"))
+                    self.stdout.write(self.style.WARNING(f"⚠️ Catégorie '{q['categorie']}' introuvable pour {code}"))
                     continue
 
-                QuestionBanque.objects.create(
-                    module=module, categorie=categorie, niveau=q['niveau'], type_question=q['type'],
-                    enonce=q['enonce'], reponses_possibles=q.get('reponses', []),
-                    reponse_texte_courte=q.get('reponse_texte_courte', ''),
-                    explication_pedagogique=q['explication'], mots_cles=q.get('mots_cles', ''),
-                    statut='active',
-                )
-                total_creees += 1
+                try:
+                    cree = creer_question_si_absente(module, categorie, q)
+                    if cree:
+                        total_creees += 1
+                    else:
+                        total_ignorees += 1
+                except Exception as e:
+                    self.stdout.write(self.style.ERROR(f"❌ Erreur sur question '{q['enonce'][:50]}...' : {e}"))
+                    continue
 
-            self.stdout.write(self.style.SUCCESS(f"✅ {nom_module} : {len(questions)} questions créées"))
+            self.stdout.write(self.style.SUCCESS(f"✅ {nom_module} : traité"))
 
-        self.stdout.write(self.style.SUCCESS(f"\n🎉 BATCH 4 TERMINÉ : {total_creees} questions créées au total"))
+        self.stdout.write(self.style.SUCCESS(
+            f"\n🎉 BATCH 4 TERMINÉ : {total_creees} question(s) nouvellement créée(s), "
+            f"{total_ignorees} déjà existante(s) ignorée(s) (aucun doublon)"
+        ))

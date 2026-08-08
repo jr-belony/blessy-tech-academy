@@ -1081,6 +1081,7 @@ class GestionCoursAdminSite(AdminThemeMixin):
             path('dashboard-correction-manuelle/', admin.site.admin_view(self.vue_correction_manuelle_banque), name='dashboard_correction_manuelle'),
             path('exporter-rapport-analyse-banque/', admin.site.admin_view(self.exporter_rapport_analyse_banque), name='exporter_rapport_analyse_banque'),
             path('dashboard-analyse-banque/', admin.site.admin_view(self.vue_dashboard_analyse_banque), name='dashboard_analyse_banque'),
+            path('checklist-cohorte-finale/', admin.site.admin_view(self.vue_checklist_cohorte_finale), name='checklist_cohorte_finale'),
         ]
         return custom_urls + original_urls
 
@@ -1408,6 +1409,34 @@ class GestionCoursAdminSite(AdminThemeMixin):
         return response
 
 
+    # ================================================
+    # Checklist finale de bouclage cohorte pilote
+    # ================================================
+    def vue_checklist_cohorte_finale(self, request):
+        from academie.models import Cohorte, EligibiliteCertification, Certificat, Temoignage
+
+        cohorte = Cohorte.objects.filter(nom='Cohorte Pilote 2026').first()
+        membres_detail = []
+
+        if cohorte:
+            for membre in cohorte.membres.all():
+                eligibilites = EligibiliteCertification.objects.filter(utilisateur=membre, cohorte=cohorte)
+                membres_detail.append({
+                    'membre': membre,
+                    'a_examen': eligibilites.filter(note_theorique__isnull=False).exists(),
+                    'a_projet': eligibilites.filter(note_projet__isnull=False).exists(),
+                    'eligible': eligibilites.filter(statut='eligible_certificat').exists() or eligibilites.filter(statut__in=['paiement_confirme', 'certificat_pret', 'certificat_delivre']).exists(),
+                    'certifie': Certificat.objects.filter(utilisateur=membre).exists(),
+                    'a_temoigne': Temoignage.objects.filter(prenom_nom__icontains=membre.username, approuve=True).exists(),
+                })
+
+        return render(request, 'admin/checklist_cohorte_finale.html', {
+            'title': 'Checklist Finale Cohorte Pilote',
+            'site_header': admin.site.site_header,
+            'cohorte': cohorte,
+            'membres_detail': membres_detail,
+        })
+
     def vue_correction_manuelle_banque(self, request):
         from academie.models_banque import ReponseEtudiantBanque
 
@@ -1444,7 +1473,6 @@ class GestionCoursAdminSite(AdminThemeMixin):
             'site_header': admin.site.site_header,
             'reponses_en_attente': reponses_en_attente,
         })
-
 
 
     def vue_dashboard_quotas_ia(self, request):

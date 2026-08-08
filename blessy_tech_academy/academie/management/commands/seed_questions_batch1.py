@@ -642,6 +642,8 @@ class Command(BaseCommand):
     help = "Seed Batch 1 : 60 premières questions officielles (20 par module)"
 
     def handle(self, *args, **options):
+        from academie.management.commands._helper_seed_idempotent import creer_question_si_absente
+
         modules = {
             'INT': (QUESTIONS_INTERNET, 'Internet, Recherche et Productivité'),
             'IA': (QUESTIONS_IA, 'Intelligence Artificielle'),
@@ -649,27 +651,33 @@ class Command(BaseCommand):
         }
 
         total_creees = 0
+        total_ignorees = 0
+
         for code, (questions, nom_module) in modules.items():
             module = ModuleBanque.objects.filter(code=code).first()
             if not module:
-                self.stdout.write(self.style.ERROR(f"❌ Module {code} introuvable — lance d'abord creer_taxonomie_banque"))
+                self.stdout.write(self.style.ERROR(f"❌ Module {code} introuvable"))
                 continue
 
             for q in questions:
                 categorie = CategorieBanque.objects.filter(module=module, nom=q['categorie']).first()
                 if not categorie:
-                    self.stdout.write(self.style.WARNING(f"⚠️ Catégorie '{q['categorie']}' introuvable pour {code}, ignorée"))
+                    self.stdout.write(self.style.WARNING(f"⚠️ Catégorie '{q['categorie']}' introuvable pour {code}"))
                     continue
 
-                QuestionBanque.objects.create(
-                    module=module, categorie=categorie, niveau=q['niveau'], type_question=q['type'],
-                    enonce=q['enonce'], reponses_possibles=q.get('reponses', []),
-                    reponse_texte_courte=q.get('reponse_texte_courte', ''),
-                    explication_pedagogique=q['explication'], mots_cles=q.get('mots_cles', ''),
-                    statut='active',
-                )
-                total_creees += 1
+                try:
+                    cree = creer_question_si_absente(module, categorie, q)
+                    if cree:
+                        total_creees += 1
+                    else:
+                        total_ignorees += 1
+                except Exception as e:
+                    self.stdout.write(self.style.ERROR(f"❌ Erreur sur question '{q['enonce'][:50]}...' : {e}"))
+                    continue
 
-            self.stdout.write(self.style.SUCCESS(f"✅ {nom_module} : {len(questions)} questions créées"))
+            self.stdout.write(self.style.SUCCESS(f"✅ {nom_module} : traité"))
 
-        self.stdout.write(self.style.SUCCESS(f"\n🎉 BATCH 1 TERMINÉ : {total_creees} questions créées au total"))
+        self.stdout.write(self.style.SUCCESS(
+            f"\n🎉 BATCH 1 TERMINÉ : {total_creees} question(s) nouvellement créée(s), "
+            f"{total_ignorees} déjà existante(s) ignorée(s) (aucun doublon)"
+        ))

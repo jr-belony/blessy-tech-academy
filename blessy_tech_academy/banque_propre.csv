@@ -1,0 +1,234 @@
+identifiant,module,categorie,niveau,type,enonce
+INT-NAV-0001,INT,Navigation Web,facile,qcm,Quel moteur de recherche est le plus utilisé au monde ?
+INT-NAV-0002,INT,Navigation Web,facile,qcm,Que signifie l'abréviation « URL » ?
+INT-NAV-0003,INT,Navigation Web,facile,vrai_faux,Un cadenas fermé dans la barre d'adresse signifie que la connexion au site est sécurisée (HTTPS).
+INT-NAV-0004,INT,Navigation Web,intermediaire,qcm,Quel raccourci clavier permet d'ouvrir un nouvel onglet dans la plupart des navigateurs ?
+INT-REC-0001,INT,Recherche avancée,intermediaire,qcm,Vous cherchez des informations UNIQUEMENT sur le site gouv.ht. Quelle syntaxe utiliser dans Google ?
+INT-OPE-0001,INT,Opérateurs de recherche,avance,qcm,Quelle recherche exclut le mot « gratuit » des résultats sur « formation informatique » ?
+INT-OPE-0002,INT,Opérateurs de recherche,professionnel,reponse_courte,Quel opérateur permet de rechercher une expression EXACTE (dans l'ordre précis des mots) sur Google ?
+INT-SEC-0001,INT,Sécurité numérique,facile,qcm,Quelle est la meilleure pratique face à un email demandant vos identifiants bancaires en urgence ?
+INT-SEC-0002,INT,Sécurité numérique,intermediaire,vrai_faux,Utiliser le même mot de passe sur plusieurs sites est une bonne pratique pour ne pas les oublier.
+INT-SEC-0003,INT,Sécurité numérique,avance,choix_multiples,"Parmi ces éléments, lesquels sont des signes d'un site potentiellement frauduleux ? (plusieurs réponses possibles)"
+INT-GOO-0001,INT,Google Workspace,facile,qcm,Quel outil Google Workspace permet de créer des documents texte collaboratifs en ligne ?
+INT-GOO-0002,INT,Google Workspace,intermediaire,qcm,"Dans Google Docs, comment donner à quelqu'un le droit de MODIFIER un document sans pouvoir le supprimer ?"
+INT-ORG-0001,INT,Organisation des fichiers,facile,qcm,Quelle extension de fichier correspond généralement à un document PDF ?
+INT-ORG-0002,INT,Organisation des fichiers,intermediaire,classement,Classez ces éléments du plus général au plus spécifique dans une organisation de dossiers.
+INT-COL-0001,INT,Collaboration,intermediaire,qcm,Quel est l'avantage principal du travail collaboratif en ligne (type Google Docs) par rapport à l'envoi de fichiers par email ?
+INT-PRO-0001,INT,Productivité,facile,qcm,Quelle application permet de créer des sondages et formulaires en ligne dans Google Workspace ?
+INT-PRO-0002,INT,Productivité,avance,scenario_pro,"Un manager vous demande de recueillir les disponibilités de 30 collègues pour une réunion, sans échange d'emails multiples. Quel outil recommandez-vous et pourquoi ?"
+INT-NAV-0005,INT,Navigation Web,professionnel,etude_cas,Un client se plaint que son navigateur affiche « Votre connexion n'est pas privée » sur le site de sa banque. Que devez-vous lui conseiller en priorité ?
+INT-REC-0002,INT,Recherche avancée,facile,qcm,"Pour trouver rapidement une information récente, quel filtre Google est utile ?"
+INT-GOO-0003,INT,Google Workspace,avance,qcm,Comment récupérer une version antérieure d'un document Google Docs après une modification indésirable ?
+INT-SEC-0004,INT,Sécurité numérique,professionnel,reponse_courte,Quel terme désigne une authentification nécessitant deux éléments distincts (mot de passe + code SMS par exemple) ?
+IA-FON-0001,IA,Fondamentaux,facile,qcm,Que signifie « IA » ?
+IA-FON-0002,IA,Fondamentaux,intermediaire,vrai_faux,"ChatGPT et les IA génératives « comprennent » réellement ce qu'elles écrivent, comme un être humain."
+IA-IA--0001,IA,IA générative,facile,qcm,Lequel de ces outils est une IA générative capable de produire du texte ?
+IA-IA--0002,IA,IA générative,intermediaire,association,Associez chaque type d'IA générative à son usage principal.
+IA-PRO-0001,IA,Prompt Engineering,intermediaire,qcm,Quel prompt (instruction) est le plus susceptible de donner une bonne réponse d'une IA générative ?
+IA-PRO-0002,IA,Prompt Engineering,avance,analyse_prompt_ia,Analysez ce prompt : « Explique-moi Excel ». Quel est son principal défaut et comment l'améliorer ?
+IA-PRO-0003,IA,Prompt Engineering,professionnel,completer,Complétez : Donner à l'IA un ______ (des exemples de ce que vous attendez) améliore souvent la qualité de sa réponse. C'est ce qu'on appelle le prompting « few-shot ».
+IA-ETH-0001,IA,Éthique,facile,vrai_faux,Il est acceptable de soumettre à une IA générative des informations confidentielles d'une entreprise sans autorisation.
+IA-ETH-0002,IA,Éthique,intermediaire,qcm,Un étudiant utilise une IA pour rédiger entièrement son devoir et le remet sans le préciser. Quel est le problème principal ?
+IA-VER-0001,IA,Vérification des réponses,intermediaire,qcm,Que désigne le terme « hallucination » en intelligence artificielle générative ?
+IA-VER-0002,IA,Vérification des réponses,avance,scenario_pro,"Une IA vous fournit une statistique précise (« 73,2% des entreprises... ») sans citer de source. Quelle est la bonne démarche professionnelle ?"
+IA-CAS-0001,IA,Cas professionnels,intermediaire,scenario_pro,Vous devez rédiger 20 descriptions de produits similaires pour un catalogue. Comment l'IA peut-elle vous faire gagner du temps efficacement ?
+IA-CAS-0002,IA,Cas professionnels,professionnel,etude_cas,Un responsable RH veut utiliser une IA pour présélectionner des CV. Quel risque éthique majeur doit-il anticiper ?
+IA-AUT-0001,IA,Automatisation,facile,qcm,Quel est l'objectif principal de l'automatisation de tâches avec l'IA en entreprise ?
+IA-AUT-0002,IA,Automatisation,avance,qcm,Quel type de tâche est le MOINS adapté à une automatisation complète par IA actuellement ?
+IA-FON-0003,IA,Fondamentaux,avance,qcm,Quelle différence principale distingue une IA générative d'un moteur de recherche classique comme Google ?
+IA-ETH-0003,IA,Éthique,professionnel,reponse_courte,Quel terme désigne le fait de citer/attribuer correctement l'usage de l'IA dans un travail académique ou professionnel ?
+IA-IA--0003,IA,IA générative,professionnel,analyse_prompt_ia,Un collègue vous montre ce prompt utilisé pour générer un rapport financier : « Invente des chiffres de vente réalistes pour notre entreprise ». Quel est le problème critique ?
+IA-VER-0003,IA,Vérification des réponses,facile,qcm,"Après avoir reçu une réponse d'une IA sur un sujet médical important, que devez-vous faire avant d'agir ?"
+BUR-MIC-0001,BUR,Microsoft Word,facile,qcm,Quel raccourci clavier permet de mettre un texte en gras dans Word ?
+BUR-MIC-0002,BUR,Microsoft Word,intermediaire,qcm,Comment insérer automatiquement une table des matières qui se met à jour dans Word ?
+BUR-MIC-0003,BUR,Microsoft Word,avance,correction_word,Un document Word présente des titres qui ne sont pas alignés avec la table des matières après modification. Quelle est la cause la plus probable et la solution ?
+BUR-MIC-0004,BUR,Microsoft Excel,facile,qcm,Quelle formule Excel additionne automatiquement une plage de cellules (ex: A1 à A10) ?
+BUR-MIC-0005,BUR,Microsoft Excel,intermediaire,qcm,Quelle fonction Excel permet de rechercher une valeur dans une colonne et retourner une donnée correspondante d'une autre colonne ?
+BUR-MIC-0006,BUR,Microsoft Excel,avance,analyse_excel,"Une feuille Excel contient des ventes par mois. Quelle fonctionnalité permet d'analyser rapidement les totaux par région ET par produit, de façon interactive ?"
+BUR-MIC-0007,BUR,Microsoft Excel,professionnel,analyse_excel,"Une formule =SI(A1>1000;""Élevé"";""Normal"") retourne #NOM? au lieu du résultat attendu. Quelle est la cause la plus probable ?"
+BUR-MIC-0008,BUR,Microsoft PowerPoint,facile,qcm,Quel raccourci permet de lancer un diaporama PowerPoint depuis le début ?
+BUR-MIC-0009,BUR,Microsoft PowerPoint,intermediaire,amelioration_ppt,Une diapositive contient 200 mots en petite police sur fond chargé. Quelle amélioration est prioritaire ?
+BUR-MIC-0010,BUR,Microsoft PowerPoint,avance,qcm,Quel outil PowerPoint permet d'appliquer un style visuel cohérent à TOUTES les diapositives d'un coup ?
+BUR-GES-0001,BUR,Gestion des fichiers,facile,qcm,Quel format est recommandé pour partager un document en garantissant que sa mise en page ne changera pas ?
+BUR-RAC-0001,BUR,Raccourcis clavier,facile,association,Associez chaque raccourci clavier à son action (Windows/Office).
+BUR-MIS-0001,BUR,Mise en page,intermediaire,qcm,"Dans Word, comment insérer un saut de page SANS ajouter plusieurs lignes vides ?"
+BUR-IMP-0001,BUR,Impression,facile,qcm,"Avant d'imprimer un document long, quelle fonctionnalité permet de vérifier son rendu sans gaspiller de papier ?"
+BUR-IMP-0002,BUR,Impression,intermediaire,qcm,Comment imprimer uniquement les pages 2 à 5 d'un document de 20 pages ?
+BUR-PRO-0001,BUR,Productivité,avance,qcm,"Quelle pratique améliore le plus la productivité lors de la création répétitive de documents similaires (factures, rapports) ?"
+BUR-MIC-0011,BUR,Microsoft Excel,facile,vrai_faux,"Dans Excel, la fonction MOYENNE() calcule la moyenne arithmétique des valeurs sélectionnées."
+BUR-GES-0002,BUR,Gestion des fichiers,intermediaire,qcm,"Quel est le principal risque de nommer ses fichiers « Document1 », « Document2 », « Nouveau document (2) » ?"
+BUR-MIC-0012,BUR,Microsoft Word,professionnel,correction_word,"Un rapport professionnel de 15 pages n'a AUCUN style de titre appliqué (tout le texte utilise « Normal »), rendant la navigation difficile. Quelle est la conséquence principale et la correction recommandée ?"
+INT-NAV-0006,INT,Navigation Web,avance,qcm,À quoi sert le mode navigation privée d'un navigateur ?
+INT-REC-0003,INT,Recherche avancée,facile,qcm,Quel type de résultat privilégier pour une recherche d'information fiable sur un sujet scientifique ?
+INT-REC-0004,INT,Recherche avancée,professionnel,scenario_pro,Vous devez rédiger un rapport citant des statistiques économiques haïtiennes récentes. Quelle démarche de recherche est la plus rigoureuse ?
+INT-OPE-0003,INT,Opérateurs de recherche,intermediaire,qcm,Quel opérateur permet de chercher un fichier PDF spécifique sur un sujet donné ?
+INT-SEC-0005,INT,Sécurité numérique,facile,qcm,Que signifie l'acronyme « VPN » ?
+INT-SEC-0006,INT,Sécurité numérique,avance,etude_cas,"Un employé reçoit un SMS urgent prétendant venir de sa banque, demandant de cliquer sur un lien pour « débloquer son compte ». Comment nommer cette technique et quelle réaction adopter ?"
+INT-SEC-0007,INT,Sécurité numérique,intermediaire,reponse_courte,Quel terme désigne un logiciel malveillant qui chiffre les fichiers d'une victime et exige une rançon pour les débloquer ?
+INT-GOO-0004,INT,Google Workspace,facile,qcm,Quelle application Google Workspace correspond à un tableur (feuilles de calcul) ?
+INT-GOO-0005,INT,Google Workspace,professionnel,scenario_pro,"Votre équipe de 8 personnes doit co-rédiger un rapport en temps réel, avec des commentaires et suivi des modifications. Quelle configuration Google Docs recommandez-vous ?"
+INT-ORG-0003,INT,Organisation des fichiers,avance,qcm,Pourquoi est-il recommandé d'éviter les espaces et accents dans les noms de fichiers destinés à être partagés en ligne ?
+INT-COL-0002,INT,Collaboration,facile,vrai_faux,Un cloud (comme Google Drive) permet d'accéder à ses fichiers depuis n'importe quel appareil connecté à Internet.
+INT-COL-0003,INT,Collaboration,avance,qcm,Quelle est la meilleure pratique pour gérer les accès à un dossier partagé quand un collaborateur quitte l'équipe ?
+INT-PRO-0003,INT,Productivité,intermediaire,qcm,"Quel principe de gestion du temps consiste à traiter un email dès sa lecture (répondre, archiver ou planifier) plutôt que de le laisser en attente ?"
+INT-NAV-0007,INT,Navigation Web,intermediaire,qcm,Que se passe-t-il généralement quand vous videz le cache de votre navigateur ?
+INT-PRO-0004,INT,Productivité,professionnel,scenario_pro,"Votre équipe utilise 5 outils différents (email, chat, tableur partagé, agenda, stockage cloud) sans centralisation. Quelle amélioration structurelle recommandez-vous ?"
+IA-FON-0004,IA,Fondamentaux,avance,qcm,Quelle affirmation décrit le mieux le « Machine Learning » (apprentissage automatique) ?
+IA-FON-0005,IA,Fondamentaux,professionnel,qcm,Quelle est la différence essentielle entre une IA générative et un système expert traditionnel basé sur des règles fixes ?
+IA-IA--0004,IA,IA générative,avance,qcm,Pourquoi une IA générative peut-elle donner des réponses différentes à la MÊME question posée deux fois ?
+IA-PRO-0004,IA,Prompt Engineering,facile,qcm,Que signifie le terme « prompt » en intelligence artificielle ?
+IA-PRO-0005,IA,Prompt Engineering,intermediaire,completer,Compléter : Assigner à l'IA un ______ précis (ex: « Tu es un expert-comptable ») avant la question aide souvent à obtenir une réponse plus adaptée au contexte souhaité.
+IA-ETH-0004,IA,Éthique,avance,scenario_pro,Une entreprise utilise l'IA pour générer automatiquement des avis clients positifs sur ses produits. Quel est le problème éthique majeur ?
+IA-ETH-0005,IA,Éthique,professionnel,etude_cas,Un enseignant détecte qu'un devoir semble entièrement généré par IA sans déclaration. Quelle approche pédagogique est la plus constructive ?
+IA-VER-0004,IA,Vérification des réponses,facile,vrai_faux,Une IA générative peut se tromper même si sa réponse semble très confiante et bien rédigée.
+IA-VER-0005,IA,Vérification des réponses,professionnel,analyse_prompt_ia,"Une IA cite « une étude de l'Université de Paris de 2019 » pour justifier une affirmation, sans lien ni référence précise. Quelle démarche professionnelle adopter ?"
+IA-CAS-0003,IA,Cas professionnels,facile,qcm,Comment une IA peut-elle aider un employé à préparer une réunion ?
+IA-AUT-0003,IA,Automatisation,intermediaire,qcm,Quel terme désigne l'enchaînement automatique de plusieurs tâches numériques sans intervention manuelle répétée (ex: recevoir un email → créer une tâche → notifier l'équipe) ?
+IA-IA--0005,IA,IA générative,facile,qcm,Quel outil d'IA générative est spécialisé dans la création d'images à partir d'une description textuelle ?
+IA-CAS-0004,IA,Cas professionnels,avance,scenario_pro,Un service client reçoit 500 messages similaires par jour. Comment l'IA peut-elle améliorer ce processus SANS supprimer la relation humaine essentielle ?
+IA-AUT-0004,IA,Automatisation,professionnel,etude_cas,Une PME automatise entièrement sa facturation avec l'IA sans aucune supervision humaine. Quel risque principal cette entreprise prend-elle ?
+IA-FON-0006,IA,Fondamentaux,intermediaire,vrai_faux,Toutes les intelligences artificielles sont des IA génératives.
+BUR-MIC-0013,BUR,Microsoft Excel,intermediaire,qcm,Quelle fonction Excel compte le nombre de cellules répondant à une condition (ex: compter les ventes > 1000) ?
+BUR-MIC-0014,BUR,Microsoft Excel,professionnel,qcm,Quelle est la différence entre une référence de cellule relative (A1) et absolue ($A$1) dans une formule Excel ?
+BUR-MIC-0015,BUR,Microsoft Excel,facile,qcm,Quel symbole doit précéder toute formule dans Excel ?
+BUR-MIC-0016,BUR,Microsoft Word,intermediaire,qcm,"Quelle fonctionnalité Word permet de fusionner une lettre type avec une liste de destinataires (nom, adresse) issue d'un tableur ?"
+BUR-MIC-0017,BUR,Microsoft Word,avance,qcm,Comment insérer une note de bas de page dans Word ?
+BUR-MIC-0018,BUR,Microsoft PowerPoint,facile,qcm,Quel est le rôle du « mode présentateur » dans PowerPoint ?
+BUR-MIC-0019,BUR,Microsoft PowerPoint,professionnel,amelioration_ppt,Une présentation commerciale utilise 6 polices différentes et 8 couleurs différentes sur 10 diapositives. Quel est le problème principal et la correction ?
+BUR-GES-0003,BUR,Gestion des fichiers,avance,qcm,Quelle est la différence principale entre « Enregistrer » et « Enregistrer sous » dans un logiciel Office ?
+BUR-RAC-0002,BUR,Raccourcis clavier,intermediaire,qcm,Quel raccourci permet de rechercher un mot précis dans un long document Word ou une feuille Excel ?
+BUR-RAC-0003,BUR,Raccourcis clavier,avance,qcm,"Dans Excel, quel raccourci sélectionne instantanément toute une colonne de données jusqu'à la dernière cellule remplie ?"
+BUR-MIS-0002,BUR,Mise en page,facile,qcm,Quelle orientation de page choisir pour un document contenant un tableau très large ?
+BUR-MIS-0003,BUR,Mise en page,professionnel,qcm,Un rapport professionnel doit avoir des marges différentes pour l'impression recto-verso avec reliure. Quelle option Word utiliser ?
+BUR-IMP-0003,BUR,Impression,avance,qcm,Pourquoi imprimer un long tableau Excel peut-il produire des pages coupées de façon illisible ?
+BUR-PRO-0002,BUR,Productivité,facile,qcm,"Quel avantage offre l'utilisation de styles (Titre, Sous-titre) plutôt que de mettre le texte en gras/grande taille manuellement ?"
+BUR-GES-0004,BUR,Gestion des fichiers,professionnel,scenario_pro,Une entreprise perd un rapport important car le fichier n'existait qu'en un seul exemplaire sur un ordinateur qui est tombé en panne. Quelle pratique aurait évité ce problème ?
+INT-NAV-0008,INT,Navigation Web,facile,qcm,Que fait le bouton « Actualiser » (ou F5) dans un navigateur ?
+INT-NAV-0009,INT,Navigation Web,intermediaire,qcm,Que permet de faire un signet (favori) dans un navigateur ?
+INT-NAV-0010,INT,Navigation Web,professionnel,etude_cas,"Un navigateur affiche systématiquement des publicités intrusives et redirige vers des sites inconnus, même sur des sites fiables. Quel est le diagnostic le plus probable et la solution ?"
+INT-REC-0005,INT,Recherche avancée,intermediaire,qcm,Quel opérateur de recherche permet de chercher l'un OU l'autre de deux termes (ex: « chat OR chien ») ?
+INT-REC-0006,INT,Recherche avancée,avance,qcm,"Pour retrouver des images libres de droits utilisables commercialement, quelle démarche est correcte ?"
+INT-OPE-0004,INT,Opérateurs de recherche,facile,qcm,Quel symbole utilisé devant un mot permet de le rendre obligatoire dans les résultats de recherche ?
+INT-SEC-0008,INT,Sécurité numérique,facile,qcm,Quelle est la meilleure pratique pour créer un mot de passe solide ?
+INT-SEC-0009,INT,Sécurité numérique,intermediaire,qcm,Que doit-on faire si l'on suspecte que son compte email a été piraté ?
+INT-SEC-0010,INT,Sécurité numérique,professionnel,scenario_pro,Une entreprise reçoit un appel se présentant comme « le support technique Microsoft » demandant un accès à distance à un ordinateur pour « résoudre un problème critique ». Quelle est la bonne réaction ?
+INT-GOO-0006,INT,Google Workspace,intermediaire,qcm,Quelle application Google Workspace sert de service de stockage cloud principal ?
+INT-GOO-0007,INT,Google Workspace,avance,qcm,"Dans Google Sheets, comment empêcher une ligne d'en-tête de défiler quand on parcourt un long tableau ?"
+INT-ORG-0004,INT,Organisation des fichiers,intermediaire,classement,Classez ces pratiques d'organisation de fichiers de la moins efficace à la plus efficace.
+INT-COL-0004,INT,Collaboration,intermediaire,qcm,Quel est l'intérêt principal des commentaires (pas les modifications directes) dans un document collaboratif ?
+INT-PRO-0005,INT,Productivité,intermediaire,qcm,Quel principe de gestion des tâches consiste à classer les priorités selon leur urgence ET leur importance ?
+IA-FON-0007,IA,Fondamentaux,facile,qcm,Lequel de ces exemples illustre un usage courant de l'IA dans la vie quotidienne ?
+IA-IA--0006,IA,IA générative,intermediaire,qcm,Quel est le principal avantage de demander à une IA de résumer un long document plutôt que de le lire intégralement ?
+IA-PRO-0006,IA,Prompt Engineering,facile,qcm,"Pourquoi préciser le format souhaité (liste, tableau, paragraphe) dans un prompt améliore-t-il le résultat ?"
+IA-PRO-0007,IA,Prompt Engineering,avance,qcm,Quelle technique consiste à demander à l'IA de « réfléchir étape par étape » avant de donner sa réponse finale ?
+IA-PRO-0008,IA,Prompt Engineering,professionnel,analyse_prompt_ia,"Comparez ces 2 prompts pour générer un plan marketing : A) « Fais-moi un plan marketing » B) « Élabore un plan marketing sur 3 mois pour une formation en ligne destinée à des jeunes de 18-25 ans en Haïti, budget limité, avec 3 canaux prioritaires ». Lequel est professionnellement supérieur et pourquoi ?"
+IA-ETH-0006,IA,Éthique,facile,qcm,Pourquoi est-il important de vérifier les biais potentiels d'une IA avant de l'utiliser pour des décisions importantes ?
+IA-VER-0006,IA,Vérification des réponses,intermediaire,qcm,Quelle stratégie simple aide à vérifier la fiabilité d'une réponse générée par IA sur un fait précis ?
+IA-CAS-0005,IA,Cas professionnels,intermediaire,qcm,Comment l'IA peut-elle assister un formateur dans la création de supports pédagogiques ?
+IA-CAS-0006,IA,Cas professionnels,professionnel,etude_cas,Une PME veut utiliser l'IA pour traduire automatiquement toute sa documentation technique vers l'anglais sans relecture humaine. Quel risque professionnel majeur cette décision comporte-t-elle ?
+IA-AUT-0005,IA,Automatisation,facile,vrai_faux,Automatiser une tâche avec l'IA élimine totalement le besoin de supervision humaine.
+IA-AUT-0006,IA,Automatisation,avance,qcm,Quel est l'avantage principal d'automatiser l'envoi d'un email de bienvenue à chaque nouvel inscrit sur une plateforme ?
+IA-FON-0008,IA,Fondamentaux,professionnel,qcm,"Que signifie l'expression « garbage in, garbage out » appliquée à l'IA ?"
+BUR-MIC-0020,BUR,Microsoft Word,facile,qcm,Quel outil Word souligne automatiquement les fautes d'orthographe en rouge ondulé ?
+BUR-MIC-0021,BUR,Microsoft Word,intermediaire,qcm,Comment activer le suivi des modifications dans Word pour tracer les changements apportés par plusieurs relecteurs ?
+BUR-MIC-0022,BUR,Microsoft Word,professionnel,correction_word,"Un CV présente des espacements incohérents entre les sections (parfois 1 ligne vide, parfois 3), rendant la lecture désordonnée. Quelle est la cause probable et la bonne pratique corrective ?"
+BUR-MIC-0023,BUR,Microsoft Excel,facile,qcm,Quelle touche permet de passer d'une cellule à la suivante (à droite) dans Excel ?
+BUR-MIC-0024,BUR,Microsoft Excel,intermediaire,qcm,Quelle fonction Excel permet d'arrondir un nombre à 2 décimales ?
+BUR-MIC-0025,BUR,Microsoft Excel,avance,qcm,Quel type de graphique Excel est le plus adapté pour montrer l'évolution des ventes mois par mois sur une année ?
+BUR-MIC-0026,BUR,Microsoft Excel,professionnel,analyse_excel,Une feuille Excel de suivi de stock affiche des valeurs négatives inattendues dans la colonne « Quantité restante ». Quelle démarche d'analyse adopter en priorité ?
+BUR-MIC-0027,BUR,Microsoft PowerPoint,intermediaire,qcm,Quelle fonctionnalité PowerPoint permet de répéter un logo ou un numéro de page sur toutes les diapositives automatiquement ?
+BUR-GES-0005,BUR,Gestion des fichiers,facile,qcm,Quelle est l'unité de mesure généralement utilisée pour indiquer la taille d'un fichier volumineux (ex: une vidéo) ?
+BUR-GES-0006,BUR,Gestion des fichiers,intermediaire,qcm,Pourquoi compresser (zipper) plusieurs fichiers avant de les envoyer par email peut être utile ?
+INT-OPE-0005,INT,Opérateurs de recherche,professionnel,qcm,Quelle combinaison trouve des offres d'emploi PDF publiées uniquement sur le site du gouvernement haïtien ?
+BUR-PRO-0003,BUR,Productivité,avance,qcm,Quel est l'intérêt d'utiliser des raccourcis clavier plutôt que la souris pour les actions répétitives en bureautique ?
+BUR-RAC-0004,BUR,Raccourcis clavier,facile,qcm,Quel raccourci permet de tout sélectionner dans un document ou une feuille de calcul ?
+BUR-MIS-0004,BUR,Mise en page,intermediaire,qcm,Quelle est la fonction des « en-têtes et pieds de page » dans un document Word professionnel ?
+BUR-IMP-0004,BUR,Impression,facile,qcm,Quel est l'intérêt d'imprimer en mode « recto-verso » (duplex) pour un document interne ?
+BUR-IMP-0005,BUR,Impression,professionnel,qcm,Un document destiné à l'impression professionnelle en couleur affiche des couleurs différentes à l'écran et sur papier. Quelle est la cause technique la plus probable ?
+INT-NAV-0011,INT,Navigation Web,facile,qcm,Quel symbole précède généralement l'adresse d'un site web sécurisé ?
+INT-NAV-0012,INT,Navigation Web,intermediaire,qcm,Que se passe-t-il si vous fermez accidentellement un onglet important dans Chrome ?
+INT-NAV-0013,INT,Navigation Web,avance,qcm,Quelle est la fonction d'un bloqueur de publicités (ad-blocker) ?
+INT-REC-0007,INT,Recherche avancée,facile,qcm,Pourquoi est-il utile de reformuler sa recherche si les premiers résultats ne sont pas pertinents ?
+INT-REC-0008,INT,Recherche avancée,avance,qcm,Quelle recherche trouve des pages contenant « intelligence » MAIS PAS « artificielle » ?
+INT-SEC-0011,INT,Sécurité numérique,facile,vrai_faux,Il est prudent de vérifier l'expéditeur exact d'un email avant de cliquer sur un lien qu'il contient.
+INT-SEC-0012,INT,Sécurité numérique,intermediaire,qcm,Quel est le rôle d'un gestionnaire de mots de passe ?
+INT-SEC-0013,INT,Sécurité numérique,professionnel,scenario_pro,"Un fichier joint « Facture_urgent.exe » arrive dans votre boîte professionnelle, prétendant venir d'un fournisseur habituel. Quel élément est le signal d'alerte le plus critique ?"
+INT-GOO-0008,INT,Google Workspace,facile,qcm,Quelle application Google Workspace sert à créer des présentations (équivalent PowerPoint) ?
+INT-GOO-0009,INT,Google Workspace,intermediaire,qcm,Comment travailler sur un document Google Docs sans connexion Internet ?
+INT-GOO-0010,INT,Google Workspace,professionnel,scenario_pro,"Une équipe de 15 personnes doit accéder en LECTURE SEULE à un rapport financier sensible, sans pouvoir le modifier ni le télécharger. Quelle configuration Google Drive appliquer ?"
+INT-ORG-0005,INT,Organisation des fichiers,facile,qcm,Quelle extension identifie généralement une feuille de calcul Excel moderne ?
+INT-ORG-0006,INT,Organisation des fichiers,professionnel,qcm,Quelle convention de nommage de fichier facilite le mieux le tri chronologique automatique dans un dossier ?
+INT-COL-0005,INT,Collaboration,facile,qcm,Quel outil permet une réunion vidéo en ligne avec partage d'écran ?
+INT-COL-0006,INT,Collaboration,professionnel,etude_cas,"Une équipe répartie sur 3 fuseaux horaires (Haïti, France, Sénégal) peine à organiser des réunions synchrones efficaces. Quelle approche hybride recommandez-vous ?"
+INT-PRO-0006,INT,Productivité,facile,qcm,Quel est l'avantage d'utiliser un agenda numérique partagé plutôt qu'un agenda papier en équipe ?
+INT-PRO-0007,INT,Productivité,avance,qcm,Quelle technique de gestion du temps consiste à travailler par intervalles de 25 minutes suivis d'une courte pause ?
+INT-NAV-0014,INT,Navigation Web,professionnel,etude_cas,Un site e-commerce affiche des prix incohérents selon le navigateur utilisé pour le consulter. Quelle est l'explication technique la plus probable ?
+INT-REC-0009,INT,Recherche avancée,intermediaire,qcm,Que permet l'onglet « Images » de Google lors d'une recherche par image inversée ?
+INT-PRO-0008,INT,Productivité,professionnel,qcm,Pourquoi le « time blocking » (blocage de créneaux dédiés dans l'agenda) améliore-t-il la productivité ?
+INT-SEC-0014,INT,Sécurité numérique,avance,qcm,Que signifie l'acronyme « CAPTCHA » couramment rencontré sur les formulaires web ?
+INT-COL-0007,INT,Collaboration,intermediaire,vrai_faux,"Dans un outil de gestion de projet en ligne (type Trello, Asana), chaque tâche peut généralement être assignée à un responsable précis."
+INT-GOO-0011,INT,Google Workspace,avance,qcm,"Dans Google Sheets, quelle fonction permet d'importer automatiquement des données depuis une autre feuille de calcul ?"
+INT-SEC-0015,INT,Sécurité numérique,facile,qcm,Que faire régulièrement pour protéger ses appareils contre les failles de sécurité connues ?
+IA-FON-0009,IA,Fondamentaux,facile,qcm,Quel domaine de l'IA permet à un ordinateur de « comprendre » et générer du langage humain ?
+IA-FON-0010,IA,Fondamentaux,intermediaire,qcm,Quel domaine de l'IA permet de reconnaître des objets dans une photo ?
+IA-IA--0007,IA,IA générative,avance,qcm,Que signifie le terme « multimodal » appliqué à une IA générative récente ?
+IA-PRO-0009,IA,Prompt Engineering,intermediaire,qcm,Pourquoi indiquer une longueur maximale (« en 100 mots ») dans un prompt peut-il être utile professionnellement ?
+IA-PRO-0010,IA,Prompt Engineering,professionnel,analyse_prompt_ia,Un prompt indique : « Réponds toujours en respectant ce format : Titre / Résumé / 3 points clés / Conclusion ». Quel avantage professionnel majeur apporte cette structuration systématique ?
+IA-ETH-0007,IA,Éthique,intermediaire,qcm,Pourquoi certaines entreprises publient-elles une « charte d'usage de l'IA » pour leurs employés ?
+IA-ETH-0008,IA,Éthique,avance,scenario_pro,"Une IA générative propose une image de personne réaliste pour illustrer un article, alors qu'aucune vraie photo n'était disponible. Quelle précaution éditoriale est recommandée ?"
+IA-VER-0007,IA,Vérification des réponses,avance,qcm,Une IA affirme qu'une loi haïtienne précise existe avec un numéro d'article exact. Quelle vérification est indispensable avant de citer cette information ?
+IA-CAS-0007,IA,Cas professionnels,intermediaire,qcm,Comment l'IA peut-elle assister un commerçant dans la gestion de son inventaire ?
+IA-AUT-0007,IA,Automatisation,intermediaire,qcm,"Quel est le principal bénéfice d'automatiser le tri des emails entrants par catégorie (facture, support, spam) ?"
+IA-FON-0011,IA,Fondamentaux,facile,vrai_faux,L'intelligence artificielle est un concept apparu uniquement dans les années 2020 avec ChatGPT.
+IA-IA--0008,IA,IA générative,professionnel,qcm,"Pourquoi certaines entreprises préfèrent-elles héberger leur propre modèle IA plutôt que d'utiliser une API externe (ChatGPT, Gemini) pour des données sensibles ?"
+IA-CAS-0008,IA,Cas professionnels,professionnel,scenario_pro,Un cabinet comptable utilise l'IA pour pré-remplir des déclarations fiscales de clients. Quelle vérification reste absolument non-négociable avant soumission officielle ?
+IA-VER-0008,IA,Vérification des réponses,intermediaire,qcm,Que signifie concrètement « croiser les sources » lors de la vérification d'une information donnée par une IA ?
+BUR-MIC-0028,BUR,Microsoft Word,facile,qcm,Quel raccourci clavier annule la dernière action effectuée dans Word ?
+BUR-MIC-0029,BUR,Microsoft Word,intermediaire,qcm,Comment insérer un tableau de 3 colonnes et 4 lignes dans Word ?
+BUR-MIC-0030,BUR,Microsoft Excel,facile,qcm,Quelle fonction Excel trouve la valeur la plus élevée dans une plage de cellules ?
+BUR-MIC-0031,BUR,Microsoft Excel,intermediaire,qcm,À quoi sert la mise en forme conditionnelle dans Excel ?
+BUR-MIC-0032,BUR,Microsoft Excel,avance,qcm,Quelle fonction combine du texte de plusieurs cellules en une seule (ex: prénom + nom) ?
+BUR-MIC-0033,BUR,Microsoft Excel,professionnel,analyse_excel,Une formule RECHERCHEV renvoie systématiquement #N/A alors que la valeur cherchée semble présente dans le tableau. Quelle cause technique fréquente devez-vous vérifier en premier ?
+BUR-MIC-0034,BUR,Microsoft PowerPoint,intermediaire,qcm,Comment ajouter des notes du présentateur visibles uniquement par lui pendant la présentation ?
+BUR-MIC-0035,BUR,Microsoft PowerPoint,facile,qcm,Quel raccourci permet de lancer un diaporama depuis la diapositive courante ?
+BUR-MIC-0036,BUR,Microsoft PowerPoint,avance,qcm,Quel outil permet de créer un sommaire automatique des diapositives dans PowerPoint ?
+BUR-GES-0007,BUR,Gestion des fichiers,intermediaire,qcm,"Quel est le principal avantage d'utiliser un service de stockage cloud (Google Drive, OneDrive) par rapport à un disque dur externe ?"
+BUR-GES-0008,BUR,Gestion des fichiers,professionnel,qcm,Quelle pratique permet de retrouver un fichier perdu dans un dossier contenant des centaines de documents ?
+BUR-PRO-0004,BUR,Productivité,intermediaire,qcm,Quel est l'avantage d'organiser ses fichiers par projet plutôt que par type (ex: tous les PDF ensemble) ?
+INT-NAV-0021,INT,Navigation Web,facile,qcm,Quel bouton du navigateur permet de revenir à la page précédemment consultée ?
+INT-NAV-0019,INT,Navigation Web,intermediaire,qcm,Que permet un moteur de recherche interne à un site (barre de recherche du site) que Google ne fait pas toujours bien ?
+INT-NAV-0020,INT,Navigation Web,professionnel,qcm,Quelle est la différence fondamentale entre le web « surface » et le « deep web » ?
+INT-REC-0013,INT,Recherche avancée,facile,vrai_faux,Le premier résultat d'une recherche Google est toujours la source la plus fiable.
+INT-OPE-0007,INT,Opérateurs de recherche,intermediaire,qcm,Quel opérateur permet de trouver des pages similaires à un site donné ?
+INT-SEC-0021,INT,Sécurité numérique,intermediaire,qcm,Pourquoi éviter de se connecter à des services sensibles (banque) via un Wi-Fi public non sécurisé ?
+INT-SEC-0022,INT,Sécurité numérique,avance,qcm,Que désigne le terme « ingénierie sociale » en cybersécurité ?
+INT-SEC-0023,INT,Sécurité numérique,professionnel,etude_cas,"Un employé reçoit un appel d'une personne se faisant passer pour son « nouveau responsable IT », demandant son mot de passe pour « une maintenance urgente ». Quelle règle de sécurité fondamentale s'applique ici ?"
+INT-GOO-0016,INT,Google Workspace,intermediaire,qcm,Quelle application Google Workspace permet de prendre des notes rapides et de créer des rappels ?
+INT-ORG-0009,INT,Organisation des fichiers,facile,qcm,Que se passe-t-il généralement quand on déplace un fichier vers la corbeille sans la vider ?
+INT-COL-0011,INT,Collaboration,professionnel,qcm,Pourquoi documenter les décisions prises lors d'une réunion (compte-rendu) est-il important en contexte professionnel ?
+INT-PRO-0012,INT,Productivité,facile,qcm,"Que signifie l'acronyme « GTD », une méthode populaire de gestion des tâches ?"
+INT-REC-0014,INT,Recherche avancée,professionnel,scenario_pro,"Vous devez identifier la source originale d'une citation virale circulant sur les réseaux sociaux, potentiellement mal attribuée. Quelle démarche de vérification suivre ?"
+INT-GOO-0017,INT,Google Workspace,professionnel,qcm,Comment restreindre le partage d'un document Google Drive pour qu'il ne soit accessible qu'aux personnes du domaine de l'entreprise (ex: @blessytechacademy.com) ?
+INT-SEC-0024,INT,Sécurité numérique,facile,qcm,Pourquoi ne pas se déconnecter d'un compte utilisé sur un ordinateur public (cybercafé) est-il risqué ?
+INT-PRO-0013,INT,Productivité,avance,qcm,Quel est l'intérêt de créer des filtres/règles automatiques dans une boîte email professionnelle ?
+INT-COL-0012,INT,Collaboration,facile,qcm,Quel est l'avantage de partager un lien de fichier plutôt que d'envoyer le fichier en pièce jointe par email ?
+IA-FON-0015,IA,Fondamentaux,intermediaire,qcm,Quelle affirmation décrit correctement les « données d'entraînement » d'une IA ?
+IA-IA--0011,IA,IA générative,intermediaire,qcm,Pourquoi certaines IA génératives ont-elles une « date de connaissance limite » (knowledge cutoff) ?
+IA-PRO-0013,IA,Prompt Engineering,facile,vrai_faux,Reformuler un prompt après une réponse insatisfaisante est une pratique normale et recommandée.
+IA-PRO-0014,IA,Prompt Engineering,avance,qcm,Que désigne la technique du « zero-shot prompting » ?
+IA-ETH-0011,IA,Éthique,facile,qcm,Pourquoi est-il important de savoir qu'une image ou vidéo peut être un « deepfake » généré par IA ?
+IA-ETH-0012,IA,Éthique,professionnel,etude_cas,Une entreprise envisage de remplacer 5 postes administratifs par un système d'automatisation IA. Quelle démarche est éthiquement recommandée envers les employés concernés ?
+IA-VER-0011,IA,Vérification des réponses,facile,qcm,Quelle est la meilleure attitude générale à adopter face à une réponse d'IA sur un sujet que vous ne maîtrisez pas ?
+IA-CAS-0011,IA,Cas professionnels,avance,qcm,"Comment l'IA peut-elle contribuer à améliorer l'accessibilité numérique (personnes malvoyantes, etc.) ?"
+IA-AUT-0009,IA,Automatisation,professionnel,qcm,Quel principe de gouvernance est recommandé avant de déployer une automatisation IA affectant directement les clients (ex: chatbot de réclamation) ?
+IA-FON-0016,IA,Fondamentaux,avance,qcm,Quelle affirmation est correcte concernant les limites actuelles de l'IA générative ?
+IA-IA--0012,IA,IA générative,facile,qcm,Quel usage NE relève PAS d'une IA générative de texte ?
+IA-VER-0012,IA,Vérification des réponses,avance,scenario_pro,Un collègue partage un article prétendument généré et vérifié par IA affirmant un fait surprenant sur l'économie haïtienne. Quelle question devriez-vous vous poser en priorité avant de le croire ?
+BUR-MIC-0046,BUR,Microsoft Word,facile,qcm,Quel raccourci permet de sélectionner un mot entier en double-cliquant dessus ?
+BUR-MIC-0047,BUR,Microsoft Word,avance,qcm,Quelle fonctionnalité Word permet de créer automatiquement une liste de références bibliographiques ?
+BUR-MIC-0048,BUR,Microsoft Excel,facile,qcm,Quel symbole permet de figer une référence de colonne dans une formule Excel (ex: $A1) ?
+BUR-MIC-0049,BUR,Microsoft Excel,intermediaire,qcm,Quelle fonction Excel additionne uniquement les cellules répondant à une condition (ex: total des ventes > 1000) ?
+BUR-MIC-0050,BUR,Microsoft Excel,professionnel,analyse_excel,Un fichier Excel de 5000 lignes devient très lent à ouvrir et calculer. Quelle cause fréquente et solution recommandez-vous en priorité ?
+BUR-MIC-0051,BUR,Microsoft PowerPoint,avance,qcm,Pourquoi limiter l'usage des transitions et animations complexes dans une présentation professionnelle ?
+BUR-GES-0011,BUR,Gestion des fichiers,facile,qcm,Quel type de fichier est généralement associé à une présentation PowerPoint ?
+BUR-RAC-0005,BUR,Raccourcis clavier,intermediaire,qcm,Quel raccourci permet de dupliquer rapidement une diapositive dans PowerPoint ?

@@ -37,7 +37,14 @@ class CategorieBanque(models.Model):
     module = models.ForeignKey(ModuleBanque, on_delete=models.CASCADE, related_name='categories')
     nom = models.CharField(max_length=150)
     ordre = models.IntegerField(default=0)
-
+    competence_associee = models.ForeignKey(
+        'Competence',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='categories_banque',
+        help_text="Compétence validée automatiquement si l'étudiant réussit une question de cette catégorie"
+    )
     class Meta:
         ordering = ['module', 'ordre']
         unique_together = ['module', 'nom']
@@ -319,6 +326,9 @@ class ExamenGenere(models.Model):
 
         return examen
 
+    # ==========================================================
+    # ⬇️ MÉTHODE CORRIGER MODIFIÉE (déclenchement éligibilité)
+    # ==========================================================
     def corriger(self):
         """Correction automatique — calcule score global + détail par module + compétences."""
         details = self.reponses_donnees.select_related('question__module', 'question__competence_evaluee')
@@ -351,8 +361,26 @@ class ExamenGenere(models.Model):
         self.date_fin = timezone.now()
         self.save()
 
+        # ================================================
+        # NOUVEAU BLOC — Déclenchement de l'éligibilité à la certification
+        # ================================================
+        from academie.models import obtenir_cohorte_active_pour, EligibiliteCertification
+
+        if self.gabarit.formation_liee:
+            cohorte_active = obtenir_cohorte_active_pour(self.utilisateur, self.gabarit.formation_liee)
+            if cohorte_active:
+                eligibilite, _ = EligibiliteCertification.objects.get_or_create(
+                    utilisateur=self.utilisateur,
+                    formation=self.gabarit.formation_liee,
+                    defaults={'cohorte': cohorte_active}
+                )
+                eligibilite.note_theorique = self.score_pourcentage
+                eligibilite.calculer_moyenne_et_verifier_eligibilite()
+        # ================================================
+
         return {
-            'score_pourcentage': self.score_pourcentage, 'reussi': self.reussi,
+            'score_pourcentage': self.score_pourcentage,
+            'reussi': self.reussi,
             'resultats_par_module': resultats_par_module,
             'competences_maitrisees': list(competences_maitrisees),
             'competences_a_renforcer': list(competences_a_renforcer - competences_maitrisees),
