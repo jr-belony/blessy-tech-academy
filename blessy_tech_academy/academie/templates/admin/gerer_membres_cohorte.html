@@ -1,0 +1,41 @@
+<!-- ================================================
+     ADMIN/GERER_MEMBRES_COHORTE.HTML — Édition rapide des 8 noms
+     ================================================ -->
+{% extends "admin/base_backoffice.html" %}
+{% block bo_contenu %}
+<h1 style="color:var(--bo-texte);">✏️ Gérer les membres — {{ cohorte.nom }}</h1>
+
+<form method="POST">
+    {% csrf_token %}
+    <table style="width:100%; border-collapse:collapse; background:white; border-radius:12px; overflow:hidden; margin-bottom:24px;">
+        <tr style="background:var(--bo-gris-fond);">
+            <th style="padding:10px; text-align:left;">Username (fixe)</th>
+            <th style="padding:10px;">Prénom</th>
+            <th style="padding:10px;">Nom</th>
+            <th style="padding:10px;">Email</th>
+        </tr>
+        {% for membre in membres %}
+        <tr style="border-bottom:1px solid var(--bo-gris-bordure);">
+            <td style="padding:10px; font-size:12px; color:var(--bo-texte-secondaire);">{{ membre.username }}</td>
+            <td style="padding:10px;"><input type="text" name="prenom_{{ membre.id }}" value="{{ membre.first_name }}" style="width:100%; padding:8px; border:1px solid var(--bo-gris-bordure); border-radius:6px;"></td>
+            <td style="padding:10px;"><input type="text" name="nom_{{ membre.id }}" value="{{ membre.last_name }}" style="width:100%; padding:8px; border:1px solid var(--bo-gris-bordure); border-radius:6px;"></td>
+            <td style="padding:10px;"><input type="email" name="email_{{ membre.id }}" value="{{ membre.email }}" style="width:100%; padding:8px; border:1px solid var(--bo-gris-bordure); border-radius:6px;"></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" style="padding:20px; text-align:center; color:var(--bo-texte-secondaire);">Aucun membre pour le moment — ajoute-en un ci-dessous.</td></tr>
+        {% endfor %}
+    </table>
+
+    <div class="bo-card" style="margin-bottom:20px;">
+        <h3>➕ Ajouter un nouveau membre</h3>
+        <div style="display:flex; gap:10px;">
+            <input type="text" name="nouveau_membre_prenom" placeholder="Prénom" style="flex:1; padding:8px; border:1px solid var(--bo-gris-bordure); border-radius:6px;">
+            <input type="text" name="nouveau_membre_nom" placeholder="Nom" style="flex:1; padding:8px; border:1px solid var(--bo-gris-bordure); border-radius:6px;">
+            <input type="email" name="nouveau_membre_email" placeholder="Email" style="flex:1; padding:8px; border:1px solid var(--bo-gris-bordure); border-radius:6px;">
+        </div>
+        <p style="font-size:11px; color:var(--bo-texte-secondaire); margin-top:8px;">Si l'email n'existe pas encore, un nouveau compte sera créé automatiquement.</p>
+    </div>
+
+    <button type="submit" style="width:100%; padding:14px; background:var(--bo-bleu); color:white; border:none; border-radius:10px; font-weight:800; cursor:pointer;">💾 Enregistrer toutes les modifications</button>
+</form>
+{% endblock %}

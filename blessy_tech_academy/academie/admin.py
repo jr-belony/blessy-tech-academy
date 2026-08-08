@@ -986,12 +986,72 @@ class CompetenceValideeAdmin(admin.ModelAdmin):
 
 
 # ================================================
-# ADMIN — Cohorte
+# ADMIN.PY — Inline pour éditer prénom/nom/email des membres
 # ================================================
+from django import forms
+from django.contrib.auth.models import User
+
+
+class MembreCohorteForm(forms.ModelForm):
+    """Formulaire personnalisé pour éditer les infos de l'utilisateur directement."""
+    first_name = forms.CharField(max_length=150, required=False, label='Prénom')
+    last_name = forms.CharField(max_length=150, required=False, label='Nom')
+    email = forms.EmailField(required=False, label='Email')
+
+    class Meta:
+        model = Cohorte.membres.through
+        fields = ('user',)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.user_id:
+            user = self.instance.user
+            self.fields['first_name'].initial = user.first_name
+            self.fields['last_name'].initial = user.last_name
+            self.fields['email'].initial = user.email
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if instance.user_id:
+            user = instance.user
+            user.first_name = self.cleaned_data['first_name']
+            user.last_name = self.cleaned_data['last_name']
+            user.email = self.cleaned_data['email']
+            if commit:
+                user.save()
+        if commit:
+            instance.save()
+        return instance
+
+
+class MembreCohorteInline(admin.TabularInline):
+    """Permet d'éditer prénom/nom/email des membres directement sur la fiche Cohorte."""
+    model = Cohorte.membres.through
+    form = MembreCohorteForm
+    extra = 0
+    verbose_name = "Membre"
+    verbose_name_plural = "Membres (8 personnes)"
+    fields = ('user', 'first_name', 'last_name', 'email')
+    readonly_fields = ('user',)
+    autocomplete_fields = ('user',)
+
+
+# ================================================
+# ADMIN — Cohorte (avec gestion complète des membres)
+# ================================================
+
 @admin.register(Cohorte)
 class CohorteAdmin(admin.ModelAdmin):
-    list_display = ['nom', 'nb_inscrits_affiche', 'progression_moyenne_affiche', 'nb_certificats_delivres', 'actif']
+    list_display = [
+        'nom',
+        'nb_inscrits_affiche',
+        'progression_moyenne_affiche',
+        'nb_certificats_delivres',
+        'actif',
+        'bouton_gerer_membres'
+    ]
     filter_horizontal = ['formations', 'membres']
+    inlines = [MembreCohorteInline]   # ← indispensable pour éditer les champs utilisateur
     list_editable = ['actif']
 
     def nb_inscrits_affiche(self, obj):
@@ -1001,6 +1061,15 @@ class CohorteAdmin(admin.ModelAdmin):
     def progression_moyenne_affiche(self, obj):
         return f"{obj.progression_moyenne()}%"
     progression_moyenne_affiche.short_description = 'Progression moy.'
+
+    def bouton_gerer_membres(self, obj):
+        from django.utils.html import format_html
+        return format_html(
+            '<a href="/admin/academie/cohorte/{}/change/" style="background:#003B8E; color:white; padding:4px 12px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:700;">✏️ Gérer les 8 noms</a>',
+            obj.id
+        )
+    bouton_gerer_membres.short_description = 'Gestion rapide'
+
 
 
 # ================================================
@@ -1082,6 +1151,8 @@ class GestionCoursAdminSite(AdminThemeMixin):
             path('exporter-rapport-analyse-banque/', admin.site.admin_view(self.exporter_rapport_analyse_banque), name='exporter_rapport_analyse_banque'),
             path('dashboard-analyse-banque/', admin.site.admin_view(self.vue_dashboard_analyse_banque), name='dashboard_analyse_banque'),
             path('checklist-cohorte-finale/', admin.site.admin_view(self.vue_checklist_cohorte_finale), name='checklist_cohorte_finale'),
+            # --- AJOUT : Gestion rapide des membres de cohorte ---
+            path('gerer-membres-cohorte/<int:cohorte_id>/', admin.site.admin_view(self.vue_gerer_membres_cohorte), name='gerer_membres_cohorte'),
         ]
         return custom_urls + original_urls
 
@@ -1437,6 +1508,56 @@ class GestionCoursAdminSite(AdminThemeMixin):
             'membres_detail': membres_detail,
         })
 
+    # ================================================
+    # Vue dédiée : Gérer les membres d'une cohorte
+    # ================================================
+    def vue_gerer_membres_cohorte(self, request, cohorte_id):
+        from django.contrib import messages
+        from django.shortcuts import redirect
+        from django.contrib.auth.models import User
+        from .models import Cohorte
+
+        cohorte = get_object_or_404(Cohorte, id=cohorte_id)
+
+        if request.method == 'POST':
+            for membre in cohorte.membres.all():
+                prenom = request.POST.get(f'prenom_{membre.id}', '').strip()
+                nom = request.POST.get(f'nom_{membre.id}', '').strip()
+                email = request.POST.get(f'email_{membre.id}', '').strip()
+                if prenom:
+                    membre.first_name = prenom
+                if nom:
+                    membre.last_name = nom
+                if email:
+                    membre.email = email
+                membre.save()
+
+            # Ajout d'un nouveau membre
+            nouvel_email = request.POST.get('nouveau_membre_email', '').strip()
+            if nouvel_email:
+                nouveau_prenom = request.POST.get('nouveau_membre_prenom', '').strip()
+                nouveau_nom = request.POST.get('nouveau_membre_nom', '').strip()
+                username = nouvel_email.split('@')[0]
+                utilisateur, cree = User.objects.get_or_create(
+                    email=nouvel_email,
+                    defaults={'username': username, 'first_name': nouveau_prenom, 'last_name': nouveau_nom}
+                )
+                cohorte.membres.add(utilisateur)
+                if cree:
+                    messages.success(request, f"✅ {nouveau_prenom} {nouveau_nom} ajouté(e) et créé(e) comme nouveau compte.")
+                else:
+                    messages.success(request, f"✅ {nouveau_prenom} {nouveau_nom} ajouté(e) à la cohorte (compte existant).")
+
+            messages.success(request, "✅ Informations des membres mises à jour.")
+            return redirect(f'/admin/gerer-membres-cohorte/{cohorte_id}/')
+
+        return render(request, 'admin/gerer_membres_cohorte.html', {
+            'title': f'✏️ Gérer les membres — {cohorte.nom}',
+            'site_header': admin.site.site_header,
+            'cohorte': cohorte,
+            'membres': cohorte.membres.all(),
+        })
+
     def vue_correction_manuelle_banque(self, request):
         from academie.models_banque import ReponseEtudiantBanque
 
@@ -1473,7 +1594,6 @@ class GestionCoursAdminSite(AdminThemeMixin):
             'site_header': admin.site.site_header,
             'reponses_en_attente': reponses_en_attente,
         })
-
 
     def vue_dashboard_quotas_ia(self, request):
         from django.core.cache import cache
