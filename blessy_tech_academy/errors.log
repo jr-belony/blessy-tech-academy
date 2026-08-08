@@ -18188,3 +18188,139 @@ Traceback (most recent call last):
                           ^^^^^^^^^^^^
 AttributeError: 'GestionCoursAdminSite' object has no attribute 'user'
 "GET /admin/dashboard-correction-manuelle/ HTTP/1.1" 500 118944
+Internal Server Error: /admin/checklist-cohorte-finale/
+Traceback (most recent call last):
+  File "C:\projects\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\projects\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\projects\venv\Lib\site-packages\django\utils\decorators.py", line 192, in _view_wrapper
+    result = _process_exception(request, e)
+  File "C:\projects\venv\Lib\site-packages\django\utils\decorators.py", line 190, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+  File "C:\projects\venv\Lib\site-packages\django\views\decorators\cache.py", line 80, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+  File "C:\projects\venv\Lib\site-packages\django\contrib\admin\sites.py", line 247, in inner
+    return view(request, *args, **kwargs)
+  File "C:\projects\blessy_tech_academy\academie\admin.py", line 1427, in vue_checklist_cohorte_finale
+    'a_projet': eligibilites.filter(soumission_projet__isnull=False).exists(),
+                ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\django\db\models\query.py", line 1542, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\django\db\models\query.py", line 1560, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\django\db\models\query.py", line 1570, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 1676, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 1708, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 1556, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 1363, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 1842, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'soumission_projet' into field. Choices are: certificat_genere, certificat_genere_id, cohorte, cohorte_id, date_creation, date_validation, formation, formation_id, frais_paye, id, moyenne_finale, note_projet, note_theorique, statut, utilisateur, utilisateur_id, valide_par, valide_par_id
+"GET /admin/checklist-cohorte-finale/ HTTP/1.1" 500 162010
+Internal Server Error: /admin/checklist-cohorte-finale/
+Traceback (most recent call last):
+  File "C:\projects\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\projects\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\projects\venv\Lib\site-packages\django\utils\decorators.py", line 192, in _view_wrapper
+    result = _process_exception(request, e)
+  File "C:\projects\venv\Lib\site-packages\django\utils\decorators.py", line 190, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+  File "C:\projects\venv\Lib\site-packages\django\views\decorators\cache.py", line 80, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+  File "C:\projects\venv\Lib\site-packages\django\contrib\admin\sites.py", line 247, in inner
+    return view(request, *args, **kwargs)
+  File "C:\projects\blessy_tech_academy\academie\admin.py", line 1430, in vue_checklist_cohorte_finale
+    'a_temoigne': Temoignage.objects.filter(prenom_nom__icontains=membre.username, verifie=True).exists(),
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\django\db\models\query.py", line 1542, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\django\db\models\query.py", line 1560, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\django\db\models\query.py", line 1570, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 1676, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 1708, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 1556, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 1363, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\projects\venv\Lib\site-packages\django\db\models\sql\query.py", line 1842, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'verifie' into field. Choices are: approuve, date_creation, demandetemoignage, en_vedette, formation_suivie, formation_suivie_id, id, initiales, note, prenom_nom, statut, texte, titre_professionnel
+"GET /admin/checklist-cohorte-finale/ HTTP/1.1" 500 166893
+Internal Server Error: /admin/gerer-membres-cohorte/2/
+Traceback (most recent call last):
+  File "C:\projects\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\projects\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\projects\venv\Lib\site-packages\django\utils\decorators.py", line 192, in _view_wrapper
+    result = _process_exception(request, e)
+  File "C:\projects\venv\Lib\site-packages\django\utils\decorators.py", line 190, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+  File "C:\projects\venv\Lib\site-packages\django\views\decorators\cache.py", line 80, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+  File "C:\projects\venv\Lib\site-packages\django\contrib\admin\sites.py", line 247, in inner
+    return view(request, *args, **kwargs)
+  File "C:\projects\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 56, in _view_wrapper
+    test_pass = test_func(request.user)
+                          ^^^^^^^^^^^^
+AttributeError: 'GestionCoursAdminSite' object has no attribute 'user'
+"GET /admin/gerer-membres-cohorte/2/ HTTP/1.1" 500 119104
+Internal Server Error: /certificat-cohorte/1/apercu/
+Traceback (most recent call last):
+  File "C:\projects\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\projects\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\projects\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\projects\blessy_tech_academy\academie\views_modules\billing_views.py", line 436, in apercu_certificat_cohorte
+    from academie.tasks import tache_generer_pdf_certificat
+ImportError: cannot import name 'tache_generer_pdf_certificat' from 'academie.tasks' (C:\projects\blessy_tech_academy\academie\tasks.py)
+"GET /certificat-cohorte/1/apercu/ HTTP/1.1" 500 105943

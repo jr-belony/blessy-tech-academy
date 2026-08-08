@@ -328,6 +328,25 @@ class Certificat(models.Model):
     )
     examen_origine = models.ForeignKey('academie.Examen', on_delete=models.SET_NULL, null=True, blank=True)
 
+    # ============ NOUVEAUX CHAMPS (cohorte pilote / multi‑formations) ============
+    formations_incluses = models.ManyToManyField(
+        'academie.Formation',
+        blank=True,
+        related_name='certificats_inclus_dans',
+        help_text="Liste des formations couvertes par ce certificat (ex: pour un parcours ou une cohorte)"
+    )
+    mention = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="Ex: Très Bien, Bien, Assez Bien, Félicitations"
+    )
+    libelle_programme = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Ex: Compétences Numériques Professionnelles – Programme Fondateur"
+    )
+    # =============================================================================
+
     # --- IDENTIFIANTS PUBLICS (UUID public) ---
     uuid = models.UUIDField(
         default=uuid.uuid4,
@@ -528,6 +547,20 @@ class Certificat(models.Model):
             formation_origine=self.formation
         ).select_related('competence')
 
+    # Calcul automatique de la mention
+    def calculer_mention(self):
+        """Détermine la mention selon resultat_final — cohérent avec les standards académiques."""
+        if not self.resultat_final:
+            return ''
+        if self.resultat_final >= 90:
+            return 'Excellent'
+        if self.resultat_final >= 80:
+            return 'Très Bien'
+        if self.resultat_final >= 70:
+            return 'Bien'
+        if self.resultat_final >= 60:
+            return 'Assez Bien'
+        return ''
 
 # ================================================
 # [AJOUT AUDIT] Registre d'historique immuable pour les certificats

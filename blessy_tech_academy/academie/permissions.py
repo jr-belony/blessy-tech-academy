@@ -27,6 +27,10 @@ MATRICE_RBAC = {
     'certificat.emettre': ['admin'],
     'certificat.revoquer': ['admin'],
     'certificat.consulter_registre': ['admin', 'comptable'],
+    # ================================================
+    # NOUVEAU — Validation paiement cohorte (superadmin uniquement)
+    # ================================================
+    'certificat_cohorte.valider_paiement': ['admin'],  # 'admin' = rôle superadmin
 
     # --- Commerce ---
     'paiement.valider': ['admin', 'comptable'],

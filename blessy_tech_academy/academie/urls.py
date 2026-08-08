@@ -1,7 +1,7 @@
 from django.urls import path
 
 from . import views
-
+from academie.views_modules.billing_views import initier_paiement_certification
 from .views_modules.learning_views import (
     demarrer_examen_banque,
     passer_examen_banque,
@@ -217,7 +217,10 @@ urlpatterns = [
     path('examen-banque/<int:examen_id>/', passer_examen_banque, name='passer_examen_banque'),
     path('examen-banque/<int:examen_id>/soumettre/', soumettre_examen_banque, name='soumettre_examen_banque'),
     path('explorer/', views.hub_explorer, name='hub_explorer'),
-    path('certification/<int:eligibilite_id>/paiement/', views.initier_paiement_certification, name='initier_paiement_certification'),
+    path('certification/<int:eligibilite_id>/paiement/', initier_paiement_certification, name='initier_paiement_certification'),
     path('ecole/<int:ecole_id>/', views.detail_ecole, name='detail_ecole'),
     path('examen-banque/question/<int:question_id>/signaler/', views.signaler_question_ambigue, name='signaler_question_ambigue'),
+    path('certificat-cohorte/<int:eligibilite_id>/apercu/', views.apercu_certificat_cohorte, name='apercu_certificat_cohorte'),
+    path('certification/<int:eligibilite_id>/rendu-html/', views.rendu_html_certificat_apercu, name='rendu_html_certificat_apercu'),
+    path('mes-certifications/', views.mes_certifications, name='mes_certifications'),
 ]

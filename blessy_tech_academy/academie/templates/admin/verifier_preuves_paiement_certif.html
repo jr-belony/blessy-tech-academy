@@ -1,0 +1,29 @@
+<!-- ================================================
+     ADMIN/VERIFIER_PREUVES_PAIEMENT_CERTIF.HTML
+     ================================================ -->
+{% extends "admin/base_backoffice.html" %}
+{% block bo_contenu %}
+<h1 style="color:var(--bo-texte);">📱 Preuves de Paiement en Attente</h1>
+{% for elig in eligibilites %}
+<div class="bo-card" style="margin-bottom:16px;">
+    <div style="display:flex; gap:20px;">
+        <img src="{{ elig.transaction_certification.preuve_paiement.url }}" style="width:150px; height:150px; object-fit:cover; border-radius:8px;">
+        <div style="flex:1;">
+            <strong style="color:var(--bo-bleu);">{{ elig.utilisateur.get_full_name|default:elig.utilisateur.username }}</strong>
+            <p style="font-size:13px;">{{ elig.formation.nom }}</p>
+            <p style="font-size:12px; color:var(--bo-texte-secondaire);">
+                {{ elig.transaction_certification.moyen_paiement.nom_affiche }} — {{ elig.transaction_certification.montant }} HTG
+                {% if elig.transaction_certification.reference_externe %} — Réf: {{ elig.transaction_certification.reference_externe }}{% endif %}
+            </p>
+            <form method="POST" style="margin-top:10px;">
+                {% csrf_token %}
+                <input type="hidden" name="eligibilite_id" value="{{ elig.id }}">
+                <button type="submit" style="background:#22c55e; color:white; border:none; padding:8px 20px; border-radius:8px; font-weight:700;">✅ Confirmer le paiement</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% empty %}
+<p style="text-align:center; color:var(--bo-texte-secondaire); padding:40px;">Aucune preuve en attente 🎉</p>
+{% endfor %}
+{% endblock %}

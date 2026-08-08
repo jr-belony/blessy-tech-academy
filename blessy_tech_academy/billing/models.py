@@ -272,20 +272,40 @@ class Transaction(models.Model):
         ('echouee', 'Échouée'),
         ('en_verification', 'En vérification manuelle'),
     ]
-    commande = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='transactions')
-    moyen_paiement = models.ForeignKey(MoyenPaiement, on_delete=models.SET_NULL, null=True)
+
+    # ================================================
+    # COMMANDE OPTIONNELLE (pour certifications hors commande)
+    # ================================================
+    commande = models.ForeignKey(
+        'Order',
+        on_delete=models.CASCADE,
+        related_name='transactions',
+        null=True,
+        blank=True
+    )
+    moyen_paiement = models.ForeignKey(
+        'MoyenPaiement',
+        on_delete=models.SET_NULL,
+        null=True
+    )
     reference_externe = models.CharField(max_length=100, blank=True)
     preuve_paiement = models.ImageField(
         upload_to='preuves_paiement/',
         null=True,
         blank=True,
-        validators=[valider_preuve_paiement]   # <-- validateur ajouté
+        validators=[valider_preuve_paiement]
     )
     montant = models.DecimalField(max_digits=10, decimal_places=2)
     statut = models.CharField(max_length=20, choices=STATUTS, default='initiee')
     notes_admin = models.TextField(blank=True)
     date_creation = models.DateTimeField(auto_now_add=True)
-    valide_par = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='transactions_validees')
+    valide_par = models.ForeignKey(
+        'auth.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='transactions_validees'
+    )
 
     class Meta:
         app_label = 'academie'
@@ -293,14 +313,15 @@ class Transaction(models.Model):
         ordering = ['-date_creation']
         verbose_name = 'Transaction'
         verbose_name_plural = 'Transactions'
-        indexes = [
-            models.Index(fields=['statut']),
-            models.Index(fields=['commande', 'statut']),
-        ]
+        # ============================================================
+        # AUCUN INDEX EXPLICITE – Django créera automatiquement un index
+        # sur la clé étrangère 'commande' lors des migrations.
+        # ============================================================
 
     def __str__(self):
-        return f"Transaction {self.commande.reference} — {self.get_statut_display()}"
-
+        if self.commande:
+            return f"Transaction {self.commande.reference} — {self.get_statut_display()}"
+        return f"Transaction #{self.id} (sans commande) — {self.get_statut_display()}"
 
 class Refund(models.Model):
     commande = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='remboursements')

@@ -21,7 +21,7 @@ from .models import (
     OutilRecommande,
     PartenaireAPI,
     Reaction,
-    Reponse, 
+    Reponse,
     Sujet,
     Temoignage,
     Transaction,
@@ -51,8 +51,13 @@ from .models import (
 
 from users.admin import RolePermissionMixin
 from users.models import Enseignant
-from content.models import WorkflowArticle 
+from content.models import WorkflowArticle
 from django.http import HttpResponse
+
+# ================================================
+# IMPORT POUR LES TRANSACTIONS DE PAIEMENT MOBILE
+# ================================================
+from billing.models import Transaction
 
 
 # ================================================
@@ -74,7 +79,7 @@ class EcoleAdmin(AdminThemeMixin, admin.ModelAdmin):
     search_fields = ["nom"]
     class Media:
         js = ['academie/admin/generer_ecole.js']
-    
+
     def has_module_permission(self, request):
         if request.user.is_superuser:
             return True
@@ -127,7 +132,6 @@ class FormationAdmin(RolePermissionMixin, AdminThemeMixin, SortableAdminBase, Si
     list_editable = ["actif", "gratuit", "prix"]
     inlines = [ModuleInline, LearningOutcomeInline]
 
-    # Fieldsets FormationAdmin optimisés pour rédaction rapide
     fieldsets = [
         ('📌 Identité', {
             'fields': ['ecole', 'nom', 'slug', 'icone', 'niveau', 'gratuit', 'actif'],
@@ -301,8 +305,7 @@ class QuizAdmin(RolePermissionMixin, AdminThemeMixin, admin.ModelAdmin):
     search_fields = ["titre"]
     list_editable = ["actif", "limite_temps_minutes"]
     inlines = [QuestionInline]
-    
-    # --- NOUVEAU ---
+
     filter_horizontal = ['competences_liees']
 
     actions = ["activer_quiz", "desactiver_quiz"]
@@ -319,7 +322,6 @@ class QuizAdmin(RolePermissionMixin, AdminThemeMixin, admin.ModelAdmin):
 
     class Media:
         js = ["academie/admin/generer_quiz.js"]
-
 
 
 # ================================================
@@ -421,7 +423,7 @@ class ParcoursAdmin(AdminThemeMixin, admin.ModelAdmin):
     search_fields = ["titre", "description"]
     list_editable = ["actif", "ordre"]
     filter_horizontal = ["formations"]
-    prepopulated_fields = {"slug": ("titre",)}  # ← AJOUTÉ
+    prepopulated_fields = {"slug": ("titre",)}
 
     fieldsets = [
         ("Informations principales", {"fields": ["icone", "titre", "slug", "description", "duree", "duree_unite", "prix", "actif", "ordre"]}),
@@ -542,7 +544,6 @@ class ArticleAdmin(AdminThemeMixin, SimpleHistoryAdmin):
     prepopulated_fields = {"slug": ("titre",)}
     readonly_fields = ["date_publication", "date_modification", "apercu_seo", "apercu_responsive"]
 
-    # Fieldsets ArticleAdmin optimisés pour rédaction rapide
     fieldsets = [
         ('📌 Identité', {
             'fields': ['titre', 'slug', 'categorie', 'type_contenu', 'academie'],
@@ -564,7 +565,7 @@ class ArticleAdmin(AdminThemeMixin, SimpleHistoryAdmin):
             'fields': ['statut_editorial', 'relu_par', 'en_vedette', 'auteur'],
         }),
     ]
-    # Auto-remplissage auteur (gain de temps)
+
     def get_changeform_initial_data(self, request):
         return {'auteur': request.user.id}
 
@@ -936,7 +937,6 @@ class PartenaireAPIAdmin(admin.ModelAdmin):
         return custom_urls + urls
 
     def rotation_cle_view(self, request, partenaire_id):
-        """Vue admin pour la rotation de clé API."""
         if not request.user.is_superuser:
             messages.error(request, "Seul un superadmin peut effectuer cette action.")
             return redirect('admin:academie_partenaireapi_changelist')
@@ -993,7 +993,6 @@ from django.contrib.auth.models import User
 
 
 class MembreCohorteForm(forms.ModelForm):
-    """Formulaire personnalisé pour éditer les infos de l'utilisateur directement."""
     first_name = forms.CharField(max_length=150, required=False, label='Prénom')
     last_name = forms.CharField(max_length=150, required=False, label='Nom')
     email = forms.EmailField(required=False, label='Email')
@@ -1025,7 +1024,6 @@ class MembreCohorteForm(forms.ModelForm):
 
 
 class MembreCohorteInline(admin.TabularInline):
-    """Permet d'éditer prénom/nom/email des membres directement sur la fiche Cohorte."""
     model = Cohorte.membres.through
     form = MembreCohorteForm
     extra = 0
@@ -1039,7 +1037,6 @@ class MembreCohorteInline(admin.TabularInline):
 # ================================================
 # ADMIN — Cohorte (avec gestion complète des membres)
 # ================================================
-
 @admin.register(Cohorte)
 class CohorteAdmin(admin.ModelAdmin):
     list_display = [
@@ -1051,7 +1048,7 @@ class CohorteAdmin(admin.ModelAdmin):
         'bouton_gerer_membres'
     ]
     filter_horizontal = ['formations', 'membres']
-    inlines = [MembreCohorteInline]   # ← indispensable pour éditer les champs utilisateur
+    inlines = [MembreCohorteInline]
     list_editable = ['actif']
 
     def nb_inscrits_affiche(self, obj):
@@ -1071,11 +1068,9 @@ class CohorteAdmin(admin.ModelAdmin):
     bouton_gerer_membres.short_description = 'Gestion rapide'
 
 
-
 # ================================================
 # ADMIN — Partenaire (vitrine)
 # ================================================
-
 @admin.register(Partenaire)
 class PartenaireAdmin(admin.ModelAdmin):
     list_display = ['nom', 'type_partenaire', 'actif', 'ordre']
@@ -1139,8 +1134,6 @@ class GestionCoursAdminSite(AdminThemeMixin):
             path("dashboard-executif/", admin.site.admin_view(self.vue_dashboard_executif), name="dashboard_executif"),
             path('monitoring-partenaires/', admin.site.admin_view(self.vue_monitoring_partenaires), name='monitoring-partenaires'),
             path('cohorte/<int:cohorte_id>/', admin.site.admin_view(self.vue_dashboard_cohorte), name='dashboard_cohorte'),
-
-            # --- AJOUT : rotation de clé partenaire ---
             path(
                 'partenaire/<int:partenaire_id>/rotation-cle/',
                 admin.site.admin_view(self.vue_rotation_cle_partenaire),
@@ -1151,8 +1144,11 @@ class GestionCoursAdminSite(AdminThemeMixin):
             path('exporter-rapport-analyse-banque/', admin.site.admin_view(self.exporter_rapport_analyse_banque), name='exporter_rapport_analyse_banque'),
             path('dashboard-analyse-banque/', admin.site.admin_view(self.vue_dashboard_analyse_banque), name='dashboard_analyse_banque'),
             path('checklist-cohorte-finale/', admin.site.admin_view(self.vue_checklist_cohorte_finale), name='checklist_cohorte_finale'),
-            # --- AJOUT : Gestion rapide des membres de cohorte ---
             path('gerer-membres-cohorte/<int:cohorte_id>/', admin.site.admin_view(self.vue_gerer_membres_cohorte), name='gerer_membres_cohorte'),
+            # ================================================
+            # AJOUT : Vérification des preuves de paiement mobile (superadmin)
+            # ================================================
+            path('verifier-preuves-paiement-certif/', admin.site.admin_view(self.vue_verifier_preuves_paiement_certif), name='verifier_preuves_paiement_certif'),
         ]
         return custom_urls + original_urls
 
@@ -1368,7 +1364,6 @@ class GestionCoursAdminSite(AdminThemeMixin):
             moyenne=Avg('note'), nb=Count('id')
         ).filter(nb__gte=1).order_by('-moyenne')[:5]
 
-        # Évolution mensuelle (6 derniers mois)
         evolution = []
         labels = []
         data = []
@@ -1389,10 +1384,9 @@ class GestionCoursAdminSite(AdminThemeMixin):
             'formations_mieux_notees': formations_mieux_notees,
             'ecoles_mieux_notees': ecoles_mieux_notees,
             'evolution': evolution,
-            'chart_labels': labels,   # <-- Nouveau
-            'chart_data': data,        # <-- Nouveau
+            'chart_labels': labels,
+            'chart_data': data,
         })
-
 
     def vue_dashboard_analyse_banque(self, request):
         from django.db.models import Avg, Count, Q as DjangoQ
@@ -1404,12 +1398,10 @@ class GestionCoursAdminSite(AdminThemeMixin):
             gabarit=gabarit, statut='termine'
         ).select_related('utilisateur') if gabarit else ExamenGenere.objects.none()
 
-        # Statistiques globales du test pilote
         nb_participants = examens_termines.values('utilisateur').distinct().count()
         score_moyen = examens_termines.aggregate(m=Avg('score_pourcentage'))['m'] or 0
         nb_reussis = examens_termines.filter(reussi=True).count()
 
-        # Questions suspectes (trop faciles ou trop difficiles)
         questions_utilisees = StatistiqueQuestion.objects.filter(
             nb_utilisations__gte=1
         ).select_related('question', 'question__module', 'question__categorie')
@@ -1417,7 +1409,6 @@ class GestionCoursAdminSite(AdminThemeMixin):
         questions_a_revoir = [s for s in questions_utilisees if s.necessite_revision()]
         questions_a_revoir.sort(key=lambda s: s.taux_reussite())
 
-        # Répartition par module
         stats_par_module = {}
         for s in questions_utilisees:
             module_nom = s.question.module.nom
@@ -1441,11 +1432,7 @@ class GestionCoursAdminSite(AdminThemeMixin):
             'examens_detail': examens_termines.order_by('-score_pourcentage'),
         })
 
-
     def exporter_rapport_analyse_banque(self, request):
-        """
-        Exporte un rapport CSV des statistiques de la banque de questions.
-        """
         import csv
         from django.http import HttpResponse
         from academie.models_banque import StatistiqueQuestion
@@ -1478,7 +1465,6 @@ class GestionCoursAdminSite(AdminThemeMixin):
             ])
 
         return response
-
 
     # ================================================
     # Checklist finale de bouclage cohorte pilote
@@ -1532,7 +1518,6 @@ class GestionCoursAdminSite(AdminThemeMixin):
                     membre.email = email
                 membre.save()
 
-            # Ajout d'un nouveau membre
             nouvel_email = request.POST.get('nouveau_membre_email', '').strip()
             if nouvel_email:
                 nouveau_prenom = request.POST.get('nouveau_membre_prenom', '').strip()
@@ -1578,7 +1563,6 @@ class GestionCoursAdminSite(AdminThemeMixin):
             reponse.reponse_donnee['corrige_par'] = request.user.username
             reponse.save()
 
-            # Recalcule le score de l'examen concerné après correction manuelle
             reponse.examen.corriger()
 
             messages.success(request, "✅ Réponse corrigée manuellement.")
@@ -1614,10 +1598,8 @@ class GestionCoursAdminSite(AdminThemeMixin):
             "circuit_ouvert": _circuit_ouvert(),
         })
 
-    # --- NOUVELLE VUE : rotation de clé partenaire ---
     @staff_member_required
     def vue_rotation_cle_partenaire(self, request, partenaire_id):
-        """Vue admin pour la rotation de clé API d'un partenaire."""
         from .models import PartenaireAPI
         partenaire = PartenaireAPI.objects.get(id=partenaire_id)
         partenaire.faire_tourner_la_cle()
@@ -1626,6 +1608,48 @@ class GestionCoursAdminSite(AdminThemeMixin):
             f"✅ Nouvelle clé générée pour {partenaire.nom}. Communique-la de façon sécurisée."
         )
         return redirect(f'/admin/academie/partenaireapi/{partenaire_id}/change/')
+
+    # ================================================
+    # NOUVELLE VUE — Vérification des preuves de paiement mobile (superadmin)
+    # ================================================
+    @staff_member_required
+    def vue_verifier_preuves_paiement_certif(self, request):
+        from django.contrib import messages
+        from django.shortcuts import redirect
+        from .models import EligibiliteCertification
+        from billing.models import Transaction
+
+        if not request.user.is_superuser:
+            messages.error(request, "🔒 Réservé au superadministrateur.")
+            return redirect('/admin/')
+
+        eligibilites_en_attente = EligibiliteCertification.objects.filter(
+            statut='paiement_en_attente',
+            transaction_certification_id__isnull=False
+        ).select_related('utilisateur', 'formation', 'cohorte')
+
+        if request.method == 'POST':
+            eligibilite_id = request.POST.get('eligibilite_id')
+            try:
+                eligibilite = EligibiliteCertification.objects.get(id=eligibilite_id)
+                # Récupérer la transaction associée pour la marquer comme réussie
+                transaction = Transaction.objects.filter(id=eligibilite.transaction_certification_id).first()
+                if transaction:
+                    transaction.statut = 'reussie'
+                    transaction.save()
+
+                # Confirmer le paiement via la méthode métier
+                eligibilite.confirmer_paiement(request.user)
+                messages.success(request, f"✅ Paiement confirmé pour {eligibilite.utilisateur.username}.")
+            except Exception as e:
+                messages.error(request, f"❌ Erreur : {str(e)}")
+            return redirect('/admin/verifier-preuves-paiement-certif/')
+
+        return render(request, 'admin/verifier_preuves_paiement_certif.html', {
+            'title': '📱 Vérification Preuves Paiement Certification',
+            'site_header': admin.site.site_header,
+            'eligibilites': eligibilites_en_attente,
+        })
 
 
 # ================================================
@@ -1646,8 +1670,7 @@ admin.site.index_title = "Tableau de bord"
 
 def get_app_list_reorganise(self, request, app_label=None):
     app_list = admin.AdminSite.get_app_list(admin.site, request, app_label)
-    
-    # --- NOUVELLE STRUCTURE DES GROUPES ---
+
     sections = {
         '🎓 Pédagogie': ['Ecole', 'Formation', 'Module', 'Lecon', 'Quiz', 'Question', 'Parcours', 'Examen', 'WorkflowFormation', 'NoteLecon', 'GradebookEntry', 'LearningOutcome'],
         '🧠 Banque de Questions & Évaluations': [
@@ -1675,7 +1698,6 @@ def get_app_list_reorganise(self, request, app_label=None):
             'SoumissionProjet', 'WorkflowArticle', 'NoteLecon', 'GradebookEntry'
         ],
     }
-    # --- FIN DE LA MODIFICATION ---
 
     modeles_tous = []
     for app in app_list:
@@ -1685,12 +1707,12 @@ def get_app_list_reorganise(self, request, app_label=None):
         modeles_section = [m for m in modeles_tous if m['object_name'] in noms_modeles]
         if modeles_section:
             nouveau_app_list.append({'name': nom_section, 'app_label': nom_section, 'app_url': '#', 'models': modeles_section})
-    
+
     noms_classes = [n for liste in sections.values() for n in liste]
     modeles_restants = [m for m in modeles_tous if m['object_name'] not in noms_classes]
     if modeles_restants:
         nouveau_app_list.append({'name': '📦 Autres', 'app_label': 'autres', 'app_url': '#', 'models': modeles_restants})
-    
+
     return nouveau_app_list
 
 admin.site.get_app_list = get_app_list_reorganise.__get__(admin.site)
@@ -1699,7 +1721,6 @@ admin.site.get_app_list = get_app_list_reorganise.__get__(admin.site)
 # ================================================
 # ADMIN.PY — Registre d'émission certificat (Lecture seule stricte)
 # ================================================
-
 from .models import RegistreEmissionCertificat
 
 @admin.register(RegistreEmissionCertificat)
@@ -1733,7 +1754,6 @@ class EnrollmentAdmin(admin.ModelAdmin):
 # ================================================
 # ADMIN — EligibiliteCertification (processus contrôlé pour cohortes)
 # ================================================
-
 @admin.register(EligibiliteCertification)
 class EligibiliteCertificationAdmin(admin.ModelAdmin):
     list_display = [
@@ -1750,10 +1770,10 @@ class EligibiliteCertificationAdmin(admin.ModelAdmin):
     search_fields = ['utilisateur__username', 'formation__nom']
     readonly_fields = ['date_creation', 'certificat_genere', 'date_validation', 'valide_par']
 
+    # MÉTHODE — Affichage des boutons d'actions personnalisés
     def boutons_actions(self, obj):
         boutons = []
 
-        # 1. Si frais non payés et pas encore de certificat → bouton "Valider paiement"
         if not obj.frais_paye and not obj.certificat_genere:
             boutons.append(
                 f'<a href="/admin/eligibilite/{obj.id}/valider-paiement/" '
@@ -1762,7 +1782,6 @@ class EligibiliteCertificationAdmin(admin.ModelAdmin):
                 f'✓ Valider paiement</a>'
             )
 
-        # 2. Si frais payés et pas encore de certificat → bouton "Générer certificat"
         if obj.frais_paye and not obj.certificat_genere:
             boutons.append(
                 f'<a href="/admin/eligibilite/{obj.id}/generer/" '
@@ -1771,7 +1790,6 @@ class EligibiliteCertificationAdmin(admin.ModelAdmin):
                 f'🎓 Générer certificat</a>'
             )
 
-        # 3. Si certificat déjà généré → bouton PDF et/ou Annuler
         if obj.certificat_genere:
             if obj.certificat_genere.fichier_pdf:
                 boutons.append(
@@ -1792,6 +1810,7 @@ class EligibiliteCertificationAdmin(admin.ModelAdmin):
         return format_html(''.join(boutons)) if boutons else "—"
     boutons_actions.short_description = 'Actions'
 
+    # AJOUT DES URLS PERSONNALISÉES DANS L'ADMIN
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
@@ -1813,17 +1832,31 @@ class EligibiliteCertificationAdmin(admin.ModelAdmin):
         ]
         return custom_urls + urls
 
+    # VUE DE VALIDATION DE PAIEMENT (réservée aux superadmins et admins)
     def valider_paiement_view(self, request, eligibilite_id):
-        """Marque les frais comme payés et met à jour le statut."""
+        from academie.permissions import peut
+
+        # Vérification des droits via la matrice RBAC
+        if not peut(request.user, 'certificat_cohorte.valider_paiement'):
+            messages.error(request, "❌ Seul un superadmin ou un administrateur peut valider le paiement.")
+            return redirect('admin:academie_eligibilitecertification_change', eligibilite_id)
+
         eligibilite = EligibiliteCertification.objects.get(id=eligibilite_id)
-        if not eligibilite.frais_paye:
-            eligibilite.frais_paye = True
-            eligibilite.save()
+
+        try:
+            # Appel de la méthode métier avec gestion des erreurs
+            eligibilite.confirmer_paiement(request.user, reference_manuelle='')
             messages.success(request, f"✅ Paiement validé pour {eligibilite.utilisateur.username}")
-        else:
-            messages.warning(request, "Les frais sont déjà marqués comme payés.")
+        except PermissionError as e:
+            messages.error(request, f"❌ {str(e)}")
+        except ValueError as e:
+            messages.error(request, f"❌ {str(e)}")
+        except Exception as e:
+            messages.error(request, f"❌ Erreur inattendue : {str(e)}")
+
         return redirect('admin:academie_eligibilitecertification_change', eligibilite_id)
 
+    # VUE DE GÉNÉRATION DU CERTIFICAT (après paiement validé)
     def generer_certificat_view(self, request, eligibilite_id):
         """Génère le certificat final via la méthode valider() du modèle."""
         eligibilite = EligibiliteCertification.objects.get(id=eligibilite_id)
@@ -1834,6 +1867,7 @@ class EligibiliteCertificationAdmin(admin.ModelAdmin):
             messages.error(request, f"❌ {str(e)}")
         return redirect('admin:academie_eligibilitecertification_change', eligibilite_id)
 
+    # VUE D'ANNULATION DU CERTIFICAT (révocation)
     def annuler_certificat_view(self, request, eligibilite_id):
         """Révoque le certificat associé (annulation)."""
         eligibilite = EligibiliteCertification.objects.get(id=eligibilite_id)
@@ -1848,6 +1882,7 @@ class EligibiliteCertificationAdmin(admin.ModelAdmin):
             messages.warning(request, "Aucun certificat à annuler pour cette éligibilité.")
         return redirect('admin:academie_eligibilitecertification_change', eligibilite_id)
 
+    # PERMISSIONS D'ACCÈS AU MODULE ADMIN
     def has_module_permission(self, request):
         if request.user.is_superuser:
             return True
@@ -1860,7 +1895,6 @@ class EligibiliteCertificationAdmin(admin.ModelAdmin):
 # ================================================
 # ADMIN.PY — Administration Banque de Questions
 # ================================================
-
 from academie.models_banque import (
     ModuleBanque, CategorieBanque, SousCategorieBanque, QuestionBanque,
     GabaritExamen, CompositionGabarit, ExamenGenere, StatistiqueQuestion,
@@ -1896,7 +1930,7 @@ class StatistiqueQuestionInline(admin.StackedInline):
 @admin.register(QuestionBanque)
 class QuestionBanqueAdmin(RolePermissionMixin, admin.ModelAdmin):
     roles_autorises = ['admin', 'formateur']
-    change_list_template = 'admin/questionbanque_changelist.html'  # <-- AJOUT
+    change_list_template = 'admin/questionbanque_changelist.html'
 
     list_display = ['identifiant_unique', 'module', 'categorie', 'niveau', 'type_question', 'statut', 'points_ponderes_affiche', 'taux_reussite_affiche']
     list_filter = ['module', 'niveau', 'type_question', 'statut', 'categorie']
@@ -1949,9 +1983,6 @@ class QuestionBanqueAdmin(RolePermissionMixin, admin.ModelAdmin):
             )
         super().save_model(request, obj, form, change)
 
-    # ================================================================
-    # AJOUTS IMPORT / EXPORT CSV
-    # ================================================================
     def get_urls(self):
         from django.urls import path
         urls = super().get_urls()
@@ -2007,6 +2038,8 @@ class QuestionBanqueAdmin(RolePermissionMixin, admin.ModelAdmin):
             messages.success(request, f"✅ {importees} question(s) importée(s)")
             return redirect('..')
         return render(request, 'admin/import_csv_questions.html')
+
+
 class CompositionGabaritInline(admin.TabularInline):
     model = CompositionGabarit
     extra = 1

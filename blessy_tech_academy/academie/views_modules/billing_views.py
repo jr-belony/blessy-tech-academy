@@ -5,6 +5,8 @@
 from decimal import Decimal
 import json
 from django.contrib import messages
+from django.contrib import admin
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.db import transaction as db_transaction
 from django.db.models import Sum, Q
@@ -356,33 +358,296 @@ def stripe_webhook(request):
 
 
 # ================================================
-# VUE — Initier le paiement des frais de certification
+# VUE — Validation paiement cash (superadmin uniquement)
+# ================================================
+
+@staff_member_required
+def admin_valider_paiement_certification(request, eligibilite_id):
+    """
+    Vue permettant au superadmin de valider un paiement cash de 1500 HTG
+    pour une éligibilité de certification, avec saisie d'une référence manuelle.
+    URL : /admin/eligibilite/<int:eligibilite_id>/valider-paiement/
+    """
+    from academie.models import EligibiliteCertification
+    from django.contrib import messages
+    from django.shortcuts import redirect, render, get_object_or_404
+
+    # Récupération de l'éligibilité
+    eligibilite = get_object_or_404(EligibiliteCertification, id=eligibilite_id)
+
+    # Seul le superadmin peut valider un paiement cash
+    if not request.user.is_superuser:
+        messages.error(request, "🔒 Seul le superadministrateur peut valider un paiement de certification.")
+        return redirect('/admin/academie/eligibilitecertification/')
+
+    if request.method == 'POST':
+        reference = request.POST.get('reference_manuelle', '').strip()
+        try:
+            # Appel de la méthode métier confirmer_paiement() 
+            eligibilite.confirmer_paiement(request.user, reference_manuelle=reference)
+            messages.success(request, f"✅ Paiement cash de 1500 HTG confirmé pour {eligibilite.utilisateur.username}")
+        except PermissionError as e:
+            messages.error(request, f"❌ {str(e)}")
+        except ValueError as e:
+            messages.error(request, f"❌ {str(e)}")
+        except Exception as e:
+            messages.error(request, f"❌ Erreur inattendue : {str(e)}")
+        return redirect('/admin/academie/eligibilitecertification/')
+
+    # Affichage du formulaire de confirmation
+    return render(request, 'admin/confirmer_paiement_cash.html', {
+        'eligibilite': eligibilite,
+        'title': 'Confirmer le paiement cash',
+        'site_header': admin.site.site_header,
+    })
+
+
+# ================================================
+# VIEWS.PY — CORRECTIF : page paiement certification avec 3 options
+# Remplace initier_paiement_certification() existante
 # ================================================
 
 @login_required(login_url='/connexion/')
 def initier_paiement_certification(request, eligibilite_id):
+    """Page de paiement du certificat — MonCash, NatCash, ou Cash (avec instructions)."""
     from academie.models import EligibiliteCertification
+    from academie.models import FraisCertification
+    from django.contrib import messages
+    from django.shortcuts import redirect, render
+    from django.utils import timezone
 
-    eligibilite = get_object_or_404(EligibiliteCertification, id=eligibilite_id, utilisateur=request.user)
+    eligibilite = EligibiliteCertification.objects.get(id=eligibilite_id, utilisateur=request.user)
 
-    # Vérifier que l'utilisateur est éligible (vous pouvez définir un champ statut si besoin)
-    if not eligibilite.est_eligible():
+    if eligibilite.statut != 'eligible_certificat':
         messages.error(request, "❌ Tu n'es pas encore éligible au certificat pour cette formation.")
         return redirect('mes_certifications')
 
-    # Récupérer le montant depuis la cohorte
-    montant = eligibilite.cohorte.frais_montant if eligibilite.cohorte else 0
+    montant = FraisCertification.obtenir_montant_pour(eligibilite.formation)
 
     if montant <= 0:
-        # Certificat gratuit → on marque frais_paye et on passe directement à la validation admin
-        eligibilite.frais_paye = True
+        eligibilite.statut = 'paiement_confirme'
+        eligibilite.date_paiement = timezone.now()
         eligibilite.save()
-        messages.success(request, "✅ Certificat gratuit (cohorte pilote) — en attente de génération par l'administration.")
+        messages.success(request, "✅ Certificat gratuit — en attente de génération par l'administration.")
         return redirect('mes_certifications')
 
-    # --- Si montant > 0, poursuivre avec le tunnel de paiement existant ---
-    # (votre code existant de création d'Order, OrderItem, etc.)
-    # Exemple (à adapter selon votre tunnel) :
-    # commande = Order.objects.create(utilisateur=request.user, total=montant)
-    # OrderItem.objects.create(...)
-    # return redirect('checkout', order_reference=commande.reference)
+    if request.method == 'POST':
+        moyen_code = request.POST.get('moyen', '')
+        preuve = request.FILES.get('preuve_paiement')
+        reference = request.POST.get('reference', '')
+
+        if moyen_code in ['moncash', 'natcash'] and preuve:
+            eligibilite.soumettre_preuve_paiement(moyen_code, preuve, reference)
+            messages.success(
+                request,
+                f"✅ Preuve de paiement {moyen_code.upper()} envoyée — "
+                f"en attente de vérification par l'administration."
+            )
+            return redirect('mes_certifications')
+        else:
+            messages.error(
+                request,
+                "❌ Merci de sélectionner un moyen de paiement et joindre la photo de la facture."
+            )
+
+    return render(request, 'academie/paiement_certification.html', {
+        'eligibilite': eligibilite,
+        'montant': montant,
+    })
+
+# ================================================
+# VUE — Aperçu HTML certificat cohorte + correction nom AVANT téléchargement
+# ================================================
+
+@login_required(login_url='/connexion/')
+def apercu_certificat_cohorte(request, eligibilite_id):
+    """
+    Affiche l'aperçu HTML du certificat + permet la correction du nom,
+    puis bouton téléchargement.
+    """
+    from academie.models import EligibiliteCertification
+    from django.shortcuts import get_object_or_404, redirect, render
+    from django.contrib import messages
+    from django.conf import settings
+    from academie.services.certificat_pdf import (
+        determiner_variante,
+        determiner_template_et_contexte_cohorte,
+        image_vers_base64,
+        generer_pdf_certificat_officiel,   # ← IMPORT AJOUTÉ
+    )
+    from django.core.files.base import ContentFile   # ← IMPORT AJOUTÉ
+
+    eligibilite = get_object_or_404(
+        EligibiliteCertification.objects.select_related('certificat_genere', 'formation', 'cohorte'),
+        id=eligibilite_id,
+        utilisateur=request.user
+    )
+
+    if not eligibilite.peut_telecharger():
+        messages.error(
+            request,
+            "🔒 Ton certificat n'est pas encore disponible — le paiement de 1500 HTG doit d'abord être confirmé par l'administration."
+        )
+        return redirect('mes_certifications')
+
+    certificat = eligibilite.certificat_genere
+
+    if request.method == 'POST':
+        nouveau_nom_affiche = request.POST.get('nom_affiche', '').strip()
+        if nouveau_nom_affiche:
+            parts = nouveau_nom_affiche.split(' ', 1)
+            request.user.first_name = parts[0]
+            request.user.last_name = parts[1] if len(parts) > 1 else ''
+            request.user.save()
+
+            # ============================================================
+            # REMPLACEMENT : appel synchrone à la place de la tâche Dramatiq
+            # ============================================================
+            pdf_bytes = generer_pdf_certificat_officiel(certificat)
+            if pdf_bytes:
+                certificat.fichier_pdf.save(f"certificat_{certificat.numero}.pdf", ContentFile(pdf_bytes), save=True)
+                messages.success(request, "✅ Nom mis à jour — le certificat a été régénéré.")
+            else:
+                messages.error(request, "❌ Erreur lors de la régénération du PDF.")
+            # ============================================================
+
+        return redirect('apercu_certificat_cohorte', eligibilite_id=eligibilite_id)
+
+    titre_principal, mention_type = determiner_variante(certificat)
+    template_a_utiliser, cohorte_nom = determiner_template_et_contexte_cohorte(certificat)
+
+    formations_incluses = [
+        {'nom': f.nom, 'bonus': f.nom == 'Gestion de Stock avec Excel'}
+        for f in certificat.formations_incluses.all()
+    ]
+
+    contexte_apercu = {
+        'certificat': certificat,
+        'titre_principal': titre_principal,
+        'mention_type': mention_type,
+        'nom_complet': request.user.get_full_name() or request.user.username,
+        'formation_nom': certificat.formation.nom if certificat.formation else '',
+        'ecole_nom': certificat.formation.ecole.nom if certificat.formation and certificat.formation.ecole else '',
+        'niveau_affiche': '',
+        'date_affichee': getattr(certificat, 'date_obtention', certificat.date_emission),
+        'cohorte_nom': cohorte_nom,
+        'qr_code_base64': image_vers_base64(getattr(certificat, 'qr_code_image', None)),
+        'libelle_programme': certificat.libelle_programme or 'Compétences Numériques Professionnelles',
+        'formations_incluses': formations_incluses,
+        'logo_url': f"{settings.SITE_URL}/static/img/logo-bta.png",
+        'type_certificat': titre_principal,
+        'label_certificat': mention_type,
+        'prenom': request.user.first_name,
+        'nom': request.user.last_name,
+        'username': request.user.username,
+        'date_emission': certificat.date_emission,
+        'numero_certificat': certificat.numero,
+        'uuid': str(certificat.uuid),
+        'signataire_nom': 'Jean Raymond BELONY',
+        'signataire_titre': 'PDG & Fondateur',
+        'verification_text': 'Certificat vérifiable en ligne – blessytechacademy.com',
+        'url_verification': f"{settings.SITE_URL}/certificat/{certificat.uuid}/",
+    }
+
+    return render(request, 'academie/apercu_certificat_cohorte.html', {
+        'eligibilite': eligibilite,
+        'certificat': certificat,
+        'contexte_apercu': contexte_apercu,
+        'nom_actuel': request.user.get_full_name() or request.user.username,
+        'title': 'Aperçu de votre certificat',
+    })
+
+# ================================================
+# VUE — Rendu HTML brut du certificat pour aperçu iframe
+# ================================================
+
+@login_required(login_url='/connexion/')
+def rendu_html_certificat_apercu(request, eligibilite_id):
+    """
+    Renvoie le HTML du certificat (tel qu'il sera dans le PDF)
+    pour l'aperçu dans l'iframe.
+    """
+    from academie.models import EligibiliteCertification
+    from django.shortcuts import get_object_or_404
+    from django.template.loader import render_to_string
+    from django.http import HttpResponse
+    from django.conf import settings
+    from academie.services.certificat_pdf import (
+        determiner_variante,
+        determiner_template_et_contexte_cohorte,
+        image_vers_base64,
+    )
+
+    eligibilite = get_object_or_404(
+        EligibiliteCertification.objects.select_related('certificat_genere', 'formation', 'cohorte'),
+        id=eligibilite_id,
+        utilisateur=request.user
+    )
+
+    if not eligibilite.peut_telecharger():
+        return HttpResponse("🔒 Certificat non disponible pour le téléchargement.", status=403)
+
+    certificat = eligibilite.certificat_genere
+
+    titre_principal, mention_type = determiner_variante(certificat)
+    template_a_utiliser, cohorte_nom = determiner_template_et_contexte_cohorte(certificat)
+
+    formations_incluses = [
+        {'nom': f.nom, 'bonus': f.nom == 'Gestion de Stock avec Excel'}
+        for f in certificat.formations_incluses.all()
+    ]
+
+    contexte = {
+        'certificat': certificat,
+        'titre_principal': titre_principal,
+        'mention_type': mention_type,
+        'nom_complet': request.user.get_full_name() or request.user.username,
+        'formation_nom': certificat.formation.nom if certificat.formation else '',
+        'ecole_nom': certificat.formation.ecole.nom if certificat.formation and certificat.formation.ecole else '',
+        'niveau_affiche': '',  # Pas de niveau pour la cohorte
+        'date_affichee': getattr(certificat, 'date_obtention', certificat.date_emission),
+        'cohorte_nom': cohorte_nom,
+        'qr_code_base64': image_vers_base64(getattr(certificat, 'qr_code_image', None)),
+        'libelle_programme': certificat.libelle_programme or 'Compétences Numériques Professionnelles',
+        'formations_incluses': formations_incluses,
+        'logo_url': f"{settings.SITE_URL}/static/img/logo-bta.png",
+        'type_certificat': titre_principal,
+        'label_certificat': mention_type,
+        'prenom': request.user.first_name,
+        'nom': request.user.last_name,
+        'username': request.user.username,
+        'date_emission': certificat.date_emission,
+        'numero_certificat': certificat.numero,
+        'uuid': str(certificat.uuid),
+        'signataire_nom': 'Jean Raymond BELONY',
+        'signataire_titre': 'PDG & Fondateur',
+        'verification_text': 'Certificat vérifiable en ligne – blessytechacademy.com',
+        'url_verification': f"{settings.SITE_URL}/certificat/{certificat.uuid}/",
+    }
+
+    html = render_to_string(template_a_utiliser, contexte)
+    return HttpResponse(html)
+
+
+# ================================================
+# VUE — Mes certifications (espace utilisateur)
+# ================================================
+
+@login_required(login_url='/connexion/')
+def mes_certifications(request):
+    """
+    Affiche la liste des éligibilités de l'utilisateur connecté
+    avec leur statut et les actions associées.
+    """
+    from academie.models import EligibiliteCertification
+    from django.shortcuts import render
+
+    eligibilites = EligibiliteCertification.objects.filter(
+        utilisateur=request.user
+    ).select_related('formation', 'cohorte', 'certificat_genere')
+
+    context = {
+        'eligibilites': eligibilites,
+        'title': 'Mes certifications',
+    }
+    return render(request, 'academie/mes_certifications.html', context)

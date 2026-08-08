@@ -1,0 +1,17 @@
+<!-- ================================================
+     ADMIN/CONFIRMER_PAIEMENT_CASH.HTML — Validation superadmin uniquement
+     ================================================ -->
+{% extends "admin/base_backoffice.html" %}
+{% block bo_contenu %}
+<h1 style="color:var(--bo-texte);">💵 Valider Paiement Cash — 1500 HTG</h1>
+<div class="bo-card">
+    <p><strong>{{ eligibilite.utilisateur.get_full_name|default:eligibilite.utilisateur.username }}</strong> — {{ eligibilite.formation.nom }}</p>
+    <p style="color:var(--bo-texte-secondaire); font-size:13px;">Confirme uniquement après avoir reçu physiquement les 1500 HTG en espèces.</p>
+    <form method="POST" style="margin-top:16px;">
+        {% csrf_token %}
+        <label>Référence/note (optionnel)</label>
+        <input type="text" name="reference_manuelle" placeholder="Ex: reçu #045" style="width:100%; padding:10px; border:1px solid var(--bo-gris-bordure); border-radius:8px; margin:8px 0 16px;">
+        <button type="submit" style="width:100%; padding:14px; background:#22c55e; color:white; border:none; border-radius:10px; font-weight:800;">✅ Confirmer réception des 1500 HTG</button>
+    </form>
+</div>
+{% endblock %}

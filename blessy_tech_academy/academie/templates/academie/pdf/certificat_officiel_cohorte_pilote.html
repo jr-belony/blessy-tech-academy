@@ -1,0 +1,164 @@
+<!-- ================================================
+     PDF/CERTIFICAT_OFFICIEL_COHORTE_PILOTE.HTML — Modèle spécifique 
+     aux 8 membres de la Cohorte Pilote 2026
+     Même charte graphique premium, mention distinctive "Programme Fondateur"
+     ================================================ -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+    @page { size: A4 landscape; margin: 0; }
+    body { margin: 0; font-family: 'Georgia', 'Times New Roman', serif; }
+
+    .certificat {
+        width: 297mm; height: 210mm; position: relative;
+        background: #FFFFFF;
+        border: 3px solid #003B8E;
+        padding: 15mm 20mm;
+        box-sizing: border-box;
+    }
+
+    .filigrane {
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg);
+        font-size: 120px; color: rgba(0, 59, 142, 0.03); font-weight: 900; z-index: 0;
+        white-space: nowrap;
+    }
+
+    .bordure-interieure {
+        position: absolute; top: 6mm; left: 6mm; right: 6mm; bottom: 6mm;
+        border: 0.5px solid #FF6B00; z-index: 1;
+    }
+
+    .contenu { position: relative; z-index: 2; text-align: center; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
+
+    .bandeau-fondateur {
+        position: absolute; top: 12mm; right: -8mm; z-index: 3;
+        background: #FF6B00; color: white; padding: 3mm 14mm;
+        font-size: 9px; font-weight: 800; letter-spacing: 1px;
+        font-family: Arial, sans-serif; transform: rotate(8deg);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    .logo-zone { margin-top: 4mm; }
+    .logo-icone { font-size: 32px; }
+    .logo-nom { font-size: 14px; font-weight: 700; color: #003B8E; letter-spacing: 2px; margin-top: 2mm; font-family: Arial, sans-serif; }
+    .logo-slogan { font-size: 9px; color: #718096; letter-spacing: 1px; font-family: Arial, sans-serif; margin-top: 1mm; }
+
+    .titre-principal { font-size: 32px; font-weight: 700; color: #003B8E; letter-spacing: 4px; margin: 4mm 0 2mm; }
+    .sous-titre-cohorte { font-size: 12px; color: #FF6B00; font-weight: 700; font-family: Arial, sans-serif; letter-spacing: 1px; margin-bottom: 4mm; }
+    .separateur { width: 60px; height: 2px; background: #FF6B00; margin: 0 auto 6mm; }
+
+    .phrase-decernee { font-size: 12px; color: #4A5568; font-family: Arial, sans-serif; margin-bottom: 4mm; }
+    .nom-beneficiaire { font-size: 38px; font-weight: 700; color: #0B1B33; font-style: italic; margin-bottom: 6mm; border-bottom: 1px solid #e2e8f0; display: inline-block; padding-bottom: 3mm; min-width: 300px; }
+
+    .formation-nom { font-size: 19px; font-weight: 700; color: #00B5E2; margin-bottom: 2mm; }
+    .ecole-nom { font-size: 13px; color: #718096; margin-bottom: 2mm; }
+    .mention-programme-fondateur { font-size: 11px; color: #FF6B00; font-weight: 700; font-family: Arial, sans-serif; margin-bottom: 5mm; }
+
+    /* ================================================
+       NOUVEAU BLOC — Formations avec ordre + bonus distinct
+       ================================================ */
+    .bloc-formations { font-family: Arial, sans-serif; font-size: 10px; color: #334155; margin-bottom: 3mm; }
+    .bloc-formations-titre { font-size: 9px; color: #a0aec0; text-transform: uppercase; margin-bottom: 2mm; letter-spacing: 1px; }
+    .liste-formations-principales { display: flex; flex-direction: column; align-items: center; gap: 1.5mm; margin-bottom: 2.5mm; }
+    .item-formation-principale { font-size: 11px; color: #003B8E; font-weight: 600; }
+    .item-formation-principale .numero { color: #00B5E2; font-weight: 800; margin-right: 2mm; }
+    .separateur-bonus { width: 40mm; height: 0.5px; background: #e2e8f0; margin: 2mm auto; }
+    .item-bonus { display: inline-block; padding: 1.5mm 5mm; background: rgba(255,107,0,0.1); border: 0.5px solid rgba(255,107,0,0.3); border-radius: 12px; font-size: 9.5px; color: #FF6B00; font-weight: 700; }
+
+    .infos-bas { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 5mm; font-family: Arial, sans-serif; }
+    .bloc-gauche { text-align: left; font-size: 10px; color: #718096; }
+    .bloc-gauche p { margin: 1mm 0; }
+    .bloc-gauche strong { color: #003B8E; }
+
+    .bloc-signature { text-align: center; }
+    .ligne-signature { width: 140px; border-top: 1px solid #003B8E; margin: 0 auto 2mm; }
+    .nom-signataire { font-size: 11px; font-weight: 700; color: #003B8E; }
+    .titre-signataire { font-size: 9px; color: #718096; }
+
+    .bloc-qr { text-align: center; }
+    .qr-code img { width: 20mm; height: 20mm; }
+    .mention-verification { font-size: 8px; color: #a0aec0; margin-top: 1mm; }
+</style>
+</head>
+<body>
+
+<div class="certificat">
+    <div class="filigrane">BTA</div>
+    <div class="bordure-interieure"></div>
+    <div class="bandeau-fondateur">⭐ PROGRAMME FONDATEUR</div>
+
+    <div class="contenu">
+
+        <div class="logo-zone">
+            <div class="logo-icone">🎓</div>
+            <div class="logo-nom">BLESSY TECH ACADEMY</div>
+            <div class="logo-slogan">L'ÉCOLE DE LA HAUTE TECHNOLOGIE MODERNE D'HAÏTI</div>
+        </div>
+
+        <div>
+            <div class="titre-principal">{{ titre_principal }}</div>
+            <div class="sous-titre-cohorte">🚀 COHORTE PILOTE 2026 — PREMIÈRE PROMOTION OFFICIELLE</div>
+            <div class="separateur"></div>
+        </div>
+
+        <div>
+            <div class="phrase-decernee">Le présent certificat est décerné à</div>
+            <div class="nom-beneficiaire">{{ nom_complet }}</div>
+        </div>
+
+        <!-- ============ NIVEAU SUPPRIMÉ (conforme exigence) ============ -->
+        <div>
+            <div class="formation-nom">{{ formation_nom }}</div>
+            <div class="ecole-nom">{{ ecole_nom }}</div>
+            <div class="mention-programme-fondateur">Membre fondateur de la première cohorte certifiée Blessy Tech Academy</div>
+        </div>
+
+        <!-- ================================================================ -->
+        <!-- NOUVEAU BLOC — Formations suivies avec ordre et bonus distinct    -->
+        <!-- ================================================================ -->
+        <div class="bloc-formations">
+            <div class="bloc-formations-titre">Formations suivies</div>
+            <div class="liste-formations-principales">
+                {% for f in formations_incluses %}
+                {% if not f.bonus %}
+                <div class="item-formation-principale"><span class="numero">{{ forloop.counter }}.</span>{{ f.nom }}</div>
+                {% endif %}
+                {% endfor %}
+            </div>
+            {% for f in formations_incluses %}
+            {% if f.bonus %}
+            <div class="separateur-bonus"></div>
+            <span class="item-bonus">🎁 Formation Bonus : {{ f.nom }}</span>
+            {% endif %}
+            {% endfor %}
+        </div>
+
+        <div class="infos-bas">
+            <div class="bloc-gauche">
+                <p><strong>N° Certificat :</strong> {{ certificat.numero }}</p>
+                <p><strong>Date :</strong> {{ date_affichee|date:"d F Y" }}</p>
+                <p><strong>UUID :</strong> {{ certificat.uuid }}</p>
+                <p><strong>Cohorte :</strong> {{ cohorte_nom }}</p>
+            </div>
+
+            <div class="bloc-signature">
+                <div class="ligne-signature"></div>
+                <div class="nom-signataire">Jean Raymond BELONY</div>
+                <div class="titre-signataire">PDG & Fondateur</div>
+            </div>
+
+            <div class="bloc-qr">
+                {% if qr_code_base64 %}
+                <div class="qr-code"><img src="{{ qr_code_base64 }}"></div>
+                {% endif %}
+                <div class="mention-verification">Certificat vérifiable en ligne — blessytechacademy.com</div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

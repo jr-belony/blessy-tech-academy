@@ -1695,17 +1695,33 @@ class EligibiliteCertification(models.Model):
     )
     date_creation = models.DateTimeField(auto_now_add=True)
 
-    # --- NOUVEAUX CHAMPS ---
+    # --- CHAMPS DE NOTES ---
     note_theorique = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="Note de l'examen théorique sur 100")
     note_projet = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="Note du projet sur 100")
     moyenne_finale = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="Moyenne pondérée ou simple des notes")
+
+    # ============================================================
+    # STATUTS enrichis
+    # ============================================================
     STATUTS = [
         ('en_cours', 'En cours'),
         ('eligible', 'Éligible (certificat prêt)'),
+        ('certificat_pret', 'Certificat prêt au téléchargement'),
+        ('certificat_delivre', 'Certificat délivré'),
         ('certifie', 'Certifié'),
         ('refuse', 'Refusé'),
+        ('paiement_en_attente', 'Paiement en attente de vérification'),
     ]
-    statut = models.CharField(max_length=10, choices=STATUTS, default='en_cours')
+    statut = models.CharField(max_length=25, choices=STATUTS, default='en_cours')
+
+    # ============================================================
+    # STOCKAGE DE L'ID DE LA TRANSACTION (sans FK pour éviter les erreurs)
+    # ============================================================
+    transaction_certification_id = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="ID de la transaction billing.Transaction liée au paiement (MonCash/NatCash)"
+    )
 
     class Meta:
         app_label = 'academie'
@@ -1717,6 +1733,25 @@ class EligibiliteCertification(models.Model):
     def __str__(self):
         return f"{self.utilisateur.username} → {self.formation.nom} (cohorte {self.cohorte.nom})"
 
+    # ============================================================
+    # MÉTHODE — Récupérer la transaction associée
+    # ============================================================
+    def get_transaction(self):
+        """
+        Récupère l'objet Transaction à partir de l'ID stocké, si disponible.
+        Retourne None si l'ID n'existe pas ou si le modèle n'est pas accessible.
+        """
+        if not self.transaction_certification_id:
+            return None
+        try:
+            from billing.models import Transaction
+            return Transaction.objects.get(id=self.transaction_certification_id)
+        except (ImportError, Transaction.DoesNotExist):
+            return None
+
+    # ============================================================
+    # MÉTHODES EXISTANTES (est_eligible, valider, peut_telecharger, calculer_moyenne, verifier...)
+    # ============================================================
     def est_eligible(self):
         """Vérifie si tous les prérequis sont remplis pour générer le certificat."""
         return self.frais_paye and self.valide_par is not None
@@ -1734,10 +1769,17 @@ class EligibiliteCertification(models.Model):
             formation=self.formation
         )
         self.certificat_genere = certificat
+        self.statut = 'certificat_pret'
         self.save()
         return certificat
 
-    # --- NOUVELLES MÉTHODES ---
+    def peut_telecharger(self):
+        """
+        Le certificat n'est téléchargeable QUE si le statut confirme paiement + génération admin.
+        Retourne True si le certificat est prêt à être téléchargé.
+        """
+        return self.statut in ['certificat_pret', 'certificat_delivre'] and self.certificat_genere is not None
+
     def calculer_moyenne(self):
         """Calcule la moyenne des notes si disponibles."""
         notes = []
@@ -1750,14 +1792,84 @@ class EligibiliteCertification(models.Model):
         return None
 
     def verifier_et_mettre_a_jour_statut(self):
-        """Met à jour le statut en fonction des notes et du paiement."""
+        """
+        Met à jour le statut en fonction des notes, du paiement et de l'existence du certificat.
+        """
         if self.certificat_genere:
-            self.statut = 'certifie'
+            if self.statut not in ['certificat_pret', 'certificat_delivre']:
+                self.statut = 'certificat_pret'
         elif self.frais_paye and self.note_theorique is not None and self.note_projet is not None:
             self.statut = 'eligible'
         else:
             self.statut = 'en_cours'
         self.save(update_fields=['statut'])
+
+    # ============================================================
+    # MÉTHODE — Confirmation paiement (superadmin/admin) — inchangée
+    # ============================================================
+    def confirmer_paiement(self, superadmin, reference_manuelle=''):
+        """
+        Confirme un paiement CASH — réservé au superadmin (is_superuser) 
+        ou admin (profil.role='admin').
+        """
+        from django.utils import timezone
+        from .models import LogAudit
+
+        if not (superadmin.is_superuser or 
+                (hasattr(superadmin, 'profil') and superadmin.profil.role == 'admin')):
+            raise PermissionError(
+                "Seul le superadministrateur ou un administrateur peut valider "
+                "un paiement de certification en espèces."
+            )
+
+        if self.frais_paye:
+            raise ValueError("Les frais sont déjà marqués comme payés.")
+
+        self.frais_paye = True
+        self.valide_par = superadmin
+        self.date_validation = timezone.now()
+        self.statut = 'eligible'
+        self.save()
+
+        LogAudit.objects.create(
+            utilisateur=superadmin,
+            action='validation_paiement',
+            description=(
+                f"Paiement CASH 1500 HTG confirmé pour {self.utilisateur.username} "
+                f"— {self.formation.nom}" + 
+                (f" — Réf: {reference_manuelle}" if reference_manuelle else "")
+            ),
+            objet_type='EligibiliteCertification',
+            objet_id=self.id,
+        )
+
+    # ============================================================
+    # MÉTHODE — Soumission preuve de paiement MonCash/NatCash
+    # ============================================================
+    def soumettre_preuve_paiement(self, moyen_code, preuve_image, reference_externe=''):
+        """
+        Étudiant soumet une preuve de paiement MonCash/NatCash — crée 
+        une Transaction 'en_verification', PAS encore confirmée.
+        Le superadmin devra ensuite valider via confirmer_paiement().
+        """
+        from billing.models import Transaction, MoyenPaiement
+
+        moyen = MoyenPaiement.objects.filter(code=moyen_code).first()
+        if not moyen:
+            raise ValueError(f"Moyen de paiement '{moyen_code}' introuvable.")
+
+        transaction = Transaction.objects.create(
+            commande=None,
+            moyen_paiement=moyen,
+            reference_externe=reference_externe,
+            preuve_paiement=preuve_image,
+            montant=1500,
+            statut='en_verification',
+        )
+        self.transaction_certification_id = transaction.id
+        self.statut = 'paiement_en_attente'
+        self.save()
+        return transaction
 
 
 

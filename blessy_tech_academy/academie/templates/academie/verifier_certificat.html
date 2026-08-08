@@ -24,7 +24,33 @@
                 <p><strong>UUID :</strong> <code style="background: #f0f0f0; padding: 2px 8px; border-radius: 4px; font-size: 14px;">{{ uuid }}</code></p>
 
                 <p><strong>Titulaire :</strong> {{ nom_affiche }}</p>
-                <p><strong>Formation :</strong> {{ formation_nom }}</p>
+
+                <!-- ================================================
+                     CORRECTIF #4 — Affichage multi‑formations + mention
+                     ================================================ -->
+                {% if certificat.formations_incluses.all %}
+                    <p><strong>Programme :</strong> {{ certificat.libelle_programme }}</p>
+                    <p><strong>Formations incluses :</strong></p>
+                    <ul style="margin: 4px 0 12px 20px; padding: 0;">
+                        {% for f in certificat.formations_incluses.all %}
+                            <li style="font-size: 14px; color: #334155;">{{ f.nom }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p><strong>Formation :</strong> {{ formation_nom }}</p>
+                {% endif %}
+
+                {% if certificat.resultat_final %}
+                    <p><strong>Note finale :</strong> {{ certificat.resultat_final }}/100</p>
+                {% endif %}
+
+                {% if certificat.mention %}
+                    <p><strong>Mention :</strong> <span style="color: #FF6B00; font-weight: 700;">{{ certificat.mention }}</span></p>
+                {% endif %}
+                <!-- ================================================
+                     FIN CORRECTIF #4
+                     ================================================ -->
+
                 <p><strong>Niveau :</strong> {{ certificat.get_niveau_display }}</p>
                 <p><strong>Durée :</strong> {{ certificat.duree_heures }} heures</p>
                 {% if certificat.resultat_final %}<p><strong>Résultat :</strong> {{ certificat.resultat_final }}%</p>{% endif %}
@@ -40,7 +66,7 @@
                 </p>
 
                 <!-- ================================================
-                     NOUVEAU BLOC : PREUVE D'INTÉGRITÉ CRYPTOGRAPHIQUE
+                     PREUVE D'INTÉGRITÉ CRYPTOGRAPHIQUE (conservé)
                      ================================================ -->
                 <div style="margin-top: 12px; padding: 12px; border-radius: 8px; background: {% if integrite_verifiee %}rgba(34,197,94,0.1){% else %}rgba(239,68,68,0.1){% endif %}; border: 1px solid {% if integrite_verifiee %}#22c55e{% else %}#ef4444{% endif %}; font-size: 13px; color: {% if integrite_verifiee %}#22c55e{% else %}#ef4444{% endif %};">
                     <strong>

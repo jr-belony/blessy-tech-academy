@@ -8,10 +8,7 @@ from academie.models import Cohorte, EligibiliteCertification
 
 
 class Command(BaseCommand):
-    help = "Configure les frais de certification pour les formations de la Cohorte Pilote"
-
-    def add_arguments(self, parser):
-        parser.add_argument('--montant', type=float, default=0, help="Montant en USD (0 = gratuit pour le pilote)")
+    help = "Configure les frais de certification à 1500 HTG (paiement cash) pour la Cohorte Pilote"
 
     def handle(self, *args, **options):
         cohorte = Cohorte.objects.filter(nom='Cohorte Pilote 2026').first()
@@ -19,22 +16,23 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR("❌ Cohorte Pilote 2026 introuvable"))
             return
 
-        montant = options['montant']
-        
-        # 1. Enregistrer le montant sur la cohorte
-        cohorte.frais_montant = montant
-        cohorte.save()
-
-        # 2. Mettre à jour les éligibilités existantes en fonction du montant
-        if montant == 0:
-            # Certificat gratuit : on marque toutes les éligibilités de la cohorte comme payées
-            count = EligibiliteCertification.objects.filter(cohorte=cohorte).update(frais_paye=True)
-            self.stdout.write(self.style.SUCCESS(
-                f"✅ Frais configurés à 0$ – {count} éligibilité(s) marquée(s) comme frais payés (gratuit)."
-            ))
+        # 1. Enregistrer le montant sur la cohorte (si le champ existe)
+        if hasattr(cohorte, 'frais_montant'):
+            cohorte.frais_montant = 1500
+            cohorte.save()
+            self.stdout.write(self.style.SUCCESS("✅ Montant de 1500 HTG enregistré sur la cohorte."))
         else:
-            # Montant > 0 : on remet frais_paye à False pour forcer le paiement
-            count = EligibiliteCertification.objects.filter(cohorte=cohorte).update(frais_paye=False)
-            self.stdout.write(self.style.WARNING(
-                f"⚠️ Frais configurés à {montant}$. Les {count} éligibilité(s) existante(s) doivent être payées."
-            ))
+            self.stdout.write(self.style.WARNING("⚠️ Le champ 'frais_montant' n'existe pas sur Cohorte. Pense à l'ajouter."))
+
+        # 2. Réinitialiser les éligibilités : forcer frais_paye = False pour toutes
+        count = EligibiliteCertification.objects.filter(cohorte=cohorte).update(frais_paye=False)
+        self.stdout.write(self.style.WARNING(
+            f"⚠️ {count} éligibilité(s) réinitialisée(s) : frais_paye = False. Chaque membre devra payer 1500 HTG."
+        ))
+
+        self.stdout.write(self.style.SUCCESS(
+            "✅ Configuration terminée. Les frais sont fixés à 1500 HTG (cash) pour la Cohorte Pilote."
+        ))
+        self.stdout.write(self.style.SUCCESS(
+            "🔒 Seul un superadmin ou un administrateur (staff) peut valider le paiement dans l'admin d'éligibilité."
+        ))

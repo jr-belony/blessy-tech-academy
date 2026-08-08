@@ -1,0 +1,125 @@
+{% extends 'academie/base.html' %}
+{% load static %}
+
+{% block titre %}Mes certifications{% endblock %}
+
+{% block contenu %}
+<section class="page-hero">
+    <h2>🎓 Mes certifications</h2>
+    <p style="color: #718096; max-width: 600px; margin: 8px auto 0;">
+        Retrouve ici l’état d’avancement de tes certifications et les actions à réaliser.
+    </p>
+</section>
+
+<section style="max-width: 900px; margin: 40px auto; padding: 0 20px;">
+    {% if eligibilites %}
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            {% for elig in eligibilites %}
+                <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); border: 1px solid #e2e8f0;">
+                    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <h3 style="margin: 0 0 4px; color: #003B8E;">
+                                {{ elig.formation.nom }}
+                            </h3>
+                            <p style="margin: 0; color: #718096; font-size: 14px;">
+                                Cohorte : {{ elig.cohorte.nom }}
+                            </p>
+                            <p style="margin: 4px 0 0; color: #4A5568; font-size: 14px;">
+                                Statut : 
+                                <span style="font-weight: 600; 
+                                    {% if elig.statut == 'certificat_pret' or elig.statut == 'certificat_delivre' %}color:#22c55e;
+                                    {% elif elig.statut == 'eligible' %}color:#003B8E;
+                                    {% elif elig.statut == 'en_cours' %}color:#f59e0b;
+                                    {% elif elig.statut == 'refuse' %}color:#ef4444;
+                                    {% else %}color:#718096;{% endif %}">
+                                    {{ elig.get_statut_display }}
+                                </span>
+                            </p>
+                            {% if elig.note_theorique is not None %}
+                                <p style="margin: 2px 0 0; font-size: 13px; color: #4A5568;">
+                                    Examen : {{ elig.note_theorique }}/100
+                                </p>
+                            {% endif %}
+                            {% if elig.note_projet is not None %}
+                                <p style="margin: 2px 0 0; font-size: 13px; color: #4A5568;">
+                                    Projet : {{ elig.note_projet }}/100
+                                </p>
+                            {% endif %}
+                            {% if elig.moyenne_finale is not None %}
+                                <p style="margin: 2px 0 0; font-size: 13px; font-weight: 600; color: #003B8E;">
+                                    Moyenne : {{ elig.moyenne_finale }}/100
+                                </p>
+                            {% endif %}
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px; margin-top: 8px;">
+                            {% if elig.statut == 'eligible' %}
+                                <a href="{% url 'initier_paiement_certification' elig.id %}" 
+                                   style="padding: 10px 20px; background: #003B8E; color: white; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 14px;">
+                                    💳 Payer 1500 HTG
+                                </a>
+                                <span style="font-size: 12px; color: #718096;">Paiement en espèces — validation admin</span>
+
+                            {% elif elig.statut == 'certificat_pret' or elig.statut == 'certificat_delivre' %}
+                                <a href="{% url 'apercu_certificat_cohorte' elig.id %}" 
+                                   style="padding: 10px 20px; background: #003B8E; color: white; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 14px;">
+                                    👁️ Aperçu & Téléchargement
+                                </a>
+                                <span style="font-size: 12px; color: #22c55e;">✅ Certificat prêt !</span>
+
+                            {% elif elig.statut == 'en_cours' %}
+                                <span style="padding: 6px 14px; background: #fef3c7; color: #b45309; border-radius: 20px; font-size: 13px; font-weight: 600;">
+                                    ⏳ En attente
+                                </span>
+                                <span style="font-size: 12px; color: #718096;">Note théorique et projet requis</span>
+
+                            {% elif elig.statut == 'refuse' %}
+                                <span style="padding: 6px 14px; background: #fee2e2; color: #b91c1c; border-radius: 20px; font-size: 13px; font-weight: 600;">
+                                    ❌ Refusé
+                                </span>
+                                <span style="font-size: 12px; color: #718096;">Contacte le support pour plus d’informations</span>
+
+                            {% else %}
+                                <span style="padding: 6px 14px; background: #e2e8f0; color: #4A5568; border-radius: 20px; font-size: 13px; font-weight: 600;">
+                                    {{ elig.get_statut_display }}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 60px 20px; background: white; border-radius: 16px; border: 1px solid #e2e8f0;">
+            <div style="font-size: 48px; margin-bottom: 16px;">📋</div>
+            <h3 style="color: #1A202C; margin-bottom: 8px;">Aucune certification en cours</h3>
+            <p style="color: #718096;">
+                Tu n’as pas encore d’éligibilité de certification. <br>
+                Suis une formation en cohorte pour débloquer cette étape.
+            </p>
+            <a href="{% url 'formations' %}" style="display: inline-block; margin-top: 16px; padding: 10px 24px; background: #003B8E; color: white; border-radius: 8px; text-decoration: none; font-weight: 700;">
+                Explorer les formations
+            </a>
+        </div>
+    {% endif %}
+</section>
+
+<style>
+    .page-hero {
+        text-align: center;
+        padding: 40px 20px 20px;
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .page-hero h2 {
+        font-size: 28px;
+        color: #003B8E;
+        margin: 0;
+    }
+    @media (max-width: 640px) {
+        .page-hero h2 { font-size: 22px; }
+        .page-hero p { font-size: 14px; }
+    }
+</style>
+
+{% endblock %}

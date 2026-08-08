@@ -1,0 +1,40 @@
+<!-- ================================================
+     APERCU_CERTIFICAT_COHORTE.HTML — Aperçu avant téléchargement + correction nom
+     ================================================ -->
+{% extends 'academie/base.html' %}
+{% block titre %}Mon Certificat — Aperçu{% endblock %}
+{% block contenu %}
+<section style="max-width:900px; margin:40px auto; padding:0 20px;">
+    <h1 style="color:#003B8E; text-align:center;">🎓 Aperçu de ton certificat</h1>
+    <p style="text-align:center; color:#718096; margin-bottom:24px;">Vérifie que ton nom est correct avant de télécharger.</p>
+
+    <!-- Formulaire de correction du nom -->
+    <div style="background:white; border:1.5px solid #e2e8f0; border-radius:14px; padding:20px; margin-bottom:24px;">
+        <form method="POST">
+            {% csrf_token %}
+            <label style="font-weight:700; color:#003B8E; font-size:13px;">Nom complet à afficher sur le certificat</label>
+            <div style="display:flex; gap:10px; margin-top:8px;">
+                <input type="text" name="nom_affiche" value="{{ nom_actuel }}" style="flex:1; padding:12px; border:1.5px solid #e2e8f0; border-radius:8px;">
+                <button type="submit" style="padding:12px 24px; background:#003B8E; color:white; border:none; border-radius:8px; font-weight:700;">✏️ Corriger</button>
+            </div>
+            <p style="font-size:11px; color:#a0aec0; margin-top:6px;">Une correction régénère automatiquement le PDF (quelques secondes).</p>
+        </form>
+    </div>
+
+    <!-- Aperçu HTML fidèle au PDF (rendu iframe du template PDF) -->
+    <div style="background:#f8fafc; border-radius:16px; padding:20px; margin-bottom:24px; overflow-x:auto;">
+        <iframe src="{% url 'rendu_html_certificat_apercu' eligibilite.id %}" style="width:100%; height:500px; border:none; border-radius:10px; background:white;"></iframe>
+    </div>
+
+    <!-- Bouton téléchargement final -->
+    <div style="text-align:center;">
+        {% if certificat.fichier_pdf %}
+        <a href="{{ certificat.fichier_pdf.url }}" download style="display:inline-block; padding:16px 40px; background:linear-gradient(135deg,#FF6B35,#e85a2a); color:white; border-radius:12px; text-decoration:none; font-weight:800; font-size:16px;">
+            📥 Télécharger le certificat
+        </a>
+        {% else %}
+        <p style="color:#FF6B00; font-weight:700;">⏳ Génération en cours, actualise la page dans quelques secondes...</p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

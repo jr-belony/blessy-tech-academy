@@ -220,7 +220,10 @@ def verifier_certificat_public(request, uuid):
     Vérification publique renforcée — vérifie l'intégrité cryptographique + trace la consultation.
     URL : /certificat/<uuid:uuid>/
     """
-    certificat = Certificat.objects.select_related('utilisateur', 'formation').filter(uuid=uuid).first()
+    # ================================================
+    # CORRECTIF : préchargement formations_incluses
+    # ================================================
+    certificat = Certificat.objects.select_related('utilisateur', 'formation').prefetch_related('formations_incluses').filter(uuid=uuid).first()
 
     if not certificat:
         return render(request, 'academie/verifier_certificat.html', {
